@@ -31,6 +31,7 @@ import {
 } from '../services/orchestrator';
 import { buildSearchLog, buildResearchPrompt, simulatedReport } from '../services/research';
 import { AGENTS } from '../data/agents';
+import { uid } from '../utils/uid';
 import type {
   Directive,
   OllamaModel,
@@ -195,7 +196,7 @@ export default function CommandCenter() {
 
     const steps = buildPipeline(text);
     const directive: Directive = {
-      id: Date.now(),
+      id: uid(),
       text,
       issuedAt: new Date(),
       status: 'isleniyor',

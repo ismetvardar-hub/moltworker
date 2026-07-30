@@ -11,6 +11,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import { uid } from '../utils/uid';
 
 // ─── MINT dinamik borsa ───────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ export default function DazeVisionPage() {
   const sendGift = () => {
     const template = GIFT_MESSAGES[giftLog.length % GIFT_MESSAGES.length];
     const record: GiftRecord = {
-      id: Date.now(),
+      id: uid(),
       guest,
       gift,
       message: `Sayın ${guest.split(' ')[0]}, ${template.replace('{gift}', gift.replace(/\s\S+$/, '').toLowerCase())}`,

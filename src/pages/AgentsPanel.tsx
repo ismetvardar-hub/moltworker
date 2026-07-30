@@ -154,7 +154,7 @@ export default function AgentsPanel() {
               className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
                 isActive
                   ? 'border-lykia-500/50 bg-lykia-500/15 text-lykia-300'
-                  : 'border-obsidian-700 bg-obsidian-900 text-slate-400 hover:border-obsidian-700 hover:text-slate-200'
+                  : 'border-obsidian-700 bg-obsidian-900 text-slate-400 hover:border-slate-500/60 hover:text-slate-200'
               }`}
             >
               {d.shortName}
