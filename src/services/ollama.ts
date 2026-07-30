@@ -59,3 +59,57 @@ export function formatBytes(bytes: number): string {
 export function isModelInstalled(target: string, installed: OllamaModel[]): boolean {
   return installed.some((m) => m.name.toLowerCase().startsWith(target.toLowerCase()));
 }
+
+const SYSTEM_PROMPT =
+  'Sen OlymposPass Ekosistemi için çalışan LİKYA adlı otonom bir yazılım ajanısın. ' +
+  'CEO panelinden gelen talimatları yerine getirir, kod üretir ve kısa, teknik yanıtlar verirsin. ' +
+  'Kod bloklarını markdown biçiminde döndür.';
+
+/**
+ * Talimatı Ollama'ya gönderir ve yanıtı token token akıtır (POST /api/generate, NDJSON stream).
+ * Yanıt tamamlanana kadar her parça için string üretir; iptal için AbortSignal kullanılır.
+ */
+export async function* streamGenerate(
+  model: string,
+  prompt: string,
+  signal?: AbortSignal,
+): AsyncGenerator<string> {
+  const res = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, prompt, system: SYSTEM_PROMPT, stream: true }),
+    signal,
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Ollama isteği başarısız (HTTP ${res.status})${detail ? `: ${detail}` : ''}`);
+  }
+  if (!res.body) {
+    throw new Error('Ollama akış gövdesi boş döndü');
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // NDJSON: her satır ayrı bir JSON parçası.
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const chunk = JSON.parse(line) as { response?: string; done?: boolean; error?: string };
+        if (chunk.error) throw new Error(chunk.error);
+        if (chunk.response) yield chunk.response;
+        if (chunk.done) return;
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}

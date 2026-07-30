@@ -24,7 +24,9 @@ export interface Directive {
   id: number;
   text: string;
   issuedAt: Date;
-  status: 'kuyrukta' | 'isleniyor' | 'tamamlandi';
+  status: 'kuyrukta' | 'isleniyor' | 'tamamlandi' | 'hata';
+  /** Talimatı işleyen model; simülasyon modunda undefined. */
+  model?: string;
 }
 
 export type AgentState = 'aktif' | 'beklemede' | 'hata';

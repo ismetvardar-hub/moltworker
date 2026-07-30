@@ -6,7 +6,7 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 
 | Modül | Açıklama |
 |-------|----------|
-| **LİKYA CEO Komuta Merkezi** | Genel sistem durumu kartları ve otonom talimat gönderim ekranı |
+| **LİKYA CEO Komuta Merkezi** | Sistem durumu kartları + talimatları **gerçek Ollama modeline** gönderip yanıtı canlı akışla gösteren otonom talimat ekranı (Ollama kapalıysa simülasyon moduna düşer) |
 | **Yerel AI (Ollama Entegrasyonu)** | `http://localhost:11434` üzerindeki Ollama sunucusuyla haberleşir; modelleri (`deepseek-coder`, `qwen2.5`, `llama3`) listeler ve durum kontrolü yapar |
 | **IT & AI Ajanlar Paneli** | Kod üretim akışının daktilo efektiyle izlendiği canlı terminal ekranı |
 | **OlymposPass Yönetim Paneli** | Kullanıcı geçişleri, erişim yetkileri ve kart/kod doğrulama modülü |
@@ -35,6 +35,10 @@ ollama pull llama3
 ```
 
 Ollama çalışmıyorsa panel bunu "Çevrimdışı" olarak gösterir; uygulamanın geri kalanı normal çalışmaya devam eder.
+
+### Canlı AI Komuta Akışı
+
+Komuta Merkezi'ndeki talimatlar, Ollama çevrimiçiyse seçili modele `POST /api/generate` (stream) ile gönderilir ve yanıt token token "AI Yanıtı" terminaline yazılır. Akış sırasında **Durdur** düğmesiyle üretim iptal edilebilir. Model seçici, sunucuda yüklü modelleri otomatik listeler ve varsayılan olarak hedef modellerden ilk yüklü olanı seçer.
 
 ## Komutlar
 
