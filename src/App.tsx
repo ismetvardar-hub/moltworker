@@ -4,6 +4,9 @@ import CommandCenter from './pages/CommandCenter';
 import OllamaPanel from './pages/OllamaPanel';
 import AgentsPanel from './pages/AgentsPanel';
 import OlymposPassPanel from './pages/OlymposPassPanel';
+import DazeChefPage from './pages/DazeChefPage';
+import DazeCrewPage from './pages/DazeCrewPage';
+import DazeVisionPage from './pages/DazeVisionPage';
 import type { PageId } from './types';
 
 const PAGES: Record<PageId, () => React.JSX.Element> = {
@@ -11,6 +14,9 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   ollama: OllamaPanel,
   ajanlar: AgentsPanel,
   olympospass: OlymposPassPanel,
+  chef: DazeChefPage,
+  crew: DazeCrewPage,
+  vision: DazeVisionPage,
 };
 
 function pageFromHash(): PageId {

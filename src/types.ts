@@ -1,4 +1,11 @@
-export type PageId = 'komuta' | 'ollama' | 'ajanlar' | 'olympospass';
+export type PageId =
+  | 'komuta'
+  | 'ollama'
+  | 'ajanlar'
+  | 'olympospass'
+  | 'chef'
+  | 'crew'
+  | 'vision';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';
 

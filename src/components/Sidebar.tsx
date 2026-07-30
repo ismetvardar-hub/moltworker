@@ -1,4 +1,13 @@
-import { Bot, Cpu, LayoutDashboard, Mountain, Ticket } from 'lucide-react';
+import {
+  Bot,
+  ChefHat,
+  Cpu,
+  HeartHandshake,
+  LayoutDashboard,
+  Mountain,
+  Ticket,
+  Users,
+} from 'lucide-react';
 import type { PageId } from '../types';
 
 interface SidebarProps {
@@ -30,6 +39,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'OlymposPass Yönetimi',
     description: 'Geçişler & doğrulama',
     icon: Ticket,
+  },
+  {
+    id: 'chef',
+    label: 'Daze Chef',
+    description: 'Mutfak paneli & 2 dk kuralı',
+    icon: ChefHat,
+  },
+  {
+    id: 'crew',
+    label: 'Daze Crew',
+    description: 'Personel portalı & kazanç',
+    icon: Users,
+  },
+  {
+    id: 'vision',
+    label: 'Daze Vision',
+    description: 'Müşteri portalı & borsa',
+    icon: HeartHandshake,
   },
 ];
 

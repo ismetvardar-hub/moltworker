@@ -10,6 +10,9 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 | **Yerel AI (Ollama Entegrasyonu)** | `http://localhost:11434` üzerindeki Ollama sunucusuyla haberleşir; modelleri (`deepseek-coder`, `qwen2.5`, `llama3`) listeler ve durum kontrolü yapar |
 | **IT & AI Ajanlar Paneli** | LİKYA Holding otonom filosu: 28 uzman ajan, 9 stratejik departman; seçilen departmanın ajan kadrosu ve canlı üretim akışı daktilo efektiyle izlenir |
 | **OlymposPass Yönetim Paneli** | Kullanıcı geçişleri, erişim yetkileri ve kart/kod doğrulama modülü |
+| **Daze Chef (Mutfak Paneli)** | 120 sn teslim geri sayımı (2 dk kuralı → termal koruma), reçete hazırlama adımları ve HEPHAESTUS canlı stok düşüş terminali |
+| **Daze Crew (Personel Portalı)** | Saatlik kazanç hesaplayıcı (taban + performans primi), canlı görev listesi ve DAZE-CREW/SOCRATES performans-centilmenlik puanlama kartları |
+| **Daze Vision (Müşteri Portalı)** | MINT dinamik borsa fiyat grafikleri (canlı sparkline), Daze-Gift ikram simülatörü (ETHOS onaylı mesajlar) ve DAZE-VISION Yaşam Koçu modülü |
 
 ## Kurulum
 
