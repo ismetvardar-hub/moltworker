@@ -27,17 +27,29 @@ export interface Directive {
   status: 'kuyrukta' | 'isleniyor' | 'tamamlandi' | 'hata';
   /** Talimatı işleyen model; simülasyon modunda undefined. */
   model?: string;
+  /** LİKYA-1'in bu talimat için yaptığı ajan görev dağılımı. */
+  assignments?: Assignment[];
 }
 
 export type AgentState = 'aktif' | 'beklemede' | 'hata';
+
+export type DepartmentId = 'core-it' | 'creative' | 'global-ops';
 
 export interface Agent {
   id: string;
   name: string;
   role: string;
-  model: string;
+  /** Ajanın kullandığı motor: yerel model veya harici API. */
+  engine: string;
+  department: DepartmentId;
   state: AgentState;
   task: string;
+}
+
+export interface Assignment {
+  agentId: string;
+  agentName: string;
+  subtask: string;
 }
 
 export type PassTier = 'Platin' | 'Altın' | 'Gümüş' | 'Standart';

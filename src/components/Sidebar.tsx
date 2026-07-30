@@ -22,7 +22,7 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   {
     id: 'ajanlar',
     label: 'IT & AI Ajanlar',
-    description: 'Canlı kod üretim akışı',
+    description: '12 ajan · 3 departman',
     icon: Bot,
   },
   {
