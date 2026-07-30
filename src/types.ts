@@ -61,6 +61,16 @@ export interface Assignment {
   subtask: string;
 }
 
+export type PipelineStepStatus = 'bekliyor' | 'calisiyor' | 'tamamlandi' | 'hata';
+
+/** Zincirleme akışta tek bir ajan adımı; çıktı bir sonraki adıma girdi olur. */
+export interface PipelineStep {
+  assignment: Assignment;
+  engine: string;
+  status: PipelineStepStatus;
+  output: string;
+}
+
 export type PassTier = 'Platin' | 'Altın' | 'Gümüş' | 'Standart';
 
 export interface PassHolder {

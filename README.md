@@ -46,6 +46,20 @@ Her talimat, gönderildiği anda LİKYA-1'in anahtar kelime tabanlı dağıtım 
 
 **Master Kural:** ETHOS (Ahlak & Nezaket Muhafızı), her dağıtıma otomatik eklenir ve tüm çıktıların "Centilmenlik, Naiflik ve Esprili Üslup" ilkelerine uymasını denetler. Dağıtım mantığı `src/services/orchestrator.ts`, ajan kadrosu `src/data/agents.ts` dosyasındadır.
 
+### Ajanlar Arası Üretim Zinciri (Task Chaining)
+
+Dağıtım artık sıralı bir **üretim zinciri** olarak çalışır: her ajanın çıktısı bir sonraki ajana girdi olarak devredilir. Örneğin *"OlymposPass için Almanca lansman metni hazırla"* talimatı şu zinciri kurar:
+
+1. **KALYPSO** (llama3) — Türkçe lansman metnini üretir
+2. **BABEL** (qwen2.5) — metni kültürel bağlamı koruyarak Almancaya çevirir
+3. **ETHOS** (llama3) — Master Kural denetimi yapıp "ONAY ✓" verir
+
+Zincir, Komuta Merkezi'ndeki **"Ajanlar Arası Üretim Zinciri"** kartında adım adım canlı akar; hangi ajanın ne zaman çıktı üretip devrettiği izlenebilir. Zincir sıralaması: istihbarat (HERODOT) → üreticiler → dönüştürücüler (BABEL) → denetçiler (ETHOS).
+
+### HERODOT — Otonom Web Araştırma Modülü
+
+Araştırma içeren talimatlar (örn. *"Avrupa'daki turnikesiz geçiş sistemlerini incele"*) HERODOT'a yönlendirilir. HERODOT önce kaynak kaynak akan bir web taraması günlüğü üretir, ardından bulguları **analist raporu** formatında (Öne Çıkan Bulgular · Riskler & Fırsatlar · LİKYA-1 için Öneriler) özetler. Ollama çevrimiçiyse rapor gerçek modele yazdırılır. Modül: `src/services/research.ts`.
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
+  AlertTriangle,
   Bot,
+  CheckCircle2,
+  ChevronDown,
+  Circle,
   Cpu,
+  Loader2,
   Send,
   ShieldCheck,
   Square,
-  Terminal,
   Ticket,
-  Zap,
+  Workflow,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import StatusBadge from '../components/StatusBadge';
@@ -17,11 +21,23 @@ import {
   checkOllamaStatus,
   isModelInstalled,
   listOllamaModels,
+  resolveModel,
   streamGenerate,
 } from '../services/ollama';
-import { routeDirective } from '../services/orchestrator';
+import {
+  buildPipeline,
+  buildStepPrompt,
+  simulatedStepOutput,
+} from '../services/orchestrator';
+import { buildSearchLog, buildResearchPrompt, simulatedReport } from '../services/research';
 import { AGENTS } from '../data/agents';
-import type { Directive, OllamaModel, SystemHealth } from '../types';
+import type {
+  Directive,
+  OllamaModel,
+  PipelineStep,
+  PipelineStepStatus,
+  SystemHealth,
+} from '../types';
 
 interface SystemCard {
   title: string;
@@ -47,17 +63,81 @@ const STATUS_LABEL: Record<Directive['status'], { label: string; cls: string }> 
   hata: { label: 'Hata', cls: 'bg-rose-500/15 text-rose-300' },
 };
 
-const SIMULATION_RESPONSE = [
-  '// Simülasyon modu — Ollama sunucusuna ulaşılamadı.',
-  '// Gerçek AI yanıtı için MacBook üzerinde şunu çalıştırın:',
-  '//   OLLAMA_ORIGINS=* ollama serve',
-  '',
-  'Talimat kuyruğa alındı ve ajan filosuna iletildi.',
-].join('\n');
-
 function formatTime(d: Date): string {
   return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function chunked(text: string, size: number): string[] {
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += size) chunks.push(text.slice(i, i + size));
+  return chunks;
+}
+
+// ─── Zincir adımı görünümü ────────────────────────────────────────────
+
+const STEP_ICON: Record<PipelineStepStatus, () => React.JSX.Element> = {
+  bekliyor: () => <Circle className="size-4 text-slate-600" />,
+  calisiyor: () => <Loader2 className="size-4 animate-spin text-amber-300" />,
+  tamamlandi: () => <CheckCircle2 className="size-4 text-emerald-400" />,
+  hata: () => <AlertTriangle className="size-4 text-rose-400" />,
+};
+
+function PipelineStepView({ step, index }: { step: PipelineStep; index: number }) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const isEthos = step.assignment.agentId === 'ethos';
+
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
+  }, [step.output]);
+
+  return (
+    <li
+      className={`rounded-xl border ${
+        step.status === 'calisiyor'
+          ? 'border-lykia-500/40 bg-lykia-500/5'
+          : 'border-obsidian-700 bg-obsidian-950/60'
+      }`}
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="font-mono text-[11px] text-slate-600">{index + 1}.</span>
+        {STEP_ICON[step.status]()}
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            {step.assignment.agentName}
+            {isEthos && <ShieldCheck className="size-3.5 text-lykia-400" />}
+          </p>
+          <p className="truncate text-[11px] text-slate-500">
+            {step.assignment.subtask}
+            <span className="font-mono"> · {step.engine}</span>
+          </p>
+        </div>
+        {index > 0 && step.status !== 'bekliyor' && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-slate-600">
+            <ChevronDown className="size-3" />
+            devraldı
+          </span>
+        )}
+      </div>
+      {step.output && (
+        <div
+          ref={bodyRef}
+          className="max-h-44 overflow-y-auto whitespace-pre-wrap border-t border-obsidian-700/60 px-4 py-3 font-mono text-xs leading-5 text-emerald-200/90"
+        >
+          {step.output}
+          {step.status === 'calisiyor' && (
+            <span className="cursor-blink ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 bg-lykia-400" />
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+// ─── Komuta Merkezi ───────────────────────────────────────────────────
 
 export default function CommandCenter() {
   const [directives, setDirectives] = useState<Directive[]>(INITIAL_DIRECTIVES);
@@ -65,10 +145,10 @@ export default function CommandCenter() {
   const [aiOnline, setAiOnline] = useState<boolean | null>(null);
   const [installed, setInstalled] = useState<OllamaModel[]>([]);
   const [model, setModel] = useState<string>(TARGET_MODELS[0]);
-  const [output, setOutput] = useState('');
+  const [pipeline, setPipeline] = useState<PipelineStep[]>([]);
+  const [pipelineTitle, setPipelineTitle] = useState('');
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +161,6 @@ export default function CommandCenter() {
           const models = await listOllamaModels();
           if (cancelled) return;
           setInstalled(models);
-          // Varsayılan model: hedef listeden yüklü olan ilk model.
           const available = TARGET_MODELS.find((t) => isModelInstalled(t, models));
           const exactName = models.find((m) =>
             m.name.toLowerCase().startsWith((available ?? '').toLowerCase()),
@@ -98,13 +177,12 @@ export default function CommandCenter() {
     };
   }, []);
 
-  // Akış sırasında çıktı panelini en alta kaydır.
-  useEffect(() => {
-    outputRef.current?.scrollTo({ top: outputRef.current.scrollHeight });
-  }, [output]);
-
   const updateDirective = (id: number, patch: Partial<Directive>) => {
     setDirectives((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+  };
+
+  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
+    setPipeline((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
   };
 
   const stopStreaming = useCallback(() => {
@@ -115,44 +193,93 @@ export default function CommandCenter() {
     const text = draft.trim();
     if (!text || streaming) return;
 
+    const steps = buildPipeline(text);
     const directive: Directive = {
       id: Date.now(),
       text,
       issuedAt: new Date(),
-      status: 'kuyrukta',
+      status: 'isleniyor',
       model: aiOnline ? model : undefined,
-      assignments: routeDirective(text),
+      assignments: steps.map((s) => s.assignment),
     };
     setDirectives((prev) => [directive, ...prev]);
     setDraft('');
-
-    if (!aiOnline) {
-      // Ollama yoksa simülasyon modu: yaşam döngüsü zamanlayıcıyla ilerler.
-      setOutput(SIMULATION_RESPONSE);
-      setTimeout(() => updateDirective(directive.id, { status: 'isleniyor' }), 1200);
-      setTimeout(() => updateDirective(directive.id, { status: 'tamamlandi' }), 5000);
-      return;
-    }
-
-    // Gerçek AI akışı.
+    setPipeline(steps);
+    setPipelineTitle(text);
     setStreaming(true);
-    setOutput('');
-    updateDirective(directive.id, { status: 'isleniyor' });
+
     const controller = new AbortController();
     abortRef.current = controller;
+    let previous = '';
 
     try {
-      for await (const token of streamGenerate(model, text, controller.signal)) {
-        setOutput((prev) => prev + token);
+      for (let i = 0; i < steps.length; i++) {
+        if (controller.signal.aborted) break;
+        updateStep(i, { status: 'calisiyor' });
+        const agentId = steps[i].assignment.agentId;
+        let stepOut = '';
+        const append = (t: string) => {
+          stepOut += t;
+          updateStep(i, { output: stepOut });
+        };
+
+        // HERODOT: önce otonom web taraması günlüğü akar.
+        if (agentId === 'herodot') {
+          for (const line of buildSearchLog(text)) {
+            if (controller.signal.aborted) break;
+            append(line + '\n');
+            await sleep(280);
+          }
+          append('\n');
+        }
+
+        if (controller.signal.aborted) {
+          updateStep(i, { status: 'tamamlandi' });
+          break;
+        }
+
+        if (aiOnline) {
+          const prompt =
+            agentId === 'herodot'
+              ? buildResearchPrompt(text, stepOut)
+              : buildStepPrompt(steps[i], text, previous);
+          const stepModel = resolveModel(steps[i].engine, installed, model);
+          for await (const token of streamGenerate(stepModel, prompt, controller.signal)) {
+            append(token);
+          }
+        } else {
+          const sim =
+            agentId === 'herodot' ? simulatedReport(text) : simulatedStepOutput(agentId, text);
+          for (const part of chunked(sim, 18)) {
+            if (controller.signal.aborted) break;
+            append(part);
+            await sleep(28);
+          }
+        }
+
+        updateStep(i, { status: 'tamamlandi' });
+        previous = stepOut;
       }
       updateDirective(directive.id, { status: 'tamamlandi' });
     } catch (err) {
       if (controller.signal.aborted) {
-        setOutput((prev) => `${prev}\n\n[Akış kullanıcı tarafından durduruldu]`);
+        setPipeline((prev) =>
+          prev.map((s) =>
+            s.status === 'calisiyor'
+              ? { ...s, status: 'tamamlandi', output: `${s.output}\n\n[Akış durduruldu]` }
+              : s,
+          ),
+        );
         updateDirective(directive.id, { status: 'tamamlandi' });
       } else {
         const message = err instanceof Error ? err.message : 'Bilinmeyen hata';
-        setOutput((prev) => `${prev}\n\n[HATA] ${message}`);
+        setPipeline((prev) =>
+          prev.map((s) =>
+            s.status === 'calisiyor'
+              ? { ...s, status: 'hata', output: `${s.output}\n\n[HATA] ${message}` }
+              : s,
+          ),
+        );
         updateDirective(directive.id, { status: 'hata' });
       }
     } finally {
@@ -162,6 +289,7 @@ export default function CommandCenter() {
   };
 
   const aiHealth: SystemHealth = aiOnline === null ? 'unknown' : aiOnline ? 'online' : 'offline';
+  const completedSteps = pipeline.filter((s) => s.status === 'tamamlandi').length;
 
   const systemCards: SystemCard[] = [
     {
@@ -194,8 +322,7 @@ export default function CommandCenter() {
     },
   ];
 
-  const modelOptions =
-    installed.length > 0 ? installed.map((m) => m.name) : [...TARGET_MODELS];
+  const modelOptions = installed.length > 0 ? installed.map((m) => m.name) : [...TARGET_MODELS];
 
   return (
     <div className="space-y-6">
@@ -230,13 +357,13 @@ export default function CommandCenter() {
           title="Otonom Talimat Ekranı"
           subtitle={
             aiOnline
-              ? 'Talimatlar yerel Ollama modeline gönderilir'
-              : 'Ollama çevrimdışı — talimatlar simülasyon modunda işlenir'
+              ? 'Talimat LİKYA-1 tarafından bölünür, zincir yerel modellerle çalışır'
+              : 'Ollama çevrimdışı — zincir simülasyon modunda çalışır'
           }
         >
           <div className="mb-3 flex items-center gap-2">
             <label className="text-xs font-medium text-slate-400" htmlFor="model-select">
-              Model:
+              Varsayılan model:
             </label>
             <select
               id="model-select"
@@ -264,7 +391,7 @@ export default function CommandCenter() {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void issueDirective();
             }}
             rows={4}
-            placeholder="Örn: OlymposPass için yeni bir Python yetkilendirme fonksiyonu yaz…"
+            placeholder="Örn: OlymposPass için Almanca lansman metni hazırla…"
             className="w-full resize-none rounded-xl border border-obsidian-700 bg-obsidian-950 p-4 text-sm text-slate-200 placeholder:text-slate-600 focus:border-lykia-500 focus:outline-none"
           />
           <div className="mt-3 flex items-center gap-2">
@@ -275,7 +402,7 @@ export default function CommandCenter() {
               className="inline-flex items-center gap-2 rounded-xl bg-lykia-500 px-4 py-2.5 text-sm font-semibold text-obsidian-950 transition hover:bg-lykia-400 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="size-4" />
-              {streaming ? 'Üretiliyor…' : 'Talimatı Gönder'}
+              {streaming ? 'Zincir Çalışıyor…' : 'Talimatı Gönder'}
             </button>
             {streaming && (
               <button
@@ -321,15 +448,15 @@ export default function CommandCenter() {
                     {d.assignments && d.assignments.length > 0 && (
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                          LİKYA-1 dağıtımı:
+                          LİKYA-1 zinciri:
                         </span>
-                        {d.assignments.map((a) => (
+                        {d.assignments.map((a, i) => (
                           <span
                             key={a.agentId}
                             title={a.subtask}
                             className="rounded-full bg-lykia-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-lykia-300"
                           >
-                            {a.agentName}
+                            {i + 1}·{a.agentName}
                           </span>
                         ))}
                       </div>
@@ -342,42 +469,41 @@ export default function CommandCenter() {
         </PanelCard>
 
         <PanelCard
-          title="AI Yanıtı"
-          subtitle="Modelin ürettiği yanıt gerçek zamanlı akar"
+          title="Ajanlar Arası Üretim Zinciri"
+          subtitle="Her ajanın çıktısı bir sonraki ajana girdi olarak devredilir"
           actions={
             streaming ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
                 <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
-                ÜRETİLİYOR
+                ZİNCİR ÇALIŞIYOR
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-obsidian-800 px-3 py-1 text-xs font-medium text-slate-400">
-                <Zap className="size-3.5" />
-                HAZIR
+                <Workflow className="size-3.5" />
+                {pipeline.length > 0 ? `${completedSteps}/${pipeline.length} adım` : 'HAZIR'}
               </span>
             )
           }
         >
-          <div className="flex h-120 flex-col overflow-hidden rounded-xl border border-obsidian-700 bg-black/60">
-            <div className="flex items-center gap-2 border-b border-obsidian-700 bg-obsidian-900 px-4 py-2.5">
-              <Terminal className="size-4 text-lykia-400" />
-              <span className="font-mono text-xs text-slate-400">
-                likya-ai — {aiOnline ? model : 'simülasyon'}
-              </span>
+          {pipeline.length === 0 ? (
+            <div className="flex h-100 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-obsidian-700 text-center">
+              <Workflow className="size-8 text-slate-700" />
+              <p className="max-w-60 text-sm text-slate-500">
+                Bir talimat gönderin; LİKYA-1 zinciri kurup ajanları sırayla çalıştırsın.
+              </p>
             </div>
-            <div
-              ref={outputRef}
-              className="flex-1 overflow-y-auto whitespace-pre-wrap p-4 font-mono text-[13px] leading-6 text-emerald-200/90"
-            >
-              {output ||
-                (streaming
-                  ? 'Model düşünüyor…'
-                  : 'Henüz yanıt yok. Soldaki ekrandan bir talimat gönderin.')}
-              {streaming && (
-                <span className="cursor-blink ml-0.5 inline-block h-4 w-2 translate-y-0.5 bg-lykia-400" />
-              )}
-            </div>
-          </div>
+          ) : (
+            <>
+              <p className="mb-3 truncate rounded-lg bg-obsidian-950/60 px-3 py-2 font-mono text-[11px] text-slate-500">
+                Talimat: {pipelineTitle}
+              </p>
+              <ul className="max-h-120 space-y-2.5 overflow-y-auto pr-1">
+                {pipeline.map((step, i) => (
+                  <PipelineStepView key={`${step.assignment.agentId}-${i}`} step={step} index={i} />
+                ))}
+              </ul>
+            </>
+          )}
         </PanelCard>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { AGENTS } from '../data/agents';
-import type { Assignment } from '../types';
+import type { Assignment, PipelineStep } from '../types';
 
 interface RoutingRule {
   agentId: string;
@@ -151,8 +151,8 @@ const ROUTING_RULES: RoutingRule[] = [
   // AR-GE & Pazar İstihbaratı
   {
     agentId: 'herodot',
-    keywords: ['rakip', 'pazar araştırma', 'istihbarat', 'trend tara', 'pazar analizi'],
-    subtask: 'Pazar ve rakip istihbaratı',
+    keywords: ['rakip', 'pazar araştırma', 'istihbarat', 'trend tara', 'pazar analizi', 'incele', 'araştır', 'tara'],
+    subtask: 'Otonom web araştırması ve istihbarat raporu',
   },
   {
     agentId: 'odysseus',
@@ -203,4 +203,98 @@ export function routeDirective(directive: string): Assignment[] {
   }
 
   return assignments;
+}
+
+// ─── Zincirleme Görev Akışı (Task Chaining Pipeline) ─────────────────
+
+/**
+ * Zincir sıralaması: üreticiler önce çalışır, dönüştürücüler (çeviri vb.)
+ * ortada, ETHOS Master Kural denetimi her zaman zincirin sonundadır.
+ */
+const CHAIN_STAGE: Record<string, number> = {
+  herodot: 5, // istihbarat önce toplanır ki üreticiler ondan beslenebilsin
+  babel: 50,
+  chimera: 60,
+  valkyrie: 60,
+  ethos: 99,
+};
+
+/**
+ * LİKYA-1: talimatın dağılımını sıralı bir üretim zincirine dönüştürür.
+ * Her adımın çıktısı bir sonraki adıma girdi olarak aktarılır.
+ */
+export function buildPipeline(directive: string): PipelineStep[] {
+  return routeDirective(directive)
+    .map((assignment) => ({
+      assignment,
+      engine: AGENTS.find((a) => a.id === assignment.agentId)?.engine ?? 'llama3',
+      status: 'bekliyor' as const,
+      output: '',
+    }))
+    .sort(
+      (a, b) =>
+        (CHAIN_STAGE[a.assignment.agentId] ?? 10) - (CHAIN_STAGE[b.assignment.agentId] ?? 10),
+    );
+}
+
+/** Ajan bazlı adım talimatları: modele o adımda ne yapacağını söyler. */
+const STEP_INSTRUCTIONS: Record<string, string> = {
+  kalypso:
+    'Marka dilimize uygun (centilmen, naif ve zarif esprili) Türkçe içerik üret. Kısa ve etkili yaz.',
+  babel:
+    'Önceki ajandan gelen içeriği, talimatta belirtilen hedef dile kültürel bağlamı koruyarak çevir. Dil belirtilmemişse İngilizceye çevir. Sadece çeviriyi ve kısa bir çevirmen notunu döndür.',
+  ethos:
+    'Önceki içeriği Master Kural olan "Centilmenlik, Naiflik ve Esprili Üslup" kriterlerine göre denetle. 2-3 cümlelik denetim raporu yaz; uygunsa raporu "ONAY ✓" ile bitir, değilse nazikçe düzeltme öner.',
+  arte: 'İstenen görsel için ayrıntılı bir görüntü üretim promptu (İngilizce) ve kısa Türkçe konsept açıklaması hazırla.',
+  prometheus: 'İstenen video için sahne sahne kurgu planı ve senaryo taslağı hazırla.',
+  atlas: 'İstenen backend/API görevini kod örneğiyle birlikte yerine getir.',
+  themis: 'İstenen hukuki metnin madde madde taslağını hazırla.',
+  herodot:
+    'Aşağıdaki web taraması bulgularını analist raporu formatında özetle: Bulgular, Riskler/Fırsatlar ve LİKYA-1 için Öneriler bölümleri olsun.',
+};
+
+/** Zincirdeki bir adım için modele gidecek promptu üretir. */
+export function buildStepPrompt(
+  step: PipelineStep,
+  directive: string,
+  previousOutput: string,
+): string {
+  const agent = AGENTS.find((a) => a.id === step.assignment.agentId);
+  const instruction =
+    STEP_INSTRUCTIONS[step.assignment.agentId] ??
+    `Rolüne uygun şekilde şu alt görevi yerine getir: ${step.assignment.subtask}.`;
+
+  const parts = [
+    `Sen ${agent?.name ?? step.assignment.agentName} adlı ajansın (${agent?.role ?? ''}).`,
+    instruction,
+    `CEO talimatı: "${directive}"`,
+  ];
+  if (previousOutput.trim()) {
+    parts.push(`Önceki ajandan devraldığın çıktı:\n---\n${previousOutput.trim()}\n---`);
+  }
+  return parts.join('\n\n');
+}
+
+/** Ollama çevrimdışıyken zincirin adım adım çalıştığını gösteren simülasyon çıktıları. */
+const SIMULATED_OUTPUTS: Record<string, (directive: string) => string> = {
+  kalypso: () =>
+    'Taslak metin: "Likya\'nın kapıları tek bir zarif dokunuşla açılır. OlymposPass — ' +
+    'cebinizde taşıdığınız küçük bir anahtar, ama açtığı kapılar kocaman. ' +
+    'Kuyruklar mı? Onları tarih kitaplarına havale ettik."',
+  babel: () =>
+    'Übersetzung (DE): "Die Tore Lykiens öffnen sich mit einer einzigen eleganten Berührung. ' +
+    'OlymposPass — ein kleiner Schlüssel in Ihrer Tasche, der große Türen öffnet. ' +
+    'Warteschlangen? Die haben wir den Geschichtsbüchern überlassen."\n\n' +
+    'Çevirmen notu: Espri kültürel bağlama uyarlandı.',
+  ethos: () =>
+    'ETHOS Denetim Raporu: Metin sade ve naif; espri zarif, kimseyi kırmıyor. ' +
+    'Centilmenlik kriterleri tam puan. ONAY ✓',
+  arte: (d) =>
+    `Görsel prompt: "elegant minimalist poster, turquoise Lycian coast, golden pass card, soft morning light" — Konsept: ${d.slice(0, 60)}…`,
+  atlas: () => '// Örnek uç nokta taslağı hazırlandı: POST /api/pass/verify (bkz. API şeması)',
+  default: (d) => `Alt görev tamamlandı: "${d.slice(0, 80)}" için çıktı üretildi ve zincire devredildi.`,
+};
+
+export function simulatedStepOutput(agentId: string, directive: string): string {
+  return (SIMULATED_OUTPUTS[agentId] ?? SIMULATED_OUTPUTS.default)(directive);
 }

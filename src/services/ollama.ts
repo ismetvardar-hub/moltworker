@@ -60,6 +60,21 @@ export function isModelInstalled(target: string, installed: OllamaModel[]): bool
   return installed.some((m) => m.name.toLowerCase().startsWith(target.toLowerCase()));
 }
 
+/**
+ * Ajan motorunu yüklü bir Ollama modeline çözümler.
+ * Önce tam ön ek (örn. "qwen2.5:32b"), sonra taban ad (örn. "qwen2.5") denenir;
+ * eşleşme yoksa (örn. "Midjourney / Flux" gibi harici motorlar) fallback döner.
+ */
+export function resolveModel(engine: string, installed: OllamaModel[], fallback: string): string {
+  const lower = engine.toLowerCase();
+  const exact = installed.find((m) => m.name.toLowerCase().startsWith(lower));
+  if (exact) return exact.name;
+  const base = lower.split(':')[0];
+  const baseMatch = installed.find((m) => m.name.toLowerCase().startsWith(base));
+  if (baseMatch) return baseMatch.name;
+  return fallback;
+}
+
 const SYSTEM_PROMPT =
   'Sen OlymposPass Ekosistemi için çalışan LİKYA adlı otonom bir yazılım ajanısın. ' +
   'CEO panelinden gelen talimatları yerine getirir, kod üretir ve kısa, teknik yanıtlar verirsin. ' +
