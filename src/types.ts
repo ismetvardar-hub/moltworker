@@ -33,7 +33,16 @@ export interface Directive {
 
 export type AgentState = 'aktif' | 'beklemede' | 'hata';
 
-export type DepartmentId = 'core-it' | 'creative' | 'global-ops';
+export type DepartmentId =
+  | 'executive'
+  | 'tech'
+  | 'supply'
+  | 'legal'
+  | 'sales'
+  | 'creative'
+  | 'hr'
+  | 'finance'
+  | 'rnd';
 
 export interface Agent {
   id: string;

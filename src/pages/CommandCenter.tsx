@@ -174,7 +174,7 @@ export default function CommandCenter() {
     {
       title: 'AI Ajan Filosu',
       value: `${AGENTS.length} ajan`,
-      detail: '3 departman · LİKYA-1 orkestrasyonu',
+      detail: '9 departman · LİKYA-1 orkestrasyonu',
       health: 'online',
       icon: Bot,
     },
