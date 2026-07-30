@@ -259,3 +259,15 @@ R2 is mounted via s3fs at `/data/moltbot`. Important gotchas:
 - **Process status**: The sandbox API's `proc.status` may not update immediately after a process completes. Instead of checking `proc.status === 'completed'`, verify success by checking for expected output (e.g., timestamp file exists after sync).
 
 - **R2 prefix migration**: Backups are now stored under `openclaw/` prefix in R2 (was `clawdbot/`). The startup script handles restoring from both old and new prefixes with automatic migration.
+
+---
+
+## Cursor Cloud specific instructions
+
+Dependencies are refreshed automatically on VM startup (`npm install`). The core dev loop — `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` (see `package.json`) — runs with no external services or secrets.
+
+- **Running the app locally without Docker.** `npm run dev` (vite) and `npm run start` (`wrangler dev`) both try to build the Sandbox **container image at startup and fail hard if Docker is not installed/running** (Docker is not available in the Cursor Cloud VM). To run the Worker + admin UI without Docker, start it with containers disabled: `npx wrangler dev --enable-containers=false --port 8787 --ip 127.0.0.1`. This requires `npm run build` to have run first (it serves the built assets from `dist/client`). Do not edit `wrangler.jsonc`/`vite.config.ts` to disable containers — use the CLI flag.
+- **What works without a container:** the Worker boots and serves `GET /sandbox-health`, `GET /api/status`, the R2 status endpoint `GET /api/admin/storage`, and the React admin SPA at `/_admin/`. Endpoints that talk to the OpenClaw gateway (`/api/admin/devices`, `/debug/version`, the `*` proxy) return a "Containers have not been enabled for this Durable Object class" error — this is expected when running with `--enable-containers=false`, not a bug.
+- **`.dev.vars` is required for local runs** and is gitignored. Minimal local config: `DEV_MODE=true` (skips CF Access auth + device pairing), `DEBUG_ROUTES=true`, `MOLTBOT_GATEWAY_TOKEN=dev-token-change-in-prod`. See `.dev.vars.example`.
+- **Full assistant / device-pairing end-to-end is not reproducible in this VM.** It needs Docker + Cloudflare Containers enabled on a paid account + an AI provider secret (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or the CF AI Gateway trio), and — per the README — WebSocket proxying only works fully when **deployed** to Cloudflare (`wrangler dev` has known local WS limitations). Treat the container/gateway flow as deploy-only.
+- **`npm run format:check` currently fails on a clean checkout** because the installed `oxfmt` (semver `^0.28.0`) formats a few `src/` files differently than what is committed. This is pre-existing version drift, not something introduced by your changes — don't "fix" it by reformatting unrelated files unless that is the task.
