@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian-950: #07090d;
+  --color-obsidian-900: #0c0f16;
+  --color-obsidian-800: #131824;
+  --color-obsidian-700: #1c2333;
+  --color-lykia-300: #ffd98a;
+  --color-lykia-400: #f5b942;
+  --color-lykia-500: #e8a020;
+  --color-lykia-600: #c47f0e;
+  --font-display: "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-obsidian-950);
+  color: #e6e9f0;
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3348;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4560;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 160, 32, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px rgba(232, 160, 32, 0.18);
+  }
+}
+
+.glow-pulse {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}

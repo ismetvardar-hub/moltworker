@@ -1,14 +1,11 @@
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
-import { cloudflare } from "@cloudflare/vite-plugin"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	base: "/_admin/",
-	plugins: [
-		react(),
-		cloudflare({
-			configPath: "./wrangler.jsonc",
-			persistState: false,
-		}),
-	],
-})
+  plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173,
+    host: true,
+  },
+});
