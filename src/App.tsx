@@ -74,6 +74,21 @@ import PassstockPage from './pages/PassstockPage';
 import KdsPage from './pages/KdsPage';
 import EmergencyPage from './pages/EmergencyPage';
 import DigestPage from './pages/DigestPage';
+import LockersPage from './pages/LockersPage';
+import KidsclubPage from './pages/KidsclubPage';
+import BeachbedsPage from './pages/BeachbedsPage';
+import TransfersPage from './pages/TransfersPage';
+import BadgeprintPage from './pages/BadgeprintPage';
+import MeetingroomsPage from './pages/MeetingroomsPage';
+import MediakitPage from './pages/MediakitPage';
+import SustainPage from './pages/SustainPage';
+import AllergensPage from './pages/AllergensPage';
+import WinecellarPage from './pages/WinecellarPage';
+import LoungePage from './pages/LoungePage';
+import ShuttlePage from './pages/ShuttlePage';
+import PartnersPage from './pages/PartnersPage';
+import MysteryshopPage from './pages/MysteryshopPage';
+import BoardpackPage from './pages/BoardpackPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -131,6 +146,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   training: TrainingPage,
   readiness: ReadinessPage,
   digest: DigestPage,
+  boardpack: BoardpackPage,
+  mysteryshop: MysteryshopPage,
+  partners: PartnersPage,
+  shuttle: ShuttlePage,
+  lounge: LoungePage,
+  winecellar: WinecellarPage,
+  allergens: AllergensPage,
+  sustain: SustainPage,
+  mediakit: MediakitPage,
+  meetingrooms: MeetingroomsPage,
+  badgeprint: BadgeprintPage,
+  transfers: TransfersPage,
+  beachbeds: BeachbedsPage,
+  kidsclub: KidsclubPage,
+  lockers: LockersPage,
   emergency: EmergencyPage,
   kds: KdsPage,
   passstock: PassstockPage,

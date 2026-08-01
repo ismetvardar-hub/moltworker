@@ -324,6 +324,13 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **74** | Acil rehber |
 | **75** | CEO Digest checkpoint |
 
+### Misafir deneyimi · Board Pack (AŞAMA 76–90)
+
+| Aşama | Özellik |
+|-------|---------|
+| **76–89** | Dolap · Kids Club · Şezlong · Transfer · Kart baskı · Toplantı · Medya · ESG · Alerjen · Şarap · Lounge · Shuttle · Partner · Gizli müşteri |
+| **90** | Board Pack checkpoint (`/api/boardpack`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
