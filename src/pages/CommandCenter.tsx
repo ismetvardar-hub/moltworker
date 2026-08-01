@@ -544,6 +544,22 @@ export default function CommandCenter() {
               Stay HK <strong>{campusPulse.pulses?.stay?.hk_dirty ?? 0}</strong>
             </span>
             <span>
+              Overstay <strong>{campusPulse.pulses?.stay?.overstays_open ?? 0}</strong>
+            </span>
+            <span>
+              WO <strong>{campusPulse.pulses?.campus?.open_work_orders ?? 0}</strong>
+            </span>
+            <span>
+              Köprü <strong>{campusPulse.pulses?.bridge?.alerts_open ?? 0}</strong>
+            </span>
+            <span>
+              Filo{' '}
+              <strong>{campusPulse.pulses?.fleet?.shift_active ? 'vardiya' : 'pasif'}</strong>
+            </span>
+            <span>
+              Lease hold <strong>{campusPulse.pulses?.mall?.lease_holds_open ?? 0}</strong>
+            </span>
+            <span>
               Life flag <strong>{campusPulse.pulses?.life?.flags ?? 0}</strong>
             </span>
             <span>

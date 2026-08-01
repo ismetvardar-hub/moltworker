@@ -14,6 +14,8 @@ import { wasteSummary } from './waste.js';
 import { campusHealthCheck } from './campusbrief.js';
 import { agentQueueOverview } from './agentqueue.js';
 import { greenPulseOverview } from './greenpulse.js';
+import { campusCoreOverview } from './campuscore.js';
+import { agentBridgeOverview } from './agentbridge.js';
 
 function clamp(n) {
   return Math.max(0, Math.min(100, Math.round(n)));
@@ -93,6 +95,14 @@ export function buildReadiness() {
   const campus = campusHealthCheck();
   const queue = agentQueueOverview();
   const green = greenPulseOverview();
+  const core = campusCoreOverview();
+  const bridge = agentBridgeOverview();
+  const openWo = core.summary?.open_work_orders || 0;
+  const escWo = core.summary?.escalated_work_orders || 0;
+  const inProgWo = core.summary?.in_progress_work_orders || 0;
+  const bridgeAlerts = bridge.summary?.alerts_open || 0;
+  const bridgeSla = bridge.summary?.alerts_sla_breach || 0;
+  const bridgeChannels = bridge.summary?.channels_open || 0;
   dimensions.push(
     {
       id: 'campus',
@@ -116,6 +126,18 @@ export function buildReadiness() {
       label: 'ESG',
       score: clamp(green.summary?.score ?? 50),
       detail: `${green.summary?.alerts || 0} alert · orman ${green.summary?.forest_ha || 0} ha`,
+    },
+    {
+      id: 'work_orders',
+      label: 'İş emri',
+      score: clamp(100 - openWo * 8 - escWo * 12 - inProgWo * 3),
+      detail: `${openWo} açık · ${escWo} escalate · ${inProgWo} devam`,
+    },
+    {
+      id: 'bridge',
+      label: 'Köprü',
+      score: clamp(100 - bridgeAlerts * 10 - bridgeSla * 15),
+      detail: `${bridgeAlerts} alert · ${bridgeChannels} kanal · SLA ${bridgeSla}`,
     },
   );
 
@@ -146,6 +168,11 @@ export function buildReadiness() {
       campusStatus: campus.status,
       queueQueued: queue.summary?.queued,
       esgScore: green.summary?.score,
+      openWorkOrders: openWo,
+      escalatedWorkOrders: escWo,
+      bridgeAlerts,
+      bridgeSla,
+      bridgeChannels,
     },
   };
 }

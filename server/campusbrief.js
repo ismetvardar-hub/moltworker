@@ -15,6 +15,8 @@ import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview, enqueueAgentJob } from './agentqueue.js';
 import { greenPulseOverview } from './greenpulse.js';
+import { agentBridgeOverview } from './agentbridge.js';
+import { agentFleetOverview } from './agentfleet.js';
 
 function hasOpenJob(agent, titleIncludes) {
   const jobs = readCollection('agent-jobs', []) || [];
@@ -155,6 +157,8 @@ export function campusBriefOverview(actor = 'system') {
   const sport = sportBridgeOverview();
   const queue = agentQueueOverview();
   const green = greenPulseOverview();
+  const bridge = agentBridgeOverview();
+  const fleet = agentFleetOverview();
 
   const actions = [];
   if (extreme.summary?.waiver_pending) {
@@ -172,12 +176,45 @@ export function campusBriefOverview(actor = 'system') {
   if (stay.summary?.hk_dirty) {
     actions.push({ level: 'info', text: `${stay.summary.hk_dirty} ünite HK bekliyor`, href: 'stayring' });
   }
+  if ((stay.summary?.overstays_open || 0) > 0) {
+    actions.push({
+      level: 'alert',
+      text: `${stay.summary.overstays_open} overstay ünite`,
+      href: 'stayring',
+    });
+  }
   if (mall.summary?.fnb_gap_total > 0) {
     actions.push({
       level: 'info',
       text: `F&B asgari gap ${mall.summary.fnb_gap_total} TRY`,
       href: 'openmall',
     });
+  }
+  if ((mall.summary?.lease_holds_open || 0) > 0) {
+    actions.push({
+      level: 'warn',
+      text: `${mall.summary.lease_holds_open} lease hold`,
+      href: 'openmall',
+    });
+  }
+  if ((campus.summary?.open_work_orders || 0) > 0) {
+    const esc = campus.summary.escalated_work_orders || 0;
+    actions.push({
+      level: esc > 0 ? 'alert' : 'warn',
+      text: esc > 0 ? `${esc} WO escalate · ${campus.summary.open_work_orders} açık` : `${campus.summary.open_work_orders} açık iş emri`,
+      href: 'campuscore',
+    });
+  }
+  if ((bridge.summary?.alerts_open || 0) > 0) {
+    const sla = bridge.summary.alerts_sla_breach || 0;
+    actions.push({
+      level: sla > 0 ? 'alert' : 'warn',
+      text: `Köprü ${bridge.summary.alerts_open} alert · SLA ${sla}`,
+      href: 'agentbridge',
+    });
+  }
+  if (!fleet.summary?.shift_active) {
+    actions.push({ level: 'warn', text: 'Filo vardiyası pasif', href: 'agentfleet' });
   }
   if (queue.summary?.queued) {
     actions.push({ level: 'info', text: `${queue.summary.queued} ajan işi kuyrukta`, href: 'agentqueue' });
@@ -212,6 +249,8 @@ export function campusBriefOverview(actor = 'system') {
       sport: sport.summary,
       queue: queue.summary,
       green: green.summary,
+      bridge: bridge.summary,
+      fleet: fleet.summary,
     },
     weather: extreme.weather || null,
     summary: {

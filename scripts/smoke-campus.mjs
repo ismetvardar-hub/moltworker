@@ -164,6 +164,7 @@ import {
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
+import { buildReadiness } from '../server/readiness.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -360,6 +361,13 @@ assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 
 const brief = campusBriefOverview('smoke');
 assert(brief.pulses?.green && brief.actions, 'campus brief');
+assert(brief.pulses?.bridge && brief.pulses?.fleet, 'campus brief bridge/fleet pulses');
+const readiness = buildReadiness();
+assert(
+  readiness.dimensions?.some((d) => d.id === 'work_orders') &&
+    readiness.dimensions?.some((d) => d.id === 'bridge'),
+  'readiness work_orders/bridge dims',
+);
 runCampusAutomations('smoke');
 const synced = syncCampusBriefActions('smoke');
 assert(synced.ok, 'brief actions sync');

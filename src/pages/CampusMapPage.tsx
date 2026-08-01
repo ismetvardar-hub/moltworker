@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import { CAMPUS_DOMAINS, CORE_NAV_IDS } from '../nav/campusDomains'
 import PanelCard from '../components/PanelCard'
 import { fetchCampusBrief, runCampusAutomations, syncCampusBriefActions } from '../services/campusbrief'
-import { campusCapacityRollup } from '../services/campuscore'
+import { campusCapacityRollup, escalateCampusWorkOrder } from '../services/campuscore'
 import { runAgentQueueSlaSweep } from '../services/agentqueue'
 import { runGreenPulseAutomations } from '../services/greenpulse'
-import { agentBridgeBroadcast } from '../services/agentbridge'
+import { agentBridgeBroadcast, runAgentBridgeAlertSlaSweep } from '../services/agentbridge'
+import { startFleetShift } from '../services/agentfleet'
+import { flagStayOverstay } from '../services/stayring'
+import { holdMallLease } from '../services/openmall'
 
 /**
  * Kampüs haritası — vizyon domain hub’ları + canlı nabız + hızlı ops.
@@ -73,6 +76,26 @@ export default function CampusMapPage() {
             <div>
               <dt className="text-xs text-slate-500">Life flag</dt>
               <dd>{p.life?.flags ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">WO açık</dt>
+              <dd>{p.campus?.open_work_orders ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Köprü alert</dt>
+              <dd>{p.bridge?.alerts_open ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Overstay</dt>
+              <dd>{p.stay?.overstays_open ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Lease hold</dt>
+              <dd>{p.mall?.lease_holds_open ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Filo vardiya</dt>
+              <dd>{p.fleet?.shift_active ? 'aktif' : 'pasif'}</dd>
             </div>
             <div>
               <dt className="text-xs text-slate-500">Brif aksiyon</dt>
@@ -172,6 +195,66 @@ export default function CampusMapPage() {
               }
             >
               Broadcast
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void escalateCampusWorkOrder({ reason: 'map' }).then((r: any) => {
+                  ping(r.ok ? `WO escalate · ${r.escalation?.to_priority}` : r.error || 'WO yok')
+                  return refresh()
+                })
+              }
+            >
+              WO escalate
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void runAgentBridgeAlertSlaSweep({ force: true }).then((r: any) => {
+                  ping(`Bridge SLA · ${r.sweep?.breached ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              Bridge SLA
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void startFleetShift({}).then((r: any) => {
+                  ping(r.ok ? 'Vardiya start' : r.error || 'Vardiya yok')
+                  return refresh()
+                })
+              }
+            >
+              Vardiya start
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void flagStayOverstay({ force: true }).then((r: any) => {
+                  ping(r.ok ? `Overstay · ${r.flagged?.length ?? 0}` : r.error || 'Yok')
+                  return refresh()
+                })
+              }
+            >
+              Overstay flag
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void holdMallLease({ force: true }).then((r: any) => {
+                  ping(r.ok ? `Lease hold · ${r.tenant?.name}` : r.error || 'Hold yok')
+                  return refresh()
+                })
+              }
+            >
+              Lease hold
             </button>
           </div>
         </PanelCard>
