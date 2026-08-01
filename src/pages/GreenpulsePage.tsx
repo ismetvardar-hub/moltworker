@@ -93,7 +93,60 @@ export default function GreenpulsePage() {
               >
                 Sayaç batch
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .createGreenWorkPermit({ zone_id: 'z_forest', work: 'Patika bakım' })
+                    .then((r: any) => {
+                      ping(r.ok ? `İzin ${r.permit?.status}` : r.error || 'İzin yok')
+                      return refresh()
+                    })
+                }
+              >
+                Çalışma izni
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.approveGreenWorkPermit({}).then((r: any) => {
+                    ping(r.ok ? `İzin ${r.permit?.status}` : r.error || 'Onay yok')
+                    return refresh()
+                  })
+                }
+              >
+                İzin onayla
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.closeGreenWorkPermit({}).then((r: any) => {
+                    ping(r.ok ? 'İzin kapatıldı' : r.error || 'Kapatma yok')
+                    return refresh()
+                  })
+                }
+              >
+                İzin kapat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runWaterLeakTriage({ force: true }).then((r: any) => {
+                    ping(`Su triage · ${r.triage?.actions ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Su triage
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Bekleyen izin {data.summary?.permits_pending ?? 0} · aktif {data.summary?.permits_active ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Sayaçlar">
             <ul className="space-y-2 text-sm">

@@ -53,7 +53,15 @@ import {
   tickAgentQueue,
   runAgentQueueSlaSweep,
 } from '../server/agentqueue.js';
-import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
+import {
+  greenPulseOverview,
+  recordGreenMeter,
+  addGreenIncident,
+  createGreenWorkPermit,
+  approveGreenWorkPermit,
+  closeGreenWorkPermit,
+  runWaterLeakTriage,
+} from '../server/greenpulse.js';
 import {
   campusBriefOverview,
   runCampusAutomations,
@@ -299,6 +307,10 @@ assert(joinExtremeWaitlist({ user_id: 'guest_can', slot_id: 'xs_2' }, 'smoke').o
 promoteExtremeWaitlist({}, 'smoke');
 const greenAuto = runGreenPulseAutomations({}, 'smoke');
 assert(greenAuto.ok && Array.isArray(greenAuto.actions), 'green automations');
+assert(createGreenWorkPermit({ zone_id: 'z_forest', work: 'smoke path' }, 'smoke').ok, 'green permit');
+assert(approveGreenWorkPermit({}, 'smoke').ok, 'green permit approve');
+assert(closeGreenWorkPermit({}, 'smoke').ok, 'green permit close');
+assert(runWaterLeakTriage({ force: true }, 'smoke').ok, 'water triage');
 
 const fleet = agentFleetOverview();
 assert(fleet.summary?.total === 28, '28 core agents');

@@ -6768,7 +6768,17 @@ import {
 } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
-import { addGreenIncident, batchRecordGreenMeters, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
+import {
+  addGreenIncident,
+  approveGreenWorkPermit,
+  batchRecordGreenMeters,
+  closeGreenWorkPermit,
+  createGreenWorkPermit,
+  greenPulseOverview,
+  recordGreenMeter,
+  runGreenPulseAutomations,
+  runWaterLeakTriage,
+} from './greenpulse.js';
 import { ackCampusBriefAction, campusBriefOverview, campusHealthCheck, runCampusAutomations, syncCampusBriefActions } from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent, sweepFleetPresence } from './agentfleet.js';
 
@@ -36737,6 +36747,31 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runGreenPulseAutomations(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/greenpulse/permit' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createGreenWorkPermit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/permit/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveGreenWorkPermit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/permit/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeGreenWorkPermit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/water-triage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWaterLeakTriage(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/extreme/maas' && req.method === 'POST') {

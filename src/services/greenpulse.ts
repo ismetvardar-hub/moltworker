@@ -45,3 +45,43 @@ export async function batchRecordGreenMeters(body: Record<string, unknown> = {})
     }),
   )
 }
+
+export async function createGreenWorkPermit(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/permit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function approveGreenWorkPermit(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/permit/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function closeGreenWorkPermit(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/permit/close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runWaterLeakTriage(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/water-triage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

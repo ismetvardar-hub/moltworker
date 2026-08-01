@@ -288,6 +288,23 @@ try {
   const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
   assert(green.res.ok, 'green automations');
 
+  const permit = await req('/api/greenpulse/permit', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_forest', work: 'e2e path' },
+  });
+  assert(permit.res.ok && permit.data.ok !== false, 'green permit');
+  const approve = await req('/api/greenpulse/permit/approve', { method: 'POST', token, body: {} });
+  assert(approve.res.ok && approve.data.ok !== false, 'green permit approve');
+  const closePermit = await req('/api/greenpulse/permit/close', { method: 'POST', token, body: {} });
+  assert(closePermit.res.ok && closePermit.data.ok !== false, 'green permit close');
+  const triage = await req('/api/greenpulse/water-triage', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(triage.res.ok && triage.data.ok !== false, 'water triage');
+
   const stream = await req('/api/culture/stream/start', {
     method: 'POST',
     token,

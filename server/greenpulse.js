@@ -4,7 +4,7 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
-import { campusCoreOverview } from './campuscore.js';
+import { addCampusIncident, campusCoreOverview } from './campuscore.js';
 import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
@@ -42,12 +42,17 @@ export function greenPulseOverview() {
   const campus = campusCoreOverview();
   const incidents = readCollection('green-incidents', []) || [];
   const score = scoreOf(meters);
+  const permits = readCollection('green-work-permits', []) || [];
+  const permitList = Array.isArray(permits) ? permits : [];
+  const pending = permitList.filter((p) => p.status === 'pending');
+  const active = permitList.filter((p) => p.status === 'approved');
   return {
     title: 'Yeşil & Arazi ESG',
     ethos: 'Orman önce — ciro ormanın gölgesinde büyür.',
     meters,
     campus_zones: campus.zones?.filter((z) => z.kind === 'green' || z.kind === 'water') || [],
     incidents: (Array.isArray(incidents) ? incidents : []).slice(0, 20),
+    permits: permitList.slice(0, 30),
     summary: {
       score,
       alerts: meters.filter((m) => m.status === 'alert').length,
@@ -55,6 +60,8 @@ export function greenPulseOverview() {
       forest_ha: meters.find((m) => m.kind === 'forest')?.value ?? 0,
       solar_kwh: meters.find((m) => m.kind === 'solar')?.value ?? 0,
       water_m3: meters.find((m) => m.kind === 'water')?.value ?? 0,
+      permits_pending: pending.length,
+      permits_active: active.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -261,4 +268,159 @@ export function runGreenPulseAutomations(input = {}, actor = 'system') {
     meta: { n: actions.length },
   });
   return { ok: true, actions, run, overview: greenPulseOverview() };
+}
+
+/** Korunan / su bölgesi çalışma izni */
+export function createGreenWorkPermit(input = {}, actor = 'system') {
+  const campus = campusCoreOverview();
+  const zones = campus.zones || [];
+  const zone =
+    zones.find((z) => z.id === input.zone_id || z.name === input.zone_id) ||
+    zones.find((z) => z.kind === 'green' || z.kind === 'water' || z.status === 'protected') ||
+    zones[0];
+  if (!zone) return { ok: false, error: 'Zone yok' };
+  const protectedZone =
+    zone.status === 'protected' || zone.kind === 'green' || zone.kind === 'water' || zone.kind === 'forest';
+  const status = input.status || (protectedZone ? 'pending' : 'approved');
+  const hours = Number(input.hours) || 8;
+  const permit = {
+    id: rid('gwp'),
+    zone_id: zone.id,
+    zone_name: zone.name,
+    zone_kind: zone.kind,
+    work: input.work || input.title || 'Saha bakım',
+    contractor: input.contractor || actor,
+    status,
+    protected: !!protectedZone,
+    expires_at: new Date(Date.now() + hours * 3600_000).toISOString(),
+    note: input.note || '',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('green-work-permits', permit, 300);
+  enqueueAgentJob(
+    {
+      agent: 'GAIA-ESG',
+      title: `work permit · ${zone.name} · ${permit.work} (${status})`,
+      priority: protectedZone ? 'high' : 'normal',
+      payload: { permit_id: permit.id, zone_id: zone.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'green.permit',
+    detail: `${zone.name} · ${status}`,
+    meta: { id: permit.id },
+  });
+  return { ok: true, permit, overview: greenPulseOverview() };
+}
+
+export function approveGreenWorkPermit(input = {}, actor = 'system') {
+  const list = readCollection('green-work-permits', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İzin yok' };
+  let idx = list.findIndex((p) => p.id === input.id && p.status === 'pending');
+  if (idx < 0) idx = list.findIndex((p) => p.status === 'pending');
+  if (idx < 0) return { ok: false, error: 'Bekleyen izin yok' };
+  const decision = input.deny || input.status === 'denied' ? 'denied' : 'approved';
+  list[idx] = {
+    ...list[idx],
+    status: decision,
+    reviewer: actor,
+    review_note: input.note || '',
+    reviewed_at: new Date().toISOString(),
+  };
+  writeCollection('green-work-permits', list);
+  appendAudit({
+    actor,
+    action: 'green.permit_review',
+    detail: `${list[idx].zone_name} → ${decision}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, permit: list[idx], overview: greenPulseOverview() };
+}
+
+export function closeGreenWorkPermit(input = {}, actor = 'system') {
+  const list = readCollection('green-work-permits', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İzin yok' };
+  let idx = list.findIndex((p) => p.id === input.id && (p.status === 'approved' || p.status === 'pending'));
+  if (idx < 0) idx = list.findIndex((p) => p.status === 'approved' || p.status === 'pending');
+  if (idx < 0) return { ok: false, error: 'Kapatılacak izin yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'closed',
+    outcome: input.outcome || 'completed',
+    closed_at: new Date().toISOString(),
+    closed_by: actor,
+  };
+  writeCollection('green-work-permits', list);
+  appendAudit({
+    actor,
+    action: 'green.permit_close',
+    detail: list[idx].zone_name,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, permit: list[idx], overview: greenPulseOverview() };
+}
+
+/** Su kaçağı / anomali triage → campus incident + HEPHAESTUS */
+export function runWaterLeakTriage(input = {}, actor = 'system') {
+  const meters = ensureMeters();
+  const water = meters.find((m) => m.kind === 'water');
+  const incidents = readCollection('green-incidents', []) || [];
+  const waterInc = (Array.isArray(incidents) ? incidents : []).filter(
+    (i) => i.kind === 'water' || /su|kaçak|leak/i.test(String(i.title || '')),
+  );
+  const alert = !water || water.status === 'alert' || water.status === 'watch' || input.force;
+  const actions = [];
+  if (alert && water) {
+    const job = enqueueAgentJob(
+      {
+        agent: 'HEPHAESTUS',
+        title: `su triage · ${water.value}${water.unit} (${water.status})`,
+        priority: water.status === 'alert' ? 'high' : 'normal',
+        payload: { meter_id: water.id, value: water.value },
+      },
+      actor,
+    );
+    actions.push({ type: 'hephaestus', job_id: job?.id || job?.job?.id });
+  }
+  for (const inc of waterInc.slice(0, 3)) {
+    const campusInc = addCampusIncident(
+      {
+        title: `Su triage · ${inc.title}`,
+        zone_id: input.zone_id || 'z_water',
+        severity: inc.severity || 'high',
+      },
+      actor,
+    );
+    actions.push({ type: 'campus_incident', id: campusInc?.id });
+  }
+  if (!waterInc.length && alert) {
+    const campusInc = addCampusIncident(
+      {
+        title: `Su anomali · ${water?.value ?? '?'} m3`,
+        zone_id: 'z_water',
+        severity: water?.status === 'alert' ? 'high' : 'info',
+      },
+      actor,
+    );
+    actions.push({ type: 'campus_incident', id: campusInc?.id });
+  }
+  const triage = {
+    id: rid('gwt'),
+    water_status: water?.status || null,
+    water_value: water?.value ?? null,
+    actions: actions.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('green-water-triage', triage, 80);
+  appendAudit({
+    actor,
+    action: 'green.water_triage',
+    detail: `${triage.actions} aksiyon · ${triage.water_status}`,
+    meta: { id: triage.id },
+  });
+  return { ok: true, triage, actions, overview: greenPulseOverview() };
 }
