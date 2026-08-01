@@ -207,6 +207,12 @@ import {
   PenLine,
   Swords,
   BrainCircuit,
+  Store,
+  CandlestickChart,
+  Route,
+  RefreshCw,
+  Tags,
+  Rocket,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -247,6 +253,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'ecosphere',
   'brandpulse',
   'cognisphere',
+  'vanguard',
 ]);
 
 interface SidebarProps {
@@ -752,6 +759,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'costguard', label: 'AI Cost Guard', description: 'AI maliyet koruma alarmları.', icon: Wallet },
   { id: 'latencylog', label: 'Latency Log', description: 'Model latency örnekleri.', icon: Activity },
   { id: 'driftmonitor', label: 'Drift Monitor', description: 'Model drift izleme.', icon: LineChart },
+    { id: 'posbridge', label: 'POS Bridge', description: 'Mağaza içi otonom ödeme köprüsü.', icon: Store },
+  { id: 'dynamint', label: 'MINT Fiyat Push', description: 'Dinamik borsa fiyatının satış noktasına aktarımı.', icon: CandlestickChart },
+  { id: 'couriertrack', label: 'Kurye Takip', description: 'Kurye / lojistik canlı konum satırları.', icon: Truck },
+  { id: 'autocheckout', label: 'Otonom Checkout', description: 'Scan & go / otonom kasa oturumları.', icon: ScanBarcode },
+  { id: 'loyaltyburn', label: 'Sadakat Harcama', description: 'Puan / tier burn işlemleri.', icon: Coins },
+  { id: 'treatoffer', label: 'İkram Teklifi', description: 'Misafir ikram / treat mekanizması.', icon: Sparkles },
+  { id: 'omnimarket', label: 'Omni Market', description: 'Omni-kanal ürün / listing panosu.', icon: ShoppingBag },
+  { id: 'clickcollect', label: 'Click & Collect', description: 'Online al · yerinde teslim.', icon: PackageCheck },
+  { id: 'lastmile', label: 'Last Mile', description: 'Son mil teslimat görevleri.', icon: Route },
+  { id: 'invsync', label: 'Stok Senkron', description: 'Kanal stok senkron işleri.', icon: RefreshCw },
+  { id: 'pricepush', label: 'Fiyat Push', description: 'Fiyat güncellemesinin POS/app yayını.', icon: Tags },
+  { id: 'qrpay', label: 'QR Pay', description: 'QR ödeme oturumları.', icon: QrCode },
+  { id: 'courierpool', label: 'Kurye Havuzu', description: 'Aktif kurye kapasitesi.', icon: Bike },
+  { id: 'giftrelay', label: 'Hediye Relay', description: 'İkram / hediye zincir teslimatı.', icon: Gift },
+  { id: 'vanguard', label: 'Vanguard', description: 'AŞAMA 330 Nexus Prime özeti.', icon: Rocket },
   { id: 'cognisphere', label: 'Cognisphere', description: 'AŞAMA 315 AI özeti.', icon: BrainCircuit },
   { id: 'brandpulse', label: 'Brand Pulse', description: 'AŞAMA 300 marka özeti.', icon: Sparkles },
   { id: 'ecosphere', label: 'Ecosphere', description: 'AŞAMA 285 ESG özeti.', icon: Leaf },

@@ -314,6 +314,21 @@ import CostguardPage from './pages/CostguardPage';
 import LatencylogPage from './pages/LatencylogPage';
 import DriftmonitorPage from './pages/DriftmonitorPage';
 import CognispherePage from './pages/CognispherePage';
+import PosbridgePage from './pages/PosbridgePage';
+import DynamintPage from './pages/DynamintPage';
+import CouriertrackPage from './pages/CouriertrackPage';
+import AutocheckoutPage from './pages/AutocheckoutPage';
+import LoyaltyburnPage from './pages/LoyaltyburnPage';
+import TreatofferPage from './pages/TreatofferPage';
+import OmnimarketPage from './pages/OmnimarketPage';
+import ClickcollectPage from './pages/ClickcollectPage';
+import LastmilePage from './pages/LastmilePage';
+import InvsyncPage from './pages/InvsyncPage';
+import PricepushPage from './pages/PricepushPage';
+import QrpayPage from './pages/QrpayPage';
+import CourierpoolPage from './pages/CourierpoolPage';
+import GiftrelayPage from './pages/GiftrelayPage';
+import VanguardPage from './pages/VanguardPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -597,6 +612,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   latencylog: LatencylogPage,
   driftmonitor: DriftmonitorPage,
   cognisphere: CognispherePage,
+  posbridge: PosbridgePage,
+  dynamint: DynamintPage,
+  couriertrack: CouriertrackPage,
+  autocheckout: AutocheckoutPage,
+  loyaltyburn: LoyaltyburnPage,
+  treatoffer: TreatofferPage,
+  omnimarket: OmnimarketPage,
+  clickcollect: ClickcollectPage,
+  lastmile: LastmilePage,
+  invsync: InvsyncPage,
+  pricepush: PricepushPage,
+  qrpay: QrpayPage,
+  courierpool: CourierpoolPage,
+  giftrelay: GiftrelayPage,
+  vanguard: VanguardPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

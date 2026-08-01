@@ -1655,6 +1655,91 @@ import {
   updateDriftmonitor,
 } from './driftmonitor.js';
 import { buildCognisphere } from './cognisphere.js';
+import {
+  createPosbridge,
+  listPosbridge,
+  posbridgeSummary,
+  updatePosbridge,
+} from './posbridge.js';
+import {
+  createDynamint,
+  listDynamint,
+  dynamintSummary,
+  updateDynamint,
+} from './dynamint.js';
+import {
+  createCouriertrack,
+  listCouriertrack,
+  couriertrackSummary,
+  updateCouriertrack,
+} from './couriertrack.js';
+import {
+  createAutocheckout,
+  listAutocheckout,
+  autocheckoutSummary,
+  updateAutocheckout,
+} from './autocheckout.js';
+import {
+  createLoyaltyburn,
+  listLoyaltyburn,
+  loyaltyburnSummary,
+  updateLoyaltyburn,
+} from './loyaltyburn.js';
+import {
+  createTreatoffer,
+  listTreatoffer,
+  treatofferSummary,
+  updateTreatoffer,
+} from './treatoffer.js';
+import {
+  createOmnimarket,
+  listOmnimarket,
+  omnimarketSummary,
+  updateOmnimarket,
+} from './omnimarket.js';
+import {
+  createClickcollect,
+  listClickcollect,
+  clickcollectSummary,
+  updateClickcollect,
+} from './clickcollect.js';
+import {
+  createLastmile,
+  listLastmile,
+  lastmileSummary,
+  updateLastmile,
+} from './lastmile.js';
+import {
+  createInvsync,
+  listInvsync,
+  invsyncSummary,
+  updateInvsync,
+} from './invsync.js';
+import {
+  createPricepush,
+  listPricepush,
+  pricepushSummary,
+  updatePricepush,
+} from './pricepush.js';
+import {
+  createQrpay,
+  listQrpay,
+  qrpaySummary,
+  updateQrpay,
+} from './qrpay.js';
+import {
+  createCourierpool,
+  listCourierpool,
+  courierpoolSummary,
+  updateCourierpool,
+} from './courierpool.js';
+import {
+  createGiftrelay,
+  listGiftrelay,
+  giftrelaySummary,
+  updateGiftrelay,
+} from './giftrelay.js';
+import { buildVanguard } from './vanguard.js';
 
 
 
@@ -9805,6 +9890,363 @@ export function createPlatformMiddleware() {
         if (path === '/api/cognisphere' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildCognisphere());
+          return;
+        }
+
+        // ── AŞAMA 316–330 · Omni-Channel & Autonomous Commerce ──
+
+        if (path === '/api/posbridge' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, posbridgeSummary());
+          return;
+        }
+        if (path === '/api/posbridge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createPosbridge(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/posbridge/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updatePosbridge(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/dynamint' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, dynamintSummary());
+          return;
+        }
+        if (path === '/api/dynamint' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createDynamint(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/dynamint/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateDynamint(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/couriertrack' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, couriertrackSummary());
+          return;
+        }
+        if (path === '/api/couriertrack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createCouriertrack(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/couriertrack/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateCouriertrack(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/autocheckout' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, autocheckoutSummary());
+          return;
+        }
+        if (path === '/api/autocheckout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createAutocheckout(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/autocheckout/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateAutocheckout(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/loyaltyburn' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, loyaltyburnSummary());
+          return;
+        }
+        if (path === '/api/loyaltyburn' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createLoyaltyburn(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/loyaltyburn/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateLoyaltyburn(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/treatoffer' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, treatofferSummary());
+          return;
+        }
+        if (path === '/api/treatoffer' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createTreatoffer(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/treatoffer/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateTreatoffer(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/omnimarket' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, omnimarketSummary());
+          return;
+        }
+        if (path === '/api/omnimarket' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createOmnimarket(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/omnimarket/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateOmnimarket(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/clickcollect' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, clickcollectSummary());
+          return;
+        }
+        if (path === '/api/clickcollect' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createClickcollect(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/clickcollect/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateClickcollect(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/lastmile' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, lastmileSummary());
+          return;
+        }
+        if (path === '/api/lastmile' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createLastmile(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/lastmile/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateLastmile(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/invsync' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, invsyncSummary());
+          return;
+        }
+        if (path === '/api/invsync' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createInvsync(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/invsync/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateInvsync(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/pricepush' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, pricepushSummary());
+          return;
+        }
+        if (path === '/api/pricepush' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createPricepush(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/pricepush/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updatePricepush(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/qrpay' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, qrpaySummary());
+          return;
+        }
+        if (path === '/api/qrpay' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createQrpay(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/qrpay/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateQrpay(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/courierpool' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, courierpoolSummary());
+          return;
+        }
+        if (path === '/api/courierpool' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createCourierpool(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/courierpool/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateCourierpool(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/giftrelay' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, giftrelaySummary());
+          return;
+        }
+        if (path === '/api/giftrelay' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createGiftrelay(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/giftrelay/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateGiftrelay(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+        if (path === '/api/vanguard' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildVanguard());
           return;
         }
 

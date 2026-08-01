@@ -631,6 +631,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **314** | Drift monitor |
 | **315** | Cognisphere checkpoint (`/api/cognisphere`) |
 
+### Omni-Kanal · Vanguard (AŞAMA 316–330)
+
+| Aşama | Özellik |
+|-------|---------|
+| **316** | POS Bridge |
+| **317** | MINT fiyat push |
+| **318** | Kurye takip |
+| **319** | Otonom checkout |
+| **320** | Sadakat harcama |
+| **321** | İkram teklifi |
+| **322** | Omni market |
+| **323** | Click & collect |
+| **324** | Last mile |
+| **325** | Stok senkron |
+| **326** | Fiyat push |
+| **327** | QR pay |
+| **328** | Kurye havuzu |
+| **329** | Hediye relay |
+| **330** | Vanguard · Nexus Prime (`/api/vanguard`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
