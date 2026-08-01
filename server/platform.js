@@ -4692,7 +4692,9 @@ import {
   labbudgetSummary,
   updateLabbudget,
 } from './labbudget.js';
-import { buildCrucible } from './crucible.js';
+import {
+  ackCrucibleFlag, buildCrucible, busyCrucibleLearn, liveCruciblePilot, runCrucibleSweep, shipCrucibleLab,
+} from './crucible.js';
 import {
   createIpvault,
   listIpvault,
@@ -5382,7 +5384,9 @@ import {
   onboardkit2Summary,
   updateOnboardkit2,
 } from './onboardkit2.js';
-import { buildAlliance3 } from './alliance3.js';
+import {
+  ackAlliance3Flag, buildAlliance3, busyAlliance3Partner, closeAlliance3Channel, liveAlliance3Invest, runAlliance3Sweep,
+} from './alliance3.js';
 import {
   createInboundpo2,
   listInboundpo2,
@@ -5467,7 +5471,9 @@ import {
   safetystock2Summary,
   updateSafetystock2,
 } from './safetystock2.js';
-import { buildArtery2 } from './artery2.js';
+import {
+  ackArtery2Flag, buildArtery2, busyArtery2Asn, closeArtery2Dock, runArtery2Inbound, runArtery2Sweep,
+} from './artery2.js';
 import {
   createSupplierkpi2,
   listSupplierkpi2,
@@ -5722,7 +5728,9 @@ import {
   rollback2Summary,
   updateRollback2,
 } from './rollback2.js';
-import { buildCircuit2 } from './circuit2.js';
+import {
+  ackCircuit2Flag, buildCircuit2, busyCircuit2Moment, closeCircuit2Hook, liveCircuit2Schema, runCircuit2Sweep,
+} from './circuit2.js';
 import {
   createChaosdrill2,
   listChaosdrill2,
@@ -28625,6 +28633,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildCrucible());
           return;
         }
+        if (path === '/api/crucible/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCrucibleSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCrucibleFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible/pilot/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCruciblePilot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible/learn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyCrucibleLearn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible/lab/ship' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, shipCrucibleLab(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Charter OS · Charter (AŞAMA 811–825) ──
 
@@ -31631,6 +31669,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildAlliance3());
           return;
         }
+        if (path === '/api/alliance3/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAlliance3Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance3/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAlliance3Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance3/partner/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyAlliance3Partner(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance3/channel/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAlliance3Channel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance3/invest/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveAlliance3Invest(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Supply OS · Artery2 (AŞAMA 931–945) ──
 
@@ -31986,6 +32054,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/artery2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildArtery2());
+          return;
+        }
+        if (path === '/api/artery2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runArtery2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackArtery2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery2/inbound/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runArtery2Inbound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery2/asn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyArtery2Asn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery2/dock/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeArtery2Dock(await readBody(req), user.username)); })();
           return;
         }
 
@@ -33057,6 +33155,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/circuit2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildCircuit2());
+          return;
+        }
+        if (path === '/api/circuit2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCircuit2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCircuit2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit2/moment/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyCircuit2Moment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit2/hook/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCircuit2Hook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit2/schema/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCircuit2Schema(await readBody(req), user.username)); })();
           return;
         }
 

@@ -524,11 +524,23 @@ import {
   buildAlliance2, runAlliance2Sweep, ackAlliance2Flag, busyAlliance2Partner, closeAlliance2Channel, liveAlliance2Invest,
 } from '../server/alliance2.js';
 import {
+  buildAlliance3, runAlliance3Sweep, ackAlliance3Flag, busyAlliance3Partner, closeAlliance3Channel, liveAlliance3Invest,
+} from '../server/alliance3.js';
+import {
   buildArtery, runArterySweep, ackArteryFlag, runArteryInbound, busyArteryAsn, closeArteryDock,
 } from '../server/artery.js';
 import {
+  buildArtery2, runArtery2Sweep, ackArtery2Flag, runArtery2Inbound, busyArtery2Asn, closeArtery2Dock,
+} from '../server/artery2.js';
+import {
   buildBastion2, runBastion2Sweep, ackBastion2Flag, closeBastion2Access, approveBastion2Role, archiveBastion2Breach,
 } from '../server/bastion2.js';
+import {
+  buildCircuit2, runCircuit2Sweep, ackCircuit2Flag, busyCircuit2Moment, closeCircuit2Hook, liveCircuit2Schema,
+} from '../server/circuit2.js';
+import {
+  buildCrucible, runCrucibleSweep, ackCrucibleFlag, liveCruciblePilot, busyCrucibleLearn, shipCrucibleLab,
+} from '../server/crucible.js';
 import {
   buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
 } from '../server/beacon.js';
@@ -1428,7 +1440,35 @@ assert(busyAgora2Circle({}, 'smoke').ok, 'agora2 circle busy');
 assert(liveAgora2Badge({}, 'smoke').ok, 'agora2 badge live');
 assert(ackAgora2Flag({}, 'smoke').ok, 'agora2 flag ack');
 
-console.log('MOD127_OK');
+assert(buildAlliance3().title, 'alliance3 overview');
+assert(runAlliance3Sweep({ force: true }, 'smoke').ok, 'alliance3 sweep');
+assert(busyAlliance3Partner({}, 'smoke').ok, 'alliance3 partner busy');
+assert(closeAlliance3Channel({}, 'smoke').ok, 'alliance3 channel close');
+assert(liveAlliance3Invest({}, 'smoke').ok, 'alliance3 invest live');
+assert(ackAlliance3Flag({}, 'smoke').ok, 'alliance3 flag ack');
+
+assert(buildArtery2().title, 'artery2 overview');
+assert(runArtery2Sweep({ force: true }, 'smoke').ok, 'artery2 sweep');
+assert(runArtery2Inbound({}, 'smoke').ok, 'artery2 inbound run');
+assert(busyArtery2Asn({}, 'smoke').ok, 'artery2 asn busy');
+assert(closeArtery2Dock({}, 'smoke').ok, 'artery2 dock close');
+assert(ackArtery2Flag({}, 'smoke').ok, 'artery2 flag ack');
+
+assert(buildCircuit2().title, 'circuit2 overview');
+assert(runCircuit2Sweep({ force: true }, 'smoke').ok, 'circuit2 sweep');
+assert(busyCircuit2Moment({}, 'smoke').ok, 'circuit2 moment busy');
+assert(closeCircuit2Hook({}, 'smoke').ok, 'circuit2 hook close');
+assert(liveCircuit2Schema({}, 'smoke').ok, 'circuit2 schema live');
+assert(ackCircuit2Flag({}, 'smoke').ok, 'circuit2 flag ack');
+
+assert(buildCrucible().title, 'crucible overview');
+assert(runCrucibleSweep({ force: true }, 'smoke').ok, 'crucible sweep');
+assert(liveCruciblePilot({}, 'smoke').ok, 'crucible pilot live');
+assert(busyCrucibleLearn({}, 'smoke').ok, 'crucible learn busy');
+assert(shipCrucibleLab({}, 'smoke').ok, 'crucible lab ship');
+assert(ackCrucibleFlag({}, 'smoke').ok, 'crucible flag ack');
+
+console.log('MOD131_OK');
 
 console.log(
   JSON.stringify(

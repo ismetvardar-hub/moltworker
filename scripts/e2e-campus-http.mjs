@@ -149,6 +149,10 @@ try {
     '/api/artery',
     '/api/bastion2',
     '/api/agora2',
+    '/api/alliance3',
+    '/api/artery2',
+    '/api/circuit2',
+    '/api/crucible',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1421,6 +1425,50 @@ try {
   assert(ag2Badge.res.ok && ag2Badge.data.ok !== false, 'agora2 badge live');
   const ag2Ack = await req('/api/agora2/flag/ack', { method: 'POST', token, body: {} });
   assert(ag2Ack.res.ok && ag2Ack.data.ok !== false, 'agora2 flag ack');
+
+  const al3Sweep = await req('/api/alliance3/sweep', { method: 'POST', token, body: { force: true } });
+  assert(al3Sweep.res.ok && al3Sweep.data.ok !== false, 'alliance3 sweep');
+  const al3Partner = await req('/api/alliance3/partner/busy', { method: 'POST', token, body: {} });
+  assert(al3Partner.res.ok && al3Partner.data.ok !== false, 'alliance3 partner busy');
+  const al3Channel = await req('/api/alliance3/channel/close', { method: 'POST', token, body: {} });
+  assert(al3Channel.res.ok && al3Channel.data.ok !== false, 'alliance3 channel close');
+  const al3Invest = await req('/api/alliance3/invest/live', { method: 'POST', token, body: {} });
+  assert(al3Invest.res.ok && al3Invest.data.ok !== false, 'alliance3 invest live');
+  const al3Ack = await req('/api/alliance3/flag/ack', { method: 'POST', token, body: {} });
+  assert(al3Ack.res.ok && al3Ack.data.ok !== false, 'alliance3 flag ack');
+
+  const ar2Sweep = await req('/api/artery2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ar2Sweep.res.ok && ar2Sweep.data.ok !== false, 'artery2 sweep');
+  const ar2Inbound = await req('/api/artery2/inbound/run', { method: 'POST', token, body: {} });
+  assert(ar2Inbound.res.ok && ar2Inbound.data.ok !== false, 'artery2 inbound run');
+  const ar2Asn = await req('/api/artery2/asn/busy', { method: 'POST', token, body: {} });
+  assert(ar2Asn.res.ok && ar2Asn.data.ok !== false, 'artery2 asn busy');
+  const ar2Dock = await req('/api/artery2/dock/close', { method: 'POST', token, body: {} });
+  assert(ar2Dock.res.ok && ar2Dock.data.ok !== false, 'artery2 dock close');
+  const ar2Ack = await req('/api/artery2/flag/ack', { method: 'POST', token, body: {} });
+  assert(ar2Ack.res.ok && ar2Ack.data.ok !== false, 'artery2 flag ack');
+
+  const ci2Sweep = await req('/api/circuit2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ci2Sweep.res.ok && ci2Sweep.data.ok !== false, 'circuit2 sweep');
+  const ci2Moment = await req('/api/circuit2/moment/busy', { method: 'POST', token, body: {} });
+  assert(ci2Moment.res.ok && ci2Moment.data.ok !== false, 'circuit2 moment busy');
+  const ci2Hook = await req('/api/circuit2/hook/close', { method: 'POST', token, body: {} });
+  assert(ci2Hook.res.ok && ci2Hook.data.ok !== false, 'circuit2 hook close');
+  const ci2Schema = await req('/api/circuit2/schema/live', { method: 'POST', token, body: {} });
+  assert(ci2Schema.res.ok && ci2Schema.data.ok !== false, 'circuit2 schema live');
+  const ci2Ack = await req('/api/circuit2/flag/ack', { method: 'POST', token, body: {} });
+  assert(ci2Ack.res.ok && ci2Ack.data.ok !== false, 'circuit2 flag ack');
+
+  const cruSweep = await req('/api/crucible/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cruSweep.res.ok && cruSweep.data.ok !== false, 'crucible sweep');
+  const cruPilot = await req('/api/crucible/pilot/live', { method: 'POST', token, body: {} });
+  assert(cruPilot.res.ok && cruPilot.data.ok !== false, 'crucible pilot live');
+  const cruLearn = await req('/api/crucible/learn/busy', { method: 'POST', token, body: {} });
+  assert(cruLearn.res.ok && cruLearn.data.ok !== false, 'crucible learn busy');
+  const cruLab = await req('/api/crucible/lab/ship', { method: 'POST', token, body: {} });
+  assert(cruLab.res.ok && cruLab.data.ok !== false, 'crucible lab ship');
+  const cruAck = await req('/api/crucible/flag/ack', { method: 'POST', token, body: {} });
+  assert(cruAck.res.ok && cruAck.data.ok !== false, 'crucible flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
