@@ -57,18 +57,32 @@ export default function MarketosPage() {
               TY queued {data.channels?.trendyol?.queued ?? 0} · Dolap draft {data.channels?.dolap?.draft ?? 0} ·
               kanalda {data.summary?.channelled}
             </p>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
-              onClick={() =>
-                void api.createMarketListing({ mode: 'used', title: 'GoPro kılıf', price_try: 400 }).then(() => {
-                  ping('2. el ilan açıldı')
-                  return refresh()
-                })
-              }
-            >
-              2. el ilan
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.createMarketListing({ mode: 'used', title: 'GoPro kılıf', price_try: 400 }).then(() => {
+                    ping('2. el ilan açıldı')
+                    return refresh()
+                  })
+                }
+              >
+                2. el ilan
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.reconcileMarketChannels({ limit: 5 }).then((r: any) => {
+                    ping(`Reconcile ${r.synced?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Kanal reconcile
+              </button>
+            </div>
           </PanelCard>
           <PanelCard title="İlanlar">
             <ul className="space-y-2 text-sm">

@@ -1855,6 +1855,8 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | ops UI | OpsPage | Kampüs health skoru şeridi |
 | extreme++ | `/api/extreme/waitlist` · `/promote` | Slot bekleme listesi |
 | fleet+ | `/api/agentfleet/presence-sweep` | Kampüs ajan presence nabız |
+| market+++ | `/api/marketos/reconcile` | TY/Dolap toplu kanal sync |
+| green++ | `/api/greenpulse/batch` | ESG sayaç batch okuma |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

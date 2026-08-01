@@ -6709,7 +6709,7 @@ import {
   registerLifeDevice,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
-import { createMarketListing, marketCheckout, marketOsOverview, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
+import { createMarketListing, marketCheckout, marketOsOverview, reconcileMarketChannels, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
 import { mallDayRollup, openMallOverview, recordMallSale, settleMallTenantFnb, updateMallTenant } from './openmall.js';
 import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote, transferFamilyChild } from './familycamp.js';
 import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
@@ -6727,7 +6727,7 @@ import {
 } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
-import { addGreenIncident, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
+import { addGreenIncident, batchRecordGreenMeters, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
 import { ackCampusBriefAction, campusBriefOverview, campusHealthCheck, runCampusAutomations, syncCampusBriefActions } from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent, sweepFleetPresence } from './agentfleet.js';
 
@@ -36430,6 +36430,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, restockMarketListing(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/marketos/reconcile' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reconcileMarketChannels(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/batch' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, batchRecordGreenMeters(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/openmall/fnb-settle' && req.method === 'POST') {

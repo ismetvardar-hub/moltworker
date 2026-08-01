@@ -216,6 +216,16 @@ try {
   });
   assert(restock.res.ok, 'market restock');
 
+  const recon = await req('/api/marketos/reconcile', {
+    method: 'POST',
+    token,
+    body: { limit: 2, channel: 'tybridge' },
+  });
+  assert(recon.res.ok, 'market reconcile');
+
+  const gbatch = await req('/api/greenpulse/batch', { method: 'POST', token, body: {} });
+  assert(gbatch.res.ok && gbatch.data.batch, 'green batch');
+
   const settle = await req('/api/openmall/fnb-settle', {
     method: 'POST',
     token,

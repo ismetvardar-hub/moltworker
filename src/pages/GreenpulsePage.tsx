@@ -81,6 +81,18 @@ export default function GreenpulsePage() {
               >
                 ESG playbook
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.batchRecordGreenMeters({}).then((r: any) => {
+                    ping(`Batch ${r.batch?.n} okuma`)
+                    return refresh()
+                  })
+                }
+              >
+                Sayaç batch
+              </button>
             </div>
           </PanelCard>
           <PanelCard title="Sayaçlar">

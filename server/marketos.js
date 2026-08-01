@@ -182,3 +182,35 @@ export function restockMarketListing(input = {}, actor = 'system') {
   });
   return { ok: true, listing: list[idx], overview: marketOsOverview() };
 }
+
+/** Live listing’leri kanal köprülerine toplu sync */
+export function reconcileMarketChannels(input = {}, actor = 'system') {
+  const list = ensureListings().filter((l) => l.status === 'live');
+  const channel = (input.channel || 'both').toLowerCase();
+  const synced = [];
+  for (const item of list.slice(0, Number(input.limit) || 20)) {
+    if (channel === 'both' || channel === 'tybridge' || channel === 'trendyol') {
+      const r = syncMarketChannel({ listing_id: item.id, channel: 'tybridge' }, actor);
+      if (r.ok) synced.push({ listing_id: item.id, channel: 'trendyol', bridge_id: r.bridge?.id });
+    }
+    if (channel === 'both' || channel.startsWith('dolap')) {
+      const r = syncMarketChannel({ listing_id: item.id, channel: 'dolap' }, actor);
+      if (r.ok) synced.push({ listing_id: item.id, channel: 'dolap', bridge_id: r.bridge?.id });
+    }
+  }
+  const run = {
+    id: rid('mcr'),
+    n: synced.length,
+    channel,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('market-reconciles', run, 80);
+  appendAudit({
+    actor,
+    action: 'market.reconcile',
+    detail: `${synced.length} sync · ${channel}`,
+    meta: { id: run.id },
+  });
+  return { ok: true, run, synced, overview: marketOsOverview() };
+}

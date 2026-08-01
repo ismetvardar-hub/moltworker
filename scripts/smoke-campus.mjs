@@ -56,10 +56,14 @@ import {
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
 } from '../server/extremepark.js';
-import { sweepFleetPresence } from '../server/agentfleet.js';
 import { runSportEligibilitySweep } from '../server/sportbridge.js';
 import { runGreenPulseAutomations } from '../server/greenpulse.js';
-import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
+import {
+  agentFleetOverview,
+  dispatchFleetDirective,
+  pingFleetAgent,
+  sweepFleetPresence,
+} from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import {
@@ -76,7 +80,8 @@ import {
   endCultureStream,
   setCultureStageStatus,
 } from '../server/culturescene.js';
-import { returnMarketRental, restockMarketListing } from '../server/marketos.js';
+import { returnMarketRental, restockMarketListing, reconcileMarketChannels } from '../server/marketos.js';
+import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
@@ -187,6 +192,8 @@ else {
 }
 const soldish = marketOsOverview().listings.find((l) => l.status !== 'live') || marketOsOverview().listings[0];
 if (soldish) restockMarketListing({ listing_id: soldish.id }, 'smoke');
+assert(reconcileMarketChannels({ limit: 2, channel: 'tybridge' }, 'smoke').ok, 'market reconcile');
+assert(batchRecordGreenMeters({}, 'smoke').ok, 'green batch');
 
 const stream = startCultureStream({ event_id: 'ce_1' }, 'smoke');
 assert(stream.ok, 'culture stream start');

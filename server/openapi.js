@@ -1237,6 +1237,8 @@ export function buildOpenApi() {
       '/api/campusbrief/actions': { post: { summary: 'Brif aksiyon kayıt sync', tags: ['campusbrief'] } },
       '/api/culture/stream/start': { post: { summary: 'Canlı yayın başlat', tags: ['culturescene'] } },
       '/api/marketos/restock': { post: { summary: 'Pazaryeri restock', tags: ['marketos'] } },
+      '/api/marketos/reconcile': { post: { summary: 'Kanal toplu sync', tags: ['marketos'] } },
+      '/api/greenpulse/batch': { post: { summary: 'ESG sayaç batch', tags: ['greenpulse'] } },
       '/api/campus/zone-transition': { post: { summary: 'Zon durum geçişi', tags: ['campus'] } },
       '/api/campus/incident/resolve': { post: { summary: 'Kampüs incident kapat', tags: ['campus'] } },
       '/api/campus/capacity': { post: { summary: 'Kampüs kapasite rollup', tags: ['campus'] } },

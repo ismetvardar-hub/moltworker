@@ -97,6 +97,37 @@ export function recordGreenMeter(input = {}, actor = 'system') {
   return { ok: true, meter: meters[idx], overview: greenPulseOverview() };
 }
 
+/** Birden fazla sayaç tek turda */
+export function batchRecordGreenMeters(input = {}, actor = 'system') {
+  const readings = Array.isArray(input.readings) ? input.readings : [];
+  const defaults = readings.length
+    ? readings
+    : [
+        { kind: 'solar', value: 910 },
+        { kind: 'water', value: 48 },
+        { kind: 'grid', value: 390 },
+      ];
+  const results = [];
+  for (const r of defaults) {
+    results.push(recordGreenMeter(r, actor));
+  }
+  const batch = {
+    id: rid('gmb'),
+    n: results.length,
+    alerts: results.filter((r) => r.meter?.status === 'alert').length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('green-batches', batch, 80);
+  appendAudit({
+    actor,
+    action: 'green.batch',
+    detail: `${batch.n} okuma · ${batch.alerts} alert`,
+    meta: { id: batch.id },
+  });
+  return { ok: true, batch, results, overview: greenPulseOverview() };
+}
+
 export function addGreenIncident(input = {}, actor = 'system') {
   const row = {
     id: rid('gi'),

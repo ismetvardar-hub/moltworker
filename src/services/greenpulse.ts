@@ -35,3 +35,13 @@ export async function runGreenPulseAutomations(body: Record<string, unknown> = {
     }),
   )
 }
+
+export async function batchRecordGreenMeters(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
