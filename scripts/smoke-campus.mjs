@@ -430,6 +430,18 @@ import {
 import {
   buildBazaar, runBazaarSweep, ackBazaarFlag, healBazaarStock, reviewBazaarShrink, dispatchBazaarDark,
 } from '../server/bazaar.js';
+import {
+  buildHarbor, runHarborSweep, ackHarborFlag, clearHarborCold, releaseHarborHold, invoiceHarborDemurrage,
+} from '../server/harbor.js';
+import {
+  buildSentinel, runSentinelSweep, ackSentinelFlag, resolveSentinelLost, serviceSentinelAed, flowSentinelGate,
+} from '../server/sentinel.js';
+import {
+  buildEmpire, runEmpireSweep, ackEmpireFlag, syncEmpireTy, shipEmpireHepha, departEmpireTour,
+} from '../server/empire.js';
+import {
+  buildElysium, runElysiumSweep, ackElysiumFlag, closeElysiumAccess, approveElysiumRole, archiveElysiumBreach,
+} from '../server/elysium.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1025,6 +1037,35 @@ assert(healBazaarStock({}, 'smoke').ok, 'bazaar stock heal');
 assert(reviewBazaarShrink({}, 'smoke').ok, 'bazaar shrink review');
 assert(dispatchBazaarDark({}, 'smoke').ok, 'bazaar dark dispatch');
 assert(ackBazaarFlag({}, 'smoke').ok, 'bazaar flag ack');
+
+
+assert(buildHarbor().title, 'harbor overview');
+assert(runHarborSweep({ force: true }, 'smoke').ok, 'harbor sweep');
+assert(clearHarborCold({}, 'smoke').ok, 'harbor cold clear');
+assert(releaseHarborHold({}, 'smoke').ok, 'harbor hold release');
+assert(invoiceHarborDemurrage({}, 'smoke').ok, 'harbor demurrage invoice');
+assert(ackHarborFlag({}, 'smoke').ok, 'harbor flag ack');
+
+assert(buildSentinel().title, 'sentinel overview');
+assert(runSentinelSweep({ force: true }, 'smoke').ok, 'sentinel sweep');
+assert(resolveSentinelLost({}, 'smoke').ok, 'sentinel lost resolve');
+assert(serviceSentinelAed({}, 'smoke').ok, 'sentinel aed service');
+assert(flowSentinelGate({}, 'smoke').ok, 'sentinel gate flow');
+assert(ackSentinelFlag({}, 'smoke').ok, 'sentinel flag ack');
+
+assert(buildEmpire().title, 'empire overview');
+assert(runEmpireSweep({ force: true }, 'smoke').ok, 'empire sweep');
+assert(syncEmpireTy({}, 'smoke').ok, 'empire ty sync');
+assert(shipEmpireHepha({}, 'smoke').ok, 'empire hepha ship');
+assert(departEmpireTour({}, 'smoke').ok, 'empire tour depart');
+assert(ackEmpireFlag({}, 'smoke').ok, 'empire flag ack');
+
+assert(buildElysium().title, 'elysium overview');
+assert(runElysiumSweep({ force: true }, 'smoke').ok, 'elysium sweep');
+assert(closeElysiumAccess({}, 'smoke').ok, 'elysium access close');
+assert(approveElysiumRole({}, 'smoke').ok, 'elysium role approve');
+assert(archiveElysiumBreach({}, 'smoke').ok, 'elysium breach archive');
+assert(ackElysiumFlag({}, 'smoke').ok, 'elysium flag ack');
 
 console.log(
   JSON.stringify(

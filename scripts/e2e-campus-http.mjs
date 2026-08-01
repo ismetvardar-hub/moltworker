@@ -109,6 +109,10 @@ try {
     '/api/aurora',
     '/api/horizon',
     '/api/bazaar',
+    '/api/harbor',
+    '/api/sentinel',
+    '/api/empire',
+    '/api/elysium',
     '/api/health',
   ];
   for (const p of paths) {
@@ -941,6 +945,50 @@ try {
   assert(bzDark.res.ok && bzDark.data.ok !== false, 'bazaar dark dispatch');
   const bzAck = await req('/api/bazaar/flag/ack', { method: 'POST', token, body: {} });
   assert(bzAck.res.ok && bzAck.data.ok !== false, 'bazaar flag ack');
+
+  const hbSweep = await req('/api/harbor/sweep', { method: 'POST', token, body: { force: true } });
+  assert(hbSweep.res.ok && hbSweep.data.ok !== false, 'harbor sweep');
+  const hbCold = await req('/api/harbor/cold/clear', { method: 'POST', token, body: {} });
+  assert(hbCold.res.ok && hbCold.data.ok !== false, 'harbor cold clear');
+  const hbHold = await req('/api/harbor/hold/release', { method: 'POST', token, body: {} });
+  assert(hbHold.res.ok && hbHold.data.ok !== false, 'harbor hold release');
+  const hbDem = await req('/api/harbor/demurrage/invoice', { method: 'POST', token, body: {} });
+  assert(hbDem.res.ok && hbDem.data.ok !== false, 'harbor demurrage invoice');
+  const hbAck = await req('/api/harbor/flag/ack', { method: 'POST', token, body: {} });
+  assert(hbAck.res.ok && hbAck.data.ok !== false, 'harbor flag ack');
+
+  const snlSweep = await req('/api/sentinel/sweep', { method: 'POST', token, body: { force: true } });
+  assert(snlSweep.res.ok && snlSweep.data.ok !== false, 'sentinel sweep');
+  const snlLost = await req('/api/sentinel/lost/resolve', { method: 'POST', token, body: {} });
+  assert(snlLost.res.ok && snlLost.data.ok !== false, 'sentinel lost resolve');
+  const snlAed = await req('/api/sentinel/aed/service', { method: 'POST', token, body: {} });
+  assert(snlAed.res.ok && snlAed.data.ok !== false, 'sentinel aed service');
+  const snlGate = await req('/api/sentinel/gate/flow', { method: 'POST', token, body: {} });
+  assert(snlGate.res.ok && snlGate.data.ok !== false, 'sentinel gate flow');
+  const snlAck = await req('/api/sentinel/flag/ack', { method: 'POST', token, body: {} });
+  assert(snlAck.res.ok && snlAck.data.ok !== false, 'sentinel flag ack');
+
+  const emSweep = await req('/api/empire/sweep', { method: 'POST', token, body: { force: true } });
+  assert(emSweep.res.ok && emSweep.data.ok !== false, 'empire sweep');
+  const emTy = await req('/api/empire/ty/sync', { method: 'POST', token, body: {} });
+  assert(emTy.res.ok && emTy.data.ok !== false, 'empire ty sync');
+  const emHeph = await req('/api/empire/hepha/ship', { method: 'POST', token, body: {} });
+  assert(emHeph.res.ok && emHeph.data.ok !== false, 'empire hepha ship');
+  const emTour = await req('/api/empire/tour/depart', { method: 'POST', token, body: {} });
+  assert(emTour.res.ok && emTour.data.ok !== false, 'empire tour depart');
+  const emAck = await req('/api/empire/flag/ack', { method: 'POST', token, body: {} });
+  assert(emAck.res.ok && emAck.data.ok !== false, 'empire flag ack');
+
+  const elySweep = await req('/api/elysium/sweep', { method: 'POST', token, body: { force: true } });
+  assert(elySweep.res.ok && elySweep.data.ok !== false, 'elysium sweep');
+  const elyAcc = await req('/api/elysium/access/close', { method: 'POST', token, body: {} });
+  assert(elyAcc.res.ok && elyAcc.data.ok !== false, 'elysium access close');
+  const elyRole = await req('/api/elysium/role/approve', { method: 'POST', token, body: {} });
+  assert(elyRole.res.ok && elyRole.data.ok !== false, 'elysium role approve');
+  const elyBreach = await req('/api/elysium/breach/archive', { method: 'POST', token, body: {} });
+  assert(elyBreach.res.ok && elyBreach.data.ok !== false, 'elysium breach archive');
+  const elyAck = await req('/api/elysium/flag/ack', { method: 'POST', token, body: {} });
+  assert(elyAck.res.ok && elyAck.data.ok !== false, 'elysium flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

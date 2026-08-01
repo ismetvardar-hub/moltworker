@@ -1111,7 +1111,9 @@ import {
   watchlistSummary,
   updateWatchlist,
 } from './watchlist.js';
-import { buildSentinel } from './sentinel.js';
+import {
+  ackSentinelFlag, buildSentinel, flowSentinelGate, resolveSentinelLost, runSentinelSweep, serviceSentinelAed,
+} from './sentinel.js';
 import {
   createMenuboard,
   listMenuboard,
@@ -2442,7 +2444,9 @@ import {
   stevedoreSummary,
   updateStevedore,
 } from './stevedore.js';
-import { buildHarbor } from './harbor.js';
+import {
+  ackHarborFlag, buildHarbor, clearHarborCold, invoiceHarborDemurrage, releaseHarborHold, runHarborSweep,
+} from './harbor.js';
 import {
   createAuroradeck,
   listAuroradeck,
@@ -3681,7 +3685,9 @@ import {
   packfolioSummary,
   updatePackfolio,
 } from './packfolio.js';
-import { buildEmpire } from './empire.js';
+import {
+  ackEmpireFlag, buildEmpire, departEmpireTour, runEmpireSweep, shipEmpireHepha, syncEmpireTy,
+} from './empire.js';
 import {
   createRetailfloor,
   listRetailfloor,
@@ -6089,7 +6095,9 @@ import {
   zerohour3Summary,
   updateZerohour3,
 } from './zerohour3.js';
-import { buildElysium } from './elysium.js';
+import {
+  ackElysiumFlag, approveElysiumRole, archiveElysiumBreach, buildElysium, closeElysiumAccess, runElysiumSweep,
+} from './elysium.js';
 import {
   createPartnerdesk3,
   listPartnerdesk3,
@@ -12975,6 +12983,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildSentinel());
           return;
         }
+        if (path === '/api/sentinel/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSentinelSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sentinel/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSentinelFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sentinel/lost/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveSentinelLost(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sentinel/aed/service' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, serviceSentinelAed(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sentinel/gate/flow' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flowSentinelGate(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 211–225 ──
 
@@ -18570,6 +18608,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildHarbor());
           return;
         }
+        if (path === '/api/harbor/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHarborSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/harbor/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHarborFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/harbor/cold/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearHarborCold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/harbor/hold/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseHarborHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/harbor/demurrage/invoice' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, invoiceHarborDemurrage(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Experience Fabric · Aurora (AŞAMA 436–450) ──
 
@@ -23776,6 +23844,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/empire' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildEmpire());
+          return;
+        }
+        if (path === '/api/empire/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runEmpireSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/empire/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEmpireFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/empire/ty/sync' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, syncEmpireTy(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/empire/hepha/ship' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, shipEmpireHepha(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/empire/tour/depart' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, departEmpireTour(await readBody(req), user.username)); })();
           return;
         }
 
@@ -33892,6 +33990,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/elysium' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildElysium());
+          return;
+        }
+        if (path === '/api/elysium/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runElysiumSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/elysium/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackElysiumFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/elysium/access/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeElysiumAccess(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/elysium/role/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveElysiumRole(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/elysium/breach/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveElysiumBreach(await readBody(req), user.username)); })();
           return;
         }
 

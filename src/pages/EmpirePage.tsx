@@ -1,23 +1,47 @@
 import { useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import { fetchEmpire } from '../services/empire'
+import * as api from '../services/empire'
 export default function EmpirePage() {
   const [data, setData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
-  useEffect(() => { void fetchEmpire().then(setData).catch((e)=>setError(e instanceof Error?e.message:'Hata')) }, [])
+  const [flash, setFlash] = useState<string | null>(null)
+  async function refresh() { try { setData(await api.fetchEmpire()); setError(null) } catch (e) { setError(e instanceof Error ? e.message : 'Hata') } }
+  useEffect(() => { void refresh() }, [])
+  function ping(m: string) { setFlash(m); window.setTimeout(() => setFlash(null), 2800) }
   return (
     <div className="space-y-6 p-6">
       <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lykia-400/80">LİKYA Holding</p>
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Empire</h1>
-        <p className="mt-1 text-sm text-slate-400">AŞAMA 645 — ticaret · tur · konaklama · spor konglomerat özeti.</p>
+        <p className="mt-1 text-sm text-slate-400">AŞAMA 645 — kanal · fulfillment · deneyim.</p>
       </header>
       {error && <p className="text-sm text-rose-300">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
       {data && (
-        <PanelCard title={data.title}>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-            {(data.summaryLines||[]).map((l:string)=><li key={l}>{l}</li>)}
-          </ul>
-        </PanelCard>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PanelCard title={data.title}>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">{(data.summaryLines || []).map((l: string) => (<li key={l}>{l}</li>))}</ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runEmpireSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+              <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.syncEmpireTy({}).then((r: any) => { ping(`TY ${r.synced?.length ?? 0}`); return refresh() })}>TY sync</button>
+              <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.shipEmpireHepha({}).then((r: any) => { ping(`Hepha ${r.shipped?.length ?? 0}`); return refresh() })}>Hepha ship</button>
+              <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.departEmpireTour({}).then((r: any) => { ping(`Tour ${r.departed?.length ?? 0}`); return refresh() })}>Tour depart</button>
+              <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackEmpireFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">Flag {data.summary?.flags_open ?? 0} · TY {data.summary?.ty_error ?? 0} · hepha {data.summary?.heph_queued ?? 0} · tour {data.summary?.tour_open ?? 0}</p>
+          </PanelCard>
+          <PanelCard title="Açık flagler">
+            <ul className="space-y-2 text-sm">
+              {(data.flags || []).length === 0 && <li className="text-slate-400">Açık flag yok.</li>}
+              {(data.flags || []).slice(0, 10).map((f: any) => (
+                <li key={f.id} className="flex items-center justify-between rounded-lg border border-obsidian-700 px-3 py-2">
+                  <span><span className="text-lykia-300">[{f.level}]</span> {f.text}</span>
+                  <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]" onClick={() => void api.ackEmpireFlag({ id: f.id }).then(() => { ping('Ack'); return refresh() })}>Ack</button>
+                </li>
+              ))}
+            </ul>
+          </PanelCard>
+        </div>
       )}
     </div>
   )
