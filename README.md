@@ -1411,6 +1411,406 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **899** | Empire Final |
 | **900** | Olympus checkpoint (`/api/olympus`) |
 
+### Identity OS · Bastion2 (AŞAMA 901–915)
+
+| Aşama | Özellik |
+|-------|---------|
+| **901** | Access Gate |
+| **902** | ID Proof |
+| **903** | Role Grant |
+| **904** | Session Guard |
+| **905** | Device Trust |
+| **906** | Secret Vault |
+| **907** | MFA Reg |
+| **908** | SSO Bridge |
+| **909** | Privacy Pol |
+| **910** | Consent Row |
+| **911** | Breach Log |
+| **912** | SOC Queue |
+| **913** | Patch Desk |
+| **914** | Zero Hour |
+| **915** | Bastion2 checkpoint (`/api/bastion2`) |
+
+### Alliance OS · Alliance3 (AŞAMA 916–930)
+
+| Aşama | Özellik |
+|-------|---------|
+| **916** | Partner Desk |
+| **917** | Franchise |
+| **918** | Channel Kit |
+| **919** | Rebate |
+| **920** | Co Invest |
+| **921** | SLA Track |
+| **922** | Joint Promo |
+| **923** | Lead Share |
+| **924** | B2B Order |
+| **925** | Wholesale |
+| **926** | Deal Room |
+| **927** | Contract Row |
+| **928** | Commission |
+| **929** | Onboard Kit |
+| **930** | Alliance3 checkpoint (`/api/alliance3`) |
+
+### Supply OS · Artery2 (AŞAMA 931–945)
+
+| Aşama | Özellik |
+|-------|---------|
+| **931** | Inbound PO |
+| **932** | Outbound SO |
+| **933** | ASN Track |
+| **934** | Dock Yard |
+| **935** | Cross Dock |
+| **936** | Cold Chain+ |
+| **937** | Slot Book |
+| **938** | Carrier Bid |
+| **939** | Freight Bill |
+| **940** | Milestone T |
+| **941** | Exception Log |
+| **942** | Inventory Age |
+| **943** | Replen Plan |
+| **944** | Safety Stock |
+| **945** | Artery2 checkpoint (`/api/artery2`) |
+
+### Dominion Seal · Dominion2 (AŞAMA 946–960)
+
+| Aşama | Özellik |
+|-------|---------|
+| **946** | Supplier KPI |
+| **947** | Cmd Pulse |
+| **948** | Board Pulse |
+| **949** | Risk Heat |
+| **950** | Cash Pulse |
+| **951** | Ops Heat |
+| **952** | Guest Heat |
+| **953** | Brand Heat |
+| **954** | Agent Pulse |
+| **955** | System Pulse |
+| **956** | Alert Fuse |
+| **957** | War Brief |
+| **958** | Decision Hub |
+| **959** | Seal Note |
+| **960** | Dominion2 checkpoint (`/api/dominion2`) |
+
+### Serenity OS · Serenity2 (AŞAMA 961–975)
+
+| Aşama | Özellik |
+|-------|---------|
+| **961** | Legacy Flag |
+| **962** | Calm Room |
+| **963** | Quiet Hours |
+| **964** | Scent Mood |
+| **965** | Pillow Menu |
+| **966** | Bath Ritual |
+| **967** | Sleep Score |
+| **968** | Welcome Amen |
+| **969** | Farewell |
+| **970** | Memory Book |
+| **971** | Care Call |
+| **972** | Surprise Gift |
+| **973** | Loyalty Hug |
+| **974** | Feedback Loop |
+| **975** | Serenity2 checkpoint (`/api/serenity2`) |
+
+### Circuit OS · Circuit2 (AŞAMA 976–990)
+
+| Aşama | Özellik |
+|-------|---------|
+| **976** | Moment Map |
+| **977** | API Gateway |
+| **978** | Webhook Hub |
+| **979** | Rate Limit+ |
+| **980** | Schema Reg |
+| **981** | Event Bus |
+| **982** | Job Queue+ |
+| **983** | Cache Mesh |
+| **984** | CDN Edge |
+| **985** | Observe Map |
+| **986** | Error Budget |
+| **987** | Feature Gate |
+| **988** | Canary Run |
+| **989** | Rollback |
+| **990** | Circuit2 checkpoint (`/api/circuit2`) |
+
+### Agora OS · Agora2 (AŞAMA 991–1005)
+
+| Aşama | Özellik |
+|-------|---------|
+| **991** | Chaos Drill |
+| **992** | Member Hub |
+| **993** | Circle |
+| **994** | Meetup |
+| **995** | Forum Mod |
+| **996** | Poll Desk |
+| **997** | Badge Earn |
+| **998** | Quest Line |
+| **999** | Volunteer |
+| **1000** | Donation |
+| **1001** | Chapter |
+| **1002** | Ambassador+ |
+| **1003** | Story Wall |
+| **1004** | Ritual Cal |
+| **1005** | Agora2 checkpoint (`/api/agora2`) |
+
+### Crucible OS · Crucible2 (AŞAMA 1006–1020)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1006** | Cohort |
+| **1007** | Lab Bench |
+| **1008** | Pilot Run |
+| **1009** | Prototype |
+| **1010** | Hypothesis |
+| **1011** | Metrics Lab |
+| **1012** | User Board |
+| **1013** | Patent Desk |
+| **1014** | Sandbox |
+| **1015** | Hack Day |
+| **1016** | Incubate |
+| **1017** | Spin Desk |
+| **1018** | Research Note |
+| **1019** | Lab Budget |
+| **1020** | Crucible2 checkpoint (`/api/crucible2`) |
+
+### Charter OS · Charter2 (AŞAMA 1021–1035)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1021** | IP Vault |
+| **1022** | Legal Desk |
+| **1023** | Risk Reg |
+| **1024** | Policy Hub |
+| **1025** | Claim Desk |
+| **1026** | Insurance T |
+| **1027** | Litigation |
+| **1028** | Compliance+ |
+| **1029** | Ethics Line |
+| **1030** | KYC Row |
+| **1031** | Sanctions |
+| **1032** | Data Priv |
+| **1033** | Retention Pol |
+| **1034** | Audit Evidence |
+| **1035** | Charter2 checkpoint (`/api/charter2`) |
+
+### Phoenix OS · Phoenix2 (AŞAMA 1036–1050)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1036** | Board Resolve |
+| **1037** | DR Plan |
+| **1038** | Backup Job |
+| **1039** | Failover |
+| **1040** | Runbook |
+| **1041** | War Room+ |
+| **1042** | Comms Bridge+ |
+| **1043** | Site Evac |
+| **1044** | Cold Site |
+| **1045** | Hot Spare |
+| **1046** | Drill Score |
+| **1047** | Vendor Fail |
+| **1048** | Power Cut |
+| **1049** | Net Split |
+| **1050** | Phoenix2 checkpoint (`/api/phoenix2`) |
+
+### Elysium OS · Elysium (AŞAMA 1051–1065)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1051** | Access Gate |
+| **1052** | ID Proof |
+| **1053** | Role Grant |
+| **1054** | Session Guard |
+| **1055** | Device Trust |
+| **1056** | Secret Vault |
+| **1057** | MFA Reg |
+| **1058** | SSO Bridge |
+| **1059** | Privacy Pol |
+| **1060** | Consent Row |
+| **1061** | Breach Log |
+| **1062** | SOC Queue |
+| **1063** | Patch Desk |
+| **1064** | Zero Hour |
+| **1065** | Elysium checkpoint (`/api/elysium`) |
+
+### Aether OS · Aether (AŞAMA 1066–1080)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1066** | Partner Desk |
+| **1067** | Franchise |
+| **1068** | Channel Kit |
+| **1069** | Rebate |
+| **1070** | Co Invest |
+| **1071** | SLA Track |
+| **1072** | Joint Promo |
+| **1073** | Lead Share |
+| **1074** | B2B Order |
+| **1075** | Wholesale |
+| **1076** | Deal Room |
+| **1077** | Contract Row |
+| **1078** | Commission |
+| **1079** | Onboard Kit |
+| **1080** | Aether checkpoint (`/api/aether`) |
+
+### Helios OS · Helios (AŞAMA 1081–1095)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1081** | Inbound PO |
+| **1082** | Outbound SO |
+| **1083** | ASN Track |
+| **1084** | Dock Yard |
+| **1085** | Cross Dock |
+| **1086** | Cold Chain+ |
+| **1087** | Slot Book |
+| **1088** | Carrier Bid |
+| **1089** | Freight Bill |
+| **1090** | Milestone T |
+| **1091** | Exception Log |
+| **1092** | Inventory Age |
+| **1093** | Replen Plan |
+| **1094** | Safety Stock |
+| **1095** | Helios checkpoint (`/api/helios`) |
+
+### Selene OS · Selene (AŞAMA 1096–1110)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1096** | Supplier KPI |
+| **1097** | Cmd Pulse |
+| **1098** | Board Pulse |
+| **1099** | Risk Heat |
+| **1100** | Cash Pulse |
+| **1101** | Ops Heat |
+| **1102** | Guest Heat |
+| **1103** | Brand Heat |
+| **1104** | Agent Pulse |
+| **1105** | System Pulse |
+| **1106** | Alert Fuse |
+| **1107** | War Brief |
+| **1108** | Decision Hub |
+| **1109** | Seal Note |
+| **1110** | Selene checkpoint (`/api/selene`) |
+
+### Gaia OS · Gaia (AŞAMA 1111–1125)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1111** | Legacy Flag |
+| **1112** | Calm Room |
+| **1113** | Quiet Hours |
+| **1114** | Scent Mood |
+| **1115** | Pillow Menu |
+| **1116** | Bath Ritual |
+| **1117** | Sleep Score |
+| **1118** | Welcome Amen |
+| **1119** | Farewell |
+| **1120** | Memory Book |
+| **1121** | Care Call |
+| **1122** | Surprise Gift |
+| **1123** | Loyalty Hug |
+| **1124** | Feedback Loop |
+| **1125** | Gaia checkpoint (`/api/gaia`) |
+
+### Chronos OS · Chronos (AŞAMA 1126–1140)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1126** | Moment Map |
+| **1127** | API Gateway |
+| **1128** | Webhook Hub |
+| **1129** | Rate Limit+ |
+| **1130** | Schema Reg |
+| **1131** | Event Bus |
+| **1132** | Job Queue+ |
+| **1133** | Cache Mesh |
+| **1134** | CDN Edge |
+| **1135** | Observe Map |
+| **1136** | Error Budget |
+| **1137** | Feature Gate |
+| **1138** | Canary Run |
+| **1139** | Rollback |
+| **1140** | Chronos checkpoint (`/api/chronos`) |
+
+### Kairos OS · Kairos (AŞAMA 1141–1155)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1141** | Chaos Drill |
+| **1142** | Member Hub |
+| **1143** | Circle |
+| **1144** | Meetup |
+| **1145** | Forum Mod |
+| **1146** | Poll Desk |
+| **1147** | Badge Earn |
+| **1148** | Quest Line |
+| **1149** | Volunteer |
+| **1150** | Donation |
+| **1151** | Chapter |
+| **1152** | Ambassador+ |
+| **1153** | Story Wall |
+| **1154** | Ritual Cal |
+| **1155** | Kairos checkpoint (`/api/kairos`) |
+
+### Logos OS · Logos (AŞAMA 1156–1170)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1156** | Cohort |
+| **1157** | Lab Bench |
+| **1158** | Pilot Run |
+| **1159** | Prototype |
+| **1160** | Hypothesis |
+| **1161** | Metrics Lab |
+| **1162** | User Board |
+| **1163** | Patent Desk |
+| **1164** | Sandbox |
+| **1165** | Hack Day |
+| **1166** | Incubate |
+| **1167** | Spin Desk |
+| **1168** | Research Note |
+| **1169** | Lab Budget |
+| **1170** | Logos checkpoint (`/api/logos`) |
+
+### Pathos OS · Pathos (AŞAMA 1171–1185)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1171** | IP Vault |
+| **1172** | Legal Desk |
+| **1173** | Risk Reg |
+| **1174** | Policy Hub |
+| **1175** | Claim Desk |
+| **1176** | Insurance T |
+| **1177** | Litigation |
+| **1178** | Compliance+ |
+| **1179** | Ethics Line |
+| **1180** | KYC Row |
+| **1181** | Sanctions |
+| **1182** | Data Priv |
+| **1183** | Retention Pol |
+| **1184** | Audit Evidence |
+| **1185** | Pathos checkpoint (`/api/pathos`) |
+
+### Apotheosis · Apotheosis (AŞAMA 1186–1200)
+
+| Aşama | Özellik |
+|-------|---------|
+| **1186** | Board Resolve |
+| **1187** | DR Plan |
+| **1188** | Backup Job |
+| **1189** | Failover |
+| **1190** | Runbook |
+| **1191** | War Room+ |
+| **1192** | Comms Bridge+ |
+| **1193** | Site Evac |
+| **1194** | Cold Site |
+| **1195** | Hot Spare |
+| **1196** | Drill Score |
+| **1197** | Vendor Fail |
+| **1198** | Power Cut |
+| **1199** | Net Split |
+| **1200** | Apotheosis checkpoint (`/api/apotheosis`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

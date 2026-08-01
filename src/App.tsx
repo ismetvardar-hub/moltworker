@@ -899,6 +899,306 @@ import CrownfinalPage from './pages/CrownfinalPage';
 import VaultfinalPage from './pages/VaultfinalPage';
 import EmpirefinalPage from './pages/EmpirefinalPage';
 import OlympusPage from './pages/OlympusPage';
+import Accessgate2Page from './pages/Accessgate2Page';
+import Idproof2Page from './pages/Idproof2Page';
+import Rolegrant2Page from './pages/Rolegrant2Page';
+import Sessionguard2Page from './pages/Sessionguard2Page';
+import Devicetrust2Page from './pages/Devicetrust2Page';
+import Secretvault2Page from './pages/Secretvault2Page';
+import Mfareg2Page from './pages/Mfareg2Page';
+import Ssobridge2Page from './pages/Ssobridge2Page';
+import Privacypol2Page from './pages/Privacypol2Page';
+import Consentrow2Page from './pages/Consentrow2Page';
+import Breachlog2Page from './pages/Breachlog2Page';
+import Socqueue2Page from './pages/Socqueue2Page';
+import Patchdesk2Page from './pages/Patchdesk2Page';
+import Zerohour2Page from './pages/Zerohour2Page';
+import Bastion2Page from './pages/Bastion2Page';
+import Partnerdesk2Page from './pages/Partnerdesk2Page';
+import Franchise2Page from './pages/Franchise2Page';
+import Channelkit2Page from './pages/Channelkit2Page';
+import Rebate2Page from './pages/Rebate2Page';
+import Coinvest2Page from './pages/Coinvest2Page';
+import Slatrack2Page from './pages/Slatrack2Page';
+import Jointpromo2Page from './pages/Jointpromo2Page';
+import Leadshare2Page from './pages/Leadshare2Page';
+import B2border2Page from './pages/B2border2Page';
+import Wholesale2Page from './pages/Wholesale2Page';
+import Dealroom2Page from './pages/Dealroom2Page';
+import Contractrow2Page from './pages/Contractrow2Page';
+import Commission2Page from './pages/Commission2Page';
+import Onboardkit2Page from './pages/Onboardkit2Page';
+import Alliance3Page from './pages/Alliance3Page';
+import Inboundpo2Page from './pages/Inboundpo2Page';
+import Outboundso2Page from './pages/Outboundso2Page';
+import Asntrack2Page from './pages/Asntrack2Page';
+import Dockyard2Page from './pages/Dockyard2Page';
+import Crossdock2Page from './pages/Crossdock2Page';
+import Coldchain22Page from './pages/Coldchain22Page';
+import Slotbook2Page from './pages/Slotbook2Page';
+import Carrierbid2Page from './pages/Carrierbid2Page';
+import Freightbill2Page from './pages/Freightbill2Page';
+import Milestonet2Page from './pages/Milestonet2Page';
+import Exceptionlog2Page from './pages/Exceptionlog2Page';
+import Inventoryage2Page from './pages/Inventoryage2Page';
+import Replenplan2Page from './pages/Replenplan2Page';
+import Safetystock2Page from './pages/Safetystock2Page';
+import Artery2Page from './pages/Artery2Page';
+import Supplierkpi2Page from './pages/Supplierkpi2Page';
+import Cmdpulse2Page from './pages/Cmdpulse2Page';
+import Boardpulse2Page from './pages/Boardpulse2Page';
+import Riskheat2Page from './pages/Riskheat2Page';
+import Cashpulse2Page from './pages/Cashpulse2Page';
+import Opsheat2Page from './pages/Opsheat2Page';
+import Guestheat2Page from './pages/Guestheat2Page';
+import Brandheat2Page from './pages/Brandheat2Page';
+import Agentpulse2Page from './pages/Agentpulse2Page';
+import Systempulse2Page from './pages/Systempulse2Page';
+import Alertfuse2Page from './pages/Alertfuse2Page';
+import Warbrief2Page from './pages/Warbrief2Page';
+import Decisionhub2Page from './pages/Decisionhub2Page';
+import Sealnote2Page from './pages/Sealnote2Page';
+import Dominion2Page from './pages/Dominion2Page';
+import Legacyflag2Page from './pages/Legacyflag2Page';
+import Calmroom2Page from './pages/Calmroom2Page';
+import Quiethours2Page from './pages/Quiethours2Page';
+import Scentmood2Page from './pages/Scentmood2Page';
+import Pillowmenu3Page from './pages/Pillowmenu3Page';
+import Bathritual2Page from './pages/Bathritual2Page';
+import Sleepscore2Page from './pages/Sleepscore2Page';
+import Welcomeamen2Page from './pages/Welcomeamen2Page';
+import Farewell2Page from './pages/Farewell2Page';
+import Memorybook2Page from './pages/Memorybook2Page';
+import Carecall2Page from './pages/Carecall2Page';
+import Surprisegift2Page from './pages/Surprisegift2Page';
+import Loyaltyhug2Page from './pages/Loyaltyhug2Page';
+import Feedbackloop2Page from './pages/Feedbackloop2Page';
+import Serenity2Page from './pages/Serenity2Page';
+import Momentmap2Page from './pages/Momentmap2Page';
+import Apigateway2Page from './pages/Apigateway2Page';
+import Webhookhub2Page from './pages/Webhookhub2Page';
+import Ratelimit22Page from './pages/Ratelimit22Page';
+import Schemareg2Page from './pages/Schemareg2Page';
+import Eventbus2Page from './pages/Eventbus2Page';
+import Jobqueue22Page from './pages/Jobqueue22Page';
+import Cachemesh2Page from './pages/Cachemesh2Page';
+import Cdnedge2Page from './pages/Cdnedge2Page';
+import Observemap2Page from './pages/Observemap2Page';
+import Errorbudget3Page from './pages/Errorbudget3Page';
+import Featuregate2Page from './pages/Featuregate2Page';
+import Canaryrun2Page from './pages/Canaryrun2Page';
+import Rollback2Page from './pages/Rollback2Page';
+import Circuit2Page from './pages/Circuit2Page';
+import Chaosdrill2Page from './pages/Chaosdrill2Page';
+import Memberhub2Page from './pages/Memberhub2Page';
+import Circle2Page from './pages/Circle2Page';
+import Meetup2Page from './pages/Meetup2Page';
+import Forummod2Page from './pages/Forummod2Page';
+import Polldesk2Page from './pages/Polldesk2Page';
+import Badgeearn2Page from './pages/Badgeearn2Page';
+import Questline2Page from './pages/Questline2Page';
+import Volunteer2Page from './pages/Volunteer2Page';
+import Donation2Page from './pages/Donation2Page';
+import Chapter2Page from './pages/Chapter2Page';
+import Ambassador22Page from './pages/Ambassador22Page';
+import Storywall2Page from './pages/Storywall2Page';
+import Ritualcal2Page from './pages/Ritualcal2Page';
+import Agora2Page from './pages/Agora2Page';
+import Cohort2Page from './pages/Cohort2Page';
+import Labbench2Page from './pages/Labbench2Page';
+import Pilotrun2Page from './pages/Pilotrun2Page';
+import Prototype2Page from './pages/Prototype2Page';
+import Hypothesis2Page from './pages/Hypothesis2Page';
+import Metricslab2Page from './pages/Metricslab2Page';
+import Userboard2Page from './pages/Userboard2Page';
+import Patentdesk2Page from './pages/Patentdesk2Page';
+import Sandbox2Page from './pages/Sandbox2Page';
+import Hackday2Page from './pages/Hackday2Page';
+import Incubate2Page from './pages/Incubate2Page';
+import Spindesk2Page from './pages/Spindesk2Page';
+import Researchnote2Page from './pages/Researchnote2Page';
+import Labbudget2Page from './pages/Labbudget2Page';
+import Crucible2Page from './pages/Crucible2Page';
+import Ipvault2Page from './pages/Ipvault2Page';
+import Legaldesk2Page from './pages/Legaldesk2Page';
+import Riskreg2Page from './pages/Riskreg2Page';
+import Policyhub2Page from './pages/Policyhub2Page';
+import Claimdesk2Page from './pages/Claimdesk2Page';
+import Insurancet2Page from './pages/Insurancet2Page';
+import Litigation2Page from './pages/Litigation2Page';
+import Compliance22Page from './pages/Compliance22Page';
+import Ethicsline2Page from './pages/Ethicsline2Page';
+import Kycrow2Page from './pages/Kycrow2Page';
+import Sanctions2Page from './pages/Sanctions2Page';
+import Datapriv2Page from './pages/Datapriv2Page';
+import Retentionpol2Page from './pages/Retentionpol2Page';
+import Auditevidence2Page from './pages/Auditevidence2Page';
+import Charter2Page from './pages/Charter2Page';
+import Boardresolve2Page from './pages/Boardresolve2Page';
+import Drplan2Page from './pages/Drplan2Page';
+import Backupjob2Page from './pages/Backupjob2Page';
+import Failover3Page from './pages/Failover3Page';
+import Runbook2Page from './pages/Runbook2Page';
+import Warroom22Page from './pages/Warroom22Page';
+import Commsbridge22Page from './pages/Commsbridge22Page';
+import Siteevac2Page from './pages/Siteevac2Page';
+import Coldsite2Page from './pages/Coldsite2Page';
+import Hotspare2Page from './pages/Hotspare2Page';
+import Drillscore2Page from './pages/Drillscore2Page';
+import Vendorfail2Page from './pages/Vendorfail2Page';
+import Powercut2Page from './pages/Powercut2Page';
+import Netsplit2Page from './pages/Netsplit2Page';
+import Phoenix2Page from './pages/Phoenix2Page';
+import Accessgate3Page from './pages/Accessgate3Page';
+import Idproof3Page from './pages/Idproof3Page';
+import Rolegrant3Page from './pages/Rolegrant3Page';
+import Sessionguard3Page from './pages/Sessionguard3Page';
+import Devicetrust3Page from './pages/Devicetrust3Page';
+import Secretvault3Page from './pages/Secretvault3Page';
+import Mfareg3Page from './pages/Mfareg3Page';
+import Ssobridge3Page from './pages/Ssobridge3Page';
+import Privacypol3Page from './pages/Privacypol3Page';
+import Consentrow3Page from './pages/Consentrow3Page';
+import Breachlog3Page from './pages/Breachlog3Page';
+import Socqueue3Page from './pages/Socqueue3Page';
+import Patchdesk3Page from './pages/Patchdesk3Page';
+import Zerohour3Page from './pages/Zerohour3Page';
+import ElysiumPage from './pages/ElysiumPage';
+import Partnerdesk3Page from './pages/Partnerdesk3Page';
+import Franchise3Page from './pages/Franchise3Page';
+import Channelkit3Page from './pages/Channelkit3Page';
+import Rebate3Page from './pages/Rebate3Page';
+import Coinvest3Page from './pages/Coinvest3Page';
+import Slatrack3Page from './pages/Slatrack3Page';
+import Jointpromo3Page from './pages/Jointpromo3Page';
+import Leadshare3Page from './pages/Leadshare3Page';
+import B2border3Page from './pages/B2border3Page';
+import Wholesale3Page from './pages/Wholesale3Page';
+import Dealroom3Page from './pages/Dealroom3Page';
+import Contractrow3Page from './pages/Contractrow3Page';
+import Commission3Page from './pages/Commission3Page';
+import Onboardkit3Page from './pages/Onboardkit3Page';
+import AetherPage from './pages/AetherPage';
+import Inboundpo3Page from './pages/Inboundpo3Page';
+import Outboundso3Page from './pages/Outboundso3Page';
+import Asntrack3Page from './pages/Asntrack3Page';
+import Dockyard3Page from './pages/Dockyard3Page';
+import Crossdock3Page from './pages/Crossdock3Page';
+import Coldchain23Page from './pages/Coldchain23Page';
+import Slotbook3Page from './pages/Slotbook3Page';
+import Carrierbid3Page from './pages/Carrierbid3Page';
+import Freightbill3Page from './pages/Freightbill3Page';
+import Milestonet3Page from './pages/Milestonet3Page';
+import Exceptionlog3Page from './pages/Exceptionlog3Page';
+import Inventoryage3Page from './pages/Inventoryage3Page';
+import Replenplan3Page from './pages/Replenplan3Page';
+import Safetystock3Page from './pages/Safetystock3Page';
+import HeliosPage from './pages/HeliosPage';
+import Supplierkpi3Page from './pages/Supplierkpi3Page';
+import Cmdpulse3Page from './pages/Cmdpulse3Page';
+import Boardpulse3Page from './pages/Boardpulse3Page';
+import Riskheat3Page from './pages/Riskheat3Page';
+import Cashpulse3Page from './pages/Cashpulse3Page';
+import Opsheat3Page from './pages/Opsheat3Page';
+import Guestheat3Page from './pages/Guestheat3Page';
+import Brandheat3Page from './pages/Brandheat3Page';
+import Agentpulse3Page from './pages/Agentpulse3Page';
+import Systempulse3Page from './pages/Systempulse3Page';
+import Alertfuse3Page from './pages/Alertfuse3Page';
+import Warbrief3Page from './pages/Warbrief3Page';
+import Decisionhub3Page from './pages/Decisionhub3Page';
+import Sealnote3Page from './pages/Sealnote3Page';
+import SelenePage from './pages/SelenePage';
+import Legacyflag3Page from './pages/Legacyflag3Page';
+import Calmroom3Page from './pages/Calmroom3Page';
+import Quiethours3Page from './pages/Quiethours3Page';
+import Scentmood3Page from './pages/Scentmood3Page';
+import Pillowmenu4Page from './pages/Pillowmenu4Page';
+import Bathritual3Page from './pages/Bathritual3Page';
+import Sleepscore3Page from './pages/Sleepscore3Page';
+import Welcomeamen3Page from './pages/Welcomeamen3Page';
+import Farewell3Page from './pages/Farewell3Page';
+import Memorybook3Page from './pages/Memorybook3Page';
+import Carecall3Page from './pages/Carecall3Page';
+import Surprisegift3Page from './pages/Surprisegift3Page';
+import Loyaltyhug3Page from './pages/Loyaltyhug3Page';
+import Feedbackloop3Page from './pages/Feedbackloop3Page';
+import GaiaPage from './pages/GaiaPage';
+import Momentmap3Page from './pages/Momentmap3Page';
+import Apigateway3Page from './pages/Apigateway3Page';
+import Webhookhub3Page from './pages/Webhookhub3Page';
+import Ratelimit23Page from './pages/Ratelimit23Page';
+import Schemareg3Page from './pages/Schemareg3Page';
+import Eventbus3Page from './pages/Eventbus3Page';
+import Jobqueue23Page from './pages/Jobqueue23Page';
+import Cachemesh3Page from './pages/Cachemesh3Page';
+import Cdnedge3Page from './pages/Cdnedge3Page';
+import Observemap3Page from './pages/Observemap3Page';
+import Errorbudget4Page from './pages/Errorbudget4Page';
+import Featuregate3Page from './pages/Featuregate3Page';
+import Canaryrun3Page from './pages/Canaryrun3Page';
+import Rollback3Page from './pages/Rollback3Page';
+import ChronosPage from './pages/ChronosPage';
+import Chaosdrill3Page from './pages/Chaosdrill3Page';
+import Memberhub3Page from './pages/Memberhub3Page';
+import Circle3Page from './pages/Circle3Page';
+import Meetup3Page from './pages/Meetup3Page';
+import Forummod3Page from './pages/Forummod3Page';
+import Polldesk3Page from './pages/Polldesk3Page';
+import Badgeearn3Page from './pages/Badgeearn3Page';
+import Questline3Page from './pages/Questline3Page';
+import Volunteer3Page from './pages/Volunteer3Page';
+import Donation3Page from './pages/Donation3Page';
+import Chapter3Page from './pages/Chapter3Page';
+import Ambassador23Page from './pages/Ambassador23Page';
+import Storywall3Page from './pages/Storywall3Page';
+import Ritualcal3Page from './pages/Ritualcal3Page';
+import KairosPage from './pages/KairosPage';
+import Cohort3Page from './pages/Cohort3Page';
+import Labbench3Page from './pages/Labbench3Page';
+import Pilotrun3Page from './pages/Pilotrun3Page';
+import Prototype3Page from './pages/Prototype3Page';
+import Hypothesis3Page from './pages/Hypothesis3Page';
+import Metricslab3Page from './pages/Metricslab3Page';
+import Userboard3Page from './pages/Userboard3Page';
+import Patentdesk3Page from './pages/Patentdesk3Page';
+import Sandbox3Page from './pages/Sandbox3Page';
+import Hackday3Page from './pages/Hackday3Page';
+import Incubate3Page from './pages/Incubate3Page';
+import Spindesk3Page from './pages/Spindesk3Page';
+import Researchnote3Page from './pages/Researchnote3Page';
+import Labbudget3Page from './pages/Labbudget3Page';
+import LogosPage from './pages/LogosPage';
+import Ipvault3Page from './pages/Ipvault3Page';
+import Legaldesk3Page from './pages/Legaldesk3Page';
+import Riskreg3Page from './pages/Riskreg3Page';
+import Policyhub3Page from './pages/Policyhub3Page';
+import Claimdesk3Page from './pages/Claimdesk3Page';
+import Insurancet3Page from './pages/Insurancet3Page';
+import Litigation3Page from './pages/Litigation3Page';
+import Compliance23Page from './pages/Compliance23Page';
+import Ethicsline3Page from './pages/Ethicsline3Page';
+import Kycrow3Page from './pages/Kycrow3Page';
+import Sanctions3Page from './pages/Sanctions3Page';
+import Datapriv3Page from './pages/Datapriv3Page';
+import Retentionpol3Page from './pages/Retentionpol3Page';
+import Auditevidence3Page from './pages/Auditevidence3Page';
+import PathosPage from './pages/PathosPage';
+import Boardresolve3Page from './pages/Boardresolve3Page';
+import Drplan3Page from './pages/Drplan3Page';
+import Backupjob3Page from './pages/Backupjob3Page';
+import Failover4Page from './pages/Failover4Page';
+import Runbook3Page from './pages/Runbook3Page';
+import Warroom23Page from './pages/Warroom23Page';
+import Commsbridge23Page from './pages/Commsbridge23Page';
+import Siteevac3Page from './pages/Siteevac3Page';
+import Coldsite3Page from './pages/Coldsite3Page';
+import Hotspare3Page from './pages/Hotspare3Page';
+import Drillscore3Page from './pages/Drillscore3Page';
+import Vendorfail3Page from './pages/Vendorfail3Page';
+import Powercut3Page from './pages/Powercut3Page';
+import Netsplit3Page from './pages/Netsplit3Page';
+import ApotheosisPage from './pages/ApotheosisPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -907,9 +1207,8 @@ import {
   type AuthUser,
 } from './services/auth';
 import { setActiveBrand } from './services/brands';
-import type { PageId } from './types';
 
-const PAGES: Record<PageId, () => React.JSX.Element> = {
+const PAGES: Record<string, () => React.JSX.Element> = {
   hub: DazeHubPage,
   komuta: CommandCenter,
   ollama: OllamaPanel,
@@ -1767,6 +2066,306 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   vaultfinal: VaultfinalPage,
   empirefinal: EmpirefinalPage,
   olympus: OlympusPage,
+  accessgate2: Accessgate2Page,
+  idproof2: Idproof2Page,
+  rolegrant2: Rolegrant2Page,
+  sessionguard2: Sessionguard2Page,
+  devicetrust2: Devicetrust2Page,
+  secretvault2: Secretvault2Page,
+  mfareg2: Mfareg2Page,
+  ssobridge2: Ssobridge2Page,
+  privacypol2: Privacypol2Page,
+  consentrow2: Consentrow2Page,
+  breachlog2: Breachlog2Page,
+  socqueue2: Socqueue2Page,
+  patchdesk2: Patchdesk2Page,
+  zerohour2: Zerohour2Page,
+  bastion2: Bastion2Page,
+  partnerdesk2: Partnerdesk2Page,
+  franchise2: Franchise2Page,
+  channelkit2: Channelkit2Page,
+  rebate2: Rebate2Page,
+  coinvest2: Coinvest2Page,
+  slatrack2: Slatrack2Page,
+  jointpromo2: Jointpromo2Page,
+  leadshare2: Leadshare2Page,
+  b2border2: B2border2Page,
+  wholesale2: Wholesale2Page,
+  dealroom2: Dealroom2Page,
+  contractrow2: Contractrow2Page,
+  commission2: Commission2Page,
+  onboardkit2: Onboardkit2Page,
+  alliance3: Alliance3Page,
+  inboundpo2: Inboundpo2Page,
+  outboundso2: Outboundso2Page,
+  asntrack2: Asntrack2Page,
+  dockyard2: Dockyard2Page,
+  crossdock2: Crossdock2Page,
+  coldchain22: Coldchain22Page,
+  slotbook2: Slotbook2Page,
+  carrierbid2: Carrierbid2Page,
+  freightbill2: Freightbill2Page,
+  milestonet2: Milestonet2Page,
+  exceptionlog2: Exceptionlog2Page,
+  inventoryage2: Inventoryage2Page,
+  replenplan2: Replenplan2Page,
+  safetystock2: Safetystock2Page,
+  artery2: Artery2Page,
+  supplierkpi2: Supplierkpi2Page,
+  cmdpulse2: Cmdpulse2Page,
+  boardpulse2: Boardpulse2Page,
+  riskheat2: Riskheat2Page,
+  cashpulse2: Cashpulse2Page,
+  opsheat2: Opsheat2Page,
+  guestheat2: Guestheat2Page,
+  brandheat2: Brandheat2Page,
+  agentpulse2: Agentpulse2Page,
+  systempulse2: Systempulse2Page,
+  alertfuse2: Alertfuse2Page,
+  warbrief2: Warbrief2Page,
+  decisionhub2: Decisionhub2Page,
+  sealnote2: Sealnote2Page,
+  dominion2: Dominion2Page,
+  legacyflag2: Legacyflag2Page,
+  calmroom2: Calmroom2Page,
+  quiethours2: Quiethours2Page,
+  scentmood2: Scentmood2Page,
+  pillowmenu3: Pillowmenu3Page,
+  bathritual2: Bathritual2Page,
+  sleepscore2: Sleepscore2Page,
+  welcomeamen2: Welcomeamen2Page,
+  farewell2: Farewell2Page,
+  memorybook2: Memorybook2Page,
+  carecall2: Carecall2Page,
+  surprisegift2: Surprisegift2Page,
+  loyaltyhug2: Loyaltyhug2Page,
+  feedbackloop2: Feedbackloop2Page,
+  serenity2: Serenity2Page,
+  momentmap2: Momentmap2Page,
+  apigateway2: Apigateway2Page,
+  webhookhub2: Webhookhub2Page,
+  ratelimit22: Ratelimit22Page,
+  schemareg2: Schemareg2Page,
+  eventbus2: Eventbus2Page,
+  jobqueue22: Jobqueue22Page,
+  cachemesh2: Cachemesh2Page,
+  cdnedge2: Cdnedge2Page,
+  observemap2: Observemap2Page,
+  errorbudget3: Errorbudget3Page,
+  featuregate2: Featuregate2Page,
+  canaryrun2: Canaryrun2Page,
+  rollback2: Rollback2Page,
+  circuit2: Circuit2Page,
+  chaosdrill2: Chaosdrill2Page,
+  memberhub2: Memberhub2Page,
+  circle2: Circle2Page,
+  meetup2: Meetup2Page,
+  forummod2: Forummod2Page,
+  polldesk2: Polldesk2Page,
+  badgeearn2: Badgeearn2Page,
+  questline2: Questline2Page,
+  volunteer2: Volunteer2Page,
+  donation2: Donation2Page,
+  chapter2: Chapter2Page,
+  ambassador22: Ambassador22Page,
+  storywall2: Storywall2Page,
+  ritualcal2: Ritualcal2Page,
+  agora2: Agora2Page,
+  cohort2: Cohort2Page,
+  labbench2: Labbench2Page,
+  pilotrun2: Pilotrun2Page,
+  prototype2: Prototype2Page,
+  hypothesis2: Hypothesis2Page,
+  metricslab2: Metricslab2Page,
+  userboard2: Userboard2Page,
+  patentdesk2: Patentdesk2Page,
+  sandbox2: Sandbox2Page,
+  hackday2: Hackday2Page,
+  incubate2: Incubate2Page,
+  spindesk2: Spindesk2Page,
+  researchnote2: Researchnote2Page,
+  labbudget2: Labbudget2Page,
+  crucible2: Crucible2Page,
+  ipvault2: Ipvault2Page,
+  legaldesk2: Legaldesk2Page,
+  riskreg2: Riskreg2Page,
+  policyhub2: Policyhub2Page,
+  claimdesk2: Claimdesk2Page,
+  insurancet2: Insurancet2Page,
+  litigation2: Litigation2Page,
+  compliance22: Compliance22Page,
+  ethicsline2: Ethicsline2Page,
+  kycrow2: Kycrow2Page,
+  sanctions2: Sanctions2Page,
+  datapriv2: Datapriv2Page,
+  retentionpol2: Retentionpol2Page,
+  auditevidence2: Auditevidence2Page,
+  charter2: Charter2Page,
+  boardresolve2: Boardresolve2Page,
+  drplan2: Drplan2Page,
+  backupjob2: Backupjob2Page,
+  failover3: Failover3Page,
+  runbook2: Runbook2Page,
+  warroom22: Warroom22Page,
+  commsbridge22: Commsbridge22Page,
+  siteevac2: Siteevac2Page,
+  coldsite2: Coldsite2Page,
+  hotspare2: Hotspare2Page,
+  drillscore2: Drillscore2Page,
+  vendorfail2: Vendorfail2Page,
+  powercut2: Powercut2Page,
+  netsplit2: Netsplit2Page,
+  phoenix2: Phoenix2Page,
+  accessgate3: Accessgate3Page,
+  idproof3: Idproof3Page,
+  rolegrant3: Rolegrant3Page,
+  sessionguard3: Sessionguard3Page,
+  devicetrust3: Devicetrust3Page,
+  secretvault3: Secretvault3Page,
+  mfareg3: Mfareg3Page,
+  ssobridge3: Ssobridge3Page,
+  privacypol3: Privacypol3Page,
+  consentrow3: Consentrow3Page,
+  breachlog3: Breachlog3Page,
+  socqueue3: Socqueue3Page,
+  patchdesk3: Patchdesk3Page,
+  zerohour3: Zerohour3Page,
+  elysium: ElysiumPage,
+  partnerdesk3: Partnerdesk3Page,
+  franchise3: Franchise3Page,
+  channelkit3: Channelkit3Page,
+  rebate3: Rebate3Page,
+  coinvest3: Coinvest3Page,
+  slatrack3: Slatrack3Page,
+  jointpromo3: Jointpromo3Page,
+  leadshare3: Leadshare3Page,
+  b2border3: B2border3Page,
+  wholesale3: Wholesale3Page,
+  dealroom3: Dealroom3Page,
+  contractrow3: Contractrow3Page,
+  commission3: Commission3Page,
+  onboardkit3: Onboardkit3Page,
+  aether: AetherPage,
+  inboundpo3: Inboundpo3Page,
+  outboundso3: Outboundso3Page,
+  asntrack3: Asntrack3Page,
+  dockyard3: Dockyard3Page,
+  crossdock3: Crossdock3Page,
+  coldchain23: Coldchain23Page,
+  slotbook3: Slotbook3Page,
+  carrierbid3: Carrierbid3Page,
+  freightbill3: Freightbill3Page,
+  milestonet3: Milestonet3Page,
+  exceptionlog3: Exceptionlog3Page,
+  inventoryage3: Inventoryage3Page,
+  replenplan3: Replenplan3Page,
+  safetystock3: Safetystock3Page,
+  helios: HeliosPage,
+  supplierkpi3: Supplierkpi3Page,
+  cmdpulse3: Cmdpulse3Page,
+  boardpulse3: Boardpulse3Page,
+  riskheat3: Riskheat3Page,
+  cashpulse3: Cashpulse3Page,
+  opsheat3: Opsheat3Page,
+  guestheat3: Guestheat3Page,
+  brandheat3: Brandheat3Page,
+  agentpulse3: Agentpulse3Page,
+  systempulse3: Systempulse3Page,
+  alertfuse3: Alertfuse3Page,
+  warbrief3: Warbrief3Page,
+  decisionhub3: Decisionhub3Page,
+  sealnote3: Sealnote3Page,
+  selene: SelenePage,
+  legacyflag3: Legacyflag3Page,
+  calmroom3: Calmroom3Page,
+  quiethours3: Quiethours3Page,
+  scentmood3: Scentmood3Page,
+  pillowmenu4: Pillowmenu4Page,
+  bathritual3: Bathritual3Page,
+  sleepscore3: Sleepscore3Page,
+  welcomeamen3: Welcomeamen3Page,
+  farewell3: Farewell3Page,
+  memorybook3: Memorybook3Page,
+  carecall3: Carecall3Page,
+  surprisegift3: Surprisegift3Page,
+  loyaltyhug3: Loyaltyhug3Page,
+  feedbackloop3: Feedbackloop3Page,
+  gaia: GaiaPage,
+  momentmap3: Momentmap3Page,
+  apigateway3: Apigateway3Page,
+  webhookhub3: Webhookhub3Page,
+  ratelimit23: Ratelimit23Page,
+  schemareg3: Schemareg3Page,
+  eventbus3: Eventbus3Page,
+  jobqueue23: Jobqueue23Page,
+  cachemesh3: Cachemesh3Page,
+  cdnedge3: Cdnedge3Page,
+  observemap3: Observemap3Page,
+  errorbudget4: Errorbudget4Page,
+  featuregate3: Featuregate3Page,
+  canaryrun3: Canaryrun3Page,
+  rollback3: Rollback3Page,
+  chronos: ChronosPage,
+  chaosdrill3: Chaosdrill3Page,
+  memberhub3: Memberhub3Page,
+  circle3: Circle3Page,
+  meetup3: Meetup3Page,
+  forummod3: Forummod3Page,
+  polldesk3: Polldesk3Page,
+  badgeearn3: Badgeearn3Page,
+  questline3: Questline3Page,
+  volunteer3: Volunteer3Page,
+  donation3: Donation3Page,
+  chapter3: Chapter3Page,
+  ambassador23: Ambassador23Page,
+  storywall3: Storywall3Page,
+  ritualcal3: Ritualcal3Page,
+  kairos: KairosPage,
+  cohort3: Cohort3Page,
+  labbench3: Labbench3Page,
+  pilotrun3: Pilotrun3Page,
+  prototype3: Prototype3Page,
+  hypothesis3: Hypothesis3Page,
+  metricslab3: Metricslab3Page,
+  userboard3: Userboard3Page,
+  patentdesk3: Patentdesk3Page,
+  sandbox3: Sandbox3Page,
+  hackday3: Hackday3Page,
+  incubate3: Incubate3Page,
+  spindesk3: Spindesk3Page,
+  researchnote3: Researchnote3Page,
+  labbudget3: Labbudget3Page,
+  logos: LogosPage,
+  ipvault3: Ipvault3Page,
+  legaldesk3: Legaldesk3Page,
+  riskreg3: Riskreg3Page,
+  policyhub3: Policyhub3Page,
+  claimdesk3: Claimdesk3Page,
+  insurancet3: Insurancet3Page,
+  litigation3: Litigation3Page,
+  compliance23: Compliance23Page,
+  ethicsline3: Ethicsline3Page,
+  kycrow3: Kycrow3Page,
+  sanctions3: Sanctions3Page,
+  datapriv3: Datapriv3Page,
+  retentionpol3: Retentionpol3Page,
+  auditevidence3: Auditevidence3Page,
+  pathos: PathosPage,
+  boardresolve3: Boardresolve3Page,
+  drplan3: Drplan3Page,
+  backupjob3: Backupjob3Page,
+  failover4: Failover4Page,
+  runbook3: Runbook3Page,
+  warroom23: Warroom23Page,
+  commsbridge23: Commsbridge23Page,
+  siteevac3: Siteevac3Page,
+  coldsite3: Coldsite3Page,
+  hotspare3: Hotspare3Page,
+  drillscore3: Drillscore3Page,
+  vendorfail3: Vendorfail3Page,
+  powercut3: Powercut3Page,
+  netsplit3: Netsplit3Page,
+  apotheosis: ApotheosisPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
@@ -1811,22 +2410,22 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   settings: SettingsPage,
 };
 
-function defaultPage(allowed: string[]): PageId {
+function defaultPage(allowed: string[]): string {
   if (allowed.includes('komuta')) return 'komuta';
   if (allowed.includes('hub')) return 'hub';
-  return (allowed[0] as PageId) || 'komuta';
+  return allowed[0] || 'komuta';
 }
 
-function pageFromHash(allowed: string[]): PageId {
+function pageFromHash(allowed: string[]): string {
   const hash = window.location.hash.replace('#/', '').replace('#', '');
-  if (hash && hash in PAGES && allowed.includes(hash)) return hash as PageId;
+  if (hash && hash in PAGES && allowed.includes(hash)) return hash;
   return defaultPage(allowed);
 }
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
   const [booting, setBooting] = useState(true);
-  const [page, setPage] = useState<PageId>('komuta');
+  const [page, setPage] = useState<string>('komuta');
 
   useEffect(() => {
     let cancelled = false;
@@ -1859,7 +2458,7 @@ export default function App() {
   }, [user]);
 
   const navigate = useCallback(
-    (next: PageId) => {
+    (next: string) => {
       const pages = user?.pages ?? [];
       if (!pages.includes(next)) return;
       window.location.hash = `/${next}`;

@@ -45,6 +45,16 @@ const THEMES = [
   { title: 'Prism OS', cp: 'prism', desc: 'kalite · standart · denetim özeti.', short: 'kalite özeti.' },
   { title: 'Monument OS', cp: 'monument', desc: 'miras · arşiv · kurumsal bellek özeti.', short: 'miras özeti.' },
   { title: 'Olympus Finale', cp: 'olympus', desc: 'LİKYA holding nihai mühür özeti.', short: 'nihai mühür.' },
+  { title: 'Elysium OS', cp: 'elysium', desc: 'öte · miras · sonsuz özeti.', short: 'elysium özeti.' },
+  { title: 'Aether OS', cp: 'aether', desc: 'eter · ağ · bağ özeti.', short: 'aether özeti.' },
+  { title: 'Helios OS', cp: 'helios', desc: 'güneş · enerji · ışık özeti.', short: 'helios özeti.' },
+  { title: 'Selene OS', cp: 'selene', desc: 'ay · gece · ritim özeti.', short: 'selene özeti.' },
+  { title: 'Gaia OS', cp: 'gaia', desc: 'dünya · toprak · yaşam özeti.', short: 'gaia özeti.' },
+  { title: 'Chronos OS', cp: 'chronos', desc: 'zaman · döngü · takvim özeti.', short: 'chronos özeti.' },
+  { title: 'Kairos OS', cp: 'kairos', desc: 'an · fırsat · tempo özeti.', short: 'kairos özeti.' },
+  { title: 'Logos OS', cp: 'logos', desc: 'anlam · dil · bilgi özeti.', short: 'logos özeti.' },
+  { title: 'Pathos OS', cp: 'pathos', desc: 'duygu · bağ · hikaye özeti.', short: 'pathos özeti.' },
+  { title: 'Apotheosis', cp: 'apotheosis', desc: 'LİKYA mutlak mühür · apotheosis.', short: 'mutlak mühür.' },
 ];
 
 const MODULE_STEMS = [
