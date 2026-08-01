@@ -53,6 +53,9 @@ import {
   reportAthleteInjury,
   advanceReturnToPlay,
   runAthleteRtpSweep,
+  registerAthleteCompetition,
+  clearAthleteForCompetition,
+  runAthleteCompetitionClearanceSweep,
 } from '../server/athleteos.js';
 import {
   lifeCoachOverview,
@@ -237,6 +240,11 @@ assert(advanceReturnToPlay({ athlete_id: 'ath_2', force: true }, 'smoke').ok, 'a
 assert(runAthleteRtpSweep({ force: true }, 'smoke').ok, 'athlete rtp sweep');
 assert(advanceReturnToPlay({ athlete_id: 'ath_2', stage: 'cleared', force: true }, 'smoke').ok, 'athlete rtp cleared');
 setAthleteClearance({ athlete_id: 'ath_2', status: 'cleared' }, 'smoke');
+issueAthleteLicense({ athlete_id: 'ath_1' }, 'smoke');
+setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
+assert(registerAthleteCompetition({ athlete_id: 'ath_1', title: 'Smoke Cup' }, 'smoke').ok, 'athlete competition');
+assert(clearAthleteForCompetition({ athlete_id: 'ath_1' }, 'smoke').ok, 'athlete competition clear');
+assert(runAthleteCompetitionClearanceSweep({ force: true }, 'smoke').ok, 'athlete competition sweep');
 
 const life = lifeCoachOverview();
 assert(life.clients?.length >= 1, 'life clients');

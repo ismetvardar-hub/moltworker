@@ -210,6 +210,44 @@ try {
   const ready = await req('/api/athleteos/readiness', { token });
   assert(ready.res.ok && Array.isArray(ready.data.athletes), 'athlete readiness');
 
+  await req('/api/athleteos/license', { method: 'POST', token, body: { athlete_id: 'ath_1' } });
+  await req('/api/athleteos/return-to-play', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', stage: 'cleared', force: true },
+  });
+  await req('/api/athleteos/clearance', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', status: 'cleared' },
+  });
+  const comp = await req('/api/athleteos/competition', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', title: 'E2E Cup' },
+  });
+  assert(comp.res.ok && comp.data.ok !== false, 'athlete competition');
+  const compClear = await req('/api/athleteos/competition/clear', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1' },
+  });
+  assert(compClear.res.ok && compClear.data.clearance?.status, 'athlete competition clear');
+  if (compClear.data.ok === false) {
+    const forced = await req('/api/athleteos/competition/clear', {
+      method: 'POST',
+      token,
+      body: { athlete_id: 'ath_1', force: true },
+    });
+    assert(forced.res.ok && forced.data.ok !== false, 'athlete competition clear force');
+  }
+  const compSweep = await req('/api/athleteos/competition/sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(compSweep.res.ok && compSweep.data.ok !== false, 'athlete competition sweep');
+
   const checkin = await req('/api/lifecoach/checkin', {
     method: 'POST',
     token,

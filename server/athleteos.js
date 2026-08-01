@@ -44,6 +44,10 @@ export function athleteOsOverview() {
   const injuryList = Array.isArray(injuries) ? injuries : [];
   const openInjuries = injuryList.filter((i) => i.status !== 'closed' && i.rtp_stage !== 'cleared');
   const rtpEvents = readCollection('athlete-rtp-events', []) || [];
+  const comps = readCollection('athlete-competitions', []) || [];
+  const compClears = readCollection('athlete-comp-clearances', []) || [];
+  const compList = Array.isArray(comps) ? comps : [];
+  const clearList = Array.isArray(compClears) ? compClears : [];
   return {
     title: 'Kulüp & Sporcu OS',
     athletes,
@@ -52,6 +56,8 @@ export function athleteOsOverview() {
     readiness: readiness.athletes,
     injuries: injuryList.slice(0, 30),
     rtp_events: (Array.isArray(rtpEvents) ? rtpEvents : []).slice(0, 20),
+    competitions: compList.slice(0, 20),
+    competition_clearances: clearList.slice(0, 20),
     summary: {
       active: athletes.filter((a) => a.status === 'active').length,
       licensed: athletes.filter((a) => a.license).length,
@@ -65,6 +71,9 @@ export function athleteOsOverview() {
       injured: athletes.filter((a) => a.status === 'injured' || a.status === 'hold').length,
       open_injuries: openInjuries.length,
       rtp_in_progress: openInjuries.filter((i) => i.rtp_stage && i.rtp_stage !== 'rest').length,
+      competitions_open: compList.filter((c) => c.status === 'open' || c.status === 'registered').length,
+      competition_cleared: clearList.filter((c) => c.status === 'cleared').length,
+      competition_blocked: clearList.filter((c) => c.status === 'blocked').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -395,4 +404,183 @@ export function runAthleteRtpSweep(input = {}, actor = 'system') {
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, flagged, overview: athleteOsOverview() };
+}
+
+function athleteCompetitionEligibility(athlete, { minReadiness = 55 } = {}) {
+  const gaps = [];
+  if (!athlete.license) gaps.push('license');
+  if (athlete.medical_clearance !== 'cleared') gaps.push('medical');
+  if (athlete.status === 'injured' || athlete.status === 'hold') gaps.push('status');
+  const injuries = readCollection('athlete-injuries', []) || [];
+  const openInjury = (Array.isArray(injuries) ? injuries : []).some(
+    (i) => i.athlete_id === athlete.id && i.status === 'open' && i.rtp_stage !== 'cleared',
+  );
+  if (openInjury) gaps.push('injury');
+  const readiness = athleteReadinessRollup();
+  const row = (readiness.athletes || []).find((a) => a.athlete_id === athlete.id || a.id === athlete.id);
+  const score = Number(row?.score ?? readiness.avg) || 70;
+  if (score < minReadiness) gaps.push('readiness');
+  return { ok: gaps.length === 0, gaps, readiness: score };
+}
+
+/** Yarışma kaydı aç */
+export function registerAthleteCompetition(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  const athlete =
+    athletes.find((a) => a.id === input.athlete_id || a.name === input.athlete_id) ||
+    athletes.find((a) => a.status === 'active') ||
+    athletes[0];
+  if (!athlete) return { ok: false, error: 'Sporcu yok' };
+  const event = {
+    id: rid('acmp'),
+    athlete_id: athlete.id,
+    athlete_name: athlete.name,
+    sport: athlete.sport,
+    title: input.title || `${athlete.sport} yarışması`,
+    venue: input.venue || 'LİKYA Arena',
+    date: input.date || new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10),
+    status: 'registered',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-competitions', event, 200);
+  enqueueAgentJob(
+    {
+      agent: 'SPORT-BRIDGE',
+      title: `yarışma kayıt · ${athlete.name} · ${event.title}`,
+      priority: 'normal',
+      payload: { competition_id: event.id, athlete_id: athlete.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.competition_register',
+    detail: `${athlete.name} · ${event.title}`,
+    meta: { id: event.id },
+  });
+  return { ok: true, competition: event, overview: athleteOsOverview() };
+}
+
+/** Yarışma clearance — lisans + tıbbi + sakatlık + readiness */
+export function clearAthleteForCompetition(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  const comps = readCollection('athlete-competitions', []) || [];
+  let competition =
+    (Array.isArray(comps) ? comps : []).find((c) => c.id === input.competition_id) ||
+    (Array.isArray(comps) ? comps : []).find(
+      (c) =>
+        (c.status === 'registered' || c.status === 'open') &&
+        (!input.athlete_id || c.athlete_id === input.athlete_id),
+    );
+  const athlete = athletes.find(
+    (a) => a.id === (input.athlete_id || competition?.athlete_id) || a.name === input.athlete_id,
+  );
+  if (!athlete) return { ok: false, error: 'Sporcu yok' };
+  if (!competition) {
+    const reg = registerAthleteCompetition({ athlete_id: athlete.id, title: input.title }, actor);
+    competition = reg.competition;
+  }
+  const elig = athleteCompetitionEligibility(athlete, {
+    minReadiness: Number(input.min_readiness) || 55,
+  });
+  const status = elig.ok || input.force ? 'cleared' : 'blocked';
+  const row = {
+    id: rid('acc'),
+    competition_id: competition.id,
+    athlete_id: athlete.id,
+    athlete_name: athlete.name,
+    status,
+    gaps: elig.gaps,
+    readiness: elig.readiness,
+    forced: !!input.force && !elig.ok,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-comp-clearances', row, 200);
+  const cidx = (Array.isArray(comps) ? comps : []).findIndex((c) => c.id === competition.id);
+  const list = Array.isArray(comps) ? [...comps] : [];
+  if (cidx >= 0) {
+    list[cidx] = {
+      ...list[cidx],
+      clearance_status: status,
+      clearance_id: row.id,
+    };
+    writeCollection('athlete-competitions', list);
+  }
+  enqueueAgentJob(
+    {
+      agent: status === 'cleared' ? 'SPORT-BRIDGE' : 'LIFE-COACH-AI',
+      title:
+        status === 'cleared'
+          ? `yarışma OK · ${athlete.name}`
+          : `yarışma blok · ${athlete.name} · ${elig.gaps.join(',')}`,
+      priority: status === 'cleared' ? 'normal' : 'high',
+      payload: { clearance_id: row.id, gaps: elig.gaps },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.competition_clear',
+    detail: `${athlete.name} · ${status}`,
+    meta: { id: row.id },
+  });
+  return {
+    ok: status === 'cleared',
+    clearance: row,
+    competition: cidx >= 0 ? list[cidx] : competition,
+    error: status === 'blocked' ? `Eksik: ${elig.gaps.join(', ')}` : undefined,
+    overview: athleteOsOverview(),
+  };
+}
+
+/** Kayıtlı yarışmalar için clearance sweep */
+export function runAthleteCompetitionClearanceSweep(input = {}, actor = 'system') {
+  const comps = readCollection('athlete-competitions', []) || [];
+  const open = (Array.isArray(comps) ? comps : []).filter(
+    (c) => c.status === 'registered' || c.status === 'open',
+  );
+  const results = [];
+  for (const c of open.slice(0, Number(input.limit) || 20)) {
+    const r = clearAthleteForCompetition(
+      { competition_id: c.id, athlete_id: c.athlete_id, force: input.force },
+      actor,
+    );
+    results.push({
+      competition_id: c.id,
+      athlete_id: c.athlete_id,
+      status: r.clearance?.status,
+      gaps: r.clearance?.gaps,
+    });
+  }
+  if (!results.length && input.force) {
+    const reg = registerAthleteCompetition({ athlete_id: 'ath_1' }, actor);
+    const r = clearAthleteForCompetition(
+      { competition_id: reg.competition?.id, athlete_id: 'ath_1', force: true },
+      actor,
+    );
+    results.push({
+      competition_id: reg.competition?.id,
+      athlete_id: 'ath_1',
+      status: r.clearance?.status,
+      gaps: r.clearance?.gaps,
+    });
+  }
+  const sweep = {
+    id: rid('accs'),
+    scanned: results.length,
+    cleared: results.filter((r) => r.status === 'cleared').length,
+    blocked: results.filter((r) => r.status === 'blocked').length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-comp-clearance-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'athlete.competition_sweep',
+    detail: `${sweep.cleared} OK · ${sweep.blocked} blok`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, results, overview: athleteOsOverview() };
 }

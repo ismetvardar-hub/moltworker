@@ -155,10 +155,53 @@ export default function AthleteosPage() {
               >
                 RTP sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/80 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api
+                    .registerAthleteCompetition({ athlete_id: 'ath_1', title: 'Likya Cup' })
+                    .then((r: any) => {
+                      ping(r.ok ? `Yarışma · ${r.competition?.title}` : r.error || 'Kayıt yok')
+                      return refresh()
+                    })
+                }
+              >
+                Yarışma kaydı
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/25 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.clearAthleteForCompetition({ athlete_id: 'ath_1' }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `Yarışma OK · ${r.clearance?.status}`
+                        : r.error || `Blok · ${(r.clearance?.gaps || []).join(',')}`,
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Yarışma clearance
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.runAthleteCompetitionClearanceSweep({ force: true }).then((r: any) => {
+                    ping(`Yarışma sweep · ${r.sweep?.cleared ?? 0}/${r.sweep?.blocked ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Yarışma sweep
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Clearance {data.summary?.cleared ?? 0} · gap {data.summary?.clearance_gap ?? 0} · sakat{' '}
-              {data.summary?.injured ?? 0} · açık injury {data.summary?.open_injuries ?? 0}
+              {data.summary?.injured ?? 0} · açık injury {data.summary?.open_injuries ?? 0} · yarışma{' '}
+              {data.summary?.competitions_open ?? 0} · OK {data.summary?.competition_cleared ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Haftalık planlar">

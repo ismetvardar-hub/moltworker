@@ -6728,9 +6728,12 @@ import {
   advanceReturnToPlay,
   athleteOsOverview,
   athleteReadinessRollup,
+  clearAthleteForCompetition,
   issueAthleteLicense,
   logAthleteSession,
+  registerAthleteCompetition,
   reportAthleteInjury,
+  runAthleteCompetitionClearanceSweep,
   runAthleteRtpSweep,
   setAthleteClearance,
   upsertAthletePlan,
@@ -36232,6 +36235,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runAthleteRtpSweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/athleteos/competition' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, registerAthleteCompetition(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/competition/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearAthleteForCompetition(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/competition/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAthleteCompetitionClearanceSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/athleteos/readiness' && req.method === 'GET') {
