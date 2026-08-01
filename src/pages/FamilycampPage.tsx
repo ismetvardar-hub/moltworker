@@ -167,10 +167,53 @@ export default function FamilycampPage() {
               >
                 Güvenlik sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .assignFamilyStaff({ program_id: 'fp_3', name: 'Rehber Mira', max_ratio: 6 })
+                    .then((r: any) => {
+                      ping(r.ok ? `Personel · ${r.staff?.name}` : r.error || 'Personel yok')
+                      return refresh()
+                    })
+                }
+              >
+                Personel ata
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.runFamilyRollCall({}).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `Yoklama · ${r.roll_call?.present ?? 0} var · ${r.roll_call?.absent ?? 0} yok`
+                        : r.error || 'Yoklama yok',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Yoklama
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.runFamilyStaffRatioSweep({ force: true }).then((r: any) => {
+                    ping(`Oran · ${r.sweep?.breaches ?? 0} ihlal`)
+                    return refresh()
+                  })
+                }
+              >
+                Oran sweep
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Transfer: {data.summary?.transfers ?? 0} · aktif kod: {data.summary?.pickup_codes_active ?? 0} ·
-              custody: {data.summary?.custody_events ?? 0}
+              custody: {data.summary?.custody_events ?? 0} · personel {data.summary?.staff_on_duty ?? 0} · oran{' '}
+              {data.summary?.staff_ratio ?? '—'}
             </p>
           </PanelCard>
         </div>

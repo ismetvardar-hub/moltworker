@@ -6775,6 +6775,7 @@ import {
   updateMallTenant,
 } from './openmall.js';
 import {
+  assignFamilyStaff,
   authorizedFamilyCheckout,
   bookFamilyProgram,
   familyCampOverview,
@@ -6782,7 +6783,9 @@ import {
   familyCheckOut,
   familyEmergencyNote,
   issueFamilyPickupCode,
+  runFamilyRollCall,
   runFamilySafetySweep,
+  runFamilyStaffRatioSweep,
   transferFamilyChild,
 } from './familycamp.js';
 import {
@@ -36798,6 +36801,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runFamilySafetySweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/familycamp/staff/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignFamilyStaff(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/roll-call' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFamilyRollCall(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/staff-ratio' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFamilyStaffRatioSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/culture/confirm' && req.method === 'POST') {

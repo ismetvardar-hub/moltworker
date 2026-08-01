@@ -40,7 +40,13 @@ export function familyCampOverview() {
   const transfers = readCollection('family-transfers', []) || [];
   const pickups = readCollection('family-pickup-codes', []) || [];
   const custody = readCollection('family-custody-ledger', []) || [];
+  const staff = readCollection('family-staff', []) || [];
+  const rollCalls = readCollection('family-roll-calls', []) || [];
+  const ratioSweeps = readCollection('family-staff-ratio-sweeps', []) || [];
   const activeCodes = (Array.isArray(pickups) ? pickups : []).filter((p) => p.status === 'active');
+  const staffList = Array.isArray(staff) ? staff : [];
+  const activeStaff = staffList.filter((s) => s.status === 'on_duty');
+  const inCare = checkins.filter((c) => c.status === 'in_care');
   return {
     title: 'Aile & Çocuk',
     programs,
@@ -49,14 +55,21 @@ export function familyCampOverview() {
     transfers: (Array.isArray(transfers) ? transfers : []).slice(0, 15),
     pickup_codes: activeCodes.slice(0, 20),
     custody_ledger: (Array.isArray(custody) ? custody : []).slice(0, 20),
+    staff: activeStaff.slice(0, 30),
+    roll_calls: (Array.isArray(rollCalls) ? rollCalls : []).slice(0, 10),
+    staff_ratio_sweeps: (Array.isArray(ratioSweeps) ? ratioSweeps : []).slice(0, 8),
     summary: {
       open: programs.filter((p) => p.status === 'open').length,
       full: programs.filter((p) => p.status === 'full').length,
-      in_care: checkins.filter((c) => c.status === 'in_care').length,
+      in_care: inCare.length,
       seats_left: programs.reduce((s, p) => s + Math.max(0, (p.seats || 0) - (p.booked || 0)), 0),
       transfers: Array.isArray(transfers) ? transfers.length : 0,
       pickup_codes_active: activeCodes.length,
       custody_events: Array.isArray(custody) ? custody.length : 0,
+      staff_on_duty: activeStaff.length,
+      staff_ratio:
+        activeStaff.length > 0 ? Math.round((inCare.length / activeStaff.length) * 10) / 10 : inCare.length || 0,
+      ratio_breaches: (Array.isArray(ratioSweeps) ? ratioSweeps[0]?.breaches : 0) || 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -357,4 +370,189 @@ export function runFamilySafetySweep(input = {}, actor = 'system') {
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, flags, overview: familyCampOverview() };
+}
+
+/** Program personeli ata — on_duty + hedef oran */
+export function assignFamilyStaff(input = {}, actor = 'system') {
+  const programs = ensurePrograms();
+  const program =
+    programs.find((p) => p.id === input.program_id) ||
+    programs.find((p) => p.status === 'open') ||
+    programs[0];
+  if (!program) return { ok: false, error: 'Program yok' };
+  const name = input.name || input.staff_name || `Rehber-${randomBytes(1).toString('hex')}`;
+  const maxRatio = Number(input.max_ratio) || Number(program.max_child_ratio) || 8;
+  const row = {
+    id: rid('fst'),
+    program_id: program.id,
+    program_title: program.title,
+    name,
+    role: input.role || 'counselor',
+    status: 'on_duty',
+    max_ratio: maxRatio,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-staff', row, 200);
+  const pidx = programs.findIndex((p) => p.id === program.id);
+  if (pidx >= 0) {
+    programs[pidx] = {
+      ...programs[pidx],
+      staff_count: (Number(programs[pidx].staff_count) || 0) + 1,
+      max_child_ratio: maxRatio,
+    };
+    writeCollection('family-programs', programs);
+  }
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `staff assign · ${name} · ${program.title}`,
+      priority: 'normal',
+      payload: { staff_id: row.id, program_id: program.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'family.staff_assign',
+    detail: `${name} · ${program.title}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, staff: row, overview: familyCampOverview() };
+}
+
+/** Emanetteki çocuklar için yoklama */
+export function runFamilyRollCall(input = {}, actor = 'system') {
+  const checkins = ensureCheckins();
+  let inCare = checkins.filter((c) => c.status === 'in_care');
+  if (input.program_id) inCare = inCare.filter((c) => c.program_id === input.program_id);
+  if (!inCare.length && !input.force) return { ok: false, error: 'Emanette çocuk yok' };
+  const absentIds = new Set();
+  if (input.absent_id) absentIds.add(input.absent_id);
+  if (Array.isArray(input.absent_ids)) for (const id of input.absent_ids) absentIds.add(id);
+  if (input.mark_first_absent && inCare[0]) absentIds.add(inCare[0].id);
+  if (Array.isArray(input.absent_names)) {
+    for (const c of inCare) {
+      if (input.absent_names.includes(c.child_name)) absentIds.add(c.id);
+    }
+  }
+  const present = [];
+  const absent = [];
+  for (let i = 0; i < checkins.length; i++) {
+    const c = checkins[i];
+    if (c.status !== 'in_care') continue;
+    if (input.program_id && c.program_id !== input.program_id) continue;
+    if (absentIds.has(c.id)) {
+      checkins[i] = { ...c, roll_status: 'absent', roll_at: new Date().toISOString() };
+      absent.push(checkins[i]);
+    } else {
+      checkins[i] = { ...c, roll_status: 'present', roll_at: new Date().toISOString() };
+      present.push(checkins[i]);
+    }
+  }
+  writeCollection('family-checkins', checkins);
+  const call = {
+    id: rid('frc'),
+    program_id: input.program_id || null,
+    present: present.length,
+    absent: absent.length,
+    absent_names: absent.map((a) => a.child_name),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-roll-calls', call, 120);
+  if (absent.length) {
+    enqueueAgentJob(
+      {
+        agent: 'DAZE-CREW',
+        title: `yoklama eksik · ${absent.length} · ${absent.map((a) => a.child_name).join(',')}`,
+        priority: 'high',
+        payload: { roll_call_id: call.id, absent: call.absent_names },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'family.roll_call',
+    detail: `present ${call.present} · absent ${call.absent}`,
+    meta: { id: call.id },
+  });
+  return { ok: true, roll_call: call, present, absent, overview: familyCampOverview() };
+}
+
+/** Personel / çocuk oranı ihlali taraması */
+export function runFamilyStaffRatioSweep(input = {}, actor = 'system') {
+  const programs = ensurePrograms();
+  const checkins = ensureCheckins().filter((c) => c.status === 'in_care');
+  const staff = (readCollection('family-staff', []) || []).filter((s) => s.status === 'on_duty');
+  const defaultRatio = Number(input.max_ratio) || 8;
+  const breaches = [];
+  for (const p of programs) {
+    const kids = checkins.filter((c) => c.program_id === p.id).length;
+    const crew = staff.filter((s) => s.program_id === p.id);
+    const maxRatio = Number(p.max_child_ratio) || defaultRatio;
+    const ratio = crew.length ? kids / crew.length : kids > 0 ? Infinity : 0;
+    if (kids === 0 && !input.force) continue;
+    if (crew.length === 0 && kids > 0) {
+      breaches.push({
+        program_id: p.id,
+        program_title: p.title,
+        kids,
+        staff: 0,
+        ratio: null,
+        max_ratio: maxRatio,
+        kind: 'no_staff',
+      });
+    } else if (ratio > maxRatio) {
+      breaches.push({
+        program_id: p.id,
+        program_title: p.title,
+        kids,
+        staff: crew.length,
+        ratio: Math.round(ratio * 10) / 10,
+        max_ratio: maxRatio,
+        kind: 'ratio_high',
+      });
+    }
+  }
+  if (!breaches.length && input.force) {
+    const p = programs[0];
+    const kids = checkins.length;
+    breaches.push({
+      program_id: p?.id,
+      program_title: p?.title || 'demo',
+      kids,
+      staff: staff.length,
+      ratio: staff.length ? Math.round((kids / staff.length) * 10) / 10 : kids,
+      max_ratio: defaultRatio,
+      kind: staff.length ? 'force_check' : 'no_staff',
+    });
+  }
+  for (const b of breaches.slice(0, 8)) {
+    enqueueAgentJob(
+      {
+        agent: 'DAZE-CREW',
+        title: `staff ratio · ${b.program_title} · ${b.kids}/${b.staff}`,
+        priority: b.kind === 'no_staff' ? 'high' : 'normal',
+        payload: b,
+      },
+      actor,
+    );
+  }
+  const sweep = {
+    id: rid('fsr'),
+    breaches: breaches.length,
+    items: breaches,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-staff-ratio-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'family.staff_ratio_sweep',
+    detail: `${breaches.length} ihlal`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, breaches, overview: familyCampOverview() };
 }

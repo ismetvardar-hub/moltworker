@@ -141,6 +141,9 @@ import {
   issueFamilyPickupCode,
   authorizedFamilyCheckout,
   runFamilySafetySweep,
+  assignFamilyStaff,
+  runFamilyRollCall,
+  runFamilyStaffRatioSweep,
 } from '../server/familycamp.js';
 import {
   confirmCultureTicket,
@@ -292,6 +295,9 @@ assert(
 );
 familyCheckIn({ child_name: 'Safety Kid', program_id: 'fp_3', guardian: 'Veli', allergy: 'gluten' }, 'smoke');
 assert(runFamilySafetySweep({ stale_hours: 0 }, 'smoke').ok, 'family safety sweep');
+assert(assignFamilyStaff({ program_id: 'fp_3', name: 'Smoke Rehber', max_ratio: 6 }, 'smoke').ok, 'family staff');
+assert(runFamilyRollCall({ mark_first_absent: true }, 'smoke').ok, 'family roll call');
+assert(runFamilyStaffRatioSweep({ force: true }, 'smoke').ok, 'family staff ratio');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');

@@ -139,6 +139,24 @@ try {
     body: { stale_hours: 0 },
   });
   assert(safety.res.ok && safety.data.ok !== false, 'family safety sweep');
+  const staff = await req('/api/familycamp/staff/assign', {
+    method: 'POST',
+    token,
+    body: { program_id: 'fp_3', name: 'E2E Rehber', max_ratio: 6 },
+  });
+  assert(staff.res.ok && staff.data.ok !== false, 'family staff');
+  const famRoll = await req('/api/familycamp/roll-call', {
+    method: 'POST',
+    token,
+    body: { mark_first_absent: true },
+  });
+  assert(famRoll.res.ok && famRoll.data.ok !== false, 'family roll call');
+  const famRatio = await req('/api/familycamp/staff-ratio', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(famRatio.res.ok && famRatio.data.ok !== false, 'family staff ratio');
 
   const hold = await req('/api/culture/hold', {
     method: 'POST',

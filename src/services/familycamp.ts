@@ -83,3 +83,33 @@ export async function runFamilySafetySweep(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function assignFamilyStaff(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/staff/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runFamilyRollCall(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/roll-call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runFamilyStaffRatioSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/staff-ratio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
