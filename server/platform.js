@@ -6700,7 +6700,7 @@ import {
   stayRingOverview,
   updateStayUnit,
 } from './stayring.js';
-import { athleteOsOverview, athleteReadinessRollup, issueAthleteLicense, logAthleteSession, upsertAthletePlan } from './athleteos.js';
+import { athleteOsOverview, athleteReadinessRollup, issueAthleteLicense, logAthleteSession, setAthleteClearance, upsertAthletePlan } from './athleteos.js';
 import {
   createLifePlan,
   ingestWearable,
@@ -36033,6 +36033,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, issueAthleteLicense(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/athleteos/clearance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setAthleteClearance(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/athleteos/readiness' && req.method === 'GET') {

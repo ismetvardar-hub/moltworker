@@ -126,6 +126,13 @@ try {
   });
   assert(lic.res.ok && lic.data.ok !== false, 'athlete license');
 
+  const clr = await req('/api/athleteos/clearance', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_3', status: 'cleared' },
+  });
+  assert(clr.res.ok && clr.data.ok !== false, 'athlete clearance');
+
   const ready = await req('/api/athleteos/readiness', { token });
   assert(ready.res.ok && Array.isArray(ready.data.athletes), 'athlete readiness');
 

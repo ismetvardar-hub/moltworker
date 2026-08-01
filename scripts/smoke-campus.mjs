@@ -23,7 +23,13 @@ import {
   createStayGuestRequest,
   completeStayGuestRequest,
 } from '../server/stayring.js';
-import { athleteOsOverview, issueAthleteLicense, logAthleteSession, athleteReadinessRollup } from '../server/athleteos.js';
+import {
+  athleteOsOverview,
+  issueAthleteLicense,
+  logAthleteSession,
+  athleteReadinessRollup,
+  setAthleteClearance,
+} from '../server/athleteos.js';
 import {
   lifeCoachOverview,
   ingestWearable,
@@ -122,6 +128,7 @@ assert(athletes.athletes?.length >= 2, 'athletes');
 logAthleteSession({ athlete_id: athletes.athletes[0].id, session: 'smoke tempo', rpe: 5 }, 'smoke');
 const lic = issueAthleteLicense({ athlete_id: 'ath_3' }, 'smoke');
 assert(lic.ok && lic.athlete?.license, 'athlete license');
+assert(setAthleteClearance({ athlete_id: 'ath_3', status: 'cleared' }, 'smoke').ok, 'athlete clearance');
 const ready = athleteReadinessRollup('smoke');
 assert(ready.athletes?.length >= 2, 'athlete readiness');
 

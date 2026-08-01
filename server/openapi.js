@@ -1249,6 +1249,7 @@ export function buildOpenApi() {
       '/api/culture/stage': { post: { summary: 'Sahne ready/fitout', tags: ['culturescene'] } },
       '/api/campusbrief/actions/ack': { post: { summary: 'Brif aksiyon ack', tags: ['campusbrief'] } },
       '/api/athleteos/license': { post: { summary: 'Sporcu lisans ver/yenile', tags: ['athleteos'] } },
+      '/api/athleteos/clearance': { post: { summary: 'Tıbbi clearance', tags: ['athleteos'] } },
       '/api/athleteos/readiness': { get: { summary: 'Sporcu readiness rollup', tags: ['athleteos'] } },
       '/api/lifecoach/checkin': { post: { summary: 'Yaşam uzmanı check-in', tags: ['lifecoach'] } },
       '/api/stayring/hk-complete': { post: { summary: 'HK görevi tamamla', tags: ['stayring'] } },

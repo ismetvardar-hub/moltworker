@@ -101,7 +101,22 @@ export default function AthleteosPage() {
               >
                 Seans log
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.setAthleteClearance({ athlete_id: trial?.id || 'ath_3', status: 'cleared' }).then(() => {
+                    ping('Tıbbi clearance')
+                    return refresh()
+                  })
+                }
+              >
+                Clearance ver
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Clearance {data.summary?.cleared ?? 0} · gap {data.summary?.clearance_gap ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Haftalık planlar">
             <ul className="space-y-2 text-sm">

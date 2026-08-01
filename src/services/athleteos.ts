@@ -36,3 +36,13 @@ export async function fetchAthleteReadiness() {
   return parse(await fetch('/api/athleteos/readiness', { headers: authHeaders() }))
 }
 
+
+export async function setAthleteClearance(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/clearance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -1858,6 +1858,7 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | market+++ | `/api/marketos/reconcile` | TY/Dolap toplu kanal sync |
 | green++ | `/api/greenpulse/batch` | ESG sayaç batch okuma |
 | stay++ | `/api/stayring/request` · `/complete` | Misafir amenity → ajan |
+| athlete++ | `/api/athleteos/clearance` | Tıbbi / medical clearance |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

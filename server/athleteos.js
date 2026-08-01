@@ -51,6 +51,8 @@ export function athleteOsOverview() {
       sessions_logged: Array.isArray(sessions) ? sessions.length : 0,
       avg_readiness: readiness.avg,
       license_expiring: athletes.filter((a) => a.license_expires && a.license_expires < new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10)).length,
+      cleared: athletes.filter((a) => a.medical_clearance === 'cleared').length,
+      clearance_gap: athletes.filter((a) => a.medical_clearance !== 'cleared').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -161,4 +163,39 @@ export function logAthleteSession(input = {}, actor = 'system') {
   prependItem('athlete-sessions', row, 400);
   appendAudit({ actor, action: 'athlete.session', detail: `${row.athlete_id} RPE${row.rpe}`, meta: { id: row.id } });
   return { ok: true, session: row };
+}
+
+/** Tıbbi / waiver clearance — extreme + life köprüsü için */
+export function setAthleteClearance(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  const idx = athletes.findIndex((a) => a.id === input.athlete_id || a.name === input.athlete_id);
+  if (idx < 0) return { ok: false, error: 'Sporcu yok' };
+  const status = input.status || 'cleared';
+  const until =
+    input.until || new Date(Date.now() + 180 * 864e5).toISOString().slice(0, 10);
+  athletes[idx] = {
+    ...athletes[idx],
+    medical_clearance: status,
+    clearance_until: until,
+    clearance_note: input.note || '',
+    cleared_at: new Date().toISOString(),
+    cleared_by: actor,
+  };
+  writeCollection('club-athletes', athletes);
+  const row = {
+    id: rid('aclr'),
+    athlete_id: athletes[idx].id,
+    status,
+    until,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-clearances', row, 200);
+  appendAudit({
+    actor,
+    action: 'athlete.clearance',
+    detail: `${athletes[idx].name} · ${status}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, athlete: athletes[idx], clearance: row, overview: athleteOsOverview() };
 }
