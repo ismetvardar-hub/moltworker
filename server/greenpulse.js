@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
 import { campusCoreOverview } from './campuscore.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -81,6 +82,17 @@ export function recordGreenMeter(input = {}, actor = 'system') {
     { id: rid('gr'), meter_id: m.id, value, status, at: new Date().toISOString() },
     400,
   );
+  if (status === 'alert') {
+    enqueueAgentJob(
+      {
+        agent: 'GAIA-ESG',
+        title: `ESG alert · ${m.kind}=${value} (hedef ${m.target})`,
+        priority: 'high',
+        payload: { meter_id: m.id, value, target: m.target },
+      },
+      actor,
+    );
+  }
   appendAudit({ actor, action: 'green.meter', detail: `${m.kind}=${value}`, meta: { id: m.id } });
   return { ok: true, meter: meters[idx], overview: greenPulseOverview() };
 }

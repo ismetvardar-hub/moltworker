@@ -1222,6 +1222,7 @@ export function buildOpenApi() {
       '/api/sportbridge': { get: { summary: 'Spor köprüsü', tags: ['sportbridge'] } },
       '/api/agentqueue': { get: { summary: 'Ajan iş kuyruğu', tags: ['agentqueue'] } },
       '/api/greenpulse': { get: { summary: 'Yeşil ESG nabız', tags: ['greenpulse'] } },
+      '/api/campusbrief': { get: { summary: 'CEO kampüs brifi', tags: ['campusbrief'] } },
       '/api/lifecoach/flags': { post: { summary: 'Life flag otomasyonu', tags: ['lifecoach'] } },
       '/api/lifecoach/webhook': { post: { summary: 'Wearable webhook', tags: ['lifecoach'] } },
       '/api/extreme': { get: { summary: 'Extreme Park Hub', tags: ['extremepark'] } },

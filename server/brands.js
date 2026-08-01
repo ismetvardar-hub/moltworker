@@ -1320,6 +1320,7 @@ const DEFAULT_BRANDS = [
       'sportbridge',
       'agentqueue',
       'greenpulse',
+      'campusbrief',
       'culturescene',
     ],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],

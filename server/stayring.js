@@ -4,6 +4,7 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -177,6 +178,15 @@ export function createStayHkTask(input = {}, actor = 'system') {
   const idx = units.findIndex((u) => u.id === unit.id);
   units[idx] = { ...units[idx], hk: input.hk_status || 'dirty' };
   writeCollection('stay-units', units);
+  enqueueAgentJob(
+    {
+      agent: 'HEPHAESTUS',
+      title: `HK dirty · ${unit.code} · ${task.kind}`,
+      priority: 'normal',
+      payload: { unit_id: unit.id, task_id: task.id },
+    },
+    actor,
+  );
   appendAudit({ actor, action: 'stay.hk', detail: `${unit.code} · ${task.kind}`, meta: { id: task.id } });
   return { ok: true, task, overview: stayRingOverview() };
 }

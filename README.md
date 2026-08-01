@@ -1829,10 +1829,11 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | lifecoach+ | `/api/lifecoach/webhook` | Wearable webhook (HMAC / demo) |
 | greenpulse | `/api/greenpulse` | Yeşil ESG nabız |
 | life flags | `/api/lifecoach/flags` | Flag → ajan kuyruk + recovery |
+| campusbrief | `/api/campusbrief` | CEO sabah brifi + çapraz otomasyon |
 
 Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy (`scripts/lazyify-app.mjs`).  
-Jobs ticker her 5sn `tickAgentQueue` çağırır.
+Jobs ticker: `tickAgentQueue` + `runCampusAutomations` (hava/ESG/HK/F&B → kuyruk).
 
 ### Kampüs menü (Adım 1)
 

@@ -6707,6 +6707,7 @@ import { createCultureEvent, cultureSceneOverview, holdCultureTicket, setCulture
 import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter } from './greenpulse.js';
+import { campusBriefOverview, runCampusAutomations } from './campusbrief.js';
 
 
 
@@ -36230,6 +36231,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, addGreenIncident(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/campusbrief' && req.method === 'GET') {
+          const u = requireUser(req, res);
+          if (!u) return;
+          sendJson(res, 200, campusBriefOverview(u.username));
+          return;
+        }
+        if (path === '/api/campusbrief/auto' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, { ...runCampusAutomations(user.username), brief: campusBriefOverview(user.username) });
           return;
         }
 

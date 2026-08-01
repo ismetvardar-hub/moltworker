@@ -73,6 +73,7 @@ export function agentBridgeOverview() {
       sport: '/api/sportbridge',
       queue: '/api/agentqueue',
       green: '/api/greenpulse',
+      brief: '/api/campusbrief',
     },
     generatedAt: new Date().toISOString(),
   };

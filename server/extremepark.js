@@ -8,6 +8,7 @@ import { randomBytes } from 'node:crypto';
 import { prependItem, readCollection, writeCollection } from './store.js';
 import { appendAudit } from './audit.js';
 import { buildWeatherBrief } from './weather.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 const CLUB_ID = 'likya_antalya_extreme';
 
@@ -430,6 +431,19 @@ export function extremeSlotWeatherCheck(input = {}, actor = 'system') {
   }
 
   writeCollection('extreme-slots', slots);
+
+  if (cancelled.length) {
+    enqueueAgentJob(
+      {
+        agent: 'REMINDER-AI',
+        title: `hava iptal: ${cancelled.length} slot — WA takip`,
+        priority: 'high',
+        payload: { condition, cancelled: cancelled.map((c) => c.id), notices: notices.length },
+      },
+      actor,
+    );
+  }
+
   appendAudit({
     actor,
     action: 'extreme.weather_check',

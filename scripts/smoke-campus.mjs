@@ -21,6 +21,8 @@ import {
 } from '../server/lifecoach.js';
 import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, tickAgentQueue } from '../server/agentqueue.js';
 import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
+import { campusBriefOverview, runCampusAutomations } from '../server/campusbrief.js';
+import { extremeSlotWeatherCheck } from '../server/extremepark.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import { familyCampOverview, familyCheckIn } from '../server/familycamp.js';
@@ -105,6 +107,11 @@ const sport = sportBridgeOverview();
 assert(sport.links?.length >= 1, 'sport links');
 syncSlotToSession({}, 'smoke');
 
+const brief = campusBriefOverview('smoke');
+assert(brief.pulses?.green && brief.actions, 'campus brief');
+runCampusAutomations('smoke');
+extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
+
 const bridge = agentBridgeOverview();
 assert(bridge.agents?.length >= 8, 'agent fleet');
 assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue && bridge.pulses?.green, 'bridge pulses wave4');
@@ -124,6 +131,7 @@ console.log(
       life: lifeCoachOverview().summary,
       queue: agentQueueOverview().summary,
       green: greenPulseOverview().summary,
+      brief_actions: brief.actions.length,
       agents: bridge.agents.map((a) => a.id),
       extreme_slots: extreme.summary?.open_slots ?? null,
     },

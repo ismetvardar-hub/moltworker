@@ -16,6 +16,7 @@ export type CampusDomain = {
 /** Üst şerit — her zaman menüde */
 export const CORE_NAV_IDS = [
   'komuta',
+  'campusbrief',
   'campus',
   'brief',
   'hub',
@@ -91,7 +92,7 @@ export const CAMPUS_DOMAINS: CampusDomain[] = [
     label: 'Ajan Komuta',
     description: 'NEXUS · HEPHAESTUS · REMINDER · MINT · DAZE',
     primary: 'agentbridge',
-    pages: ['agentbridge', 'agentqueue', 'komuta', 'ajanlar', 'cognisphere', 'vanguard', 'oracle', 'warroom'],
+    pages: ['campusbrief', 'agentbridge', 'agentqueue', 'komuta', 'ajanlar', 'cognisphere', 'vanguard', 'oracle', 'warroom'],
   },
   {
     id: 'system',

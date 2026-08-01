@@ -288,6 +288,10 @@ export function startJobTicker(intervalMs = 5000) {
     void import('./agentqueue.js')
       .then((m) => m.tickAgentQueue('scheduler'))
       .catch(() => undefined);
+    // Kampüs çapraz otomasyon (seyrek — her tick’te dedupe var)
+    void import('./campusbrief.js')
+      .then((m) => m.runCampusAutomations('scheduler'))
+      .catch(() => undefined);
   }, intervalMs);
   // unref so it doesn't keep process alive unnecessarily in some envs
   if (typeof ticker.unref === 'function') ticker.unref();
