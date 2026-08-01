@@ -152,3 +152,33 @@ export async function resolveStayOverstay(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function scheduleStayLateCheckout(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/late-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function disputeStayFolioCharge(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/folio/dispute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function revokeStayKeyless(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/keyless/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

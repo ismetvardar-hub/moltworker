@@ -83,6 +83,9 @@ export function stayRingOverview() {
       revpar_try: lastRollup?.revpar_try ?? null,
       overstays_open: openOverstays.length,
       night_audits: (Array.isArray(audits) ? audits : []).length,
+      late_checkouts: (readCollection('stay-late-checkouts', []) || []).filter((x) => x.status === 'scheduled').length,
+      folio_disputes_open: folioList.filter((c) => c.status === 'disputed').length,
+      keys_revoked: keys.filter((k) => k.status === 'revoked').length,
       byType: {
         glamping: units.filter((u) => u.type === 'glamping').length,
         caravan: units.filter((u) => u.type === 'caravan').length,
@@ -753,4 +756,182 @@ export function resolveStayOverstay(input = {}, actor = 'system') {
     booking,
     overview: stayRingOverview(),
   };
+}
+
+/** Geç çıkış planla — ekstra saat + folio ücret */
+export function scheduleStayLateCheckout(input = {}, actor = 'system') {
+  const units = ensureUnits();
+  const bookings = ensureBookings();
+  let booking = bookings.find((b) => b.id === input.booking_id && b.status !== 'checked_out');
+  if (!booking) {
+    booking = bookings.find(
+      (b) =>
+        (b.status === 'checked_in' || b.status === 'confirmed' || b.status === 'active') &&
+        (!input.unit_id || b.unit_id === input.unit_id),
+    );
+  }
+  const unit =
+    units.find((u) => u.id === (booking?.unit_id || input.unit_id) || u.code === input.unit_id) ||
+    units.find((u) => u.status === 'occupied');
+  if (!unit) return { ok: false, error: 'Ünite yok' };
+  const hours = Math.min(12, Math.max(1, Number(input.hours) || 2));
+  const fee = Number(input.fee_try) || Math.round((Number(unit.rate_try) || 2000) * (hours / 24));
+  const until = new Date(Date.now() + hours * 3600_000).toISOString();
+  const late = {
+    id: rid('slc'),
+    unit_id: unit.id,
+    unit_code: unit.code,
+    booking_id: booking?.id || null,
+    hours,
+    fee_try: fee,
+    until,
+    status: 'scheduled',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-late-checkouts', late, 120);
+  const uidx = units.findIndex((u) => u.id === unit.id);
+  units[uidx] = { ...units[uidx], late_checkout_until: until, late_checkout_id: late.id };
+  writeCollection('stay-units', units);
+  if (booking) {
+    const bidx = bookings.findIndex((b) => b.id === booking.id);
+    if (bidx >= 0) {
+      bookings[bidx] = { ...bookings[bidx], late_checkout_until: until, late_checkout_id: late.id };
+      writeCollection('stay-bookings', bookings);
+    }
+  }
+  let charge = null;
+  if (fee > 0) {
+    const posted = postStayFolioCharge(
+      {
+        unit_id: unit.id,
+        booking_id: booking?.id,
+        kind: 'late_checkout',
+        amount_try: fee,
+        note: `Geç çıkış ${hours}s`,
+      },
+      actor,
+    );
+    if (posted.ok) charge = posted.charge;
+  }
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `late checkout · ${unit.code} · ${hours}s`,
+      priority: 'normal',
+      payload: { late_id: late.id, unit_id: unit.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.late_checkout',
+    detail: `${unit.code} · ${hours}s · ${fee} TRY`,
+    meta: { id: late.id },
+  });
+  return { ok: true, late, charge, overview: stayRingOverview() };
+}
+
+/** Folio satır itirazı */
+export function disputeStayFolioCharge(input = {}, actor = 'system') {
+  const charges = readCollection('stay-folio-charges', []) || [];
+  if (!Array.isArray(charges) || !charges.length) return { ok: false, error: 'Folio yok' };
+  let idx = charges.findIndex((c) => c.id === input.charge_id && c.status === 'open');
+  if (idx < 0) {
+    idx = charges.findIndex(
+      (c) =>
+        c.status === 'open' &&
+        (!input.unit_id || c.unit_id === input.unit_id || c.unit_code === input.unit_id),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Açık folio satırı yok' };
+  charges[idx] = {
+    ...charges[idx],
+    status: 'disputed',
+    dispute_reason: String(input.reason || 'guest_dispute').slice(0, 240),
+    disputed_at: new Date().toISOString(),
+    disputed_by: actor,
+  };
+  writeCollection('stay-folio-charges', charges);
+  const dispute = {
+    id: rid('sfd'),
+    charge_id: charges[idx].id,
+    unit_id: charges[idx].unit_id,
+    amount_try: charges[idx].amount_try,
+    reason: charges[idx].dispute_reason,
+    status: 'open',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-folio-disputes', dispute, 120);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `folio dispute · ${charges[idx].unit_code || charges[idx].unit_id} · ${charges[idx].amount_try} TRY`,
+      priority: 'high',
+      payload: { dispute_id: dispute.id, charge_id: charges[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.folio_dispute',
+    detail: `${charges[idx].id} · ${charges[idx].amount_try}`,
+    meta: { id: dispute.id },
+  });
+  return { ok: true, charge: charges[idx], dispute, overview: stayRingOverview() };
+}
+
+/** Keyless kod iptal */
+export function revokeStayKeyless(input = {}, actor = 'system') {
+  const keys = ensureKeys();
+  let idx = keys.findIndex((k) => k.id === input.id && k.status === 'active');
+  if (idx < 0) {
+    idx = keys.findIndex(
+      (k) =>
+        k.status === 'active' &&
+        (!input.unit_id || k.unit_id === input.unit_id || k.unit_code === input.unit_id) &&
+        (!input.code || k.code === input.code),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Aktif key yok' };
+  keys[idx] = {
+    ...keys[idx],
+    status: 'revoked',
+    revoked_at: new Date().toISOString(),
+    revoked_by: actor,
+    revoke_reason: String(input.reason || 'security').slice(0, 240),
+  };
+  writeCollection('stay-keys', keys);
+  const units = ensureUnits();
+  const uidx = units.findIndex((u) => u.id === keys[idx].unit_id);
+  if (uidx >= 0 && units[uidx].keyless === keys[idx].code) {
+    units[uidx] = { ...units[uidx], keyless: null };
+    writeCollection('stay-units', units);
+  }
+  const revoke = {
+    id: rid('skr'),
+    key_id: keys[idx].id,
+    unit_id: keys[idx].unit_id,
+    code: keys[idx].code,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-key-revocations', revoke, 120);
+  enqueueAgentJob(
+    {
+      agent: 'NEXUS',
+      title: `keyless revoke · ${keys[idx].unit_code || keys[idx].unit_id}`,
+      priority: 'high',
+      payload: { revoke_id: revoke.id, key_id: keys[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.keyless_revoke',
+    detail: keys[idx].code,
+    meta: { id: revoke.id },
+  });
+  return { ok: true, key: keys[idx], revoke, overview: stayRingOverview() };
 }

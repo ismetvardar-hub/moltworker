@@ -6720,11 +6720,14 @@ import {
   createStayBooking,
   createStayGuestRequest,
   createStayHkTask,
+  disputeStayFolioCharge,
   flagStayOverstay,
   issueStayKeyless,
   postStayFolioCharge,
   resolveStayOverstay,
+  revokeStayKeyless,
   runStayNightAudit,
+  scheduleStayLateCheckout,
   setStayWintering,
   settleStayFolio,
   stayNightRollup,
@@ -36418,6 +36421,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, resolveStayOverstay(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/stayring/late-checkout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, scheduleStayLateCheckout(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/folio/dispute' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, disputeStayFolioCharge(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/keyless/revoke' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, revokeStayKeyless(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/lifecoach' && req.method === 'GET') {

@@ -265,11 +265,48 @@ export default function StayringPage() {
               >
                 Overstay çöz
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.scheduleStayLateCheckout({ unit_id: occupied?.id, hours: 2 }).then((r: any) => {
+                    ping(r.ok ? `Geç çıkış · ${r.late?.hours}s` : r.error || 'Late yok')
+                    return refresh()
+                  })
+                }
+              >
+                Geç çıkış
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.disputeStayFolioCharge({ unit_id: occupied?.id, reason: 'ui_dispute' }).then((r: any) => {
+                    ping(r.ok ? `İtiraz · ${r.dispute?.amount_try} TRY` : r.error || 'Dispute yok')
+                    return refresh()
+                  })
+                }
+              >
+                Folio itiraz
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.revokeStayKeyless({ unit_id: occupied?.id }).then((r: any) => {
+                    ping(r.ok ? 'Keyless iptal' : r.error || 'Key yok')
+                    return refresh()
+                  })
+                }
+              >
+                Keyless iptal
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Açık misafir istek: {data.summary?.guest_requests_open ?? 0} · Folio açık{' '}
               {data.summary?.folio_open ?? 0} · {data.summary?.folio_balance_try?.toLocaleString?.('tr-TR') ?? 0}{' '}
-              TRY · overstay {data.summary?.overstays_open ?? 0}
+              TRY · overstay {data.summary?.overstays_open ?? 0} · late {data.summary?.late_checkouts ?? 0} · dispute{' '}
+              {data.summary?.folio_disputes_open ?? 0}
             </p>
             {(data.summary?.occupancy_pct != null || data.summary?.revpar_try != null) && (
               <p className="mt-2 text-xs text-slate-500">

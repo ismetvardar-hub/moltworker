@@ -300,6 +300,30 @@ try {
   assert(folioCharge.res.ok && folioCharge.data.ok !== false, 'folio charge');
   const folioAuto = await req('/api/stayring/folio/auto', { method: 'POST', token, body: {} });
   assert(folioAuto.res.ok && folioAuto.data.ok !== false, 'folio auto');
+  const lateCo = await req('/api/stayring/late-checkout', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2', hours: 2 },
+  });
+  assert(lateCo.res.ok && lateCo.data.ok !== false, 'stay late checkout');
+  const folioDispute = await req('/api/stayring/folio/dispute', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2', reason: 'e2e' },
+  });
+  assert(folioDispute.res.ok && folioDispute.data.ok !== false, 'stay folio dispute');
+  await req('/api/stayring/folio/charge', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2', kind: 'amenity', amount_try: 100 },
+  });
+  await req('/api/stayring/keyless', { method: 'POST', token, body: { unit_id: 'su_2' } });
+  const keyRevoke = await req('/api/stayring/keyless/revoke', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2' },
+  });
+  assert(keyRevoke.res.ok && keyRevoke.data.ok !== false, 'stay keyless revoke');
   const folioSettle = await req('/api/stayring/folio/settle', {
     method: 'POST',
     token,

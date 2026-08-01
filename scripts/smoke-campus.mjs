@@ -47,6 +47,9 @@ import {
   runStayNightAudit,
   flagStayOverstay,
   resolveStayOverstay,
+  scheduleStayLateCheckout,
+  disputeStayFolioCharge,
+  revokeStayKeyless,
 } from '../server/stayring.js';
 import {
   athleteOsOverview,
@@ -253,6 +256,11 @@ assert(createStayGuestRequest({ kind: 'amenity' }, 'smoke').ok, 'stay guest requ
 completeStayGuestRequest({}, 'smoke');
 assert(postStayFolioCharge({ unit_id: 'su_2', kind: 'amenity', amount_try: 250 }, 'smoke').ok, 'folio charge');
 assert(autoPostStayFolio({}, 'smoke').ok, 'folio auto');
+assert(scheduleStayLateCheckout({ unit_id: 'su_2', hours: 2 }, 'smoke').ok, 'stay late checkout');
+assert(disputeStayFolioCharge({ unit_id: 'su_2', reason: 'smoke' }, 'smoke').ok, 'stay folio dispute');
+assert(postStayFolioCharge({ unit_id: 'su_2', kind: 'amenity', amount_try: 120 }, 'smoke').ok, 'folio charge after dispute');
+assert(issueStayKeyless({ unit_id: 'su_2' }, 'smoke').ok, 'stay keyless reissue');
+assert(revokeStayKeyless({ unit_id: 'su_2' }, 'smoke').ok, 'stay keyless revoke');
 assert(settleStayFolio({ unit_id: 'su_2' }, 'smoke').ok, 'folio settle');
 assert(runStayNightAudit({}, 'smoke').ok, 'stay night audit');
 assert(flagStayOverstay({ force: true }, 'smoke').ok, 'stay overstay flag');
