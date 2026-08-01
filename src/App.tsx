@@ -35,6 +35,9 @@ import RecipesPage from './pages/RecipesPage';
 import ChecklistsPage from './pages/ChecklistsPage';
 import LostFoundPage from './pages/LostFoundPage';
 import TipsPage from './pages/TipsPage';
+import AuditPage from './pages/AuditPage';
+import MaintenancePage from './pages/MaintenancePage';
+import BriefPage from './pages/BriefPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -78,6 +81,9 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   checklists: ChecklistsPage,
   lostfound: LostFoundPage,
   tips: TipsPage,
+  audit: AuditPage,
+  maintenance: MaintenancePage,
+  brief: BriefPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,

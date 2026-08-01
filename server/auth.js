@@ -66,6 +66,9 @@ export const ROLE_PAGES = {
     'checklists',
     'lostfound',
     'tips',
+    'audit',
+    'maintenance',
+    'brief',
     'docs',
     'webhooks',
     'settings',
@@ -87,6 +90,8 @@ export const ROLE_PAGES = {
     'recipes',
     'checklists',
     'lostfound',
+    'maintenance',
+    'brief',
     'docs',
   ],
   crew: [
@@ -105,6 +110,8 @@ export const ROLE_PAGES = {
     'checklists',
     'lostfound',
     'tips',
+    'maintenance',
+    'brief',
   ],
 };
 

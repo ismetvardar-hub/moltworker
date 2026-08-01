@@ -46,6 +46,8 @@ const IMPORTANT = new Set([
   'checklist.start',
   'lostfound.create',
   'tips.payout',
+  'maintenance.create',
+  'maintenance.update',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

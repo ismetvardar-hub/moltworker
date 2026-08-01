@@ -36,6 +36,9 @@ import {
   ClipboardCheck,
   Search,
   Coins,
+  ScrollText,
+  Wrench,
+  Sunrise,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -56,6 +59,8 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'exports',
   'consent',
   'announcements',
+  'audit',
+  'brief',
 ]);
 
 interface SidebarProps {
@@ -76,6 +81,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'LİKYA Komuta Merkezi',
     description: 'Sistem durumu & talimatlar',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'brief',
+    label: 'Günlük Brief',
+    description: 'Sabah operasyon özeti',
+    icon: Sunrise,
   },
   {
     id: 'hub',
@@ -262,6 +273,18 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Bahşiş Havuzu',
     description: 'Crew tip pool',
     icon: Coins,
+  },
+  {
+    id: 'maintenance',
+    label: 'Bakım',
+    description: 'Arıza / ticket kuyruğu',
+    icon: Wrench,
+  },
+  {
+    id: 'audit',
+    label: 'Denetim',
+    description: 'Audit günlüğü',
+    icon: ScrollText,
   },
   {
     id: 'webhooks',

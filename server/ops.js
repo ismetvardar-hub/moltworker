@@ -50,6 +50,7 @@ const BACKUP_COLLECTIONS = [
   'lost-found',
   'tip-pool',
   'tip-entries',
+  'maintenance',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

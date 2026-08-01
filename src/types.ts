@@ -31,6 +31,9 @@ export type PageId =
   | 'checklists'
   | 'lostfound'
   | 'tips'
+  | 'audit'
+  | 'maintenance'
+  | 'brief'
   | 'docs'
   | 'webhooks'
   | 'settings';

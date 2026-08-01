@@ -151,6 +151,13 @@ import {
   updateLostFound,
 } from './lostfound.js';
 import { addTip, tipSummary } from './tips.js';
+import {
+  createTicket,
+  listMaintenance,
+  maintenanceSummary,
+  updateTicket,
+} from './maintenance.js';
+import { buildDailyBrief } from './brief.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -170,6 +177,7 @@ listRecipes();
 listChecklistTemplates();
 listLostFound();
 tipSummary();
+listMaintenance();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1574,6 +1582,49 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, result);
           })();
+          return;
+        }
+
+        // ── AŞAMA 38: Bakım ticket ────────────────────────────────────
+        if (path === '/api/maintenance' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...maintenanceSummary(),
+            tickets: listMaintenance({
+              status: url.searchParams.get('status') || undefined,
+              venueId: url.searchParams.get('venueId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/maintenance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { ticket: createTicket(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/maintenance/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const ticket = updateTicket(id, await readBody(req), user.username);
+            if (!ticket) {
+              sendJson(res, 404, { error: 'Ticket bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { ticket });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 39: Günlük brief ────────────────────────────────────
+        if (path === '/api/brief' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildDailyBrief());
           return;
         }
 

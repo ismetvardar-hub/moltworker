@@ -260,6 +260,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **35** | Kayıp eşya defteri (`/api/lost-found`) |
 | **36** | Crew bahşiş havuzu (`/api/tips`) |
 
+### Denetim · Bakım · Brief (AŞAMA 37–39)
+
+| Aşama | Özellik |
+|-------|---------|
+| **37** | Denetim günlüğü paneli (`/api/audit`) |
+| **38** | Bakım / arıza ticket (`/api/maintenance`) |
+| **39** | Günlük operasyon brifi (`/api/brief`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
