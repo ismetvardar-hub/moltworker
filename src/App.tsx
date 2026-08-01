@@ -179,6 +179,21 @@ import SteamopsPage from './pages/SteamopsPage';
 import IcebathPage from './pages/IcebathPage';
 import RecovslotsPage from './pages/RecovslotsPage';
 import SignalhubPage from './pages/SignalhubPage';
+import HelipadPage from './pages/HelipadPage';
+import JetskiPage from './pages/JetskiPage';
+import YachtPage from './pages/YachtPage';
+import SurfschoolPage from './pages/SurfschoolPage';
+import PaddlePage from './pages/PaddlePage';
+import ClimwallPage from './pages/ClimwallPage';
+import EscaperoomPage from './pages/EscaperoomPage';
+import ArcadePage from './pages/ArcadePage';
+import BowlingPage from './pages/BowlingPage';
+import BilliardsPage from './pages/BilliardsPage';
+import PokertablePage from './pages/PokertablePage';
+import TriviaPage from './pages/TriviaPage';
+import DjboothPage from './pages/DjboothPage';
+import SoundcheckPage from './pages/SoundcheckPage';
+import SkylinePage from './pages/SkylinePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -327,6 +342,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   icebath: IcebathPage,
   recovslots: RecovslotsPage,
   signalhub: SignalhubPage,
+  helipad: HelipadPage,
+  jetski: JetskiPage,
+  yacht: YachtPage,
+  surfschool: SurfschoolPage,
+  paddle: PaddlePage,
+  climwall: ClimwallPage,
+  escaperoom: EscaperoomPage,
+  arcade: ArcadePage,
+  bowling: BowlingPage,
+  billiards: BilliardsPage,
+  pokertable: PokertablePage,
+  trivia: TriviaPage,
+  djbooth: DjboothPage,
+  soundcheck: SoundcheckPage,
+  skyline: SkylinePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

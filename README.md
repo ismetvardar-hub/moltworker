@@ -451,6 +451,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **179** | Recovery slot |
 | **180** | Signal Hub checkpoint (`/api/signalhub`) |
 
+### Leisure · Skyline (AŞAMA 181–195)
+
+| Aşama | Özellik |
+|-------|---------|
+| **181** | Helipad |
+| **182** | Jet ski |
+| **183** | Yat charter |
+| **184** | Surf school |
+| **185** | Paddle / SUP |
+| **186** | Tırmanma duvarı |
+| **187** | Escape room |
+| **188** | Arcade |
+| **189** | Bowling |
+| **190** | Bilardo |
+| **191** | Poker masa |
+| **192** | Trivia |
+| **193** | DJ booth |
+| **194** | Soundcheck |
+| **195** | Skyline checkpoint (`/api/skyline`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
