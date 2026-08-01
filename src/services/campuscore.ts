@@ -47,3 +47,33 @@ export async function campusCapacityRollup() {
     }),
   )
 }
+
+export async function createCampusWorkOrder(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function completeCampusWorkOrder(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runCampusWorkOrderSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

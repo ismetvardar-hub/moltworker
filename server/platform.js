@@ -6688,7 +6688,17 @@ import {
   signExtremeWaiver,
   updateExtremeGear,
 } from './extremepark.js';
-import { addCampusIncident, campusCapacityRollup, campusCoreOverview, resolveCampusIncident, transitionCampusZone, updateCampusZone } from './campuscore.js';
+import {
+  addCampusIncident,
+  campusCapacityRollup,
+  campusCoreOverview,
+  completeCampusWorkOrder,
+  createCampusWorkOrder,
+  resolveCampusIncident,
+  runCampusWorkOrderSweep,
+  transitionCampusZone,
+  updateCampusZone,
+} from './campuscore.js';
 import {
   autoPostStayFolio,
   checkoutStay,
@@ -36058,6 +36068,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, campusCapacityRollup(user.username));
+          return;
+        }
+
+        if (path === '/api/campus/work-order' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createCampusWorkOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/work-order/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeCampusWorkOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/work-order/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCampusWorkOrderSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/stayring' && req.method === 'GET') {

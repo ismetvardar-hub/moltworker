@@ -420,6 +420,20 @@ try {
   });
   assert(ztr.res.ok, 'zone transition');
   await req('/api/campus/incident', { method: 'POST', token, body: { title: 'e2e', zone_id: 'z_sport' } });
+  const wo = await req('/api/campus/work-order', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_sport', title: 'e2e WO' },
+  });
+  assert(wo.res.ok && wo.data.ok !== false, 'campus WO');
+  const woSweep = await req('/api/campus/work-order/sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(woSweep.res.ok && woSweep.data.ok !== false, 'campus WO sweep');
+  const woDone = await req('/api/campus/work-order/complete', { method: 'POST', token, body: {} });
+  assert(woDone.res.ok && woDone.data.ok !== false, 'campus WO complete');
   await req('/api/campus/incident/resolve', { method: 'POST', token, body: {} });
   const cap = await req('/api/campus/capacity', { method: 'POST', token, body: {} });
   assert(cap.res.ok && cap.data.rollup, 'campus capacity');

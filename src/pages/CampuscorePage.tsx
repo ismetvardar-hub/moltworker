@@ -71,8 +71,48 @@ export default function CampuscorePage() {
               >
                 Kapasite rollup
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .createCampusWorkOrder({ zone_id: 'z_sport', title: 'Zemin bakım' })
+                    .then((r: any) => {
+                      ping(r.ok ? `WO · ${r.work_order?.title}` : r.error || 'WO yok')
+                      return refresh()
+                    })
+                }
+              >
+                İş emri aç
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runCampusWorkOrderSweep({ force: true }).then((r: any) => {
+                    ping(`WO sweep · ${r.sweep?.created ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                WO sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.completeCampusWorkOrder({}).then((r: any) => {
+                    ping(r.ok ? 'WO tamam' : r.error || 'WO yok')
+                    return refresh()
+                  })
+                }
+              >
+                WO tamamla
+              </button>
             </div>
-            <p className="mt-2 text-xs text-slate-500">Açık incident {data.summary?.open_incidents ?? 0}</p>
+            <p className="mt-2 text-xs text-slate-500">
+              Açık incident {data.summary?.open_incidents ?? 0} · açık WO {data.summary?.open_work_orders ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Zonlar">
             <ul className="space-y-2 text-sm">

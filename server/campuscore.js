@@ -4,6 +4,21 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
+
+function rid(p) {
+  return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
+}
+
+function agentForZone(kind) {
+  if (kind === 'green' || kind === 'water') return 'GAIA-ESG';
+  if (kind === 'sport') return 'HEPHAESTUS';
+  if (kind === 'stay') return 'DAZE-CREW';
+  if (kind === 'culture') return 'CULTURE-AI';
+  if (kind === 'mall') return 'MINT';
+  if (kind === 'family') return 'DAZE-CREW';
+  return 'HEPHAESTUS';
+}
 
 const CAMPUS_ID = 'likya_antalya_forest_campus';
 
@@ -35,12 +50,16 @@ export function campusCoreOverview() {
   const incidents = readCollection('campus-incidents', []) || [];
   const openInc = (Array.isArray(incidents) ? incidents : []).filter((i) => (i.status || 'open') === 'open');
   const caps = readCollection('campus-capacity-rollups', []) || [];
+  const wos = readCollection('campus-work-orders', []) || [];
+  const woList = Array.isArray(wos) ? wos : [];
+  const openWo = woList.filter((w) => w.status === 'open' || w.status === 'in_progress');
   return {
     campus_id: CAMPUS_ID,
     title: 'LİKYA Orman Kampüsü',
     ethos: 'Sporla beslenen destinasyon — orman önce, ciro sonra.',
     zones,
     incidents: (Array.isArray(incidents) ? incidents : []).slice(0, 20),
+    work_orders: woList.slice(0, 30),
     capacity: Array.isArray(caps) && caps[0] ? caps[0] : null,
     summary: {
       total_ha: zones.reduce((s, z) => s + (Number(z.hectares) || 0), 0),
@@ -48,6 +67,7 @@ export function campusCoreOverview() {
       build: zones.filter((z) => z.status === 'build').length,
       protected: zones.filter((z) => z.status === 'protected').length,
       open_incidents: openInc.length,
+      open_work_orders: openWo.length,
       byKind,
     },
     generatedAt: new Date().toISOString(),
@@ -134,6 +154,123 @@ export function resolveCampusIncident(input = {}, actor = 'system') {
     meta: { id: list[idx].id },
   });
   return { ok: true, incident: list[idx], overview: campusCoreOverview() };
+}
+
+/** Zon bakım / ops iş emri */
+export function createCampusWorkOrder(input = {}, actor = 'system') {
+  const zones = ensureZones();
+  const zone =
+    zones.find((z) => z.id === input.zone_id || z.name === input.zone_id) ||
+    zones.find((z) => z.status === 'build') ||
+    zones[0];
+  if (!zone) return { ok: false, error: 'Zon yok' };
+  const priority = input.priority || (input.severity === 'high' ? 'high' : 'normal');
+  const wo = {
+    id: rid('cwo'),
+    campus_id: CAMPUS_ID,
+    zone_id: zone.id,
+    zone_name: zone.name,
+    kind: input.kind || 'maintenance',
+    title: input.title || `${zone.name} bakım`,
+    priority,
+    status: 'open',
+    incident_id: input.incident_id || null,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-work-orders', wo, 400);
+  const agent = agentForZone(zone.kind);
+  enqueueAgentJob(
+    {
+      agent,
+      title: `campus WO · ${wo.title}`,
+      priority,
+      payload: { work_order_id: wo.id, zone_id: zone.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campus.work_order',
+    detail: `${zone.id} · ${wo.title}`,
+    meta: { id: wo.id },
+  });
+  return { ok: true, work_order: wo, overview: campusCoreOverview() };
+}
+
+export function completeCampusWorkOrder(input = {}, actor = 'system') {
+  const list = readCollection('campus-work-orders', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İş emri yok' };
+  let idx = list.findIndex(
+    (w) => w.id === input.id && (w.status === 'open' || w.status === 'in_progress'),
+  );
+  if (idx < 0) idx = list.findIndex((w) => w.status === 'open' || w.status === 'in_progress');
+  if (idx < 0) return { ok: false, error: 'Açık iş emri yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'done',
+    outcome: input.outcome || 'tamam',
+    done_at: new Date().toISOString(),
+    done_by: actor,
+  };
+  writeCollection('campus-work-orders', list);
+  if (list[idx].incident_id) {
+    resolveCampusIncident({ id: list[idx].incident_id, resolution: 'WO tamam' }, actor);
+  }
+  appendAudit({
+    actor,
+    action: 'campus.work_order_done',
+    detail: list[idx].title,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, work_order: list[idx], overview: campusCoreOverview() };
+}
+
+/** Açık incident → iş emri üret */
+export function runCampusWorkOrderSweep(input = {}, actor = 'system') {
+  const incidents = readCollection('campus-incidents', []) || [];
+  const open = (Array.isArray(incidents) ? incidents : []).filter((i) => (i.status || 'open') === 'open');
+  const existing = readCollection('campus-work-orders', []) || [];
+  const created = [];
+  for (const inc of open.slice(0, Number(input.limit) || 12)) {
+    if (
+      (Array.isArray(existing) ? existing : []).some(
+        (w) => w.incident_id === inc.id && (w.status === 'open' || w.status === 'in_progress'),
+      )
+    ) {
+      continue;
+    }
+    const r = createCampusWorkOrder(
+      {
+        zone_id: inc.zone_id,
+        title: `Incident · ${inc.title}`,
+        kind: 'incident',
+        incident_id: inc.id,
+        priority: inc.severity === 'high' || inc.severity === 'critical' ? 'high' : 'normal',
+      },
+      actor,
+    );
+    if (r.ok) created.push(r.work_order);
+  }
+  if (!created.length && input.force) {
+    const r = createCampusWorkOrder({ zone_id: input.zone_id || 'z_sport', title: 'Sweep bakım' }, actor);
+    if (r.ok) created.push(r.work_order);
+  }
+  const sweep = {
+    id: rid('cws'),
+    open_incidents: open.length,
+    created: created.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-work-order-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'campus.work_order_sweep',
+    detail: `${created.length} WO`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, created, overview: campusCoreOverview() };
 }
 
 /** Kampüs kapasite rollup — zon ha × doluluk tahmini */

@@ -10,6 +10,9 @@ import {
   transitionCampusZone,
   resolveCampusIncident,
   campusCapacityRollup,
+  createCampusWorkOrder,
+  completeCampusWorkOrder,
+  runCampusWorkOrderSweep,
 } from '../server/campuscore.js';
 import { agentBridgeBroadcast } from '../server/agentbridge.js';
 import {
@@ -149,6 +152,9 @@ addCampusIncident({ title: 'smoke incident', zone_id: 'z_sport' }, 'smoke');
 transitionCampusZone({ zone_id: 'z_culture' }, 'smoke');
 resolveCampusIncident({}, 'smoke');
 assert(campusCapacityRollup('smoke').ok, 'campus capacity');
+assert(createCampusWorkOrder({ zone_id: 'z_sport', title: 'smoke WO' }, 'smoke').ok, 'campus WO');
+assert(runCampusWorkOrderSweep({ force: true }, 'smoke').ok, 'campus WO sweep');
+assert(completeCampusWorkOrder({}, 'smoke').ok, 'campus WO complete');
 assert(agentBridgeBroadcast({ title: 'smoke broadcast' }, 'smoke').ok, 'bridge broadcast');
 
 const stay = stayRingOverview();
@@ -177,8 +183,8 @@ assert(ready.athletes?.length >= 2, 'athlete readiness');
 assert(reportAthleteInjury({ athlete_id: 'ath_2', body_area: 'omuz', severity: 'mild' }, 'smoke').ok, 'athlete injury');
 assert(advanceReturnToPlay({ athlete_id: 'ath_2', force: true }, 'smoke').ok, 'athlete rtp');
 assert(runAthleteRtpSweep({ force: true }, 'smoke').ok, 'athlete rtp sweep');
-setAthleteClearance({ athlete_id: 'ath_2', status: 'cleared' }, 'smoke');
 assert(advanceReturnToPlay({ athlete_id: 'ath_2', stage: 'cleared', force: true }, 'smoke').ok, 'athlete rtp cleared');
+setAthleteClearance({ athlete_id: 'ath_2', status: 'cleared' }, 'smoke');
 
 const life = lifeCoachOverview();
 assert(life.clients?.length >= 1, 'life clients');
