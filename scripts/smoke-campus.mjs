@@ -282,6 +282,22 @@ import {
   clearOracleScoreRed,
   promoteOracleCanary,
 } from '../server/oracle.js';
+import {
+  buildAegis,
+  runAegisSweep,
+  ackAegisFlag,
+  clearAegisSafety,
+  closeAegisIncident,
+  clearAegisEvac,
+} from '../server/aegis.js';
+import {
+  buildBrandpulse,
+  runBrandpulseSweep,
+  ackBrandpulseFlag,
+  triageBrandpulseInbox,
+  approveBrandpulseUgc,
+  actionBrandpulseGuard,
+} from '../server/brandpulse.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -727,6 +743,20 @@ assert(resolveOracleAnomaly({}, 'smoke').ok, 'oracle anomaly resolve');
 assert(clearOracleScoreRed({}, 'smoke').ok, 'oracle score clear');
 assert(promoteOracleCanary({}, 'smoke').ok, 'oracle canary promote');
 assert(ackOracleFlag({}, 'smoke').ok, 'oracle flag ack');
+
+assert(buildAegis().title, 'aegis overview');
+assert(runAegisSweep({ force: true }, 'smoke').ok, 'aegis sweep');
+assert(clearAegisSafety({}, 'smoke').ok, 'aegis safety clear');
+assert(closeAegisIncident({}, 'smoke').ok, 'aegis incident close');
+assert(clearAegisEvac({}, 'smoke').ok, 'aegis evac clear');
+assert(ackAegisFlag({}, 'smoke').ok, 'aegis flag ack');
+
+assert(buildBrandpulse().title, 'brandpulse overview');
+assert(runBrandpulseSweep({ force: true }, 'smoke').ok, 'brandpulse sweep');
+assert(triageBrandpulseInbox({}, 'smoke').ok, 'brandpulse inbox triage');
+assert(approveBrandpulseUgc({}, 'smoke').ok, 'brandpulse ugc approve');
+assert(actionBrandpulseGuard({}, 'smoke').ok, 'brandpulse guard action');
+assert(ackBrandpulseFlag({}, 'smoke').ok, 'brandpulse flag ack');
 
 console.log(
   JSON.stringify(

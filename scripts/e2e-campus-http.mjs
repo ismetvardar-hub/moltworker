@@ -88,6 +88,8 @@ try {
     '/api/vanguard',
     '/api/warroom',
     '/api/oracle',
+    '/api/aegis',
+    '/api/brandpulse',
     '/api/health',
   ];
   for (const p of paths) {
@@ -687,6 +689,28 @@ try {
   assert(orCanary.res.ok && orCanary.data.ok !== false, 'oracle canary promote');
   const orAck = await req('/api/oracle/flag/ack', { method: 'POST', token, body: {} });
   assert(orAck.res.ok && orAck.data.ok !== false, 'oracle flag ack');
+
+  const aeSweep = await req('/api/aegis/sweep', { method: 'POST', token, body: { force: true } });
+  assert(aeSweep.res.ok && aeSweep.data.ok !== false, 'aegis sweep');
+  const aeSafe = await req('/api/aegis/safety/clear', { method: 'POST', token, body: {} });
+  assert(aeSafe.res.ok && aeSafe.data.ok !== false, 'aegis safety clear');
+  const aeInc = await req('/api/aegis/incident/close', { method: 'POST', token, body: {} });
+  assert(aeInc.res.ok && aeInc.data.ok !== false, 'aegis incident close');
+  const aeEvac = await req('/api/aegis/evac/clear', { method: 'POST', token, body: {} });
+  assert(aeEvac.res.ok && aeEvac.data.ok !== false, 'aegis evac clear');
+  const aeAck = await req('/api/aegis/flag/ack', { method: 'POST', token, body: {} });
+  assert(aeAck.res.ok && aeAck.data.ok !== false, 'aegis flag ack');
+
+  const bpSweep = await req('/api/brandpulse/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bpSweep.res.ok && bpSweep.data.ok !== false, 'brandpulse sweep');
+  const bpInbox = await req('/api/brandpulse/inbox/triage', { method: 'POST', token, body: {} });
+  assert(bpInbox.res.ok && bpInbox.data.ok !== false, 'brandpulse inbox triage');
+  const bpUgc = await req('/api/brandpulse/ugc/approve', { method: 'POST', token, body: {} });
+  assert(bpUgc.res.ok && bpUgc.data.ok !== false, 'brandpulse ugc approve');
+  const bpGuard = await req('/api/brandpulse/guard/action', { method: 'POST', token, body: {} });
+  assert(bpGuard.res.ok && bpGuard.data.ok !== false, 'brandpulse guard action');
+  const bpAck = await req('/api/brandpulse/flag/ack', { method: 'POST', token, body: {} });
+  assert(bpAck.res.ok && bpAck.data.ok !== false, 'brandpulse flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

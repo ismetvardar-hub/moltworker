@@ -1593,7 +1593,14 @@ import {
   creativereqSummary,
   updateCreativereq,
 } from './creativereq.js';
-import { buildBrandpulse } from './brandpulse.js';
+import {
+  ackBrandpulseFlag,
+  actionBrandpulseGuard,
+  approveBrandpulseUgc,
+  buildBrandpulse,
+  runBrandpulseSweep,
+  triageBrandpulseInbox,
+} from './brandpulse.js';
 import {
   createModelops,
   listModelops,
@@ -2882,7 +2889,14 @@ import {
   guestsafetySummary,
   updateGuestsafety,
 } from './guestsafety.js';
-import { buildAegis } from './aegis.js';
+import {
+  ackAegisFlag,
+  buildAegis,
+  clearAegisEvac,
+  clearAegisSafety,
+  closeAegisIncident,
+  runAegisSweep,
+} from './aegis.js';
 import {
   createDatalake,
   listDatalake,
@@ -14850,6 +14864,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildBrandpulse());
           return;
         }
+        if (path === '/api/brandpulse/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBrandpulseSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brandpulse/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBrandpulseFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brandpulse/inbox/triage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, triageBrandpulseInbox(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brandpulse/ugc/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveBrandpulseUgc(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brandpulse/guard/action' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, actionBrandpulseGuard(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 301–315 ──
 
@@ -20263,6 +20307,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/aegis' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildAegis());
+          return;
+        }
+        if (path === '/api/aegis/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAegisSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aegis/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAegisFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aegis/safety/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearAegisSafety(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aegis/incident/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAegisIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aegis/evac/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearAegisEvac(await readBody(req), user.username)); })();
           return;
         }
 
