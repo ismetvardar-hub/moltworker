@@ -59,6 +59,21 @@ import KudosPage from './pages/KudosPage';
 import HoursPage from './pages/HoursPage';
 import WeatherPage from './pages/WeatherPage';
 import ReadinessPage from './pages/ReadinessPage';
+import SpaPage from './pages/SpaPage';
+import EventcalPage from './pages/EventcalPage';
+import GiftcardsPage from './pages/GiftcardsPage';
+import DeliveryPage from './pages/DeliveryPage';
+import CleaningPage from './pages/CleaningPage';
+import LaundryPage from './pages/LaundryPage';
+import WifiPage from './pages/WifiPage';
+import ContentPage from './pages/ContentPage';
+import PulsePage from './pages/PulsePage';
+import BudgetPage from './pages/BudgetPage';
+import ContractsPage from './pages/ContractsPage';
+import PassstockPage from './pages/PassstockPage';
+import KdsPage from './pages/KdsPage';
+import EmergencyPage from './pages/EmergencyPage';
+import DigestPage from './pages/DigestPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -115,6 +130,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   energy: EnergyPage,
   training: TrainingPage,
   readiness: ReadinessPage,
+  digest: DigestPage,
+  emergency: EmergencyPage,
+  kds: KdsPage,
+  passstock: PassstockPage,
+  contracts: ContractsPage,
+  budget: BudgetPage,
+  pulse: PulsePage,
+  content: ContentPage,
+  wifi: WifiPage,
+  laundry: LaundryPage,
+  cleaning: CleaningPage,
+  delivery: DeliveryPage,
+  giftcards: GiftcardsPage,
+  eventcal: EventcalPage,
+  spa: SpaPage,
   weather: WeatherPage,
   hours: HoursPage,
   kudos: KudosPage,

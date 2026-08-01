@@ -304,6 +304,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **59** | Hava brifi (`/api/weather`) |
 | **60** | Hazırlık skoru checkpoint (`/api/readiness`) |
 
+### Genişleme · CEO Digest (AŞAMA 61–75)
+
+| Aşama | Özellik |
+|-------|---------|
+| **61** | Spa / wellness |
+| **62** | Etkinlik takvimi |
+| **63** | Hediye kartları |
+| **64** | Paket / teslimat |
+| **65** | Temizlik görevleri |
+| **66** | Çamaşırhane |
+| **67** | WiFi kuponları |
+| **68** | İçerik kuyruğu |
+| **69** | Ekip nabız anketi |
+| **70** | Bütçe kalemleri |
+| **71** | Sözleşme yenileme |
+| **72** | Pass medya stok |
+| **73** | Mutfak KDS |
+| **74** | Acil rehber |
+| **75** | CEO Digest checkpoint |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
