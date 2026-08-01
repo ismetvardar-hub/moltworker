@@ -371,6 +371,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **119** | Gece log |
 | **120** | Night Audit checkpoint (`/api/nightly`) |
 
+### Oda · Erişim · Orbit (AŞAMA 121–135)
+
+| Aşama | Özellik |
+|-------|---------|
+| **121** | Oda kartı programlama |
+| **122** | Oda durumu (HK) |
+| **123** | Yatak / extra |
+| **124** | Wake-up çağrı |
+| **125** | Kargo / emanet |
+| **126** | QR check-in |
+| **127** | Misafir app push |
+| **128** | Karaoke |
+| **129** | Sanat duvarı |
+| **130** | Çiçek sipariş |
+| **131** | Özel şef |
+| **132** | Mocktail bar |
+| **133** | Promo kod |
+| **134** | Şafak servisi |
+| **135** | Orbit checkpoint (`/api/orbit`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

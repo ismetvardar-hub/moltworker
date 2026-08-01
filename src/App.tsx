@@ -119,6 +119,21 @@ import LateoutPage from './pages/LateoutPage';
 import AmenitiesPage from './pages/AmenitiesPage';
 import NightlogPage from './pages/NightlogPage';
 import NightlyPage from './pages/NightlyPage';
+import KeycardsPage from './pages/KeycardsPage';
+import RoomstatusPage from './pages/RoomstatusPage';
+import BeddingPage from './pages/BeddingPage';
+import WakeupsPage from './pages/WakeupsPage';
+import ParcelsPage from './pages/ParcelsPage';
+import QrcheckinPage from './pages/QrcheckinPage';
+import GuestappPage from './pages/GuestappPage';
+import KaraokePage from './pages/KaraokePage';
+import ArtwallPage from './pages/ArtwallPage';
+import FloralsPage from './pages/FloralsPage';
+import PrivatechefPage from './pages/PrivatechefPage';
+import MocktailsPage from './pages/MocktailsPage';
+import PromosPage from './pages/PromosPage';
+import DawnservicePage from './pages/DawnservicePage';
+import OrbitPage from './pages/OrbitPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -207,6 +222,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   amenities: AmenitiesPage,
   nightlog: NightlogPage,
   nightly: NightlyPage,
+  keycards: KeycardsPage,
+  roomstatus: RoomstatusPage,
+  bedding: BeddingPage,
+  wakeups: WakeupsPage,
+  parcels: ParcelsPage,
+  qrcheckin: QrcheckinPage,
+  guestapp: GuestappPage,
+  karaoke: KaraokePage,
+  artwall: ArtwallPage,
+  florals: FloralsPage,
+  privatechef: PrivatechefPage,
+  mocktails: MocktailsPage,
+  promos: PromosPage,
+  dawnservice: DawnservicePage,
+  orbit: OrbitPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
