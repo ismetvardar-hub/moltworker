@@ -90,6 +90,25 @@ import {
   shiftsSummary,
   updateShift,
 } from './shifts.js';
+import {
+  createReservation,
+  listReservations,
+  removeReservation,
+  reservationsSummary,
+  updateReservation,
+} from './reservations.js';
+import {
+  adjustPoints,
+  listLedger,
+  listLoyaltyAccounts,
+  loyaltySummary,
+} from './loyalty.js';
+import {
+  ackIncident,
+  createIncident,
+  incidentsSummary,
+  listIncidents,
+} from './incidents.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -98,6 +117,9 @@ listVenues();
 listHolders();
 listBrands();
 listGuests();
+listReservations();
+listLoyaltyAccounts();
+listIncidents();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1008,6 +1030,127 @@ export function createPlatformMiddleware() {
             return;
           }
           sendJson(res, 200, { ok: true, shift });
+          return;
+        }
+
+        // ── AŞAMA 25: Rezervasyonlar ──────────────────────────────────
+        if (path === '/api/reservations' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...reservationsSummary(),
+            reservations: listReservations({
+              date: url.searchParams.get('date') || undefined,
+              venueId: url.searchParams.get('venueId') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+              status: url.searchParams.get('status') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/reservations' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            sendJson(res, 200, { reservation: createReservation(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/reservations/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const reservation = updateReservation(id, await readBody(req), user.username);
+            if (!reservation) {
+              sendJson(res, 404, { error: 'Rezervasyon bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { reservation });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/reservations/') && req.method === 'DELETE') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew rezervasyon silemez' });
+            return;
+          }
+          const id = path.split('/')[3];
+          const reservation = removeReservation(id, user.username);
+          if (!reservation) {
+            sendJson(res, 404, { error: 'Rezervasyon bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, reservation });
+          return;
+        }
+
+        // ── AŞAMA 26: Sadakat / Daze-Gift ─────────────────────────────
+        if (path === '/api/loyalty' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...loyaltySummary(),
+            accounts: listLoyaltyAccounts({
+              brandId: url.searchParams.get('brandId') || undefined,
+            }),
+            ledger: listLedger(Number(url.searchParams.get('limit')) || 40),
+          });
+          return;
+        }
+        if (path === '/api/loyalty/adjust' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew puan düşemez' });
+            return;
+          }
+          void (async () => {
+            const body = await readBody(req);
+            const result = adjustPoints(body, user.username);
+            if (!result) {
+              sendJson(res, 404, { error: 'Hesap bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, result);
+          })();
+          return;
+        }
+
+        // ── AŞAMA 27: Olay panosu ─────────────────────────────────────
+        if (path === '/api/incidents' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...incidentsSummary(),
+            incidents: listIncidents(),
+          });
+          return;
+        }
+        if (path === '/api/incidents' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            sendJson(res, 200, { incident: createIncident(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/incidents/') && path.endsWith('/ack') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const body = await readBody(req);
+            const incident = ackIncident(id, body.status || 'acked', user.username);
+            if (!incident) {
+              sendJson(res, 404, { error: 'Olay bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { incident });
+          })();
           return;
         }
 

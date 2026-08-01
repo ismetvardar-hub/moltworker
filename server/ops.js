@@ -34,6 +34,11 @@ const BACKUP_COLLECTIONS = [
   'inventory',
   'inventory-movements',
   'shifts',
+  'reservations',
+  'loyalty-accounts',
+  'loyalty-ledger',
+  'incidents',
+  'incident-acks',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

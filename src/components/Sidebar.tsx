@@ -24,6 +24,9 @@ import {
   Package,
   CalendarClock,
   BookOpen,
+  CalendarCheck,
+  Gift,
+  AlertTriangle,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -40,6 +43,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'reports',
   'webhooks',
   'docs',
+  'incidents',
 ]);
 
 interface SidebarProps {
@@ -174,6 +178,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Vardiyalar',
     description: 'Crew vardiya planı',
     icon: CalendarClock,
+  },
+  {
+    id: 'reservations',
+    label: 'Rezervasyonlar',
+    description: 'Masa / tesis planı',
+    icon: CalendarCheck,
+  },
+  {
+    id: 'loyalty',
+    label: 'Sadakat',
+    description: 'AURA · Daze-Gift puan',
+    icon: Gift,
+  },
+  {
+    id: 'incidents',
+    label: 'Olay Panosu',
+    description: 'Stok · görev · geçiş',
+    icon: AlertTriangle,
   },
   {
     id: 'webhooks',

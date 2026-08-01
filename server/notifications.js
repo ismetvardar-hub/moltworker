@@ -32,6 +32,10 @@ const IMPORTANT = new Set([
   'webhooks.create',
   'inventory.adjust',
   'shifts.create',
+  'reservations.create',
+  'loyalty.adjust',
+  'incidents.create',
+  'incidents.ack',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

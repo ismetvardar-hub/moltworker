@@ -228,6 +228,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **23** | HEPHAESTUS stok envanteri (`/api/inventory`, `/api/inventory/adjust`) |
 | **24** | Crew vardiya planı (`/api/shifts` CRUD) |
 
+### Rezervasyon · Sadakat · Olay (AŞAMA 25–27)
+
+| Aşama | Özellik |
+|-------|---------|
+| **25** | Tesis rezervasyonları (`/api/reservations`) |
+| **26** | AURA sadakat / Daze-Gift defteri (`/api/loyalty`) |
+| **27** | Olay panosu — stok + görev + geçiş birleşik (`/api/incidents`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

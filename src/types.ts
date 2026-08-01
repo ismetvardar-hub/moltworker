@@ -19,6 +19,9 @@ export type PageId =
   | 'field'
   | 'inventory'
   | 'shifts'
+  | 'reservations'
+  | 'loyalty'
+  | 'incidents'
   | 'docs'
   | 'webhooks'
   | 'settings';
