@@ -149,6 +149,21 @@ import CapexPage from './pages/CapexPage';
 import LicensesPage from './pages/LicensesPage';
 import SlabreachesPage from './pages/SlabreachesPage';
 import ApexPage from './pages/ApexPage';
+import ExtlinksPage from './pages/ExtlinksPage';
+import ApikeysPage from './pages/ApikeysPage';
+import BackupschedPage from './pages/BackupschedPage';
+import SysalertsPage from './pages/SysalertsPage';
+import BugtrackerPage from './pages/BugtrackerPage';
+import ReleasenotesPage from './pages/ReleasenotesPage';
+import RunbooksPage from './pages/RunbooksPage';
+import BiometricsPage from './pages/BiometricsPage';
+import SecretsrotPage from './pages/SecretsrotPage';
+import DnscheckPage from './pages/DnscheckPage';
+import MailqueuePage from './pages/MailqueuePage';
+import SmsqueuePage from './pages/SmsqueuePage';
+import AlertrulesPage from './pages/AlertrulesPage';
+import EdgecachePage from './pages/EdgecachePage';
+import PyramidPage from './pages/PyramidPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -267,6 +282,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   licenses: LicensesPage,
   slabreaches: SlabreachesPage,
   apex: ApexPage,
+  extlinks: ExtlinksPage,
+  apikeys: ApikeysPage,
+  backupsched: BackupschedPage,
+  sysalerts: SysalertsPage,
+  bugtracker: BugtrackerPage,
+  releasenotes: ReleasenotesPage,
+  runbooks: RunbooksPage,
+  biometrics: BiometricsPage,
+  secretsrot: SecretsrotPage,
+  dnscheck: DnscheckPage,
+  mailqueue: MailqueuePage,
+  smsqueue: SmsqueuePage,
+  alertrules: AlertrulesPage,
+  edgecache: EdgecachePage,
+  pyramid: PyramidPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

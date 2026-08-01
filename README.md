@@ -411,6 +411,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **149** | SLA ihlal |
 | **150** | Apex checkpoint (`/api/apex`) |
 
+### Platform · Pyramid (AŞAMA 151–165)
+
+| Aşama | Özellik |
+|-------|---------|
+| **151** | Harici bağlantı panosu (`extlinks`) |
+| **152** | API anahtar |
+| **153** | Yedek zamanlama |
+| **154** | Sistem alarm |
+| **155** | Bug tracker |
+| **156** | Release notes |
+| **157** | Runbook |
+| **158** | Biyometrik log |
+| **159** | Secret rotation |
+| **160** | DNS check |
+| **161** | Mail kuyruk |
+| **162** | SMS kuyruk |
+| **163** | Alert kuralları |
+| **164** | Edge cache |
+| **165** | Pyramid checkpoint (`/api/pyramid`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
