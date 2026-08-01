@@ -13,6 +13,7 @@ import { extremeOverview } from './extremepark.js';
 import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview } from './agentqueue.js';
+import { greenPulseOverview } from './greenpulse.js';
 
 export function agentBridgeOverview() {
   const campus = campusCoreOverview();
@@ -26,6 +27,7 @@ export function agentBridgeOverview() {
   const culture = cultureSceneOverview();
   const sport = sportBridgeOverview();
   const queue = agentQueueOverview();
+  const green = greenPulseOverview();
 
   const agents = [
     { id: 'NEXUS', role: 'IoT / kapı / ışık / NFC', signal: `keys ${stay.summary.keys_active || 0} · slots ${extreme.summary?.open_slots ?? '?'}`, status: 'online' },
@@ -37,6 +39,7 @@ export function agentBridgeOverview() {
     { id: 'LIFE-COACH-AI', role: 'Yaşam / performans asistanı', signal: `flags ${life.summary.flags} · hooks ${life.summary.webhook_events || 0}`, status: 'online' },
     { id: 'CULTURE-AI', role: 'Sahne / bilet / yayın', signal: `live ${culture.summary.live} · held ${culture.summary.tickets_held}`, status: 'online' },
     { id: 'SPORT-BRIDGE', role: 'Park ↔ kulüp', signal: `linked ${sport.summary.linked} · gaps ${sport.summary.waiver_gaps}`, status: 'online' },
+    { id: 'GAIA-ESG', role: 'Yeşil / ESG', signal: `score ${green.summary.score} · alerts ${green.summary.alerts}`, status: 'online' },
   ];
 
   return {
@@ -55,6 +58,7 @@ export function agentBridgeOverview() {
       culture: culture.summary,
       sport: sport.summary,
       queue: queue.summary,
+      green: green.summary,
     },
     links: {
       campus: '/api/campus',
@@ -68,6 +72,7 @@ export function agentBridgeOverview() {
       culture: '/api/culture',
       sport: '/api/sportbridge',
       queue: '/api/agentqueue',
+      green: '/api/greenpulse',
     },
     generatedAt: new Date().toISOString(),
   };

@@ -83,8 +83,8 @@ export const CAMPUS_DOMAINS: CampusDomain[] = [
     id: 'green',
     label: 'Yeşil & Arazi',
     description: 'ESG · orman · su · enerji · zonlar',
-    primary: 'campuscore',
-    pages: ['campuscore', 'verdant', 'reefwatch', 'solaryield', 'wateruse', 'weather'],
+    primary: 'greenpulse',
+    pages: ['greenpulse', 'campuscore', 'verdant', 'reefwatch', 'solaryield', 'wateruse', 'weather'],
   },
   {
     id: 'agents',

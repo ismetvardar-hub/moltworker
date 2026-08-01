@@ -44,3 +44,13 @@ export async function postLifeWebhook(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function processLifeFlags() {
+  return parse(
+    await fetch('/api/lifecoach/flags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
+}

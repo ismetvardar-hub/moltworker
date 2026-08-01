@@ -6695,6 +6695,7 @@ import {
   ingestWearable,
   ingestWearableWebhook,
   lifeCoachOverview,
+  processLifeFlags,
   registerLifeDevice,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
@@ -6705,6 +6706,7 @@ import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import { createCultureEvent, cultureSceneOverview, holdCultureTicket, setCultureLive } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
+import { addGreenIncident, greenPulseOverview, recordGreenMeter } from './greenpulse.js';
 
 
 
@@ -36204,6 +36206,30 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, tickAgentQueue(user.username));
+          return;
+        }
+
+        if (path === '/api/lifecoach/flags' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, processLifeFlags(user.username));
+          return;
+        }
+        if (path === '/api/greenpulse' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, greenPulseOverview());
+          return;
+        }
+        if (path === '/api/greenpulse/meter' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordGreenMeter(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/incident' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, addGreenIncident(await readBody(req), user.username)); })();
           return;
         }
 

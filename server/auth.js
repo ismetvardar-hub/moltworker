@@ -1242,6 +1242,7 @@ export const ROLE_PAGES = {
     'agentbridge',
     'sportbridge',
     'agentqueue',
+    'greenpulse',
     'culturescene',
     'docs',
     'webhooks',

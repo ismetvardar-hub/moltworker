@@ -4,6 +4,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
+import { bridgeRecoveryPlan } from './sportbridge.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -177,6 +179,53 @@ export function lifeCoachOverview() {
   };
 }
 
+/**
+ * Düşük recovery / mood → ajan kuyruğu + spor recovery planı.
+ */
+export function processLifeFlags(actor = 'system') {
+  const overview = lifeCoachOverview();
+  const clients = ensureClients();
+  const queue = readCollection('agent-jobs', []) || [];
+  const seen = new Set();
+  const actions = [];
+  for (const flag of overview.flags || []) {
+    if (seen.has(flag.client_id)) continue;
+    seen.add(flag.client_id);
+    const client = clients.find((c) => c.id === flag.client_id);
+    const already = (Array.isArray(queue) ? queue : []).some(
+      (j) =>
+        (j.status === 'queued' || j.status === 'running') &&
+        j.agent === 'LIFE-COACH-AI' &&
+        j.payload?.client_id === flag.client_id,
+    );
+    if (!already) {
+      const job = enqueueAgentJob(
+        {
+          agent: 'LIFE-COACH-AI',
+          title: `Flag: ${client?.name || flag.client_id} recovery ${flag.recovery}`,
+          priority: flag.recovery < 45 ? 'high' : 'normal',
+          payload: { client_id: flag.client_id, recovery: flag.recovery, mood: flag.mood },
+        },
+        actor,
+      );
+      actions.push({ type: 'enqueue', job: job.job?.id });
+    } else {
+      actions.push({ type: 'skip_dup', client_id: flag.client_id });
+    }
+    if (client?.athlete_id) {
+      const plan = bridgeRecoveryPlan({ athlete_id: client.athlete_id }, actor);
+      actions.push({ type: 'recovery_plan', athlete_id: client.athlete_id, plan: plan.plan?.id });
+    }
+  }
+  appendAudit({
+    actor,
+    action: 'life.flags_process',
+    detail: `${actions.length} otomasyon`,
+    meta: { n: actions.length },
+  });
+  return { ok: true, actions, overview: lifeCoachOverview() };
+}
+
 export function ingestWearable(input = {}, actor = 'system') {
   const norm = normalizeWearablePayload(input);
   let clientId = norm.client_id || input.client_id || 'lc_1';
@@ -215,7 +264,11 @@ export function ingestWearable(input = {}, actor = 'system') {
     detail: `${row.client_id} recovery ${row.recovery} via ${row.source}`,
     meta: { id: row.id },
   });
-  return { ok: true, metric: row, overview: lifeCoachOverview() };
+  let automation = null;
+  if (row.recovery < 55 || row.mood < 6) {
+    automation = processLifeFlags(actor);
+  }
+  return { ok: true, metric: row, automation, overview: lifeCoachOverview() };
 }
 
 /** Device/provider webhook — signature optional in demo (skip_verify) */

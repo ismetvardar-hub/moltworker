@@ -19,6 +19,7 @@ const AGENTS = [
   'LIFE-COACH-AI',
   'CULTURE-AI',
   'SPORT-BRIDGE',
+  'GAIA-ESG',
 ];
 
 function ensureQueue() {
@@ -151,21 +152,60 @@ export function completeAgentJob(input = {}, actor = 'system') {
   return { ok: true, job: jobs[idx], overview: agentQueueOverview() };
 }
 
-/** Tick: auto-complete stale running jobs (demo) */
+/**
+ * Tick (jobs ticker ile):
+ * 1) bir queued iş claim
+ * 2) 15sn+ running işleri auto-complete
+ */
 export function tickAgentQueue(actor = 'system') {
   const jobs = ensureQueue();
-  let n = 0;
+  let claimed = 0;
+  let completed = 0;
   const now = Date.now();
-  for (let i = 0; i < jobs.length; i++) {
-    const j = jobs[i];
-    if (j.status !== 'running' || !j.claimed_at) continue;
-    const age = now - new Date(j.claimed_at).getTime();
-    if (age > 60_000) {
-      jobs[i] = { ...j, status: 'done', result: 'auto-tick', completed_at: new Date().toISOString() };
-      n++;
+
+  const hasRunning = jobs.some((j) => j.status === 'running');
+  if (!hasRunning) {
+    const qidx = jobs.findIndex((j) => j.status === 'queued');
+    if (qidx >= 0) {
+      jobs[qidx] = {
+        ...jobs[qidx],
+        status: 'running',
+        claimed_by: jobs[qidx].agent,
+        claimed_at: new Date().toISOString(),
+        claimed_actor: actor,
+      };
+      claimed = 1;
     }
   }
-  if (n) writeCollection('agent-jobs', jobs);
-  if (n) appendAudit({ actor, action: 'agent.tick', detail: `${n} auto-complete`, meta: { n } });
-  return { ok: true, completed: n, overview: agentQueueOverview() };
+
+  for (let i = 0; i < jobs.length; i++) {
+    const j = jobs[i];
+    if (j.status !== 'running') continue;
+    const started = j.claimed_at || j.at;
+    if (!started) {
+      jobs[i] = { ...j, claimed_at: new Date().toISOString() };
+      continue;
+    }
+    const age = now - new Date(started).getTime();
+    if (age > 15_000) {
+      jobs[i] = {
+        ...j,
+        status: 'done',
+        result: 'auto-tick',
+        completed_at: new Date().toISOString(),
+      };
+      completed++;
+    }
+  }
+
+  if (claimed || completed) writeCollection('agent-jobs', jobs);
+  if (claimed || completed) {
+    appendAudit({
+      actor,
+      action: 'agent.tick',
+      detail: `claim ${claimed} · done ${completed}`,
+      meta: { claimed, completed },
+    });
+  }
+  return { ok: true, claimed, completed, overview: agentQueueOverview() };
 }

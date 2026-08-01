@@ -1168,6 +1168,7 @@ export type PageId =
   | 'agentbridge'
   | 'sportbridge'
   | 'agentqueue'
+  | 'greenpulse'
   | 'culturescene'
   | 'mysteryshop'
   | 'partners'

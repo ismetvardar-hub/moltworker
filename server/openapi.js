@@ -1221,6 +1221,8 @@ export function buildOpenApi() {
       '/api/culture': { get: { summary: 'Kültür & Sahne', tags: ['culturescene'] } },
       '/api/sportbridge': { get: { summary: 'Spor köprüsü', tags: ['sportbridge'] } },
       '/api/agentqueue': { get: { summary: 'Ajan iş kuyruğu', tags: ['agentqueue'] } },
+      '/api/greenpulse': { get: { summary: 'Yeşil ESG nabız', tags: ['greenpulse'] } },
+      '/api/lifecoach/flags': { post: { summary: 'Life flag otomasyonu', tags: ['lifecoach'] } },
       '/api/lifecoach/webhook': { post: { summary: 'Wearable webhook', tags: ['lifecoach'] } },
       '/api/extreme': { get: { summary: 'Extreme Park Hub', tags: ['extremepark'] } },
       '/api/extreme/user-spec': { get: { summary: 'Extreme üye yetki şeması', tags: ['extremepark'] } },

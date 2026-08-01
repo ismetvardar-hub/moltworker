@@ -284,6 +284,10 @@ export function startJobTicker(intervalMs = 5000) {
   if (ticker) return;
   ticker = setInterval(() => {
     void tickJobs().catch(() => undefined);
+    // Ajan kuyruğu nabız — dinamik import (döngüsel bağımlılık yok)
+    void import('./agentqueue.js')
+      .then((m) => m.tickAgentQueue('scheduler'))
+      .catch(() => undefined);
   }, intervalMs);
   // unref so it doesn't keep process alive unnecessarily in some envs
   if (typeof ticker.unref === 'function') ticker.unref();

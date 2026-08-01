@@ -1827,9 +1827,12 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | agentbridge | `/api/agentbridge` | Ajan komuta |
 | agentqueue | `/api/agentqueue` | Ajan iş kuyruğu |
 | lifecoach+ | `/api/lifecoach/webhook` | Wearable webhook (HMAC / demo) |
+| greenpulse | `/api/greenpulse` | Yeşil ESG nabız |
+| life flags | `/api/lifecoach/flags` | Flag → ajan kuyruk + recovery |
 
 Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  
-`App.tsx`: LoginPage eager, diğer tüm sayfalar lazy (`scripts/lazyify-app.mjs`).
+`App.tsx`: LoginPage eager, diğer tüm sayfalar lazy (`scripts/lazyify-app.mjs`).  
+Jobs ticker her 5sn `tickAgentQueue` çağırır.
 
 ### Kampüs menü (Adım 1)
 

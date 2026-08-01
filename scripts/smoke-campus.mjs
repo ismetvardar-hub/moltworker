@@ -17,8 +17,10 @@ import {
   ingestWearable,
   ingestWearableWebhook,
   registerLifeDevice,
+  processLifeFlags,
 } from '../server/lifecoach.js';
-import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob } from '../server/agentqueue.js';
+import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, tickAgentQueue } from '../server/agentqueue.js';
+import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import { familyCampOverview, familyCheckIn } from '../server/familycamp.js';
@@ -62,6 +64,13 @@ enqueueAgentJob({ agent: 'DAZE-HUB', title: 'smoke job' }, 'smoke');
 const claimed = claimAgentJob({}, 'smoke');
 assert(claimed.ok, 'claim');
 if (claimed.job?.id) completeAgentJob({ id: claimed.job.id }, 'smoke');
+tickAgentQueue('smoke');
+
+const green = greenPulseOverview();
+assert(green.meters?.length >= 4, 'green meters');
+recordGreenMeter({ kind: 'water', value: 40 }, 'smoke');
+addGreenIncident({ title: 'smoke forest check', kind: 'forest' }, 'smoke');
+processLifeFlags('smoke');
 
 let market = marketOsOverview();
 assert(market.listings?.length >= 1, 'market listings');
@@ -98,7 +107,7 @@ syncSlotToSession({}, 'smoke');
 
 const bridge = agentBridgeOverview();
 assert(bridge.agents?.length >= 8, 'agent fleet');
-assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue, 'bridge pulses wave3');
+assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue && bridge.pulses?.green, 'bridge pulses wave4');
 const ping = agentBridgePing({ agent: 'DAZE-HUB', note: 'smoke' }, 'smoke');
 assert(ping.ok, 'agent ping');
 
@@ -114,6 +123,7 @@ console.log(
       mall_fnb: openMallOverview().summary,
       life: lifeCoachOverview().summary,
       queue: agentQueueOverview().summary,
+      green: greenPulseOverview().summary,
       agents: bridge.agents.map((a) => a.id),
       extreme_slots: extreme.summary?.open_slots ?? null,
     },

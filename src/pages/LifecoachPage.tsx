@@ -115,13 +115,27 @@ export default function LifecoachPage() {
             <p className="mt-2 text-[11px] text-slate-500">
               Webhook: POST /api/lifecoach/webhook · header {data.webhook?.header} ({data.webhook?.algo})
             </p>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
-              onClick={() => void api.createLifePlan({}).then(() => ping('3 sütunlu plan yazıldı'))}
-            >
-              Plan oluştur
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() => void api.createLifePlan({}).then(() => ping('3 sütunlu plan yazıldı'))}
+              >
+                Plan oluştur
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.processLifeFlags().then((r: any) => {
+                    ping(`Otomasyon ${r.actions?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Flag → ajan/recovery
+              </button>
+            </div>
             <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-obsidian-950 p-2 text-[10px] text-slate-500">
               {JSON.stringify(data.webhooks?.slice?.(0, 5) || [], null, 2)}
             </pre>
