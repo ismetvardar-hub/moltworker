@@ -334,45 +334,49 @@ async function handleNexusCommand(req, res) {
 
 // ─── Vite eklentisi ───────────────────────────────────────────────────
 
+export function createIntegrationsMiddleware() {
+  return (req, res, next) => {
+    const path = (req.url ?? '').split('?')[0];
+
+    if (req.method === 'OPTIONS' && path.startsWith('/api/')) {
+      sendJson(res, 204, {});
+      return;
+    }
+
+    if (path === '/api/whatsapp/send' && req.method === 'POST') {
+      void handleWhatsAppSend(req, res);
+      return;
+    }
+    if (path === '/api/whatsapp/log' && req.method === 'GET') {
+      handleWhatsAppLog(req, res);
+      return;
+    }
+    if (path === '/api/mint/demand' && req.method === 'GET') {
+      handleMintDemand(req, res);
+      return;
+    }
+    if (path === '/api/nexus/devices' && req.method === 'GET') {
+      handleNexusDevices(req, res);
+      return;
+    }
+    if (path === '/api/nexus/events' && req.method === 'GET') {
+      handleNexusEvents(req, res);
+      return;
+    }
+    if (path === '/api/nexus/command' && req.method === 'POST') {
+      void handleNexusCommand(req, res);
+      return;
+    }
+
+    next();
+  };
+}
+
 export function integrationsPlugin() {
   return {
     name: 'likya-integrations',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const path = (req.url ?? '').split('?')[0];
-
-        if (req.method === 'OPTIONS' && path.startsWith('/api/')) {
-          sendJson(res, 204, {});
-          return;
-        }
-
-        if (path === '/api/whatsapp/send' && req.method === 'POST') {
-          void handleWhatsAppSend(req, res);
-          return;
-        }
-        if (path === '/api/whatsapp/log' && req.method === 'GET') {
-          handleWhatsAppLog(req, res);
-          return;
-        }
-        if (path === '/api/mint/demand' && req.method === 'GET') {
-          handleMintDemand(req, res);
-          return;
-        }
-        if (path === '/api/nexus/devices' && req.method === 'GET') {
-          handleNexusDevices(req, res);
-          return;
-        }
-        if (path === '/api/nexus/events' && req.method === 'GET') {
-          handleNexusEvents(req, res);
-          return;
-        }
-        if (path === '/api/nexus/command' && req.method === 'POST') {
-          void handleNexusCommand(req, res);
-          return;
-        }
-
-        next();
-      });
+      server.middlewares.use(createIntegrationsMiddleware());
     },
   };
 }

@@ -12,6 +12,7 @@ import DazeVisionPage from './pages/DazeVisionPage';
 import NexusPanel from './pages/NexusPanel';
 import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
+import ReportsPage from './pages/ReportsPage';
 import {
   fetchMe,
   getStoredUser,
@@ -31,6 +32,7 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   vision: DazeVisionPage,
   nexus: NexusPanel,
   jobs: JobsPage,
+  reports: ReportsPage,
   settings: SettingsPage,
 };
 

@@ -25,6 +25,7 @@ import {
   tickJobs,
 } from './jobs.js';
 import { addSseClient, sseClientCount } from './events.js';
+import { buildOpsReport, reportToMarkdown } from './report.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -109,11 +110,9 @@ function hubSummary() {
   };
 }
 
-export function platformPlugin() {
-  return {
-    name: 'likya-platform',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+/** Connect uyumlu middleware — hem Vite hem production sunucusu kullanır. */
+export function createPlatformMiddleware() {
+  return (req, res, next) => {
         const path = (req.url ?? '').split('?')[0];
 
         if (req.method === 'OPTIONS' && path.startsWith('/api/')) {
@@ -391,6 +390,28 @@ export function platformPlugin() {
           })();
           return;
         }
+        // Operasyon raporu (AŞAMA 8)
+        if (path === '/api/report' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          const format = url.searchParams.get('format') || 'json';
+          const report = buildOpsReport();
+          if (format === 'markdown' || format === 'md') {
+            const md = reportToMarkdown(report);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+            res.setHeader(
+              'Content-Disposition',
+              `attachment; filename="likya-rapor-${report.generatedAt.slice(0, 10)}.md"`,
+            );
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.end(md);
+            return;
+          }
+          sendJson(res, 200, report);
+          return;
+        }
+
         // SSE canlı olay akışı (AŞAMA 7) — token query ile (EventSource header desteklemez)
         if (path === '/api/events' && req.method === 'GET') {
           const url = new URL(req.url ?? '', 'http://local');
@@ -430,7 +451,14 @@ export function platformPlugin() {
         }
 
         next();
-      });
+  };
+}
+
+export function platformPlugin() {
+  return {
+    name: 'likya-platform',
+    configureServer(server) {
+      server.middlewares.use(createPlatformMiddleware());
     },
   };
 }

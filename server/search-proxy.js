@@ -225,19 +225,23 @@ export async function handleSearchRequest(req, res) {
   }
 }
 
+export function createSearchMiddleware() {
+  return (req, res, next) => {
+    const path = (req.url ?? '').split('?')[0];
+    if (path === '/api/search') {
+      void handleSearchRequest(req, res);
+      return;
+    }
+    next();
+  };
+}
+
 /** Vite eklentisi: geliştirme sunucusuna GET /api/search ekler. */
 export function herodotSearchPlugin() {
   return {
     name: 'herodot-search-proxy',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const path = (req.url ?? '').split('?')[0];
-        if (path === '/api/search') {
-          void handleSearchRequest(req, res);
-          return;
-        }
-        next();
-      });
+      server.middlewares.use(createSearchMiddleware());
     },
   };
 }

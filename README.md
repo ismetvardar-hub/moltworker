@@ -170,6 +170,24 @@ Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer tok
 - **Taslağa Al** / **Al & Çalıştır** veya Hub’dan **Komuta’ya Al**
 - Audit ve operasyon olayları SSE ile Hub/Komuta canlı feed’ine akar
 
+### Operasyon Raporu & ETHOS (AŞAMA 8)
+
+| Uç nokta | Amaç |
+|----------|------|
+| `GET /api/report` | JSON operasyon raporu + ETHOS skoru |
+| `GET /api/report?format=markdown` | Markdown indirme |
+
+Rapor & ETHOS sayfasından JSON/Markdown dışa aktarma.
+
+### Production & Docker (AŞAMA 9)
+
+```bash
+npm run build && npm start          # http://localhost:4173
+docker compose up --build           # data volume ile
+```
+
+Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası geçerli).
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
@@ -190,7 +208,8 @@ Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer tok
 |-------|----------|
 | `npm run dev` | Geliştirme sunucusunu başlatır (Vite) |
 | `npm run build` | Tip kontrolü + üretim derlemesi |
-| `npm run preview` | Üretim derlemesini yerelde önizler |
+| `npm run preview` | Üretim derlemesini yerelde önizler (yalnızca statik) |
+| `npm start` | Production sunucu (`dist/` + tüm `/api/*`) |
 | `npm run typecheck` | Yalnızca TypeScript tip kontrolü |
 
 ## Teknolojiler

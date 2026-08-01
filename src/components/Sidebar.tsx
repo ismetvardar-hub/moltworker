@@ -10,6 +10,7 @@ import {
   Radio,
   ListTodo,
   Settings,
+  ShieldCheck,
   Ticket,
   Users,
 } from 'lucide-react';
@@ -84,6 +85,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Görev Kuyruğu',
     description: 'Hatırlatma & talimat zamanlama',
     icon: ListTodo,
+  },
+  {
+    id: 'reports',
+    label: 'Rapor & ETHOS',
+    description: 'Operasyon özeti & uyum skoru',
+    icon: ShieldCheck,
   },
   {
     id: 'settings',

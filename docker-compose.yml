@@ -1,0 +1,16 @@
+# AŞAMA 9 — yerel production önizleme
+services:
+  likya-panel:
+    build: .
+    ports:
+      - "4173:4173"
+    environment:
+      - PORT=4173
+      - AUTH_HIDE_HINTS=1
+      # Opsiyonel: AUTH_CEO_PASS, BRAVE_SEARCH_API_KEY, TWILIO_*, ...
+    volumes:
+      - likya-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  likya-data:
