@@ -551,6 +551,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **254** | Yield kural |
 | **255** | Ledger checkpoint (`/api/ledger`) |
 
+### İK · People Hub (AŞAMA 256–270)
+
+| Aşama | Özellik |
+|-------|---------|
+| **256** | Onboarding |
+| **257** | Offboarding |
+| **258** | Mülakat |
+| **259** | Sertifika |
+| **260** | Dil yetkinlik |
+| **261** | Vardiya takas |
+| **262** | İzin talebi |
+| **263** | Yoklama |
+| **264** | Performans |
+| **265** | Ödül |
+| **266** | El kitabı |
+| **267** | İSG brifi |
+| **268** | Near miss |
+| **269** | Bildirim hattı |
+| **270** | People Hub checkpoint (`/api/peoplehub`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

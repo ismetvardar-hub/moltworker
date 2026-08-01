@@ -254,6 +254,21 @@ import ChannelmgrPage from './pages/ChannelmgrPage';
 import OverbookPage from './pages/OverbookPage';
 import YieldrulePage from './pages/YieldrulePage';
 import LedgerPage from './pages/LedgerPage';
+import OnboardingPage from './pages/OnboardingPage';
+import OffboardingPage from './pages/OffboardingPage';
+import InterviewsPage from './pages/InterviewsPage';
+import CertificationsPage from './pages/CertificationsPage';
+import LangskillPage from './pages/LangskillPage';
+import ShiftswapPage from './pages/ShiftswapPage';
+import LeaverequestPage from './pages/LeaverequestPage';
+import AttendancePage from './pages/AttendancePage';
+import PerformancePage from './pages/PerformancePage';
+import RecognitionPage from './pages/RecognitionPage';
+import HandbookPage from './pages/HandbookPage';
+import SafetybriefPage from './pages/SafetybriefPage';
+import NearmissPage from './pages/NearmissPage';
+import WhistlePage from './pages/WhistlePage';
+import PeoplehubPage from './pages/PeoplehubPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -477,6 +492,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   overbook: OverbookPage,
   yieldrule: YieldrulePage,
   ledger: LedgerPage,
+  onboarding: OnboardingPage,
+  offboarding: OffboardingPage,
+  interviews: InterviewsPage,
+  certifications: CertificationsPage,
+  langskill: LangskillPage,
+  shiftswap: ShiftswapPage,
+  leaverequest: LeaverequestPage,
+  attendance: AttendancePage,
+  performance: PerformancePage,
+  recognition: RecognitionPage,
+  handbook: HandbookPage,
+  safetybrief: SafetybriefPage,
+  nearmiss: NearmissPage,
+  whistle: WhistlePage,
+  peoplehub: PeoplehubPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

@@ -188,6 +188,9 @@ import {
   Globe,
   Layers,
   BookMarked,
+  ArrowLeftRight,
+  Trophy,
+  HardHat,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -224,6 +227,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'horizon',
   'meridian',
   'ledger',
+  'peoplehub',
 ]);
 
 interface SidebarProps {
@@ -673,6 +677,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'channelmgr', label: 'Channel Manager', description: 'OTA kanal eşlemeleri.', icon: Globe },
   { id: 'overbook', label: 'Overbooking', description: 'Overbooking karar kayıtları.', icon: Layers },
   { id: 'yieldrule', label: 'Yield Kural', description: 'Dinamik fiyat kuralları.', icon: TrendingUp },
+  { id: 'onboarding', label: 'Onboarding', description: 'Yeni personel giriş checklist.', icon: UserRound },
+  { id: 'offboarding', label: 'Offboarding', description: 'İşten ayrılış checklist.', icon: LogOut },
+  { id: 'interviews', label: 'Mülakat', description: 'Aday mülakat takvimi.', icon: UsersRound },
+  { id: 'certifications', label: 'Sertifika', description: 'Personel sertifika kaydı.', icon: Award },
+  { id: 'langskill', label: 'Dil Yetkinlik', description: 'Personel dil seviyeleri.', icon: Languages },
+  { id: 'shiftswap', label: 'Vardiya Takas', description: 'Shift swap talepleri.', icon: ArrowLeftRight },
+  { id: 'leaverequest', label: 'İzin Talebi', description: 'Yıllık / mazeret izin.', icon: CalendarRange },
+  { id: 'attendance', label: 'Yoklama', description: 'Günlük yoklama satırları.', icon: ClipboardCheck },
+  { id: 'performance', label: 'Performans', description: 'Performans notları.', icon: Star },
+  { id: 'recognition', label: 'Ödül', description: 'Resmi takdir / ödül.', icon: Trophy },
+  { id: 'handbook', label: 'El Kitabı', description: 'Handbook okuma onayı.', icon: BookOpen },
+  { id: 'safetybrief', label: 'İSG Brifi', description: 'İş güvenliği brifing.', icon: HardHat },
+  { id: 'nearmiss', label: 'Near Miss', description: 'Ramak kala olay raporları.', icon: TriangleAlert },
+  { id: 'whistle', label: 'Bildirim Hattı', description: 'Anonim etik bildirim.', icon: Megaphone },
+  { id: 'peoplehub', label: 'People Hub', description: 'AŞAMA 270 İK özeti.', icon: Users },
   { id: 'ledger', label: 'Ledger', description: 'AŞAMA 255 finans özeti.', icon: BookMarked },
   { id: 'meridian', label: 'Meridian', description: 'AŞAMA 240 oda servis özeti.', icon: Compass },
   { id: 'horizon', label: 'Horizon', description: 'AŞAMA 225 F&B/gelir özeti.', icon: Sunrise },
