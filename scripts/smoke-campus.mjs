@@ -99,6 +99,9 @@ import {
   dispatchFleetDirective,
   pingFleetAgent,
   sweepFleetPresence,
+  acknowledgeFleetDirective,
+  startFleetShift,
+  handoffFleetShift,
 } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import {
@@ -367,6 +370,12 @@ pingFleetAgent({ agent: 'ETHOS', note: 'smoke' }, 'smoke');
 assert(sweepFleetPresence({ campus_only: true }, 'smoke').ok, 'presence sweep');
 const dispatched = dispatchFleetDirective({ title: 'Hava iptal ve ESG alert brifing' }, 'smoke');
 assert(dispatched.targets?.includes('REMINDER-AI') || dispatched.targets?.includes('GAIA-ESG'), 'fleet dispatch');
+assert(
+  acknowledgeFleetDirective({ id: dispatched.directive?.id, agent: 'REMINDER-AI' }, 'smoke').ok,
+  'fleet directive ack',
+);
+assert(startFleetShift({ name: 'smoke shift' }, 'smoke').ok, 'fleet shift start');
+assert(handoffFleetShift({ to_lead: 'DAZE-HUB', note: 'smoke handoff' }, 'smoke').ok, 'fleet handoff');
 
 const bridge = agentBridgeOverview();
 assert(bridge.agents?.length >= 8, 'campus agents on bridge');

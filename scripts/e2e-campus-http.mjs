@@ -288,6 +288,31 @@ try {
   });
   assert(presence.res.ok && presence.data.updated >= 1, 'presence sweep');
 
+  const dispatch = await req('/api/agentfleet/dispatch', {
+    method: 'POST',
+    token,
+    body: { title: 'Hava iptal ve ESG alert brifing' },
+  });
+  assert(dispatch.res.ok && dispatch.data.ok !== false, 'fleet dispatch');
+  const dAck = await req('/api/agentfleet/directive/ack', {
+    method: 'POST',
+    token,
+    body: { id: dispatch.data.directive?.id, agent: 'REMINDER-AI' },
+  });
+  assert(dAck.res.ok && dAck.data.ok !== false, 'fleet directive ack');
+  const shift = await req('/api/agentfleet/shift/start', {
+    method: 'POST',
+    token,
+    body: { name: 'e2e shift' },
+  });
+  assert(shift.res.ok && shift.data.ok !== false, 'fleet shift');
+  const handoff = await req('/api/agentfleet/shift/handoff', {
+    method: 'POST',
+    token,
+    body: { to_lead: 'DAZE-HUB', note: 'e2e handoff' },
+  });
+  assert(handoff.res.ok && handoff.data.ok !== false, 'fleet handoff');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,

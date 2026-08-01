@@ -93,12 +93,21 @@ export function agentFleetOverview() {
     };
   });
   const core28 = agents.filter((a) => !a.extension);
+  const shifts = readCollection('fleet-shifts', []) || [];
+  const shiftList = Array.isArray(shifts) ? shifts : [];
+  const activeShift = shiftList.find((s) => s.status === 'active') || null;
+  const handoffs = readCollection('fleet-handoffs', []) || [];
+  const directives = readCollection('fleet-directives', []) || [];
   return {
     title: 'LİKYA Ajan Filosu',
     master_rule: 'Centilmenlik · Naiflik · Esprili Üslup',
     departments: FLEET_DEPARTMENTS,
     agents,
     core: core28,
+    active_shift: activeShift,
+    shifts: shiftList.slice(0, 15),
+    handoffs: (Array.isArray(handoffs) ? handoffs : []).slice(0, 15),
+    directives: (Array.isArray(directives) ? directives : []).slice(0, 20),
     summary: {
       total: core28.length,
       extensions: agents.filter((a) => a.extension).length,
@@ -108,6 +117,8 @@ export function agentFleetOverview() {
       campus_ops: agents.filter((a) => a.campus).length,
       queue_queued: queue.summary.queued,
       queue_running: queue.summary.running,
+      shift_active: !!activeShift,
+      directives_open: (Array.isArray(directives) ? directives : []).filter((d) => d.status === 'open').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -179,18 +190,158 @@ export function dispatchFleetDirective(input = {}, actor = 'system') {
       actor,
     ),
   );
+  const directive = {
+    id: rid('fd'),
+    title: text,
+    targets,
+    status: 'open',
+    acks: [],
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('fleet-directives', directive, 200);
   appendAudit({
     actor,
     action: 'fleet.dispatch',
     detail: `${text} → ${targets.join(',')}`,
-    meta: { targets },
+    meta: { targets, id: directive.id },
   });
   return {
     ok: true,
     targets,
     jobs: jobs.map((j) => j.job),
+    directive,
     overview: agentFleetOverview(),
   };
+}
+
+/** Direktif ack — hedef ajan onayı */
+export function acknowledgeFleetDirective(input = {}, actor = 'system') {
+  const list = readCollection('fleet-directives', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Direktif yok' };
+  let idx = list.findIndex((d) => d.id === input.id && d.status === 'open');
+  if (idx < 0) idx = list.findIndex((d) => d.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık direktif yok' };
+  const d = list[idx];
+  const agent = input.agent || d.targets?.[0] || 'DAZE-HUB';
+  const acks = Array.isArray(d.acks) ? [...d.acks] : [];
+  if (!acks.includes(agent)) acks.push(agent);
+  const allAcked = (d.targets || []).every((t) => acks.includes(t) || t === 'ETHOS');
+  list[idx] = {
+    ...d,
+    acks,
+    status: allAcked || input.close ? 'acked' : 'open',
+    last_ack_at: new Date().toISOString(),
+    last_ack_by: agent,
+  };
+  writeCollection('fleet-directives', list);
+  appendAudit({
+    actor,
+    action: 'fleet.directive_ack',
+    detail: `${d.title} · ${agent}`,
+    meta: { id: d.id },
+  });
+  return { ok: true, directive: list[idx], overview: agentFleetOverview() };
+}
+
+/** Vardiya başlat — kampüs ajanları on-shift */
+export function startFleetShift(input = {}, actor = 'system') {
+  const shifts = readCollection('fleet-shifts', []) || [];
+  const list = Array.isArray(shifts) ? [...shifts] : [];
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].status === 'active') {
+      list[i] = { ...list[i], status: 'closed', closed_at: new Date().toISOString(), closed_by: actor };
+    }
+  }
+  const campus = FLEET.filter((a) => a.campus).map((a) => a.code);
+  const roster = Array.isArray(input.roster) && input.roster.length ? input.roster : campus;
+  const shift = {
+    id: rid('fsh'),
+    name: input.name || `Vardiya ${new Date().toISOString().slice(11, 16)}`,
+    roster,
+    lead: input.lead || 'LİKYA-1',
+    status: 'active',
+    at: new Date().toISOString(),
+    actor,
+  };
+  list.unshift(shift);
+  writeCollection('fleet-shifts', list.slice(0, 120));
+  sweepFleetPresence({ campus_only: true, note: `shift ${shift.name}` }, actor);
+  enqueueAgentJob(
+    {
+      agent: 'LİKYA-1',
+      title: `vardiya start · ${shift.name} · ${roster.length} ajan`,
+      priority: 'normal',
+      payload: { shift_id: shift.id, roster },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'fleet.shift_start',
+    detail: shift.name,
+    meta: { id: shift.id },
+  });
+  return { ok: true, shift, overview: agentFleetOverview() };
+}
+
+/** Vardiya handoff — not + sonraki lead */
+export function handoffFleetShift(input = {}, actor = 'system') {
+  const shifts = readCollection('fleet-shifts', []) || [];
+  const list = Array.isArray(shifts) ? [...shifts] : [];
+  let idx = list.findIndex((s) => s.id === input.shift_id && s.status === 'active');
+  if (idx < 0) idx = list.findIndex((s) => s.status === 'active');
+  if (idx < 0) {
+    const started = startFleetShift({ name: 'Handoff seed' }, actor);
+    return handoffFleetShift({ ...input, shift_id: started.shift?.id }, actor);
+  }
+  const from = list[idx];
+  const toLead = input.to_lead || input.lead || 'DAZE-HUB';
+  list[idx] = {
+    ...from,
+    status: 'handed_off',
+    handed_off_at: new Date().toISOString(),
+    to_lead: toLead,
+  };
+  const next = {
+    id: rid('fsh'),
+    name: input.name || `Handoff → ${toLead}`,
+    roster: input.roster || from.roster,
+    lead: toLead,
+    status: 'active',
+    from_shift: from.id,
+    at: new Date().toISOString(),
+    actor,
+  };
+  list.unshift(next);
+  writeCollection('fleet-shifts', list.slice(0, 120));
+  const handoff = {
+    id: rid('fho'),
+    from_shift: from.id,
+    to_shift: next.id,
+    from_lead: from.lead,
+    to_lead: toLead,
+    note: input.note || 'Vardiya devir',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('fleet-handoffs', handoff, 200);
+  enqueueAgentJob(
+    {
+      agent: toLead,
+      title: `handoff · ${from.name} → ${next.name}`,
+      priority: 'high',
+      payload: { handoff_id: handoff.id, note: handoff.note },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'fleet.handoff',
+    detail: `${from.lead} → ${toLead}`,
+    meta: { id: handoff.id },
+  });
+  return { ok: true, handoff, shift: next, overview: agentFleetOverview() };
 }
 
 /** Kampüs ajanlarına toplu presence nabız */

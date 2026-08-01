@@ -92,7 +92,49 @@ export default function AgentfleetPage() {
               >
                 LİKYA-1 dağıt
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.acknowledgeFleetDirective({ agent: 'REMINDER-AI' }).then((r: any) => {
+                    ping(r.ok ? `Ack · ${r.directive?.status}` : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Direktif ack
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.startFleetShift({ name: 'Kampüs vardiya' }).then((r: any) => {
+                    ping(r.ok ? `Vardiya · ${r.shift?.name}` : r.error || 'Vardiya yok')
+                    return refresh()
+                  })
+                }
+              >
+                Vardiya başlat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api
+                    .handoffFleetShift({ to_lead: 'DAZE-HUB', note: 'CEO handoff' })
+                    .then((r: any) => {
+                      ping(r.ok ? `Handoff → ${r.handoff?.to_lead}` : r.error || 'Handoff yok')
+                      return refresh()
+                    })
+                }
+              >
+                Vardiya handoff
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Aktif vardiya {data.summary?.shift_active ? 'var' : 'yok'} · açık direktif{' '}
+              {data.summary?.directives_open ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Kampüs ajanları">
             <ul className="max-h-80 space-y-2 overflow-auto text-sm">

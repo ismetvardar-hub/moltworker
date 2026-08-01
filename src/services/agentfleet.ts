@@ -35,3 +35,33 @@ export async function sweepFleetPresence(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function acknowledgeFleetDirective(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/directive/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function startFleetShift(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/shift/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function handoffFleetShift(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/shift/handoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

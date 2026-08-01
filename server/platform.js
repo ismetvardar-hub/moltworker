@@ -6829,7 +6829,15 @@ import {
   runCampusAutomations,
   syncCampusBriefActions,
 } from './campusbrief.js';
-import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent, sweepFleetPresence } from './agentfleet.js';
+import {
+  acknowledgeFleetDirective,
+  agentFleetOverview,
+  dispatchFleetDirective,
+  handoffFleetShift,
+  pingFleetAgent,
+  startFleetShift,
+  sweepFleetPresence,
+} from './agentfleet.js';
 
 
 
@@ -36873,6 +36881,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, sweepFleetPresence(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/agentfleet/directive/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, acknowledgeFleetDirective(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/shift/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, startFleetShift(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/shift/handoff' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, handoffFleetShift(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge/eligibility' && req.method === 'POST') {
