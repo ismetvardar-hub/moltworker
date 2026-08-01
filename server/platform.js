@@ -396,7 +396,14 @@ import {
   mysteryshopSummary,
   updateMysteryshop,
 } from './mysteryshop.js';
-import { buildBoardpack } from './boardpack.js';
+import {
+  ackBoardpackFlag,
+  buildBoardpack,
+  rebalanceBoardpackBudget,
+  renewBoardpackContract,
+  runBoardpackSweep,
+  snapshotBoardpack,
+} from './boardpack.js';
 import {
   createConcierge,
   listConcierge,
@@ -1508,7 +1515,14 @@ import {
   legalholdSummary,
   updateLegalhold,
 } from './legalhold.js';
-import { buildEcosphere } from './ecosphere.js';
+import {
+  ackEcosphereFlag,
+  buildEcosphere,
+  clearEcosphereVendorHigh,
+  fulfillEcosphereDataprotect,
+  mitigateEcosphereFinding,
+  runEcosphereSweep,
+} from './ecosphere.js';
 import {
   createPresskit,
   listPresskit,
@@ -2804,7 +2818,14 @@ import {
   shifttradeSummary,
   updateShifttrade,
 } from './shifttrade.js';
-import { buildForge } from './forge.js';
+import {
+  ackForgeFlag,
+  advanceForgeTalent,
+  approveForgeShift,
+  buildForge,
+  renewForgeCert,
+  runForgeSweep,
+} from './forge.js';
 import {
   createSafetylog,
   listSafetylog,
@@ -9836,6 +9857,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildBoardpack());
           return;
         }
+        if (path === '/api/boardpack/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBoardpackSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/boardpack/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBoardpackFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/boardpack/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, snapshotBoardpack(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/boardpack/contract/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewBoardpackContract(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/boardpack/budget/rebalance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, rebalanceBoardpackBudget(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 91–105 ──
 
@@ -14505,6 +14556,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/ecosphere' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildEcosphere());
+          return;
+        }
+        if (path === '/api/ecosphere/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runEcosphereSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ecosphere/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEcosphereFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ecosphere/finding/mitigate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, mitigateEcosphereFinding(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ecosphere/dataprotect/fulfill' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fulfillEcosphereDataprotect(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ecosphere/vendor/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearEcosphereVendorHigh(await readBody(req), user.username)); })();
           return;
         }
 
@@ -19950,6 +20031,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/forge' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildForge());
+          return;
+        }
+        if (path === '/api/forge/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runForgeSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/forge/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackForgeFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/forge/talent/advance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, advanceForgeTalent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/forge/cert/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewForgeCert(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/forge/shift/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveForgeShift(await readBody(req), user.username)); })();
           return;
         }
 

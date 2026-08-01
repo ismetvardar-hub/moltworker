@@ -90,6 +90,9 @@ try {
     '/api/oracle',
     '/api/aegis',
     '/api/brandpulse',
+    '/api/forge',
+    '/api/ecosphere',
+    '/api/boardpack',
     '/api/health',
   ];
   for (const p of paths) {
@@ -711,6 +714,39 @@ try {
   assert(bpGuard.res.ok && bpGuard.data.ok !== false, 'brandpulse guard action');
   const bpAck = await req('/api/brandpulse/flag/ack', { method: 'POST', token, body: {} });
   assert(bpAck.res.ok && bpAck.data.ok !== false, 'brandpulse flag ack');
+
+  const fgSweep = await req('/api/forge/sweep', { method: 'POST', token, body: { force: true } });
+  assert(fgSweep.res.ok && fgSweep.data.ok !== false, 'forge sweep');
+  const fgTalent = await req('/api/forge/talent/advance', { method: 'POST', token, body: {} });
+  assert(fgTalent.res.ok && fgTalent.data.ok !== false, 'forge talent advance');
+  const fgCert = await req('/api/forge/cert/renew', { method: 'POST', token, body: {} });
+  assert(fgCert.res.ok && fgCert.data.ok !== false, 'forge cert renew');
+  const fgShift = await req('/api/forge/shift/approve', { method: 'POST', token, body: {} });
+  assert(fgShift.res.ok && fgShift.data.ok !== false, 'forge shift approve');
+  const fgAck = await req('/api/forge/flag/ack', { method: 'POST', token, body: {} });
+  assert(fgAck.res.ok && fgAck.data.ok !== false, 'forge flag ack');
+
+  const ecoSweep = await req('/api/ecosphere/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ecoSweep.res.ok && ecoSweep.data.ok !== false, 'ecosphere sweep');
+  const ecoFind = await req('/api/ecosphere/finding/mitigate', { method: 'POST', token, body: {} });
+  assert(ecoFind.res.ok && ecoFind.data.ok !== false, 'ecosphere finding mitigate');
+  const ecoDp = await req('/api/ecosphere/dataprotect/fulfill', { method: 'POST', token, body: {} });
+  assert(ecoDp.res.ok && ecoDp.data.ok !== false, 'ecosphere dataprotect fulfill');
+  const ecoVen = await req('/api/ecosphere/vendor/clear', { method: 'POST', token, body: {} });
+  assert(ecoVen.res.ok && ecoVen.data.ok !== false, 'ecosphere vendor clear');
+  const ecoAck = await req('/api/ecosphere/flag/ack', { method: 'POST', token, body: {} });
+  assert(ecoAck.res.ok && ecoAck.data.ok !== false, 'ecosphere flag ack');
+
+  const bdSweep = await req('/api/boardpack/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bdSweep.res.ok && bdSweep.data.ok !== false, 'boardpack sweep');
+  const bdSnap = await req('/api/boardpack/snapshot', { method: 'POST', token, body: {} });
+  assert(bdSnap.res.ok && bdSnap.data.ok !== false, 'boardpack snapshot');
+  const bdCtr = await req('/api/boardpack/contract/renew', { method: 'POST', token, body: {} });
+  assert(bdCtr.res.ok && bdCtr.data.ok !== false, 'boardpack contract renew');
+  const bdBud = await req('/api/boardpack/budget/rebalance', { method: 'POST', token, body: {} });
+  assert(bdBud.res.ok && bdBud.data.ok !== false, 'boardpack budget rebalance');
+  const bdAck = await req('/api/boardpack/flag/ack', { method: 'POST', token, body: {} });
+  assert(bdAck.res.ok && bdAck.data.ok !== false, 'boardpack flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

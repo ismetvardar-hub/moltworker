@@ -298,6 +298,30 @@ import {
   approveBrandpulseUgc,
   actionBrandpulseGuard,
 } from '../server/brandpulse.js';
+import {
+  buildForge,
+  runForgeSweep,
+  ackForgeFlag,
+  advanceForgeTalent,
+  renewForgeCert,
+  approveForgeShift,
+} from '../server/forge.js';
+import {
+  buildEcosphere,
+  runEcosphereSweep,
+  ackEcosphereFlag,
+  mitigateEcosphereFinding,
+  fulfillEcosphereDataprotect,
+  clearEcosphereVendorHigh,
+} from '../server/ecosphere.js';
+import {
+  buildBoardpack,
+  runBoardpackSweep,
+  ackBoardpackFlag,
+  snapshotBoardpack,
+  renewBoardpackContract,
+  rebalanceBoardpackBudget,
+} from '../server/boardpack.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -757,6 +781,27 @@ assert(triageBrandpulseInbox({}, 'smoke').ok, 'brandpulse inbox triage');
 assert(approveBrandpulseUgc({}, 'smoke').ok, 'brandpulse ugc approve');
 assert(actionBrandpulseGuard({}, 'smoke').ok, 'brandpulse guard action');
 assert(ackBrandpulseFlag({}, 'smoke').ok, 'brandpulse flag ack');
+
+assert(buildForge().title, 'forge overview');
+assert(runForgeSweep({ force: true }, 'smoke').ok, 'forge sweep');
+assert(advanceForgeTalent({}, 'smoke').ok, 'forge talent advance');
+assert(renewForgeCert({}, 'smoke').ok, 'forge cert renew');
+assert(approveForgeShift({}, 'smoke').ok, 'forge shift approve');
+assert(ackForgeFlag({}, 'smoke').ok, 'forge flag ack');
+
+assert(buildEcosphere().title, 'ecosphere overview');
+assert(runEcosphereSweep({ force: true }, 'smoke').ok, 'ecosphere sweep');
+assert(mitigateEcosphereFinding({}, 'smoke').ok, 'ecosphere finding mitigate');
+assert(fulfillEcosphereDataprotect({}, 'smoke').ok, 'ecosphere dataprotect fulfill');
+assert(clearEcosphereVendorHigh({}, 'smoke').ok, 'ecosphere vendor clear');
+assert(ackEcosphereFlag({}, 'smoke').ok, 'ecosphere flag ack');
+
+assert(buildBoardpack().title, 'boardpack overview');
+assert(runBoardpackSweep({ force: true }, 'smoke').ok, 'boardpack sweep');
+assert(snapshotBoardpack({}, 'smoke').ok, 'boardpack snapshot');
+assert(renewBoardpackContract({}, 'smoke').ok, 'boardpack contract renew');
+assert(rebalanceBoardpackBudget({}, 'smoke').ok, 'boardpack budget rebalance');
+assert(ackBoardpackFlag({}, 'smoke').ok, 'boardpack flag ack');
 
 console.log(
   JSON.stringify(
