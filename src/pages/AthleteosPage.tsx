@@ -113,9 +113,52 @@ export default function AthleteosPage() {
               >
                 Clearance ver
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api
+                    .reportAthleteInjury({
+                      athlete_id: 'ath_1',
+                      body_area: 'diz',
+                      severity: 'moderate',
+                    })
+                    .then((r: any) => {
+                      ping(r.ok ? `Sakatlık · ${r.injury?.body_area}` : r.error || 'Injury yok')
+                      return refresh()
+                    })
+                }
+              >
+                Sakatlık bildir
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.advanceReturnToPlay({ force: true }).then((r: any) => {
+                    ping(r.ok ? `RTP → ${r.injury?.rtp_stage}` : r.error || 'RTP yok')
+                    return refresh()
+                  })
+                }
+              >
+                RTP ilerlet
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runAthleteRtpSweep({ force: true }).then((r: any) => {
+                    ping(`RTP sweep · ${r.sweep?.flagged ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                RTP sweep
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Clearance {data.summary?.cleared ?? 0} · gap {data.summary?.clearance_gap ?? 0}
+              Clearance {data.summary?.cleared ?? 0} · gap {data.summary?.clearance_gap ?? 0} · sakat{' '}
+              {data.summary?.injured ?? 0} · açık injury {data.summary?.open_injuries ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Haftalık planlar">

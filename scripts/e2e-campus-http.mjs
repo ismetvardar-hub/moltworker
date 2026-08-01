@@ -157,6 +157,25 @@ try {
   });
   assert(clr.res.ok && clr.data.ok !== false, 'athlete clearance');
 
+  const injury = await req('/api/athleteos/injury', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_2', body_area: 'omuz', severity: 'mild' },
+  });
+  assert(injury.res.ok && injury.data.ok !== false, 'athlete injury');
+  const rtp = await req('/api/athleteos/return-to-play', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_2', force: true },
+  });
+  assert(rtp.res.ok && rtp.data.ok !== false, 'athlete rtp');
+  const rtpSweep = await req('/api/athleteos/rtp-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(rtpSweep.res.ok && rtpSweep.data.ok !== false, 'athlete rtp sweep');
+
   const ready = await req('/api/athleteos/readiness', { token });
   assert(ready.res.ok && Array.isArray(ready.data.athletes), 'athlete readiness');
 

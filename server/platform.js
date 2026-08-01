@@ -6705,7 +6705,17 @@ import {
   stayRingOverview,
   updateStayUnit,
 } from './stayring.js';
-import { athleteOsOverview, athleteReadinessRollup, issueAthleteLicense, logAthleteSession, setAthleteClearance, upsertAthletePlan } from './athleteos.js';
+import {
+  advanceReturnToPlay,
+  athleteOsOverview,
+  athleteReadinessRollup,
+  issueAthleteLicense,
+  logAthleteSession,
+  reportAthleteInjury,
+  runAthleteRtpSweep,
+  setAthleteClearance,
+  upsertAthletePlan,
+} from './athleteos.js';
 import {
   createLifePlan,
   ingestWearable,
@@ -36069,6 +36079,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, setAthleteClearance(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/athleteos/injury' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reportAthleteInjury(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/return-to-play' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, advanceReturnToPlay(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/rtp-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAthleteRtpSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/athleteos/readiness' && req.method === 'GET') {

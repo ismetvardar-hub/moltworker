@@ -4,6 +4,9 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
+
+const RTP_STAGES = ['rest', 'mobility', 'light_training', 'controlled_training', 'cleared'];
 
 function rid(p) { return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`; }
 
@@ -37,12 +40,18 @@ export function athleteOsOverview() {
   const plans = ensurePlans();
   const sessions = readCollection('athlete-sessions', []) || [];
   const readiness = athleteReadinessRollup();
+  const injuries = readCollection('athlete-injuries', []) || [];
+  const injuryList = Array.isArray(injuries) ? injuries : [];
+  const openInjuries = injuryList.filter((i) => i.status !== 'closed' && i.rtp_stage !== 'cleared');
+  const rtpEvents = readCollection('athlete-rtp-events', []) || [];
   return {
     title: 'Kulüp & Sporcu OS',
     athletes,
     plans,
     sessions: (Array.isArray(sessions) ? sessions : []).slice(0, 30),
     readiness: readiness.athletes,
+    injuries: injuryList.slice(0, 30),
+    rtp_events: (Array.isArray(rtpEvents) ? rtpEvents : []).slice(0, 20),
     summary: {
       active: athletes.filter((a) => a.status === 'active').length,
       licensed: athletes.filter((a) => a.license).length,
@@ -53,6 +62,9 @@ export function athleteOsOverview() {
       license_expiring: athletes.filter((a) => a.license_expires && a.license_expires < new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10)).length,
       cleared: athletes.filter((a) => a.medical_clearance === 'cleared').length,
       clearance_gap: athletes.filter((a) => a.medical_clearance !== 'cleared').length,
+      injured: athletes.filter((a) => a.status === 'injured' || a.status === 'hold').length,
+      open_injuries: openInjuries.length,
+      rtp_in_progress: openInjuries.filter((i) => i.rtp_stage && i.rtp_stage !== 'rest').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -198,4 +210,167 @@ export function setAthleteClearance(input = {}, actor = 'system') {
     meta: { id: row.id },
   });
   return { ok: true, athlete: athletes[idx], clearance: row, overview: athleteOsOverview() };
+}
+
+/** Sakatlık bildirimi → hold/injured + LIFE-COACH-AI */
+export function reportAthleteInjury(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  const idx = athletes.findIndex((a) => a.id === input.athlete_id || a.name === input.athlete_id);
+  if (idx < 0) return { ok: false, error: 'Sporcu yok' };
+  const severity = input.severity || 'moderate';
+  const injury = {
+    id: rid('ainj'),
+    athlete_id: athletes[idx].id,
+    athlete_name: athletes[idx].name,
+    sport: athletes[idx].sport,
+    body_area: input.body_area || input.area || 'diz',
+    severity,
+    note: input.note || '',
+    status: 'open',
+    rtp_stage: 'rest',
+    at: input.date || new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-injuries', injury, 300);
+  athletes[idx] = {
+    ...athletes[idx],
+    status: severity === 'mild' ? 'hold' : 'injured',
+    injury_id: injury.id,
+    rtp_stage: 'rest',
+    medical_clearance: severity === 'mild' ? athletes[idx].medical_clearance : 'hold',
+  };
+  writeCollection('club-athletes', athletes);
+  enqueueAgentJob(
+    {
+      agent: 'LIFE-COACH-AI',
+      title: `injury · ${athletes[idx].name} · ${injury.body_area} (${severity})`,
+      priority: severity === 'severe' ? 'high' : 'normal',
+      payload: { injury_id: injury.id, athlete_id: athletes[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.injury',
+    detail: `${athletes[idx].name} · ${injury.body_area}`,
+    meta: { id: injury.id },
+  });
+  return { ok: true, injury, athlete: athletes[idx], overview: athleteOsOverview() };
+}
+
+/** RTP aşaması ilerlet — readiness + clearance gate */
+export function advanceReturnToPlay(input = {}, actor = 'system') {
+  const injuries = readCollection('athlete-injuries', []) || [];
+  const list = Array.isArray(injuries) ? [...injuries] : [];
+  let idx = list.findIndex((i) => i.id === input.injury_id && i.status === 'open');
+  if (idx < 0) idx = list.findIndex((i) => i.athlete_id === input.athlete_id && i.status === 'open');
+  if (idx < 0) idx = list.findIndex((i) => i.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık sakatlık yok' };
+  const injury = list[idx];
+  const cur = injury.rtp_stage || 'rest';
+  const curPos = RTP_STAGES.indexOf(cur);
+  const target = input.stage || RTP_STAGES[Math.min(curPos + 1, RTP_STAGES.length - 1)];
+  const targetPos = RTP_STAGES.indexOf(target);
+  if (targetPos < 0) return { ok: false, error: 'Geçersiz RTP aşaması' };
+  if (targetPos < curPos && !input.allow_regress) return { ok: false, error: 'Geri adım için allow_regress' };
+
+  const athletes = ensureAthletes();
+  const aidx = athletes.findIndex((a) => a.id === injury.athlete_id);
+  const readiness = athleteReadinessRollup();
+  const score = readiness.athletes?.find((r) => r.athlete_id === injury.athlete_id)?.score ?? 60;
+  const medical = aidx >= 0 ? athletes[aidx].medical_clearance : null;
+
+  if (targetPos >= RTP_STAGES.indexOf('light_training') && score < (Number(input.min_readiness) || 55) && !input.force) {
+    return { ok: false, error: `Readiness düşük (${score})` };
+  }
+  if (target === 'cleared' && medical !== 'cleared' && !input.force) {
+    return { ok: false, error: 'Tıbbi clearance gerekli' };
+  }
+
+  list[idx] = {
+    ...injury,
+    rtp_stage: target,
+    status: target === 'cleared' ? 'closed' : 'open',
+    updated_at: new Date().toISOString(),
+  };
+  writeCollection('athlete-injuries', list);
+  if (aidx >= 0) {
+    athletes[aidx] = {
+      ...athletes[aidx],
+      rtp_stage: target,
+      status: target === 'cleared' ? 'active' : athletes[aidx].status,
+      injury_id: target === 'cleared' ? null : injury.id,
+    };
+    writeCollection('club-athletes', athletes);
+  }
+  const event = {
+    id: rid('artp'),
+    injury_id: injury.id,
+    athlete_id: injury.athlete_id,
+    from: cur,
+    to: target,
+    readiness: score,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-rtp-events', event, 300);
+  enqueueAgentJob(
+    {
+      agent: 'LIFE-COACH-AI',
+      title: `RTP ${cur}→${target} · ${injury.athlete_name || injury.athlete_id}`,
+      priority: 'normal',
+      payload: { event_id: event.id, injury_id: injury.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.rtp',
+    detail: `${injury.athlete_id} ${cur}→${target}`,
+    meta: { id: event.id },
+  });
+  return { ok: true, injury: list[idx], event, overview: athleteOsOverview() };
+}
+
+/** Takılı / yüksek risk RTP taraması */
+export function runAthleteRtpSweep(input = {}, actor = 'system') {
+  const injuries = readCollection('athlete-injuries', []) || [];
+  const open = (Array.isArray(injuries) ? injuries : []).filter((i) => i.status === 'open');
+  const staleDays = Number(input.stale_days) || 7;
+  const cutoff = Date.now() - staleDays * 864e5;
+  const readiness = athleteReadinessRollup();
+  const flagged = [];
+  for (const inj of open) {
+    const score = readiness.athletes?.find((r) => r.athlete_id === inj.athlete_id)?.score ?? null;
+    const updated = inj.updated_at || inj.at;
+    const stale = updated && new Date(updated).getTime() < cutoff;
+    const highRisk = inj.severity === 'severe' || (score != null && score < 50);
+    if (!stale && !highRisk && !input.force) continue;
+    const reason = highRisk ? 'high_risk' : 'stale';
+    flagged.push({ ...inj, reason, readiness: score });
+    enqueueAgentJob(
+      {
+        agent: 'LIFE-COACH-AI',
+        title: `RTP sweep · ${reason} · ${inj.athlete_name || inj.athlete_id}`,
+        priority: highRisk ? 'high' : 'normal',
+        payload: { injury_id: inj.id, reason },
+      },
+      actor,
+    );
+  }
+  const sweep = {
+    id: rid('arts'),
+    open: open.length,
+    flagged: flagged.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-rtp-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'athlete.rtp_sweep',
+    detail: `${sweep.flagged}/${sweep.open}`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, flagged, overview: athleteOsOverview() };
 }

@@ -46,3 +46,33 @@ export async function setAthleteClearance(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function reportAthleteInjury(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/injury', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function advanceReturnToPlay(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/return-to-play', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runAthleteRtpSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/rtp-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

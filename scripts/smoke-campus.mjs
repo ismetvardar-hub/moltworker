@@ -32,6 +32,9 @@ import {
   logAthleteSession,
   athleteReadinessRollup,
   setAthleteClearance,
+  reportAthleteInjury,
+  advanceReturnToPlay,
+  runAthleteRtpSweep,
 } from '../server/athleteos.js';
 import {
   lifeCoachOverview,
@@ -153,6 +156,11 @@ assert(lic.ok && lic.athlete?.license, 'athlete license');
 assert(setAthleteClearance({ athlete_id: 'ath_3', status: 'cleared' }, 'smoke').ok, 'athlete clearance');
 const ready = athleteReadinessRollup('smoke');
 assert(ready.athletes?.length >= 2, 'athlete readiness');
+assert(reportAthleteInjury({ athlete_id: 'ath_2', body_area: 'omuz', severity: 'mild' }, 'smoke').ok, 'athlete injury');
+assert(advanceReturnToPlay({ athlete_id: 'ath_2', force: true }, 'smoke').ok, 'athlete rtp');
+assert(runAthleteRtpSweep({ force: true }, 'smoke').ok, 'athlete rtp sweep');
+setAthleteClearance({ athlete_id: 'ath_2', status: 'cleared' }, 'smoke');
+assert(advanceReturnToPlay({ athlete_id: 'ath_2', stage: 'cleared', force: true }, 'smoke').ok, 'athlete rtp cleared');
 
 const life = lifeCoachOverview();
 assert(life.clients?.length >= 1, 'life clients');
