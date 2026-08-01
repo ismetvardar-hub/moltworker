@@ -18,12 +18,19 @@ function assert(cond, msg) {
 async function req(path, { method = 'GET', token, body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
+  let res;
+  let data = {};
+  for (let attempt = 0; attempt < 4; attempt++) {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    data = await res.json().catch(() => ({}));
+    if (res.status !== 429) break;
+    const waitSec = Number(data.retryAfterSec) || Number(res.headers.get('retry-after')) || 2;
+    await sleep(Math.min(Math.max(waitSec, 1), 15) * 1000);
+  }
   return { res, data };
 }
 
@@ -31,7 +38,13 @@ let child = null;
 if (OWN_SERVER) {
   child = spawn('node', ['server/prod-server.js'], {
     cwd: new URL('..', import.meta.url).pathname,
-    env: { ...process.env, PORT: String(PORT), HOST: '127.0.0.1' },
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      HOST: '127.0.0.1',
+      RATE_LIMIT_MAX: process.env.RATE_LIMIT_MAX || '2000',
+      RATE_LIMIT_AUTH_MAX: process.env.RATE_LIMIT_AUTH_MAX || '200',
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let ready = false;
@@ -219,6 +232,21 @@ try {
     body: { unit_id: 'su_2' },
   });
   assert(folioSettle.res.ok && folioSettle.data.ok !== false, 'folio settle');
+
+  const nightAudit = await req('/api/stayring/night-audit', { method: 'POST', token, body: {} });
+  assert(nightAudit.res.ok && nightAudit.data.ok !== false, 'stay night audit');
+  const overFlag = await req('/api/stayring/overstay/flag', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(overFlag.res.ok && overFlag.data.ok !== false, 'stay overstay flag');
+  const overRes = await req('/api/stayring/overstay/resolve', {
+    method: 'POST',
+    token,
+    body: { mode: 'extend', extra_nights: 1 },
+  });
+  assert(overRes.res.ok && overRes.data.ok !== false, 'stay overstay resolve');
 
   const hk = await req('/api/stayring/hk-complete', {
     method: 'POST',

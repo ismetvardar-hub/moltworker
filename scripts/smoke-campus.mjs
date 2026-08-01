@@ -37,6 +37,9 @@ import {
   autoPostStayFolio,
   settleStayFolio,
   completeStayGuestRequest,
+  runStayNightAudit,
+  flagStayOverstay,
+  resolveStayOverstay,
 } from '../server/stayring.js';
 import {
   athleteOsOverview,
@@ -201,6 +204,9 @@ completeStayGuestRequest({}, 'smoke');
 assert(postStayFolioCharge({ unit_id: 'su_2', kind: 'amenity', amount_try: 250 }, 'smoke').ok, 'folio charge');
 assert(autoPostStayFolio({}, 'smoke').ok, 'folio auto');
 assert(settleStayFolio({ unit_id: 'su_2' }, 'smoke').ok, 'folio settle');
+assert(runStayNightAudit({}, 'smoke').ok, 'stay night audit');
+assert(flagStayOverstay({ force: true }, 'smoke').ok, 'stay overstay flag');
+assert(resolveStayOverstay({ mode: 'extend', extra_nights: 1 }, 'smoke').ok, 'stay overstay resolve');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');

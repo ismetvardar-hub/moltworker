@@ -122,3 +122,33 @@ export async function settleStayFolio(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runStayNightAudit(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/night-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function flagStayOverstay(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/overstay/flag', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function resolveStayOverstay(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/overstay/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

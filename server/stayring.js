@@ -54,6 +54,9 @@ export function stayRingOverview() {
   const folioList = Array.isArray(folioCharges) ? folioCharges : [];
   const folio = folioBalance(folioList);
   const settlements = readCollection('stay-folio-settlements', []) || [];
+  const audits = readCollection('stay-night-audits', []) || [];
+  const overstays = readCollection('stay-overstays', []) || [];
+  const openOverstays = (Array.isArray(overstays) ? overstays : []).filter((o) => o.status === 'open');
   return {
     title: 'Konaklama Halkası',
     units,
@@ -62,6 +65,8 @@ export function stayRingOverview() {
     hk: hk.slice(0, 20),
     guest_requests: (Array.isArray(guestReqs) ? guestReqs : []).slice(0, 20),
     night_rollups: (Array.isArray(rollups) ? rollups : []).slice(0, 10),
+    night_audits: (Array.isArray(audits) ? audits : []).slice(0, 10),
+    overstays: (Array.isArray(overstays) ? overstays : []).slice(0, 20),
     folio_charges: folioList.slice(0, 30),
     folio_settlements: (Array.isArray(settlements) ? settlements : []).slice(0, 15),
     summary: {
@@ -76,6 +81,8 @@ export function stayRingOverview() {
       folio_balance_try: folio.balance_try,
       occupancy_pct: lastRollup?.occupancy_pct ?? null,
       revpar_try: lastRollup?.revpar_try ?? null,
+      overstays_open: openOverstays.length,
+      night_audits: (Array.isArray(audits) ? audits : []).length,
       byType: {
         glamping: units.filter((u) => u.type === 'glamping').length,
         caravan: units.filter((u) => u.type === 'caravan').length,
@@ -95,13 +102,20 @@ export function createStayBooking(input = {}, actor = 'system') {
   if (unit.status !== 'free' && unit.status !== 'hold') {
     return { ok: false, error: `Ünite müsait değil: ${unit.status}` };
   }
+  const nights = Number(input.nights) || 2;
+  const checkInAt = input.check_in || new Date().toISOString();
+  const checkoutDate = new Date(new Date(checkInAt).getTime() + nights * 86400_000)
+    .toISOString()
+    .slice(0, 10);
   const booking = {
     id: rid('sb'),
     unit_id: unit.id,
     unit_code: unit.code,
     type: unit.type,
     guestName: input.guestName || 'Misafir',
-    nights: Number(input.nights) || 2,
+    nights,
+    check_in: checkInAt.slice(0, 10),
+    checkout_date: input.checkout_date || checkoutDate,
     status: 'confirmed',
     at: new Date().toISOString(),
     actor,
@@ -513,4 +527,230 @@ export function stayNightRollup(actor = 'system') {
     meta: { id: rollup.id },
   });
   return { ok: true, rollup, overview: stayRingOverview() };
+}
+
+function bookingCheckoutDate(booking) {
+  if (!booking) return null;
+  if (booking.checkout_date) return booking.checkout_date;
+  const start = booking.check_in || (booking.at ? String(booking.at).slice(0, 10) : null);
+  if (!start) return null;
+  const nights = Number(booking.nights) || 1;
+  return new Date(new Date(start).getTime() + nights * 86400_000).toISOString().slice(0, 10);
+}
+
+/** Gece audit — rollup + dolu üniteler için lodging folio */
+export function runStayNightAudit(input = {}, actor = 'system') {
+  const roll = stayNightRollup(actor);
+  const folio = autoPostStayFolio({ nights: Number(input.nights) || 1 }, actor);
+  const audit = {
+    id: rid('sna'),
+    date: new Date().toISOString().slice(0, 10),
+    occupancy_pct: roll.rollup?.occupancy_pct ?? 0,
+    occupied_adr_try: roll.rollup?.occupied_adr_try ?? 0,
+    revpar_try: roll.rollup?.revpar_try ?? 0,
+    folio_posted: folio.ok ? folio.posted?.length || 0 : 0,
+    folio_ok: !!folio.ok,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-night-audits', audit, 120);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `night audit · %${audit.occupancy_pct} · folio ${audit.folio_posted}`,
+      priority: 'normal',
+      payload: { audit_id: audit.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.night_audit',
+    detail: `${audit.date} · %${audit.occupancy_pct} · ${audit.folio_posted} folio`,
+    meta: { id: audit.id },
+  });
+  return {
+    ok: true,
+    audit,
+    rollup: roll.rollup,
+    folio: folio.ok ? folio : { ok: false, error: folio.error },
+    overview: stayRingOverview(),
+  };
+}
+
+/** Checkout geçmiş dolu üniteleri overstay olarak işaretle */
+export function flagStayOverstay(input = {}, actor = 'system') {
+  const units = ensureUnits();
+  const bookings = ensureBookings();
+  const today = (input.as_of || new Date().toISOString()).slice(0, 10);
+  const existing = readCollection('stay-overstays', []) || [];
+  const openIds = new Set(
+    (Array.isArray(existing) ? existing : [])
+      .filter((o) => o.status === 'open')
+      .map((o) => o.unit_id),
+  );
+  const flagged = [];
+  const occupied = units.filter((u) => u.status === 'occupied');
+  for (const unit of occupied) {
+    if (input.unit_id && unit.id !== input.unit_id && unit.code !== input.unit_id) continue;
+    const booking =
+      bookings.find(
+        (b) =>
+          b.unit_id === unit.id &&
+          (b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'overstay'),
+      ) || null;
+    const checkout = bookingCheckoutDate(booking);
+    const pastDue = checkout ? checkout < today : false;
+    if (!pastDue && !input.force) continue;
+    if (openIds.has(unit.id) && !input.force) continue;
+    const row = {
+      id: rid('sos'),
+      unit_id: unit.id,
+      unit_code: unit.code,
+      booking_id: booking?.id || null,
+      guest: booking?.guestName || unit.guest || 'Misafir',
+      checkout_date: checkout,
+      status: 'open',
+      reason: pastDue ? 'past_checkout' : 'force',
+      at: new Date().toISOString(),
+      actor,
+    };
+    flagged.push(row);
+    if (booking) {
+      const bidx = bookings.findIndex((b) => b.id === booking.id);
+      if (bidx >= 0) {
+        bookings[bidx] = { ...bookings[bidx], status: 'overstay', overstay_at: row.at };
+      }
+    }
+    const uidx = units.findIndex((u) => u.id === unit.id);
+    if (uidx >= 0) {
+      units[uidx] = { ...units[uidx], overstay: true, overstay_id: row.id };
+    }
+  }
+  if (!flagged.length && input.force) {
+    const unit = occupied[0] || units.find((u) => u.status === 'wintering');
+    if (!unit) return { ok: false, error: 'Dolu ünite yok' };
+    const booking = bookings.find((b) => b.unit_id === unit.id) || null;
+    const row = {
+      id: rid('sos'),
+      unit_id: unit.id,
+      unit_code: unit.code,
+      booking_id: booking?.id || null,
+      guest: booking?.guestName || 'Misafir',
+      checkout_date: bookingCheckoutDate(booking),
+      status: 'open',
+      reason: 'force',
+      at: new Date().toISOString(),
+      actor,
+    };
+    flagged.push(row);
+    const uidx = units.findIndex((u) => u.id === unit.id);
+    if (uidx >= 0) units[uidx] = { ...units[uidx], overstay: true, overstay_id: row.id };
+  }
+  if (!flagged.length) return { ok: false, error: 'Overstay yok' };
+  writeCollection('stay-units', units);
+  writeCollection('stay-bookings', bookings);
+  for (const row of flagged) prependItem('stay-overstays', row, 200);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `overstay · ${flagged.length} ünite`,
+      priority: 'high',
+      payload: { ids: flagged.map((f) => f.id) },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.overstay_flag',
+    detail: `${flagged.length} ünite`,
+    meta: { ids: flagged.map((f) => f.id) },
+  });
+  return { ok: true, flagged, overview: stayRingOverview() };
+}
+
+/** Overstay çöz — late checkout folio + checkout veya uzat */
+export function resolveStayOverstay(input = {}, actor = 'system') {
+  const list = readCollection('stay-overstays', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Overstay yok' };
+  let idx = list.findIndex((o) => o.id === input.id && o.status === 'open');
+  if (idx < 0) idx = list.findIndex((o) => o.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık overstay yok' };
+  const row = list[idx];
+  const mode = input.mode || 'checkout'; // checkout | extend
+  let folio = null;
+  let checkout = null;
+  let booking = null;
+  if (mode === 'extend') {
+    const bookings = ensureBookings();
+    const bidx = bookings.findIndex((b) => b.id === row.booking_id);
+    const extra = Number(input.extra_nights) || 1;
+    if (bidx >= 0) {
+      const nights = (Number(bookings[bidx].nights) || 0) + extra;
+      const base = bookings[bidx].checkout_date || bookingCheckoutDate(bookings[bidx]);
+      const nextCheckout = new Date(new Date(base || Date.now()).getTime() + extra * 86400_000)
+        .toISOString()
+        .slice(0, 10);
+      bookings[bidx] = {
+        ...bookings[bidx],
+        nights,
+        checkout_date: nextCheckout,
+        status: 'confirmed',
+        extended_at: new Date().toISOString(),
+      };
+      writeCollection('stay-bookings', bookings);
+      booking = bookings[bidx];
+    }
+    folio = postStayFolioCharge(
+      {
+        unit_id: row.unit_id,
+        booking_id: row.booking_id,
+        kind: 'lodging',
+        note: `uzatma · ${extra} gece`,
+        guest: row.guest,
+      },
+      actor,
+    );
+    const units = ensureUnits();
+    const uidx = units.findIndex((u) => u.id === row.unit_id);
+    if (uidx >= 0) {
+      units[uidx] = { ...units[uidx], overstay: false, overstay_id: null };
+      writeCollection('stay-units', units);
+    }
+  } else {
+    folio = postStayFolioCharge(
+      {
+        unit_id: row.unit_id,
+        booking_id: row.booking_id,
+        kind: 'late_checkout',
+        note: 'overstay late checkout',
+        guest: row.guest,
+      },
+      actor,
+    );
+    checkout = checkoutStay({ unit_id: row.unit_id, booking_id: row.booking_id }, actor);
+  }
+  list[idx] = {
+    ...row,
+    status: 'resolved',
+    resolve_mode: mode,
+    resolved_at: new Date().toISOString(),
+    resolved_by: actor,
+    folio_charge_id: folio?.charge?.id || null,
+  };
+  writeCollection('stay-overstays', list);
+  appendAudit({
+    actor,
+    action: 'stay.overstay_resolve',
+    detail: `${row.unit_code} · ${mode}`,
+    meta: { id: row.id },
+  });
+  return {
+    ok: true,
+    overstay: list[idx],
+    folio,
+    checkout,
+    booking,
+    overview: stayRingOverview(),
+  };
 }

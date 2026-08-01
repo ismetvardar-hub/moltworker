@@ -1220,6 +1220,8 @@ const BACKUP_COLLECTIONS = [
   'sport-eligibility',
   'extreme-reservations',
   'stay-night-rollups',
+  'stay-overstays',
+  'stay-night-audits',
   'life-checkins',
   'mall-day-rollups',
   'market-returns',
