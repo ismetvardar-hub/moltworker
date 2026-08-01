@@ -64,3 +64,13 @@ export async function lifeCoachCheckIn(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function lifeWeeklyDigest() {
+  return parse(
+    await fetch('/api/lifecoach/digest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
+}

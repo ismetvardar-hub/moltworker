@@ -6707,6 +6707,7 @@ import {
   ingestWearableWebhook,
   lifeCoachCheckIn,
   lifeCoachOverview,
+  lifeWeeklyDigest,
   processLifeFlags,
   registerLifeDevice,
   verifyLifeWebhookSignature,
@@ -36052,6 +36053,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, lifeCoachCheckIn(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/lifecoach/digest' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, lifeWeeklyDigest(user.username));
           return;
         }
         if (path === '/api/stayring/hk-complete' && req.method === 'POST') {

@@ -37,6 +37,7 @@ import {
   registerLifeDevice,
   processLifeFlags,
   lifeCoachCheckIn,
+  lifeWeeklyDigest,
 } from '../server/lifecoach.js';
 import {
   agentQueueOverview,
@@ -143,6 +144,7 @@ ingestWearableWebhook(
 registerLifeDevice({ provider: 'fitbit', client_id: 'lc_1', label: 'Smoke Fitbit' }, 'smoke');
 const checkin = lifeCoachCheckIn({ client_id: 'lc_2', mood: 5, sleep_h: 6 }, 'smoke');
 assert(checkin.ok && checkin.checkin, 'life checkin');
+assert(lifeWeeklyDigest('smoke').ok, 'life digest');
 
 const queue = agentQueueOverview();
 assert(queue.jobs?.length >= 1, 'agent queue');

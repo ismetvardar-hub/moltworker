@@ -149,6 +149,18 @@ export default function LifecoachPage() {
               >
                 Uzman check-in
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.lifeWeeklyDigest().then((r: any) => {
+                    ping(`Digest bayrak ${r.digest?.flagged_n}`)
+                    return refresh()
+                  })
+                }
+              >
+                Haftalık digest
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">Check-in: {data.summary?.checkins ?? 0}</p>
             <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-obsidian-950 p-2 text-[10px] text-slate-500">

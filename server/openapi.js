@@ -1253,6 +1253,7 @@ export function buildOpenApi() {
       '/api/athleteos/clearance': { post: { summary: 'Tıbbi clearance', tags: ['athleteos'] } },
       '/api/athleteos/readiness': { get: { summary: 'Sporcu readiness rollup', tags: ['athleteos'] } },
       '/api/lifecoach/checkin': { post: { summary: 'Yaşam uzmanı check-in', tags: ['lifecoach'] } },
+      '/api/lifecoach/digest': { post: { summary: 'Haftalık yaşam digest', tags: ['lifecoach'] } },
       '/api/stayring/hk-complete': { post: { summary: 'HK görevi tamamla', tags: ['stayring'] } },
       '/api/stayring/night-rollup': { post: { summary: 'Gece doluluk/RevPAR', tags: ['stayring'] } },
       '/api/stayring/request': { post: { summary: 'Misafir amenity istek', tags: ['stayring'] } },

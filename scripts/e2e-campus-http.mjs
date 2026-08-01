@@ -142,6 +142,8 @@ try {
     body: { client_id: 'lc_1', mood: 6, sleep_h: 7 },
   });
   assert(checkin.res.ok && checkin.data.ok !== false, 'life checkin');
+  const dig = await req('/api/lifecoach/digest', { method: 'POST', token, body: {} });
+  assert(dig.res.ok && dig.data.digest, 'life digest');
 
   const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });
   assert(night.res.ok && night.data.rollup, 'stay night rollup');

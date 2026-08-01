@@ -413,3 +413,55 @@ export function signLifeWebhookDemo(bodyObj) {
   const sig = createHmac('sha256', WEBHOOK_SECRET).update(raw).digest('hex');
   return { raw, signature: `sha256=${sig}` };
 }
+
+/** Haftalık yaşam özeti → LIFE-COACH-AI + opsiyonel recovery */
+export function lifeWeeklyDigest(actor = 'system') {
+  const overview = lifeCoachOverview();
+  const clients = ensureClients();
+  const metrics = ensureMetrics();
+  const rows = clients.map((c) => {
+    const recent = metrics.filter((m) => m.client_id === c.id).slice(0, 7);
+    const avg = (key) =>
+      recent.length
+        ? Math.round((recent.reduce((s, m) => s + (Number(m[key]) || 0), 0) / recent.length) * 10) / 10
+        : null;
+    return {
+      client_id: c.id,
+      name: c.name,
+      athlete_id: c.athlete_id,
+      n: recent.length,
+      sleep_h: avg('sleep_h'),
+      recovery: avg('recovery'),
+      mood: avg('mood'),
+      hrv: avg('hrv'),
+      flag: (avg('recovery') != null && avg('recovery') < 55) || (avg('mood') != null && avg('mood') < 6),
+    };
+  });
+  const flagged = rows.filter((r) => r.flag);
+  const digest = {
+    id: rid('lwd'),
+    week: new Date().toISOString().slice(0, 10),
+    clients: rows,
+    flagged_n: flagged.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('life-digests', digest, 52);
+  enqueueAgentJob(
+    {
+      agent: 'LIFE-COACH-AI',
+      title: `haftalık digest · ${flagged.length} bayrak / ${rows.length} danışan`,
+      priority: flagged.length ? 'high' : 'normal',
+      payload: { digest_id: digest.id, flagged: flagged.map((f) => f.client_id) },
+    },
+    actor,
+  );
+  if (flagged.length) processLifeFlags(actor);
+  appendAudit({
+    actor,
+    action: 'life.weekly_digest',
+    detail: `${rows.length} danışan · ${flagged.length} bayrak`,
+    meta: { id: digest.id },
+  });
+  return { ok: true, digest, overview: lifeCoachOverview() };
+}

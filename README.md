@@ -1860,6 +1860,7 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | stay++ | `/api/stayring/request` · `/complete` | Misafir amenity → ajan |
 | athlete++ | `/api/athleteos/clearance` | Tıbbi / medical clearance |
 | culture+++ | `/api/culture/box-office` | Günlük gişe rollup |
+| life++ | `/api/lifecoach/digest` | Haftalık yaşam digest |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  
