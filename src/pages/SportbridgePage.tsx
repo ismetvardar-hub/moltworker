@@ -141,10 +141,59 @@ export default function SportbridgePage() {
               >
                 Post-comp sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.snoozeSportHold({ minutes: 30 }).then((r: any) => {
+                    ping(r.ok ? 'Hold snooze' : r.error || 'Snooze yok')
+                    return refresh()
+                  })
+                }
+              >
+                Hold snooze
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/10 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.wakeSportHolds({ force: true }).then((r: any) => {
+                    ping(`Hold wake ${r.woken?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Hold wake
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.escalateSportGate({ extreme_user: 'guest_can' }).then((r: any) => {
+                    ping(r.ok ? 'Gate escalate' : r.error || 'Esc yok')
+                    return refresh()
+                  })
+                }
+              >
+                Gate escalate
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-700 px-3 py-2 text-sm text-slate-200"
+                onClick={() =>
+                  void api.archiveSportBridgeLink({ reason: 'ops archive' }).then((r: any) => {
+                    ping(r.ok ? 'Link arşiv' : r.error || 'Arşiv yok')
+                    return refresh()
+                  })
+                }
+              >
+                Link arşiv
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Comp hold {data.summary?.competition_holds ?? 0} · recovery closeout{' '}
-              {data.summary?.recovery_closeouts ?? 0}
+              Comp hold {data.summary?.competition_holds ?? 0} · snooze {data.summary?.holds_snoozed ?? 0} ·
+              gate esc {data.summary?.gate_escalations ?? 0} · arşiv {data.summary?.links_archived ?? 0} ·
+              recovery {data.summary?.recovery_closeouts ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Park nabız">

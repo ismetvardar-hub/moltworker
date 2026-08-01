@@ -665,6 +665,18 @@ try {
     body: { extreme_user: 'guest_can' },
   });
   assert(gateHold.res.ok && gateHold.data.ok === false, 'sport gate blocked by hold');
+  const holdSnooze = await req('/api/sportbridge/hold/snooze', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', minutes: 1 },
+  });
+  assert(holdSnooze.res.ok && holdSnooze.data.ok !== false, 'sport hold snooze');
+  const holdWake = await req('/api/sportbridge/hold/wake', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(holdWake.res.ok && holdWake.data.ok !== false, 'sport hold wake');
   const recClose = await req('/api/sportbridge/recovery/complete', {
     method: 'POST',
     token,
@@ -678,6 +690,24 @@ try {
   });
   assert(postSweep.res.ok && postSweep.data.ok !== false, 'sport postcomp sweep');
   await req('/api/sportbridge/recovery/complete', { method: 'POST', token, body: {} });
+  const gateEsc = await req('/api/sportbridge/gate/escalate', {
+    method: 'POST',
+    token,
+    body: { extreme_user: 'guest_can', reason: 'e2e' },
+  });
+  assert(gateEsc.res.ok && gateEsc.data.ok !== false, 'sport gate escalate');
+  const linkSeed = await req('/api/sportbridge/link', {
+    method: 'POST',
+    token,
+    body: { extreme_user: 'guest_arch', athlete_id: 'ath_2', note: 'e2e archive' },
+  });
+  assert(linkSeed.res.ok && linkSeed.data.ok !== false, 'sport link seed');
+  const linkArch = await req('/api/sportbridge/link/archive', {
+    method: 'POST',
+    token,
+    body: { extreme_user: 'guest_arch', reason: 'e2e archive' },
+  });
+  assert(linkArch.res.ok && linkArch.data.ok !== false, 'sport link archive');
 
   const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
   assert(green.res.ok, 'green automations');

@@ -153,6 +153,11 @@ import {
   completeBridgeRecovery,
   runSportPostCompSweep,
   syncSlotToSession,
+  snoozeSportHold,
+  wakeSportHolds,
+  escalateSportGate,
+  archiveSportBridgeLink,
+  linkSportProfiles,
 } from '../server/sportbridge.js';
 import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import {
@@ -518,13 +523,18 @@ const elig = runSportEligibilitySweep({}, 'smoke');
 assert(elig.ok, 'sport eligibility');
 assert(applySportCompetitionHold({ athlete_id: 'ath_1', hours: 24 }, 'smoke').ok, 'sport comp hold');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block hold');
+assert(snoozeSportHold({ athlete_id: 'ath_1', minutes: 1, reason: 'smoke' }, 'smoke').ok, 'sport hold snooze');
+assert(wakeSportHolds({ force: true }, 'smoke').ok, 'sport hold wake');
 assert(completeBridgeRecovery({ athlete_id: 'ath_1' }, 'smoke').ok, 'sport recovery close');
 assert(runSportPostCompSweep({ force: true }, 'smoke').ok, 'sport postcomp sweep');
 completeBridgeRecovery({}, 'smoke');
 reportAthleteInjury({ athlete_id: 'ath_1', body_area: 'bilek', severity: 'moderate' }, 'smoke');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block injury');
+assert(escalateSportGate({ extreme_user: 'guest_can', reason: 'smoke' }, 'smoke').ok, 'sport gate escalate');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can', force: true }, 'smoke').ok, 'sport gate force');
 setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
+assert(linkSportProfiles({ extreme_user: 'guest_arch', athlete_id: 'ath_2', note: 'archive-seed' }, 'smoke').ok, 'sport link seed');
+assert(archiveSportBridgeLink({ extreme_user: 'guest_arch', reason: 'smoke archive' }, 'smoke').ok, 'sport link archive');
 assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 
 const brief = campusBriefOverview('smoke');

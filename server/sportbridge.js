@@ -57,7 +57,9 @@ export function sportBridgeOverview() {
   const holds = readCollection('sport-comp-holds', []) || [];
   const holdList = Array.isArray(holds) ? holds : [];
   const openHolds = holdList.filter((h) => h.status === 'active');
+  const snoozedHolds = holdList.filter((h) => h.status === 'snoozed');
   const recoveries = readCollection('sport-recovery-closeouts', []) || [];
+  const archivedLinks = readCollection('sport-links-archive', []) || [];
   return {
     title: 'Spor Köprüsü',
     ethos: 'Park slotu → kulüp seansı · waiver → lisans · ETHOS güler.',
@@ -70,7 +72,7 @@ export function sportBridgeOverview() {
     club: athletes.summary,
     slots: (extreme.slots || []).slice(0, 12),
     gate_checks: (Array.isArray(gates) ? gates : []).slice(0, 20),
-    competition_holds: openHolds.slice(0, 20),
+    competition_holds: [...openHolds, ...snoozedHolds].slice(0, 24),
     recovery_closeouts: (Array.isArray(recoveries) ? recoveries : []).slice(0, 12),
     summary: {
       linked: links.length,
@@ -80,6 +82,9 @@ export function sportBridgeOverview() {
       injured_links: links.filter((l) => l.injured).length,
       gate_blocks: (Array.isArray(gates) ? gates : []).filter((g) => g.status === 'blocked').length,
       competition_holds: openHolds.length,
+      holds_snoozed: snoozedHolds.length,
+      gate_escalations: (Array.isArray(gates) ? gates : []).filter((g) => g.escalated).length,
+      links_archived: Array.isArray(archivedLinks) ? archivedLinks.length : 0,
       recovery_closeouts: Array.isArray(recoveries) ? recoveries.length : 0,
     },
     generatedAt: new Date().toISOString(),
@@ -125,6 +130,7 @@ export function gateSportSlotAccess(input = {}, actor = 'system') {
       h.status === 'active' &&
       (h.athlete_id === link.athlete_id || h.extreme_user === link.extreme_user),
   );
+  // snoozed hold gate'i bloklamaz
   if (activeHold) issues.push('post_comp_hold');
   const ready = athleteReadinessRollup(actor);
   const score = ready.athletes?.find((r) => r.athlete_id === link.athlete_id)?.score ?? null;
@@ -395,6 +401,160 @@ export function completeBridgeRecovery(input = {}, actor = 'system') {
     meta: { id: closeout.id },
   });
   return { ok: true, hold: holds[idx], closeout, overview: sportBridgeOverview() };
+}
+
+/** Comp hold snooze — gate geçici serbest */
+export function snoozeSportHold(input = {}, actor = 'system') {
+  const holds = readCollection('sport-comp-holds', []) || [];
+  if (!Array.isArray(holds) || !holds.length) return { ok: false, error: 'Hold yok' };
+  let idx = holds.findIndex((h) => h.id === input.id && h.status === 'active');
+  if (idx < 0) {
+    idx = holds.findIndex(
+      (h) =>
+        h.status === 'active' &&
+        (!input.athlete_id || h.athlete_id === input.athlete_id) &&
+        (!input.extreme_user || h.extreme_user === input.extreme_user),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Aktif hold yok' };
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 60));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  holds[idx] = {
+    ...holds[idx],
+    status: 'snoozed',
+    snooze_until: until,
+    snooze_reason: String(input.reason || '').slice(0, 240) || undefined,
+    snoozed_at: new Date().toISOString(),
+    snoozed_by: actor,
+  };
+  writeCollection('sport-comp-holds', holds);
+  appendAudit({
+    actor,
+    action: 'sport.hold_snooze',
+    detail: `${holds[idx].athlete_id} · ${minutes}dk`,
+    meta: { id: holds[idx].id, minutes },
+  });
+  return { ok: true, hold: holds[idx], overview: sportBridgeOverview() };
+}
+
+/** Snooze hold uyandır → active */
+export function wakeSportHolds(input = {}, actor = 'system') {
+  const holds = readCollection('sport-comp-holds', []) || [];
+  if (!Array.isArray(holds) || !holds.length) return { ok: true, woken: [], overview: sportBridgeOverview() };
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const woken = [];
+  for (let i = 0; i < holds.length && woken.length < limit; i++) {
+    const h = holds[i];
+    if (h.status !== 'snoozed') continue;
+    if (input.id && h.id !== input.id) continue;
+    if (input.athlete_id && h.athlete_id !== input.athlete_id) continue;
+    const until = h.snooze_until ? new Date(h.snooze_until).getTime() : 0;
+    if (!force && !input.id && until && until > now) continue;
+    holds[i] = {
+      ...h,
+      status: 'active',
+      snooze_until: null,
+      woken_at: new Date().toISOString(),
+      woken_by: actor,
+    };
+    woken.push(holds[i].id);
+  }
+  if (woken.length) {
+    writeCollection('sport-comp-holds', holds);
+    appendAudit({
+      actor,
+      action: 'sport.hold_wake',
+      detail: `${woken.length} hold`,
+      meta: { n: woken.length },
+    });
+  }
+  return { ok: true, woken, overview: sportBridgeOverview() };
+}
+
+/** Gate block escalate → LİKYA-1 / domain ajan */
+export function escalateSportGate(input = {}, actor = 'system') {
+  const gates = readCollection('sport-gate-checks', []) || [];
+  const list = Array.isArray(gates) ? gates : [];
+  let idx = list.findIndex((g) => g.id === input.id);
+  if (idx < 0) idx = list.findIndex((g) => g.status === 'blocked' && !g.escalated);
+  if (idx < 0) {
+    const g = gateSportSlotAccess(
+      {
+        extreme_user: input.extreme_user,
+        athlete_id: input.athlete_id,
+        force: false,
+      },
+      actor,
+    );
+    if (!g.gate) return { ok: false, error: 'Gate yok' };
+    return escalateSportGate({ ...input, id: g.gate.id }, actor);
+  }
+  const issues = list[idx].issues || [];
+  let agent = 'SPORT-BRIDGE';
+  if (issues.includes('clearance') || issues.includes('injury') || issues.includes('rtp')) agent = 'LIFE-COACH-AI';
+  else if (issues.includes('waiver')) agent = 'DAZE-VISION';
+  list[idx] = {
+    ...list[idx],
+    escalated: true,
+    escalated_at: new Date().toISOString(),
+    escalated_by: actor,
+    escalate_reason: String(input.reason || 'gate escalate').slice(0, 240),
+  };
+  writeCollection('sport-gate-checks', list);
+  enqueueAgentJob(
+    {
+      agent: 'LİKYA-1',
+      title: `sport gate ESCALATE · ${list[idx].athlete_id} · ${(issues || []).join('+') || 'block'}`,
+      priority: 'high',
+      payload: { gate_id: list[idx].id, issues },
+    },
+    actor,
+  );
+  enqueueAgentJob(
+    {
+      agent,
+      title: `sport gate follow-up · ${list[idx].athlete_id}`,
+      priority: 'high',
+      payload: { gate_id: list[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'sport.gate_escalate',
+    detail: list[idx].athlete_id,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, gate: list[idx], overview: sportBridgeOverview() };
+}
+
+/** Köprü link arşivle */
+export function archiveSportBridgeLink(input = {}, actor = 'system') {
+  const links = ensureLinks();
+  let idx = links.findIndex((l) => l.id === input.id);
+  if (idx < 0) idx = links.findIndex((l) => l.athlete_id === input.athlete_id);
+  if (idx < 0) idx = links.findIndex((l) => l.extreme_user === input.extreme_user);
+  if (idx < 0) return { ok: false, error: 'Link yok' };
+  const [removed] = links.splice(idx, 1);
+  const archived = {
+    ...removed,
+    archived_at: new Date().toISOString(),
+    archived_by: actor,
+    archive_reason: String(input.reason || 'archived').slice(0, 240),
+  };
+  writeCollection('sport-links', links);
+  const existing = readCollection('sport-links-archive', []) || [];
+  const merged = [archived, ...(Array.isArray(existing) ? existing : [])].slice(0, 500);
+  writeCollection('sport-links-archive', merged);
+  appendAudit({
+    actor,
+    action: 'sport.link_archive',
+    detail: `${archived.extreme_user} ↔ ${archived.athlete_id}`,
+    meta: { id: archived.id },
+  });
+  return { ok: true, link: archived, overview: sportBridgeOverview() };
 }
 
 /** Yarışma kayıtlarından post-comp hold üret */
