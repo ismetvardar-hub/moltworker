@@ -85,3 +85,33 @@ export async function runWaterLeakTriage(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runGreenPermitExpirySweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/permit/expiry-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function issueGreenCurtailment(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/curtailment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearGreenCurtailment(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/greenpulse/curtailment/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

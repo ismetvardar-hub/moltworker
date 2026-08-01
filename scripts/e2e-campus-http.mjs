@@ -490,6 +490,30 @@ try {
     body: { force: true },
   });
   assert(triage.res.ok && triage.data.ok !== false, 'water triage');
+  const permitExp = await req('/api/greenpulse/permit', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_forest', work: 'e2e expire', hours: 1, status: 'approved' },
+  });
+  assert(permitExp.res.ok && permitExp.data.ok !== false, 'green permit expiry seed');
+  const expirySweep = await req('/api/greenpulse/permit/expiry-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(expirySweep.res.ok && expirySweep.data.ok !== false, 'green permit expiry sweep');
+  const curtail = await req('/api/greenpulse/curtailment', {
+    method: 'POST',
+    token,
+    body: { kind: 'grid', pct: 20, hours: 2, force: true },
+  });
+  assert(curtail.res.ok && curtail.data.ok !== false, 'green curtailment');
+  const curtailClear = await req('/api/greenpulse/curtailment/clear', {
+    method: 'POST',
+    token,
+    body: { kind: 'grid' },
+  });
+  assert(curtailClear.res.ok && curtailClear.data.ok !== false, 'green curtailment clear');
 
   const stream = await req('/api/culture/stream/start', {
     method: 'POST',

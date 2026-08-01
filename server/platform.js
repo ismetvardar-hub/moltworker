@@ -6852,10 +6852,13 @@ import {
   addGreenIncident,
   approveGreenWorkPermit,
   batchRecordGreenMeters,
+  clearGreenCurtailment,
   closeGreenWorkPermit,
   createGreenWorkPermit,
   greenPulseOverview,
+  issueGreenCurtailment,
   recordGreenMeter,
+  runGreenPermitExpirySweep,
   runGreenPulseAutomations,
   runWaterLeakTriage,
 } from './greenpulse.js';
@@ -37204,6 +37207,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runWaterLeakTriage(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/greenpulse/permit/expiry-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGreenPermitExpirySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/curtailment' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, issueGreenCurtailment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/curtailment/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearGreenCurtailment(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/extreme/maas' && req.method === 'POST') {

@@ -86,6 +86,9 @@ import {
   addGreenIncident,
   createGreenWorkPermit,
   approveGreenWorkPermit,
+  runGreenPermitExpirySweep,
+  issueGreenCurtailment,
+  clearGreenCurtailment,
   closeGreenWorkPermit,
   runWaterLeakTriage,
 } from '../server/greenpulse.js';
@@ -484,6 +487,13 @@ assert(createGreenWorkPermit({ zone_id: 'z_forest', work: 'smoke path' }, 'smoke
 assert(approveGreenWorkPermit({}, 'smoke').ok, 'green permit approve');
 assert(closeGreenWorkPermit({}, 'smoke').ok, 'green permit close');
 assert(runWaterLeakTriage({ force: true }, 'smoke').ok, 'water triage');
+assert(
+  createGreenWorkPermit({ zone_id: 'z_forest', work: 'expire me', hours: 1, status: 'approved' }, 'smoke').ok,
+  'green permit for expiry',
+);
+assert(runGreenPermitExpirySweep({ force: true }, 'smoke').ok, 'green permit expiry');
+assert(issueGreenCurtailment({ kind: 'grid', pct: 25, hours: 2, force: true }, 'smoke').ok, 'green curtailment');
+assert(clearGreenCurtailment({ kind: 'grid' }, 'smoke').ok, 'green curtailment clear');
 
 const fleet = agentFleetOverview();
 assert(fleet.summary?.total === 28, '28 core agents');

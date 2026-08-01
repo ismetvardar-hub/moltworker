@@ -143,9 +143,46 @@ export default function GreenpulsePage() {
               >
                 Su triage
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.runGreenPermitExpirySweep({ force: true }).then((r: any) => {
+                    ping(`İzin expire · ${r.sweep?.expired ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                İzin expiry
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.issueGreenCurtailment({ kind: 'grid', pct: 25, hours: 2, force: true }).then((r: any) => {
+                    ping(r.ok ? `Kısıt %${r.curtailment?.pct}` : r.error || 'Kısıt yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kısıt aç
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.clearGreenCurtailment({ kind: 'grid' }).then((r: any) => {
+                    ping(r.ok ? 'Kısıt kalktı' : r.error || 'Clear yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kısıt kaldır
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Bekleyen izin {data.summary?.permits_pending ?? 0} · aktif {data.summary?.permits_active ?? 0}
+              Bekleyen izin {data.summary?.permits_pending ?? 0} · aktif {data.summary?.permits_active ?? 0} · expired{' '}
+              {data.summary?.permits_expired ?? 0} · kısıt {data.summary?.curtailments_active ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Sayaçlar">
