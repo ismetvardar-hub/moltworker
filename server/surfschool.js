@@ -22,7 +22,7 @@ export function listSurfschool(filter = {}) {
 export function createSurfschool(input, actor = 'system') {
   const row = {
     id: `srf_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`,
-    skill: input.level !== undefined ? input.level : "Beginner",
+    skill: input.skill !== undefined ? input.skill : "Beginner",
     guestName: input.guestName !== undefined ? input.guestName : "Misafir",
     status: input.status || 'booked',
     at: new Date().toISOString(),

@@ -170,6 +170,10 @@ import {
   Disc3,
   AudioLines,
   Castle,
+  Siren,
+  ScanFace,
+  Briefcase,
+  ScanLine,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -202,6 +206,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'pyramid',
   'signalhub',
   'skyline',
+  'sentinel',
 ]);
 
 interface SidebarProps {
@@ -595,6 +600,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'trivia', label: 'Trivia', description: 'Trivia gece yarışmaları.', icon: HelpCircle },
   { id: 'djbooth', label: 'DJ Booth', description: 'DJ set / sahne planı.', icon: Disc3 },
   { id: 'soundcheck', label: 'Soundcheck', description: 'Sahne ses kontrol listesi.', icon: AudioLines },
+  { id: 'crowddens', label: 'Yoğunluk', description: 'Bölge kalabalık yoğunluğu.', icon: Users },
+  { id: 'queuetimes', label: 'Kuyruk Süresi', description: 'Servis noktası bekleme.', icon: Timer },
+  { id: 'lostchild', label: 'Kayıp Çocuk', description: 'Kayıp çocuk protokol log.', icon: Baby },
+  { id: 'firstaid', label: 'İlk Yardım', description: 'İlk yardım müdahale kaydı.', icon: HeartPulse },
+  { id: 'aedcheck', label: 'AED Kontrol', description: 'AED cihaz kontrol listesi.', icon: ShieldPlus },
+  { id: 'evacdrill', label: 'Tahliye Tatbikat', description: 'Tahliye tatbikat kaydı.', icon: Siren },
+  { id: 'crowdctrl', label: 'Kalabalık Kontrol', description: 'Crowd control görevleri.', icon: Shield },
+  { id: 'radiolog', label: 'Telsiz Log', description: 'Telsiz kanal olayları.', icon: Radio },
+  { id: 'gatequeue', label: 'Gate Kuyruk', description: 'Pass gate bekleme.', icon: ScanBarcode },
+  { id: 'wristscan', label: 'Bileklik Scan', description: 'Bileklik okuma log.', icon: Watch },
+  { id: 'facepass', label: 'Face Pass', description: 'Yüz tanıma geçiş denemesi.', icon: ScanFace },
+  { id: 'bagcheck', label: 'Çanta Kontrol', description: 'Güvenlik çanta kontrol.', icon: Briefcase },
+  { id: 'metaldet', label: 'Metal Dedektör', description: 'Metal dedektör olayları.', icon: ScanLine },
+  { id: 'watchlist', label: 'İzleme Listesi', description: 'Güvenlik izleme listesi.', icon: Eye },
+  { id: 'sentinel', label: 'Sentinel', description: 'AŞAMA 210 güvenlik özeti.', icon: ShieldAlert },
   { id: 'skyline', label: 'Skyline', description: 'AŞAMA 195 leisure özeti.', icon: Castle },
   { id: 'signalhub', label: 'Signal Hub', description: 'AŞAMA 180 altyapı özeti.', icon: SatelliteDish },
   { id: 'pyramid', label: 'Pyramid', description: 'AŞAMA 165 platform özeti.', icon: Pyramid },

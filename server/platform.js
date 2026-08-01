@@ -975,6 +975,91 @@ import {
   updateSoundcheck,
 } from './soundcheck.js';
 import { buildSkyline } from './skyline.js';
+import {
+  createCrowddens,
+  listCrowddens,
+  crowddensSummary,
+  updateCrowddens,
+} from './crowddens.js';
+import {
+  createQueuetimes,
+  listQueuetimes,
+  queuetimesSummary,
+  updateQueuetimes,
+} from './queuetimes.js';
+import {
+  createLostchild,
+  listLostchild,
+  lostchildSummary,
+  updateLostchild,
+} from './lostchild.js';
+import {
+  createFirstaid,
+  listFirstaid,
+  firstaidSummary,
+  updateFirstaid,
+} from './firstaid.js';
+import {
+  createAedcheck,
+  listAedcheck,
+  aedcheckSummary,
+  updateAedcheck,
+} from './aedcheck.js';
+import {
+  createEvacdrill,
+  listEvacdrill,
+  evacdrillSummary,
+  updateEvacdrill,
+} from './evacdrill.js';
+import {
+  createCrowdctrl,
+  listCrowdctrl,
+  crowdctrlSummary,
+  updateCrowdctrl,
+} from './crowdctrl.js';
+import {
+  createRadiolog,
+  listRadiolog,
+  radiologSummary,
+  updateRadiolog,
+} from './radiolog.js';
+import {
+  createGatequeue,
+  listGatequeue,
+  gatequeueSummary,
+  updateGatequeue,
+} from './gatequeue.js';
+import {
+  createWristscan,
+  listWristscan,
+  wristscanSummary,
+  updateWristscan,
+} from './wristscan.js';
+import {
+  createFacepass,
+  listFacepass,
+  facepassSummary,
+  updateFacepass,
+} from './facepass.js';
+import {
+  createBagcheck,
+  listBagcheck,
+  bagcheckSummary,
+  updateBagcheck,
+} from './bagcheck.js';
+import {
+  createMetaldet,
+  listMetaldet,
+  metaldetSummary,
+  updateMetaldet,
+} from './metaldet.js';
+import {
+  createWatchlist,
+  listWatchlist,
+  watchlistSummary,
+  updateWatchlist,
+} from './watchlist.js';
+import { buildSentinel } from './sentinel.js';
 
 
 
@@ -6269,6 +6354,363 @@ export function createPlatformMiddleware() {
         if (path === '/api/skyline' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildSkyline());
+          return;
+        }
+
+        // ── AŞAMA 196–210 ──
+
+        if (path === '/api/crowddens' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, crowddensSummary());
+          return;
+        }
+        if (path === '/api/crowddens' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createCrowddens(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/crowddens/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateCrowddens(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/queuetimes' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, queuetimesSummary());
+          return;
+        }
+        if (path === '/api/queuetimes' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createQueuetimes(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/queuetimes/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateQueuetimes(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/lostchild' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, lostchildSummary());
+          return;
+        }
+        if (path === '/api/lostchild' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createLostchild(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/lostchild/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateLostchild(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/firstaid' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, firstaidSummary());
+          return;
+        }
+        if (path === '/api/firstaid' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createFirstaid(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/firstaid/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateFirstaid(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/aedcheck' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, aedcheckSummary());
+          return;
+        }
+        if (path === '/api/aedcheck' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createAedcheck(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/aedcheck/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateAedcheck(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/evacdrill' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, evacdrillSummary());
+          return;
+        }
+        if (path === '/api/evacdrill' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createEvacdrill(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/evacdrill/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateEvacdrill(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/crowdctrl' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, crowdctrlSummary());
+          return;
+        }
+        if (path === '/api/crowdctrl' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createCrowdctrl(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/crowdctrl/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateCrowdctrl(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/radiolog' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, radiologSummary());
+          return;
+        }
+        if (path === '/api/radiolog' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createRadiolog(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/radiolog/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateRadiolog(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/gatequeue' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, gatequeueSummary());
+          return;
+        }
+        if (path === '/api/gatequeue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createGatequeue(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/gatequeue/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateGatequeue(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/wristscan' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, wristscanSummary());
+          return;
+        }
+        if (path === '/api/wristscan' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createWristscan(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/wristscan/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateWristscan(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/facepass' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, facepassSummary());
+          return;
+        }
+        if (path === '/api/facepass' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createFacepass(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/facepass/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateFacepass(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/bagcheck' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, bagcheckSummary());
+          return;
+        }
+        if (path === '/api/bagcheck' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createBagcheck(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/bagcheck/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateBagcheck(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/metaldet' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, metaldetSummary());
+          return;
+        }
+        if (path === '/api/metaldet' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createMetaldet(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/metaldet/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateMetaldet(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/watchlist' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, watchlistSummary());
+          return;
+        }
+        if (path === '/api/watchlist' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createWatchlist(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/watchlist/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateWatchlist(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+        if (path === '/api/sentinel' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildSentinel());
           return;
         }
 

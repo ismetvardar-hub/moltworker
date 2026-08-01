@@ -471,6 +471,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **194** | Soundcheck |
 | **195** | Skyline checkpoint (`/api/skyline`) |
 
+### Güvenlik · Sentinel (AŞAMA 196–210)
+
+| Aşama | Özellik |
+|-------|---------|
+| **196** | Yoğunluk |
+| **197** | Kuyruk süresi |
+| **198** | Kayıp çocuk |
+| **199** | İlk yardım |
+| **200** | AED kontrol |
+| **201** | Tahliye tatbikat |
+| **202** | Kalabalık kontrol |
+| **203** | Telsiz log |
+| **204** | Gate kuyruk |
+| **205** | Bileklik scan |
+| **206** | Face pass |
+| **207** | Çanta kontrol |
+| **208** | Metal dedektör |
+| **209** | İzleme listesi |
+| **210** | Sentinel checkpoint (`/api/sentinel`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

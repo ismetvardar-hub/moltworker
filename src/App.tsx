@@ -194,6 +194,21 @@ import TriviaPage from './pages/TriviaPage';
 import DjboothPage from './pages/DjboothPage';
 import SoundcheckPage from './pages/SoundcheckPage';
 import SkylinePage from './pages/SkylinePage';
+import CrowddensPage from './pages/CrowddensPage';
+import QueuetimesPage from './pages/QueuetimesPage';
+import LostchildPage from './pages/LostchildPage';
+import FirstaidPage from './pages/FirstaidPage';
+import AedcheckPage from './pages/AedcheckPage';
+import EvacdrillPage from './pages/EvacdrillPage';
+import CrowdctrlPage from './pages/CrowdctrlPage';
+import RadiologPage from './pages/RadiologPage';
+import GatequeuePage from './pages/GatequeuePage';
+import WristscanPage from './pages/WristscanPage';
+import FacepassPage from './pages/FacepassPage';
+import BagcheckPage from './pages/BagcheckPage';
+import MetaldetPage from './pages/MetaldetPage';
+import WatchlistPage from './pages/WatchlistPage';
+import SentinelPage from './pages/SentinelPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -357,6 +372,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   djbooth: DjboothPage,
   soundcheck: SoundcheckPage,
   skyline: SkylinePage,
+  crowddens: CrowddensPage,
+  queuetimes: QueuetimesPage,
+  lostchild: LostchildPage,
+  firstaid: FirstaidPage,
+  aedcheck: AedcheckPage,
+  evacdrill: EvacdrillPage,
+  crowdctrl: CrowdctrlPage,
+  radiolog: RadiologPage,
+  gatequeue: GatequeuePage,
+  wristscan: WristscanPage,
+  facepass: FacepassPage,
+  bagcheck: BagcheckPage,
+  metaldet: MetaldetPage,
+  watchlist: WatchlistPage,
+  sentinel: SentinelPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
