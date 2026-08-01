@@ -30,6 +30,9 @@ import {
   Truck,
   MessageSquareHeart,
   Download,
+  Scale,
+  Megaphone,
+  UtensilsCrossed,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -48,6 +51,8 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'docs',
   'incidents',
   'exports',
+  'consent',
+  'announcements',
 ]);
 
 interface SidebarProps {
@@ -218,6 +223,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Dışa Aktarım',
     description: 'CSV katalog',
     icon: Download,
+  },
+  {
+    id: 'consent',
+    label: 'KVKK Onay',
+    description: 'VALKYRIE onay günlüğü',
+    icon: Scale,
+  },
+  {
+    id: 'announcements',
+    label: 'Duyurular',
+    description: 'Holding brifing',
+    icon: Megaphone,
+  },
+  {
+    id: 'recipes',
+    label: 'Reçeteler',
+    description: 'Mutfak · stok düşüm',
+    icon: UtensilsCrossed,
   },
   {
     id: 'webhooks',

@@ -244,6 +244,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **29** | Misafir geri bildirim / NPS (`/api/feedback`) |
 | **30** | CSV dışa aktarım merkezi (`/api/exports`) |
 
+### KVKK · Duyuru · Reçete (AŞAMA 31–33)
+
+| Aşama | Özellik |
+|-------|---------|
+| **31** | VALKYRIE KVKK onay günlüğü (`/api/consents`) |
+| **32** | Holding duyuru panosu (`/api/announcements`) |
+| **33** | Mutfak reçeteleri + stok düşüm (`/api/recipes`, `/cook`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

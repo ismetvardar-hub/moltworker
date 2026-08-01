@@ -10,6 +10,9 @@ import { listLoyaltyAccounts, listLedger } from './loyalty.js';
 import { listIncidents } from './incidents.js';
 import { listFeedback } from './feedback.js';
 import { listPurchaseOrders, listSuppliers } from './suppliers.js';
+import { listConsents } from './consent.js';
+import { listAnnouncements } from './announcements.js';
+import { listRecipes } from './recipes.js';
 
 function esc(v) {
   const s = v == null ? '' : String(v);
@@ -150,6 +153,44 @@ const CATALOG = {
       { key: 'lines', get: (r) => (r.lines || []).map((l) => `${l.name}x${l.qty}`).join('; ') },
     ],
     rows: () => listPurchaseOrders(),
+  },
+  consents: {
+    label: 'KVKK onayları',
+    columns: [
+      { key: 'id' },
+      { key: 'subject' },
+      { key: 'purpose' },
+      { key: 'granted', get: (r) => (r.granted ? 'yes' : 'no') },
+      { key: 'channel' },
+      { key: 'at' },
+    ],
+    rows: () => listConsents(),
+  },
+  announcements: {
+    label: 'Duyurular',
+    columns: [
+      { key: 'id' },
+      { key: 'title' },
+      { key: 'priority' },
+      { key: 'status' },
+      { key: 'audience' },
+      { key: 'createdAt' },
+    ],
+    rows: () => listAnnouncements(),
+  },
+  recipes: {
+    label: 'Reçeteler',
+    columns: [
+      { key: 'id' },
+      { key: 'name' },
+      { key: 'prepMinutes' },
+      { key: 'venueId' },
+      {
+        key: 'ingredients',
+        get: (r) => (r.ingredients || []).map((i) => `${i.name}x${i.qty}`).join('; '),
+      },
+    ],
+    rows: () => listRecipes(),
   },
 };
 

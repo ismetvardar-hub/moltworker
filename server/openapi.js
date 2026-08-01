@@ -8,7 +8,7 @@ export function buildOpenApi() {
     info: {
       title: 'LİKYA / OlymposPass Platform API',
       version: '1.0.0',
-      description: 'CEO paneli Vite middleware API yüzeyi (AŞAMA 1–30)',
+      description: 'CEO paneli Vite middleware API yüzeyi (AŞAMA 1–33)',
     },
     servers: [{ url: '/' }],
     paths: {
@@ -72,6 +72,16 @@ export function buildOpenApi() {
       },
       '/api/exports': { get: { summary: 'Export kataloğu', tags: ['exports'] } },
       '/api/exports/{id}': { get: { summary: 'CSV indir', tags: ['exports'] } },
+      '/api/consents': {
+        get: { summary: 'KVKK onay günlüğü', tags: ['consent'] },
+        post: { summary: 'Onay kaydet', tags: ['consent'] },
+      },
+      '/api/announcements': {
+        get: { summary: 'Duyurular', tags: ['announcements'] },
+        post: { summary: 'Duyuru yayınla', tags: ['announcements'] },
+      },
+      '/api/recipes': { get: { summary: 'Reçeteler', tags: ['recipes'] } },
+      '/api/recipes/{id}/cook': { post: { summary: 'Reçete pişir → stok düş', tags: ['recipes'] } },
       '/api/notifications': { get: { summary: 'Bildirimler', tags: ['notify'] } },
       '/api/events': { get: { summary: 'SSE olay akışı', tags: ['realtime'] } },
       '/api/settings': { get: { summary: 'Ayarlar', tags: ['settings'] } },

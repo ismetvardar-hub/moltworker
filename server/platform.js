@@ -121,6 +121,22 @@ import {
 } from './suppliers.js';
 import { createFeedback, feedbackSummary, listFeedback } from './feedback.js';
 import { buildExport, listExportCatalog } from './exports.js';
+import { consentSummary, listConsents, recordConsent } from './consent.js';
+import {
+  announcementsSummary,
+  createAnnouncement,
+  listAnnouncements,
+  removeAnnouncement,
+  updateAnnouncement,
+} from './announcements.js';
+import {
+  cookRecipe,
+  createRecipe,
+  listRecipes,
+  recipesSummary,
+  removeRecipe,
+  updateRecipe,
+} from './recipes.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -134,6 +150,9 @@ listLoyaltyAccounts();
 listIncidents();
 listSuppliers();
 listFeedback();
+listConsents();
+listAnnouncements();
+listRecipes();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1302,6 +1321,145 @@ export function createPlatformMiddleware() {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Cache-Control', 'no-store');
           res.end(file.csv);
+          return;
+        }
+
+        // ── AŞAMA 31: KVKK onay günlüğü ───────────────────────────────
+        if (path === '/api/consents' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...consentSummary(),
+            consents: listConsents({
+              purpose: url.searchParams.get('purpose') || undefined,
+              granted: url.searchParams.get('granted') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/consents' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { consent: recordConsent(await readBody(req), user.username) });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 32: Duyurular ───────────────────────────────────────
+        if (path === '/api/announcements' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...announcementsSummary(),
+            announcements: listAnnouncements({
+              status: url.searchParams.get('status') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/announcements' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew duyuru yayınlayamaz' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, {
+              announcement: createAnnouncement(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/announcements/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const announcement = updateAnnouncement(id, await readBody(req), user.username);
+            if (!announcement) {
+              sendJson(res, 404, { error: 'Duyuru bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { announcement });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/announcements/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const announcement = removeAnnouncement(id, user.username);
+          if (!announcement) {
+            sendJson(res, 404, { error: 'Duyuru bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, announcement });
+          return;
+        }
+
+        // ── AŞAMA 33: Reçeteler ───────────────────────────────────────
+        if (path === '/api/recipes' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...recipesSummary(),
+            recipes: listRecipes(),
+          });
+          return;
+        }
+        if (path === '/api/recipes' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew reçete ekleyemez' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, { recipe: createRecipe(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/recipes/') && path.endsWith('/cook') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const body = await readBody(req);
+            const result = cookRecipe(id, body.portions || 1, user.username);
+            if (!result) {
+              sendJson(res, 404, { error: 'Reçete bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, result);
+          })();
+          return;
+        }
+        if (path.startsWith('/api/recipes/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const recipe = updateRecipe(id, await readBody(req), user.username);
+            if (!recipe) {
+              sendJson(res, 404, { error: 'Reçete bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { recipe });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/recipes/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const recipe = removeRecipe(id, user.username);
+          if (!recipe) {
+            sendJson(res, 404, { error: 'Reçete bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, recipe });
           return;
         }
 

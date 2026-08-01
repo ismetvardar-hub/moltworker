@@ -42,6 +42,9 @@ const BACKUP_COLLECTIONS = [
   'suppliers',
   'purchase-orders',
   'feedback',
+  'consents',
+  'announcements',
+  'recipes',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

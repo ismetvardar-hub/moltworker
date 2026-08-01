@@ -60,6 +60,9 @@ export const ROLE_PAGES = {
     'suppliers',
     'feedback',
     'exports',
+    'consent',
+    'announcements',
+    'recipes',
     'docs',
     'webhooks',
     'settings',
@@ -77,6 +80,8 @@ export const ROLE_PAGES = {
     'incidents',
     'suppliers',
     'feedback',
+    'announcements',
+    'recipes',
     'docs',
   ],
   crew: [
@@ -91,6 +96,7 @@ export const ROLE_PAGES = {
     'reservations',
     'loyalty',
     'feedback',
+    'announcements',
   ],
 };
 

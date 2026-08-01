@@ -25,6 +25,9 @@ export type PageId =
   | 'suppliers'
   | 'feedback'
   | 'exports'
+  | 'consent'
+  | 'announcements'
+  | 'recipes'
   | 'docs'
   | 'webhooks'
   | 'settings';

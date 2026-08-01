@@ -40,6 +40,9 @@ const IMPORTANT = new Set([
   'po.create',
   'po.receive',
   'feedback.create',
+  'consent.record',
+  'announcements.create',
+  'recipes.cook',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {
