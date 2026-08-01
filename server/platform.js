@@ -2,7 +2,14 @@
  * AŞAMA 4–5 — Platform API: auth + arşiv + hub + ayarlar + audit
  */
 
-import { login, logout, sessionFromToken, listDemoUsers, ROLE_PAGES } from './auth.js';
+import {
+  login,
+  logout,
+  sessionFromToken,
+  listDemoUsers,
+  ROLE_PAGES,
+  setActiveBrand,
+} from './auth.js';
 import {
   readCollection,
   writeCollection,
@@ -50,12 +57,31 @@ import {
   verifyPass,
 } from './pass.js';
 import { buildMetrics } from './metrics.js';
+import {
+  brandsForRole,
+  brandsSummary,
+  createBrand,
+  getBrand,
+  listBrands,
+  removeBrand,
+  updateBrand,
+} from './brands.js';
+import {
+  getGuest,
+  guestTimeline,
+  guestsSummary,
+  listGuests,
+  syncGuestsFromSources,
+  upsertGuest,
+} from './guests.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
-// tesis tohumu
+// tesis / marka / misafir tohumu
 listVenues();
 listHolders();
+listBrands();
+listGuests();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -678,6 +704,131 @@ export function createPlatformMiddleware() {
         if (path === '/api/metrics' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildMetrics());
+          return;
+        }
+
+        // ── AŞAMA 16: Markalar ────────────────────────────────────────
+        if (path === '/api/brands' && req.method === 'GET') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, {
+            ...brandsSummary(),
+            mine: brandsForRole(user.role),
+            activeBrandId: user.activeBrandId ?? null,
+          });
+          return;
+        }
+        if (path === '/api/brands/active' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            const updated = setActiveBrand(getToken(req), body.brandId);
+            if (!updated) {
+              sendJson(res, 403, { error: 'Bu markaya erişim yok' });
+              return;
+            }
+            sendJson(res, 200, { user: updated });
+          })();
+          return;
+        }
+        if (path === '/api/brands' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            if (!body.name) {
+              sendJson(res, 400, { error: 'name zorunlu' });
+              return;
+            }
+            sendJson(res, 200, { brand: createBrand(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/brands/') && req.method === 'PATCH') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const brand = updateBrand(id, await readBody(req), user.username);
+            if (!brand) {
+              sendJson(res, 404, { error: 'Marka bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { brand });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/brands/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          if (id === 'active') return; // reserved
+          const brand = removeBrand(id, user.username);
+          if (!brand) {
+            sendJson(res, 404, { error: 'Marka bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, brand });
+          return;
+        }
+        if (path.startsWith('/api/brands/') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const brand = getBrand(id);
+          if (!brand) {
+            sendJson(res, 404, { error: 'Marka bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { brand });
+          return;
+        }
+
+        // ── AŞAMA 17: Misafir CRM ─────────────────────────────────────
+        if (path === '/api/guests' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, guestsSummary());
+          return;
+        }
+        if (path === '/api/guests/sync' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, syncGuestsFromSources(user.username));
+          return;
+        }
+        if (path === '/api/guests' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            if (!body.name) {
+              sendJson(res, 400, { error: 'name zorunlu' });
+              return;
+            }
+            sendJson(res, 200, { guest: upsertGuest(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/guests/') && path.endsWith('/timeline') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const data = guestTimeline(id);
+          if (!data) {
+            sendJson(res, 404, { error: 'Misafir bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, data);
+          return;
+        }
+        if (path.startsWith('/api/guests/') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const guest = getGuest(id);
+          if (!guest) {
+            sendJson(res, 404, { error: 'Misafir bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { guest });
           return;
         }
 

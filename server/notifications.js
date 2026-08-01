@@ -24,6 +24,10 @@ const IMPORTANT = new Set([
   'venues.delete',
   'pass.admit',
   'pass.deny',
+  'brands.create',
+  'brands.delete',
+  'guests.create',
+  'guests.sync',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

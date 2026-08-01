@@ -10,6 +10,8 @@ export type PageId =
   | 'nexus'
   | 'jobs'
   | 'venues'
+  | 'brands'
+  | 'guests'
   | 'reports'
   | 'notifications'
   | 'ops'

@@ -10,6 +10,7 @@ import {
   Radio,
   BarChart3,
   Bell,
+  Building2,
   HardDrive,
   ListTodo,
   MapPin,
@@ -17,15 +18,32 @@ import {
   ShieldCheck,
   TabletSmartphone,
   Ticket,
+  UserRound,
   Users,
 } from 'lucide-react';
+import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
+
+/** Marka süzgecinden muaf — her zaman göster (rol izinliyorsa) */
+const ALWAYS_VISIBLE = new Set<PageId>([
+  'hub',
+  'brands',
+  'guests',
+  'notifications',
+  'settings',
+  'ops',
+  'metrics',
+  'reports',
+]);
 
 interface SidebarProps {
   active: PageId;
   allowedPages: string[];
   userName: string;
   userRole: string;
+  brands?: AuthBrand[];
+  activeBrandId?: string | null;
+  onBrandChange?: (brandId: string) => void;
   onNavigate: (page: PageId) => void;
   onLogout: () => void;
 }
@@ -104,6 +122,18 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     icon: MapPin,
   },
   {
+    id: 'brands',
+    label: 'Markalar',
+    description: 'Kiracı / ürün kapsamı',
+    icon: Building2,
+  },
+  {
+    id: 'guests',
+    label: 'Misafir CRM',
+    description: 'Pass · WA · geçiş izi',
+    icon: UserRound,
+  },
+  {
     id: 'reports',
     label: 'Rapor & ETHOS',
     description: 'Operasyon özeti & uyum skoru',
@@ -140,10 +170,20 @@ export default function Sidebar({
   allowedPages,
   userName,
   userRole,
+  brands = [],
+  activeBrandId,
+  onBrandChange,
   onNavigate,
   onLogout,
 }: SidebarProps) {
-  const items = NAV_ITEMS.filter((item) => allowedPages.includes(item.id));
+  const activeBrand = brands.find((b) => b.id === activeBrandId);
+  const modules = new Set(activeBrand?.modules ?? []);
+
+  const items = NAV_ITEMS.filter((item) => {
+    if (!allowedPages.includes(item.id)) return false;
+    if (!activeBrand || ALWAYS_VISIBLE.has(item.id)) return true;
+    return modules.has(item.id);
+  });
 
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col border-r border-obsidian-700 bg-obsidian-900">
@@ -156,6 +196,27 @@ export default function Sidebar({
           <p className="text-xs text-slate-400">LİKYA CEO Paneli</p>
         </div>
       </div>
+
+      {brands.length > 0 && (
+        <div className="border-b border-obsidian-700 px-3 py-3">
+          <label className="block">
+            <span className="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Aktif marka
+            </span>
+            <select
+              value={activeBrandId ?? ''}
+              onChange={(e) => onBrandChange?.(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-obsidian-700 bg-obsidian-950 px-3 py-2 text-sm text-slate-100 focus:border-lykia-500 focus:outline-none"
+            >
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {items.map(({ id, label, description, icon: Icon }) => {

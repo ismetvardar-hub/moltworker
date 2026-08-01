@@ -1,0 +1,18 @@
+{
+  "name": "OlymposPass · LİKYA CEO Paneli",
+  "short_name": "LİKYA",
+  "description": "LİKYA Holding otonom operasyon paneli",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07090d",
+  "theme_color": "#e8a020",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

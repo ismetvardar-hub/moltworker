@@ -1,10 +1,22 @@
 export type UserRole = 'ceo' | 'kitchen' | 'crew';
 
+export interface AuthBrand {
+  id: string;
+  name: string;
+  shortName: string;
+  color: string;
+  modules: string[];
+  venueIds: string[];
+}
+
 export interface AuthUser {
   username: string;
   name: string;
   role: UserRole;
   pages: string[];
+  brandIds?: string[];
+  brands?: AuthBrand[];
+  activeBrandId?: string | null;
 }
 
 export interface DemoUser {

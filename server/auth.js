@@ -5,6 +5,7 @@
 
 import crypto from 'node:crypto';
 import { readCollection, writeCollection } from './store.js';
+import { ROLE_BRANDS, brandsForRole } from './brands.js';
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 12; // 12 saat
 const sessions = new Map(); // token → { user, exp }
@@ -44,6 +45,8 @@ export const ROLE_PAGES = {
     'nexus',
     'jobs',
     'venues',
+    'brands',
+    'guests',
     'reports',
     'notifications',
     'ops',
@@ -51,8 +54,8 @@ export const ROLE_PAGES = {
     'field',
     'settings',
   ],
-  kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications', 'field'],
-  crew: ['hub', 'crew', 'olympospass', 'vision', 'notifications', 'field'],
+  kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications', 'field', 'guests'],
+  crew: ['hub', 'crew', 'olympospass', 'vision', 'notifications', 'field', 'guests'],
 };
 
 function loadSessions() {
@@ -61,12 +64,20 @@ function loadSessions() {
   const now = Date.now();
   for (const [token, s] of Object.entries(raw)) {
     if (s && typeof s.exp === 'number' && s.exp > now && s.user) {
-      // sayfa listesini güncel ROLE_PAGES ile yenile
       const role = s.user.role;
+      const refreshed = publicUser({
+        username: s.user.username,
+        name: s.user.name,
+        role,
+      });
       sessions.set(token, {
         user: {
-          ...s.user,
-          pages: ROLE_PAGES[role] ?? s.user.pages ?? [],
+          ...refreshed,
+          activeBrandId:
+            s.user.activeBrandId &&
+            (refreshed.brandIds ?? []).includes(s.user.activeBrandId)
+              ? s.user.activeBrandId
+              : refreshed.activeBrandId,
         },
         exp: s.exp,
       });
@@ -86,7 +97,23 @@ function persistSessions() {
 loadSessions();
 
 function publicUser(u) {
-  return { username: u.username, name: u.name, role: u.role, pages: ROLE_PAGES[u.role] ?? [] };
+  const brands = brandsForRole(u.role).map((b) => ({
+    id: b.id,
+    name: b.name,
+    shortName: b.shortName,
+    color: b.color,
+    modules: b.modules,
+    venueIds: b.venueIds,
+  }));
+  return {
+    username: u.username,
+    name: u.name,
+    role: u.role,
+    pages: ROLE_PAGES[u.role] ?? [],
+    brandIds: ROLE_BRANDS[u.role] ?? [],
+    brands,
+    activeBrandId: brands[0]?.id ?? null,
+  };
 }
 
 export function login(username, password) {
@@ -96,6 +123,18 @@ export function login(username, password) {
   sessions.set(token, { user: publicUser(user), exp: Date.now() + TOKEN_TTL_MS });
   persistSessions();
   return { token, user: publicUser(user) };
+}
+
+/** Aktif marka oturumda güncelle */
+export function setActiveBrand(token, brandId) {
+  const s = sessions.get(token);
+  if (!s) return null;
+  const allowed = s.user.brandIds ?? [];
+  if (!allowed.includes(brandId)) return null;
+  s.user = { ...s.user, activeBrandId: brandId };
+  sessions.set(token, s);
+  persistSessions();
+  return s.user;
 }
 
 export function logout(token) {

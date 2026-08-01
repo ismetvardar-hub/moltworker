@@ -26,6 +26,8 @@ const BACKUP_COLLECTIONS = [
   'notifications',
   'pass-holders',
   'access-events',
+  'brands',
+  'guests',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

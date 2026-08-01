@@ -204,6 +204,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **14** | Saha Modu — tablet UI, offline WhatsApp/görev kuyruğu |
 | **15** | Gözlemlenebilirlik (`/api/metrics`) — zincir/geçiş/WA başarı oranları |
 
+### Marka · CRM · PWA (AŞAMA 16–18)
+
+| Aşama | Özellik |
+|-------|---------|
+| **16** | Marka/kiracı (`/api/brands`) + sidebar marka seçici / modül süzgeci |
+| **17** | Misafir CRM (`/api/guests`) — pass + WA + geçiş zaman çizelgesi |
+| **18** | PWA — `manifest.webmanifest` + shell service worker |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

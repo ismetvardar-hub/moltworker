@@ -1,0 +1,127 @@
+/**
+ * AŞAMA 16 — Marka / kiracı katmanı (holding altında ürünler).
+ */
+
+import { randomBytes } from 'node:crypto';
+import { readCollection, writeCollection, prependItem, deleteItem } from './store.js';
+import { appendAudit } from './audit.js';
+
+const DEFAULT_BRANDS = [
+  {
+    id: 'brand_olympospass',
+    name: 'OlymposPass',
+    shortName: 'OLP',
+    color: '#e8a020',
+    modules: ['olympospass', 'nexus', 'venues', 'field'],
+    venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
+    status: 'active',
+  },
+  {
+    id: 'brand_daze',
+    name: 'Daze',
+    shortName: 'DAZE',
+    color: '#38bdf8',
+    modules: ['chef', 'crew', 'vision', 'field', 'jobs'],
+    venueIds: ['venue_olympos_beach', 'venue_kaleici'],
+    status: 'active',
+  },
+  {
+    id: 'brand_likya',
+    name: 'LİKYA Holding',
+    shortName: 'LİKYA',
+    color: '#ffd98a',
+    modules: ['komuta', 'hub', 'ajanlar', 'ollama', 'reports', 'metrics', 'ops', 'settings'],
+    venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
+    status: 'active',
+  },
+];
+
+/** Rol → varsayılan marka erişimi */
+export const ROLE_BRANDS = {
+  ceo: ['brand_likya', 'brand_olympospass', 'brand_daze'],
+  kitchen: ['brand_daze'],
+  crew: ['brand_olympospass', 'brand_daze'],
+};
+
+function ensureSeed() {
+  const list = readCollection('brands', null);
+  if (!Array.isArray(list) || list.length === 0) {
+    writeCollection('brands', DEFAULT_BRANDS);
+    return DEFAULT_BRANDS;
+  }
+  return list;
+}
+
+export function listBrands() {
+  return ensureSeed();
+}
+
+export function getBrand(id) {
+  return listBrands().find((b) => b.id === id) ?? null;
+}
+
+export function brandsForRole(role) {
+  const allowed = ROLE_BRANDS[role] ?? [];
+  return listBrands().filter((b) => allowed.includes(b.id) && b.status === 'active');
+}
+
+export function createBrand(input, actor = 'system') {
+  const brand = {
+    id: input.id || `brand_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`,
+    name: String(input.name || '').trim() || 'İsimsiz Marka',
+    shortName: String(input.shortName || input.name || 'BRD')
+      .trim()
+      .slice(0, 8)
+      .toUpperCase(),
+    color: input.color || '#e8a020',
+    modules: Array.isArray(input.modules) ? input.modules : [],
+    venueIds: Array.isArray(input.venueIds) ? input.venueIds : [],
+    status: input.status || 'active',
+    createdAt: new Date().toISOString(),
+  };
+  prependItem('brands', brand, 50);
+  appendAudit({
+    actor,
+    action: 'brands.create',
+    detail: brand.name,
+    meta: { id: brand.id },
+  });
+  return brand;
+}
+
+export function updateBrand(id, patch, actor = 'system') {
+  const brands = listBrands();
+  const idx = brands.findIndex((b) => b.id === id);
+  if (idx < 0) return null;
+  brands[idx] = { ...brands[idx], ...patch, id, updatedAt: new Date().toISOString() };
+  writeCollection('brands', brands);
+  appendAudit({
+    actor,
+    action: 'brands.update',
+    detail: brands[idx].name,
+    meta: { id },
+  });
+  return brands[idx];
+}
+
+export function removeBrand(id, actor = 'system') {
+  const b = getBrand(id);
+  if (!b) return null;
+  deleteItem('brands', id);
+  appendAudit({
+    actor,
+    action: 'brands.delete',
+    detail: b.name,
+    meta: { id },
+  });
+  return b;
+}
+
+export function brandsSummary() {
+  const brands = listBrands();
+  return {
+    total: brands.length,
+    active: brands.filter((b) => b.status === 'active').length,
+    brands,
+  };
+}

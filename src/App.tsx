@@ -18,12 +18,15 @@ import OpsPage from './pages/OpsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import FieldPage from './pages/FieldPage';
 import MetricsPage from './pages/MetricsPage';
+import BrandsPage from './pages/BrandsPage';
+import GuestsPage from './pages/GuestsPage';
 import {
   fetchMe,
   getStoredUser,
   logout,
   type AuthUser,
 } from './services/auth';
+import { setActiveBrand } from './services/brands';
 import type { PageId } from './types';
 
 const PAGES: Record<PageId, () => React.JSX.Element> = {
@@ -38,6 +41,8 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   nexus: NexusPanel,
   jobs: JobsPage,
   venues: VenuesPage,
+  brands: BrandsPage,
+  guests: GuestsPage,
   reports: ReportsPage,
   notifications: NotificationsPage,
   ops: OpsPage,
@@ -109,6 +114,29 @@ export default function App() {
     window.location.hash = '';
   };
 
+  const handleBrandChange = async (brandId: string) => {
+    try {
+      const updated = await setActiveBrand(brandId);
+      setUser(updated);
+      const allowed = updated.pages ?? [];
+      const brand = updated.brands?.find((b) => b.id === brandId);
+      const modules = new Set(brand?.modules ?? []);
+      if (
+        page !== 'hub' &&
+        page !== 'brands' &&
+        page !== 'guests' &&
+        page !== 'notifications' &&
+        page !== 'settings' &&
+        !modules.has(page) &&
+        allowed.includes('hub')
+      ) {
+        navigate('hub');
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   if (booting) {
     return (
       <div className="flex h-full items-center justify-center bg-obsidian-950 text-sm text-slate-500">
@@ -144,6 +172,9 @@ export default function App() {
         allowedPages={allowed}
         userName={user.name}
         userRole={user.role}
+        brands={user.brands ?? []}
+        activeBrandId={user.activeBrandId}
+        onBrandChange={(id) => void handleBrandChange(id)}
         onLogout={() => void handleLogout()}
       />
       <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
