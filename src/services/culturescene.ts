@@ -4,30 +4,30 @@ async function parse<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`)
   return data
 }
-export async function fetchMarketOs() {
-  return parse(await fetch('/api/marketos', { headers: authHeaders() }))
+export async function fetchCultureScene() {
+  return parse(await fetch('/api/culture', { headers: authHeaders() }))
 }
-export async function createMarketListing(body: Record<string, unknown> = {}) {
+export async function createCultureEvent(body: Record<string, unknown> = {}) {
   return parse(
-    await fetch('/api/marketos/list', {
+    await fetch('/api/culture/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body),
     }),
   )
 }
-export async function marketCheckout(body: Record<string, unknown> = {}) {
+export async function holdCultureTicket(body: Record<string, unknown> = {}) {
   return parse(
-    await fetch('/api/marketos/checkout', {
+    await fetch('/api/culture/hold', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body),
     }),
   )
 }
-export async function syncMarketChannel(body: Record<string, unknown> = {}) {
+export async function setCultureLive(body: Record<string, unknown> = {}) {
   return parse(
-    await fetch('/api/marketos/channel', {
+    await fetch('/api/culture/live', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body),

@@ -1240,6 +1240,8 @@ export const ROLE_PAGES = {
     'openmall',
     'familycamp',
     'agentbridge',
+    'sportbridge',
+    'culturescene',
     'docs',
     'webhooks',
     'settings',

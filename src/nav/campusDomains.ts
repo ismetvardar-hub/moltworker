@@ -35,7 +35,7 @@ export const CAMPUS_DOMAINS: CampusDomain[] = [
     label: 'Spor & Extreme',
     description: 'Slot · waiver · arenalar · lisans kulüp',
     primary: 'extremepark',
-    pages: ['extremepark', 'sportslot', 'arenabook', 'nexusgate', 'rentgear', 'tourpack'],
+    pages: ['extremepark', 'sportbridge', 'athleteos', 'sportslot', 'arenabook', 'nexusgate', 'rentgear', 'tourpack'],
   },
   {
     id: 'stay',
@@ -76,8 +76,8 @@ export const CAMPUS_DOMAINS: CampusDomain[] = [
     id: 'culture',
     label: 'Kültür & Sahne',
     description: 'Müzik · sanat · tiyatro · medya',
-    primary: 'studio',
-    pages: ['studio', 'aurora', 'livecast', 'mediawall', 'music'],
+    primary: 'culturescene',
+    pages: ['culturescene', 'studio', 'aurora', 'livecast', 'mediawall', 'music'],
   },
   {
     id: 'green',

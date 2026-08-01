@@ -10,6 +10,8 @@ import { marketOsOverview } from './marketos.js';
 import { openMallOverview } from './openmall.js';
 import { familyCampOverview } from './familycamp.js';
 import { extremeOverview } from './extremepark.js';
+import { cultureSceneOverview } from './culturescene.js';
+import { sportBridgeOverview } from './sportbridge.js';
 
 export function agentBridgeOverview() {
   const campus = campusCoreOverview();
@@ -20,15 +22,19 @@ export function agentBridgeOverview() {
   const mall = openMallOverview();
   const family = familyCampOverview();
   const extreme = extremeOverview();
+  const culture = cultureSceneOverview();
+  const sport = sportBridgeOverview();
 
   const agents = [
-    { id: 'NEXUS', role: 'IoT / kapı / ışık / NFC', signal: extreme.summary?.open_slots != null ? 'extreme slots ok' : 'idle', status: 'online' },
+    { id: 'NEXUS', role: 'IoT / kapı / ışık / NFC', signal: `keys ${stay.summary.keys_active || 0} · slots ${extreme.summary?.open_slots ?? '?'}`, status: 'online' },
     { id: 'HEPHAESTUS', role: 'Depo / zimmet / bakım', signal: `gear service ${extreme.summary?.gear_service || 0}`, status: 'online' },
     { id: 'REMINDER-AI', role: 'WhatsApp / iptal / slot', signal: `weather ${extreme.weather?.condition || '?'}`, status: 'online' },
-    { id: 'MINT', role: 'Dinamik fiyat / doluluk', signal: `stay free ${stay.summary.free}`, status: 'online' },
+    { id: 'MINT', role: 'Dinamik fiyat / doluluk', signal: `stay free ${stay.summary.free} · HK ${stay.summary.hk_dirty || 0}`, status: 'online' },
     { id: 'DAZE-VISION', role: 'Kiosk / waiver / MaaS', signal: `waiver pending ${extreme.summary?.waiver_pending || 0}`, status: 'online' },
     { id: 'DAZE-HUB', role: 'Komuta paneli', signal: `zones active ${campus.summary.active}`, status: 'online' },
     { id: 'LIFE-COACH-AI', role: 'Yaşam / performans asistanı', signal: `flags ${life.summary.flags}`, status: 'online' },
+    { id: 'CULTURE-AI', role: 'Sahne / bilet / yayın', signal: `live ${culture.summary.live} · held ${culture.summary.tickets_held}`, status: 'online' },
+    { id: 'SPORT-BRIDGE', role: 'Park ↔ kulüp', signal: `linked ${sport.summary.linked} · gaps ${sport.summary.waiver_gaps}`, status: 'online' },
   ];
 
   return {
@@ -44,6 +50,8 @@ export function agentBridgeOverview() {
       mall: mall.summary,
       family: family.summary,
       extreme: extreme.summary,
+      culture: culture.summary,
+      sport: sport.summary,
     },
     links: {
       campus: '/api/campus',
@@ -54,6 +62,8 @@ export function agentBridgeOverview() {
       mall: '/api/openmall',
       family: '/api/familycamp',
       extreme: '/api/extreme',
+      culture: '/api/culture',
+      sport: '/api/sportbridge',
     },
     generatedAt: new Date().toISOString(),
   };

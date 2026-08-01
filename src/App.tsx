@@ -1212,6 +1212,8 @@ const MarketosPage = lazy(() => import('./pages/MarketosPage'));
 const OpenmallPage = lazy(() => import('./pages/OpenmallPage'));
 const FamilycampPage = lazy(() => import('./pages/FamilycampPage'));
 const AgentbridgePage = lazy(() => import('./pages/AgentbridgePage'));
+const CulturescenePage = lazy(() => import('./pages/CulturescenePage'));
+const SportbridgePage = lazy(() => import('./pages/SportbridgePage'));
 import {
   fetchMe,
   getStoredUser,
@@ -2388,6 +2390,8 @@ const PAGES: Record<string, ComponentType> = {
   openmall: OpenmallPage,
   familycamp: FamilycampPage,
   agentbridge: AgentbridgePage,
+  culturescene: CulturescenePage,
+  sportbridge: SportbridgePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

@@ -1317,6 +1317,8 @@ const DEFAULT_BRANDS = [
       'openmall',
       'familycamp',
       'agentbridge',
+      'sportbridge',
+      'culturescene',
     ],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
     status: 'active',

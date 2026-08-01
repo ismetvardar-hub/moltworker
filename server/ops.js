@@ -1161,6 +1161,14 @@ const BACKUP_COLLECTIONS = [
   'extreme-gear',
   'extreme-maas',
   'extreme-notices',
+  'market-channel-syncs',
+  'sport-syncs',
+  'sport-links',
+  'culture-holds',
+  'culture-events',
+  'culture-stages',
+  'stay-hk',
+  'stay-keys',
   'sessions',
 ];
 

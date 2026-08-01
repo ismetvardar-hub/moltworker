@@ -1811,17 +1811,19 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **1199** | Net Split |
 | **1200** | Apotheosis checkpoint (`/api/apotheosis`) |
 
-### Kampüs stack (Adım 2–9) — sealed
+### Kampüs stack — sealed + wave-2
 
 | Modül | API | İş |
 |-------|-----|-----|
 | campuscore | `/api/campus` | Arazi zonları |
-| stayring | `/api/stayring` | Glamping/karavan/bungalow |
+| stayring | `/api/stayring` | Glamping/karavan/bungalow + keyless/HK/kışlama |
 | athleteos | `/api/athleteos` | Kulüp & sporcu |
 | lifecoach | `/api/lifecoach` | Yaşam uzmanı + saat |
-| marketos | `/api/marketos` | Al / kirala / 2. el |
-| openmall | `/api/openmall` | Açık AVM |
+| marketos | `/api/marketos` | Al / kirala / 2. el + TY/Dolap kanal |
+| openmall | `/api/openmall` | Açık AVM + F&B asgari |
 | familycamp | `/api/familycamp` | Aile & çocuk |
+| culturescene | `/api/culture` | Kültür & sahne |
+| sportbridge | `/api/sportbridge` | Extreme ↔ athlete köprü |
 | agentbridge | `/api/agentbridge` | Ajan komuta |
 
 Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  

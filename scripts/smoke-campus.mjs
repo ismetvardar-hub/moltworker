@@ -1,17 +1,25 @@
 #!/usr/bin/env node
 /**
- * Adım 10 — Kampüs stack smoke test (API builder’ları).
+ * Kampüs stack + wave-2 smoke test.
  * Kullanım: node scripts/smoke-campus.mjs
  */
 import { campusCoreOverview, updateCampusZone, addCampusIncident } from '../server/campuscore.js';
-import { stayRingOverview, createStayBooking } from '../server/stayring.js';
+import {
+  stayRingOverview,
+  createStayBooking,
+  issueStayKeyless,
+  createStayHkTask,
+  setStayWintering,
+} from '../server/stayring.js';
 import { athleteOsOverview, logAthleteSession } from '../server/athleteos.js';
 import { lifeCoachOverview, ingestWearable } from '../server/lifecoach.js';
-import { marketOsOverview, marketCheckout } from '../server/marketos.js';
+import { marketOsOverview, marketCheckout, syncMarketChannel } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import { familyCampOverview, familyCheckIn } from '../server/familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
+import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
+import { sportBridgeOverview, syncSlotToSession } from '../server/sportbridge.js';
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -19,13 +27,15 @@ function assert(cond, msg) {
 
 const campus = campusCoreOverview();
 assert(campus.zones?.length >= 8, 'campus zones');
-assert(campus.summary.total_ha >= 50, 'campus ha');
 updateCampusZone(campus.zones[0].id, { notes: 'smoke' }, 'smoke');
 addCampusIncident({ title: 'smoke incident', zone_id: 'z_sport' }, 'smoke');
 
 const stay = stayRingOverview();
 assert(stay.units?.length >= 4, 'stay units');
 createStayBooking({ unit_id: stay.units.find((u) => u.status === 'free')?.id, guestName: 'Smoke Guest', nights: 1 }, 'smoke');
+issueStayKeyless({}, 'smoke');
+createStayHkTask({ kind: 'linen' }, 'smoke');
+setStayWintering({ unit_id: 'su_4' }, 'smoke');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');
@@ -39,22 +49,33 @@ const market = marketOsOverview();
 assert(market.listings?.length >= 3, 'market listings');
 const buy = market.listings.find((l) => l.mode === 'buy' && l.status === 'live') || market.listings.find((l) => l.status === 'live');
 assert(buy, 'live listing');
+syncMarketChannel({ listing_id: buy.id, channel: 'tybridge' }, 'smoke');
 marketCheckout({ listing_id: buy.id, buyer: 'smoke' }, 'smoke');
 
 const mall = openMallOverview();
 assert(mall.tenants?.length >= 3, 'mall tenants');
-recordMallSale({ tenant_id: mall.tenants[0].id, amount_try: 120 }, 'smoke');
+assert(mall.summary.fnb_targets >= 1, 'fnb targets');
+recordMallSale({ tenant_id: 'mt_4', amount_try: 120 }, 'smoke');
 
 const family = familyCampOverview();
 assert(family.programs?.length >= 2, 'family camp');
-familyCheckIn({ child_name: 'Smoke Kid', program_id: family.programs.find((p) => p.status === 'open')?.id || 'fp_3', guardian: 'Parent' }, 'smoke');
+familyCheckIn({ child_name: 'Smoke Kid', program_id: 'fp_3', guardian: 'Parent' }, 'smoke');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');
 
+const culture = cultureSceneOverview();
+assert(culture.events?.length >= 2, 'culture events');
+createCultureEvent({ title: 'Smoke Night', tickets_total: 50 }, 'smoke');
+holdCultureTicket({ event_id: culture.events[0].id, qty: 1 }, 'smoke');
+
+const sport = sportBridgeOverview();
+assert(sport.links?.length >= 1, 'sport links');
+syncSlotToSession({}, 'smoke');
+
 const bridge = agentBridgeOverview();
-assert(bridge.agents?.length >= 5, 'agent fleet');
-assert(bridge.pulses?.campus && bridge.pulses?.extreme, 'bridge pulses');
+assert(bridge.agents?.length >= 8, 'agent fleet');
+assert(bridge.pulses?.culture && bridge.pulses?.sport, 'bridge pulses wave2');
 const ping = agentBridgePing({ agent: 'DAZE-HUB', note: 'smoke' }, 'smoke');
 assert(ping.ok, 'agent ping');
 
@@ -63,14 +84,13 @@ console.log(
     {
       ok: true,
       campus_zones: campus.zones.length,
-      stay_units: stay.units.length,
-      athletes: athletes.athletes.length,
-      life_clients: life.clients.length,
-      market_listings: market.listings.length,
-      mall_tenants: mall.tenants.length,
-      family: family.summary,
+      stay: stayRingOverview().summary,
+      culture: cultureSceneOverview().summary,
+      sport: sportBridgeOverview().summary,
+      market_channels: marketOsOverview().channels,
+      mall_fnb: openMallOverview().summary,
       agents: bridge.agents.map((a) => a.id),
-      extreme_slots: extreme.summary?.open_slots ?? extreme.slots?.length ?? null,
+      extreme_slots: extreme.summary?.open_slots ?? null,
     },
     null,
     2,

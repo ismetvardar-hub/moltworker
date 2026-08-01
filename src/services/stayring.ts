@@ -7,8 +7,48 @@ async function parse<T>(res: Response): Promise<T> {
 export async function fetchStayRing() {
   return parse(await fetch('/api/stayring', { headers: authHeaders() }))
 }
-
 export async function createStayBooking(body: Record<string, unknown> = {}) {
-  return parse(await fetch('/api/stayring/book', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+  return parse(
+    await fetch('/api/stayring/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
 }
-
+export async function issueStayKeyless(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/keyless', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function setStayWintering(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/winter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function createStayHkTask(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/hk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function checkoutStay(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

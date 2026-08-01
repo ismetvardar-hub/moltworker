@@ -6680,13 +6680,23 @@ import {
   updateExtremeGear,
 } from './extremepark.js';
 import { addCampusIncident, campusCoreOverview, updateCampusZone } from './campuscore.js';
-import { createStayBooking, stayRingOverview, updateStayUnit } from './stayring.js';
+import {
+  checkoutStay,
+  createStayBooking,
+  createStayHkTask,
+  issueStayKeyless,
+  setStayWintering,
+  stayRingOverview,
+  updateStayUnit,
+} from './stayring.js';
 import { athleteOsOverview, logAthleteSession, upsertAthletePlan } from './athleteos.js';
 import { createLifePlan, ingestWearable, lifeCoachOverview } from './lifecoach.js';
-import { createMarketListing, marketCheckout, marketOsOverview } from './marketos.js';
+import { createMarketListing, marketCheckout, marketOsOverview, syncMarketChannel } from './marketos.js';
 import { openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
 import { familyCampOverview, familyCheckIn, familyCheckOut } from './familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
+import { createCultureEvent, cultureSceneOverview, holdCultureTicket, setCultureLive } from './culturescene.js';
+import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 
 
 
@@ -36048,6 +36058,84 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, agentBridgePing(await readBody(req), user.username)); })();
+          return;
+        }
+
+
+        if (path === '/api/stayring/keyless' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, issueStayKeyless(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/winter' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setStayWintering(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/hk' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createStayHkTask(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/checkout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkoutStay(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/channel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, syncMarketChannel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, cultureSceneOverview());
+          return;
+        }
+        if (path === '/api/culture/event' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createCultureEvent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/hold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, holdCultureTicket(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setCultureLive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, sportBridgeOverview());
+          return;
+        }
+        if (path === '/api/sportbridge/link' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, linkSportProfiles(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge/sync-slot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, syncSlotToSession(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge/recovery' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, bridgeRecoveryPlan(await readBody(req), user.username)); })();
           return;
         }
 

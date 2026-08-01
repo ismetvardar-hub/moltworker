@@ -1218,6 +1218,8 @@ export function buildOpenApi() {
       '/api/openmall': { get: { summary: 'Açık AVM', tags: ['openmall'] } },
       '/api/familycamp': { get: { summary: 'Aile & çocuk', tags: ['familycamp'] } },
       '/api/agentbridge': { get: { summary: 'Ajan komuta', tags: ['agentbridge'] } },
+      '/api/culture': { get: { summary: 'Kültür & Sahne', tags: ['culturescene'] } },
+      '/api/sportbridge': { get: { summary: 'Spor köprüsü', tags: ['sportbridge'] } },
       '/api/extreme': { get: { summary: 'Extreme Park Hub', tags: ['extremepark'] } },
       '/api/extreme/user-spec': { get: { summary: 'Extreme üye yetki şeması', tags: ['extremepark'] } },
       '/api/extreme/waiver': { post: { summary: 'Dijital feragatname', tags: ['extremepark'] } },

@@ -1166,6 +1166,8 @@ export type PageId =
   | 'openmall'
   | 'familycamp'
   | 'agentbridge'
+  | 'sportbridge'
+  | 'culturescene'
   | 'mysteryshop'
   | 'partners'
   | 'shuttle'
