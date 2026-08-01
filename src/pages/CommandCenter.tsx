@@ -56,6 +56,7 @@ import {
 import LiveFeed from '../components/LiveFeed';
 import { fetchPlaybooks, type Playbook } from '../services/playbooks';
 import { getStoredUser } from '../services/auth';
+import { fetchCampusBrief } from '../services/campusbrief';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -219,6 +220,7 @@ export default function CommandCenter() {
   const [readyJobs, setReadyJobs] = useState<Job[]>([]);
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [campusPulse, setCampusPulse] = useState<any>(null);
   const abortRef = useRef<AbortController | null>(null);
   const issueRef = useRef<(text?: string) => Promise<void>>(async () => undefined);
 
@@ -231,6 +233,9 @@ export default function CommandCenter() {
     }
     const brandId = getStoredUser()?.activeBrandId;
     void fetchPlaybooks(brandId).then(setPlaybooks);
+    void fetchCampusBrief()
+      .then(setCampusPulse)
+      .catch(() => setCampusPulse(null));
   }, []);
 
   useEffect(() => {
@@ -522,6 +527,34 @@ export default function CommandCenter() {
           Ekosistemin genel durumu ve otonom talimat yönetimi.
         </p>
       </div>
+
+      {campusPulse && (
+        <PanelCard title="Kampüs nabız" className="!py-3">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
+            <span>
+              ESG <strong className="text-lykia-200">{campusPulse.pulses?.green?.score ?? '—'}</strong>
+            </span>
+            <span>
+              Kuyruk <strong>{campusPulse.pulses?.queue?.queued ?? 0}</strong>
+            </span>
+            <span>
+              Extreme slot <strong>{campusPulse.pulses?.extreme?.open_slots ?? '—'}</strong>
+            </span>
+            <span>
+              Aksiyon <strong>{campusPulse.actions?.length ?? 0}</strong>
+            </span>
+            <button
+              type="button"
+              className="ml-auto rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs hover:bg-lykia-500/20"
+              onClick={() => {
+                window.location.hash = '/campusbrief';
+              }}
+            >
+              CEO Brif →
+            </button>
+          </div>
+        </PanelCard>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {systemCards.map(({ title, value, detail, health, icon: Icon }) => (

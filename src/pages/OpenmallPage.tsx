@@ -46,18 +46,35 @@ export default function OpenmallPage() {
               Aktif {data.summary?.active} · Fit-out {data.summary?.fitout} · F&B hedef {data.summary?.fnb_met}/
               {data.summary?.fnb_targets} · gap {data.summary?.fnb_gap_total?.toLocaleString?.('tr-TR')} TRY
             </p>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
-              onClick={() =>
-                void api.recordMallSale({ tenant_id: 'mt_4', amount_try: 850 }).then(() => {
-                  ping('Trail Kitchen +850')
-                  return refresh()
-                })
-              }
-            >
-              Trail Kitchen satış +850
-            </button>
+            <p className="mt-1 text-xs text-slate-500">
+              Bugün POS {data.summary?.day_tickets ?? 0} işlem · {data.summary?.day_sales_try?.toLocaleString?.('tr-TR') ?? data.summary?.day_sales_try} TRY
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.recordMallSale({ tenant_id: 'mt_4', amount_try: 850 }).then(() => {
+                    ping('Trail Kitchen +850')
+                    return refresh()
+                  })
+                }
+              >
+                Trail Kitchen satış +850
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.mallDayRollup().then((r: any) => {
+                    ping(`Gün rollup ${r.rollup?.total_try ?? 0} TRY`)
+                    return refresh()
+                  })
+                }
+              >
+                Günlük rollup
+              </button>
+            </div>
           </PanelCard>
           <PanelCard title="Kiracılar">
             <ul className="space-y-2 text-sm">

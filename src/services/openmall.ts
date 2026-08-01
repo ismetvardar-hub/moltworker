@@ -9,6 +9,21 @@ export async function fetchOpenMall() {
 }
 
 export async function recordMallSale(body: Record<string, unknown> = {}) {
-  return parse(await fetch('/api/openmall/sale', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+  return parse(
+    await fetch('/api/openmall/sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function mallDayRollup() {
+  return parse(
+    await fetch('/api/openmall/day-rollup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
 }
 

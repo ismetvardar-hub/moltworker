@@ -84,7 +84,22 @@ export default function CulturescenePage() {
               >
                 2 bilet hold
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.confirmCultureTicket({}).then(() => {
+                    ping('Hold onaylandı / satıldı')
+                    return refresh()
+                  })
+                }
+              >
+                Hold onayla
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Program">
             <ul className="space-y-2 text-sm">

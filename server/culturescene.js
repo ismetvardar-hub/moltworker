@@ -69,18 +69,24 @@ export function cultureSceneOverview() {
   const stages = ensureStages();
   const events = ensureEvents();
   const holds = readCollection('culture-holds', []) || [];
+  const sales = readCollection('culture-sales', []) || [];
+  const holdList = Array.isArray(holds) ? holds : [];
+  const saleList = Array.isArray(sales) ? sales : [];
   return {
     title: 'Kültür & Sahne',
     ethos: 'Sahne ormanın sesi — bilet, yayın, sanat tek nabız.',
     stages,
     events,
-    holds: (Array.isArray(holds) ? holds : []).slice(0, 20),
+    holds: holdList.slice(0, 20),
+    sales: saleList.slice(0, 20),
     summary: {
       stages_ready: stages.filter((s) => s.status === 'ready').length,
       on_sale: events.filter((e) => e.status === 'on_sale').length,
       live: events.filter((e) => e.status === 'live').length,
       tickets_held: events.reduce((s, e) => s + (Number(e.tickets_held) || 0), 0),
+      tickets_sold: saleList.reduce((s, x) => s + (Number(x.qty) || 0), 0),
       streams: events.filter((e) => e.stream).length,
+      open_holds: holdList.filter((h) => h.status !== 'sold' && h.status !== 'released').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -123,11 +129,61 @@ export function holdCultureTicket(input = {}, actor = 'system') {
     event_id: ev.id,
     qty,
     guest: input.guest || actor,
+    status: 'held',
     at: new Date().toISOString(),
   };
   prependItem('culture-holds', hold, 300);
   appendAudit({ actor, action: 'culture.hold', detail: `${ev.title} ×${qty}`, meta: { id: hold.id } });
   return { ok: true, hold, overview: cultureSceneOverview() };
+}
+
+export function confirmCultureTicket(input = {}, actor = 'system') {
+  const holds = readCollection('culture-holds', []) || [];
+  const list = Array.isArray(holds) ? holds : [];
+  const idx = list.findIndex((h) => h.id === input.hold_id && h.status !== 'sold' && h.status !== 'released');
+  if (idx < 0) {
+    // en son açık hold
+    const last = list.findIndex((h) => h.status === 'held' || !h.status);
+    if (last < 0) return { ok: false, error: 'Hold yok' };
+    return confirmCultureTicket({ hold_id: list[last].id }, actor);
+  }
+  const hold = list[idx];
+  list[idx] = { ...hold, status: 'sold', sold_at: new Date().toISOString(), actor };
+  writeCollection('culture-holds', list);
+  const sale = {
+    id: rid('csale'),
+    hold_id: hold.id,
+    event_id: hold.event_id,
+    qty: hold.qty,
+    guest: hold.guest,
+    price_try: Number(input.price_try) || hold.qty * 250,
+    at: new Date().toISOString(),
+  };
+  prependItem('culture-sales', sale, 300);
+  appendAudit({ actor, action: 'culture.sale', detail: `${sale.event_id} ×${sale.qty}`, meta: { id: sale.id } });
+  return { ok: true, sale, overview: cultureSceneOverview() };
+}
+
+export function releaseCultureHold(input = {}, actor = 'system') {
+  const holds = readCollection('culture-holds', []) || [];
+  const list = Array.isArray(holds) ? [...holds] : [];
+  const idx = list.findIndex((h) => h.id === input.hold_id);
+  if (idx < 0) return { ok: false, error: 'Hold yok' };
+  const hold = list[idx];
+  if (hold.status === 'sold') return { ok: false, error: 'Satılmış hold' };
+  list[idx] = { ...hold, status: 'released', released_at: new Date().toISOString() };
+  writeCollection('culture-holds', list);
+  const events = ensureEvents();
+  const eidx = events.findIndex((e) => e.id === hold.event_id);
+  if (eidx >= 0) {
+    events[eidx] = {
+      ...events[eidx],
+      tickets_held: Math.max(0, (Number(events[eidx].tickets_held) || 0) - (Number(hold.qty) || 0)),
+    };
+    writeCollection('culture-events', events);
+  }
+  appendAudit({ actor, action: 'culture.release', detail: hold.id, meta: { id: hold.id } });
+  return { ok: true, hold: list[idx], overview: cultureSceneOverview() };
 }
 
 export function setCultureLive(input = {}, actor = 'system') {

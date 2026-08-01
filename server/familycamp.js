@@ -1,11 +1,14 @@
 /**
- * Adım 8 — Aile & çocuk: kamp, yaz okulu, güvenli emanet.
+ * Aile & çocuk — kamp, yaz okulu, güvenli emanet + rezervasyon.
  */
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
-function rid(p) { return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`; }
+function rid(p) {
+  return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
+}
 
 function ensurePrograms() {
   let list = readCollection('family-programs', null);
@@ -25,28 +28,63 @@ function ensureCheckins() {
   return Array.isArray(list) ? list : [];
 }
 
+function refreshProgramStatus(p) {
+  if (p.booked >= p.seats) return { ...p, status: 'full' };
+  return { ...p, status: p.status === 'full' ? 'open' : p.status || 'open' };
+}
+
 export function familyCampOverview() {
-  const programs = ensurePrograms();
+  const programs = ensurePrograms().map(refreshProgramStatus);
   const checkins = ensureCheckins();
+  const notes = readCollection('family-notes', []) || [];
   return {
     title: 'Aile & Çocuk',
     programs,
     checkins: checkins.slice(0, 20),
+    notes: (Array.isArray(notes) ? notes : []).slice(0, 15),
     summary: {
       open: programs.filter((p) => p.status === 'open').length,
       full: programs.filter((p) => p.status === 'full').length,
       in_care: checkins.filter((c) => c.status === 'in_care').length,
+      seats_left: programs.reduce((s, p) => s + Math.max(0, (p.seats || 0) - (p.booked || 0)), 0),
     },
     generatedAt: new Date().toISOString(),
   };
 }
 
+export function bookFamilyProgram(input = {}, actor = 'system') {
+  const programs = ensurePrograms();
+  const idx = programs.findIndex((p) => p.id === (input.program_id || 'fp_1'));
+  if (idx < 0) return { ok: false, error: 'Program yok' };
+  let p = programs[idx];
+  if (p.booked >= p.seats) return { ok: false, error: 'Kontenjan dolu' };
+  p = refreshProgramStatus({ ...p, booked: (Number(p.booked) || 0) + 1 });
+  programs[idx] = p;
+  writeCollection('family-programs', programs);
+  const booking = {
+    id: rid('fb'),
+    program_id: p.id,
+    child_name: input.child_name || 'Çocuk',
+    guardian: input.guardian || actor,
+    at: new Date().toISOString(),
+  };
+  prependItem('family-bookings', booking, 300);
+  appendAudit({ actor, action: 'family.book', detail: `${p.title} · ${booking.child_name}`, meta: { id: booking.id } });
+  return { ok: true, booking, program: p, overview: familyCampOverview() };
+}
+
 export function familyCheckIn(input = {}, actor = 'system') {
+  const programs = ensurePrograms();
+  const prog = programs.find((p) => p.id === (input.program_id || 'fp_3'));
+  if (prog && prog.kind === 'daycare' && prog.booked >= prog.seats && input.require_seat) {
+    return { ok: false, error: 'Emanet kontenjanı dolu' };
+  }
   const row = {
     id: rid('fc'),
     child_name: input.child_name || 'Çocuk',
     guardian: input.guardian || 'Veli',
     program_id: input.program_id || 'fp_3',
+    allergy: input.allergy || null,
     status: 'in_care',
     at: new Date().toISOString(),
     actor,
@@ -60,7 +98,6 @@ export function familyCheckOut(id, actor = 'system') {
   const list = ensureCheckins();
   const idx = list.findIndex((c) => c.id === id);
   if (idx < 0) {
-    // allow checkout of latest in_care
     const live = list.findIndex((c) => c.status === 'in_care');
     if (live < 0) return { ok: false, error: 'Açık emanet yok' };
     list[live] = { ...list[live], status: 'returned', out_at: new Date().toISOString() };
@@ -72,4 +109,27 @@ export function familyCheckOut(id, actor = 'system') {
   writeCollection('family-checkins', list);
   appendAudit({ actor, action: 'family.checkout', detail: list[idx].child_name, meta: { id } });
   return { ok: true, checkin: list[idx], overview: familyCampOverview() };
+}
+
+export function familyEmergencyNote(input = {}, actor = 'system') {
+  const row = {
+    id: rid('fn'),
+    child_name: input.child_name || 'Çocuk',
+    note: input.note || 'Acil not',
+    severity: input.severity || 'high',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-notes', row, 200);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `Aile acil: ${row.child_name} — ${row.note}`,
+      priority: 'high',
+      payload: { note_id: row.id },
+    },
+    actor,
+  );
+  appendAudit({ actor, action: 'family.emergency', detail: row.note, meta: { id: row.id } });
+  return { ok: true, note: row, overview: familyCampOverview() };
 }

@@ -26,7 +26,11 @@ import { extremeSlotWeatherCheck } from '../server/extremepark.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
-import { familyCampOverview, familyCheckIn } from '../server/familycamp.js';
+import { familyCampOverview, familyCheckIn, bookFamilyProgram, familyEmergencyNote } from '../server/familycamp.js';
+import { confirmCultureTicket } from '../server/culturescene.js';
+import { returnMarketRental } from '../server/marketos.js';
+import { mallDayRollup } from '../server/openmall.js';
+import { campusHealthCheck } from '../server/campusbrief.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -94,7 +98,9 @@ recordMallSale({ tenant_id: 'mt_4', amount_try: 120 }, 'smoke');
 
 const family = familyCampOverview();
 assert(family.programs?.length >= 2, 'family camp');
+bookFamilyProgram({ program_id: 'fp_1', child_name: 'Smoke Book' }, 'smoke');
 familyCheckIn({ child_name: 'Smoke Kid', program_id: 'fp_3', guardian: 'Parent' }, 'smoke');
+familyEmergencyNote({ child_name: 'Smoke Kid', note: 'smoke allergy' }, 'smoke');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');
@@ -102,7 +108,22 @@ assert(extreme, 'extreme park');
 const culture = cultureSceneOverview();
 assert(culture.events?.length >= 2, 'culture events');
 createCultureEvent({ title: 'Smoke Night', tickets_total: 50 }, 'smoke');
-holdCultureTicket({ event_id: culture.events[0].id, qty: 1 }, 'smoke');
+const held = holdCultureTicket({ event_id: culture.events[0].id, qty: 1 }, 'smoke');
+confirmCultureTicket({ hold_id: held.hold?.id }, 'smoke');
+
+mallDayRollup('smoke');
+const rented = marketOsOverview().listings.find((l) => l.status === 'rented');
+if (rented) returnMarketRental({ listing_id: rented.id }, 'smoke');
+else {
+  const liveRent = marketOsOverview().listings.find((l) => l.mode === 'rent' && l.status === 'live');
+  if (liveRent) {
+    marketCheckout({ listing_id: liveRent.id, buyer: 'smoke' }, 'smoke');
+    returnMarketRental({ listing_id: liveRent.id }, 'smoke');
+  }
+}
+
+const health = campusHealthCheck();
+assert(health.score >= 0, 'campus health');
 
 const sport = sportBridgeOverview();
 assert(sport.links?.length >= 1, 'sport links');
@@ -141,6 +162,7 @@ console.log(
       green: greenPulseOverview().summary,
       brief_actions: brief.actions.length,
       fleet: agentFleetOverview().summary,
+      campus_health: health,
       campus_agents: bridge.agents.map((a) => a.id),
       extreme_slots: extreme.summary?.open_slots ?? null,
     },

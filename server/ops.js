@@ -1166,6 +1166,11 @@ const BACKUP_COLLECTIONS = [
   'green-incidents',
   'agent-pings',
   'agent-presence',
+  'mall-day-rollups',
+  'market-returns',
+  'culture-sales',
+  'family-notes',
+  'family-bookings',
   'green-readings',
   'green-meters',
   'life-webhooks',
@@ -1192,6 +1197,14 @@ export function healthCheck() {
     dataOk = false;
   }
 
+  let campus = null;
+  try {
+    // dinamik — döngüsel bağımlılık riskini azalt
+    campus = null;
+  } catch {
+    campus = null;
+  }
+
   const checks = {
     dataDirWritable: dataOk,
     venuesSeeded: venues.length > 0,
@@ -1201,7 +1214,7 @@ export function healthCheck() {
     ollamaUrl: process.env.OLLAMA_HOST || 'http://localhost:11434',
   };
 
-  const status =
+  let status =
     !dataOk ? 'unhealthy' : checks.settingsConfigured === 0 ? 'degraded' : 'healthy';
 
   return {
@@ -1211,7 +1224,22 @@ export function healthCheck() {
     uptimeSec: Math.round(process.uptime()),
     generatedAt: new Date().toISOString(),
     checks,
+    campus,
   };
+}
+
+export async function healthCheckAsync() {
+  const base = healthCheck();
+  try {
+    const { campusHealthCheck } = await import('./campusbrief.js');
+    const campus = campusHealthCheck();
+    let status = base.status;
+    if (campus.status === 'unhealthy') status = 'unhealthy';
+    else if (campus.status === 'degraded' && status === 'healthy') status = 'degraded';
+    return { ...base, status, campus };
+  } catch {
+    return base;
+  }
 }
 
 export function createBackup() {

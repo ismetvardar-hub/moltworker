@@ -7,11 +7,39 @@ async function parse<T>(res: Response): Promise<T> {
 export async function fetchFamilyCamp() {
   return parse(await fetch('/api/familycamp', { headers: authHeaders() }))
 }
-
 export async function familyCheckIn(body: Record<string, unknown> = {}) {
-  return parse(await fetch('/api/familycamp/checkin', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+  return parse(
+    await fetch('/api/familycamp/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
 }
 export async function familyCheckOut(id?: string) {
-  return parse(await fetch('/api/familycamp/checkout', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify({ id })}))
+  return parse(
+    await fetch('/api/familycamp/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ id }),
+    }),
+  )
 }
-
+export async function bookFamilyProgram(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function familyEmergencyNote(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/emergency', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

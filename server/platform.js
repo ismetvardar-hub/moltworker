@@ -41,7 +41,7 @@ import {
   updateVenue,
   venuesSummary,
 } from './venues.js';
-import { createBackup, healthCheck, listDataFiles, restoreBackup } from './ops.js';
+import { createBackup, healthCheck, healthCheckAsync, listDataFiles, restoreBackup } from './ops.js';
 import {
   listNotifications,
   markAllRead,
@@ -6699,15 +6699,15 @@ import {
   registerLifeDevice,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
-import { createMarketListing, marketCheckout, marketOsOverview, syncMarketChannel } from './marketos.js';
-import { openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
-import { familyCampOverview, familyCheckIn, familyCheckOut } from './familycamp.js';
+import { createMarketListing, marketCheckout, marketOsOverview, returnMarketRental, syncMarketChannel } from './marketos.js';
+import { mallDayRollup, openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
+import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote } from './familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
-import { createCultureEvent, cultureSceneOverview, holdCultureTicket, setCultureLive } from './culturescene.js';
+import { confirmCultureTicket, createCultureEvent, cultureSceneOverview, holdCultureTicket, releaseCultureHold, setCultureLive } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter } from './greenpulse.js';
-import { campusBriefOverview, runCampusAutomations } from './campusbrief.js';
+import { campusBriefOverview, campusHealthCheck, runCampusAutomations } from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
 
 
@@ -7275,7 +7275,7 @@ export function createPlatformMiddleware() {
         // ── AŞAMA 11: Health + yedek ──────────────────────────────────
         if (path === '/api/health' && req.method === 'GET') {
           // health auth gerektirmez (load balancer / docker healthcheck)
-          sendJson(res, 200, healthCheck());
+          void healthCheckAsync().then((h) => sendJson(res, 200, h));
           return;
         }
         if (path === '/api/ops/files' && req.method === 'GET') {
@@ -36264,6 +36264,49 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, dispatchFleetDirective(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/familycamp/book' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, bookFamilyProgram(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/emergency' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, familyEmergencyNote(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/confirm' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, confirmCultureTicket(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseCultureHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/return' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, returnMarketRental(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/day-rollup' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, mallDayRollup(user.username));
+          return;
+        }
+        if (path === '/api/campus/health' && req.method === 'GET') {
+          const u = requireUser(req, res);
+          if (!u) return;
+          sendJson(res, 200, campusHealthCheck());
           return;
         }
 

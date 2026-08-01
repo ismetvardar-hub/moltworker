@@ -1831,10 +1831,15 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | life flags | `/api/lifecoach/flags` | Flag → ajan kuyruk + recovery |
 | campusbrief | `/api/campusbrief` | CEO sabah brifi + çapraz otomasyon |
 | agentfleet | `/api/agentfleet` | 28 ajan filo + LİKYA-1 dispatch |
+| campus health | `/api/campus/health` | Kampüs sağlık skoru |
+| family+ | `/api/familycamp/book` · `/emergency` | Rezervasyon + acil not |
+| culture+ | `/api/culture/confirm` · `/release` | Bilet hold → satış |
+| market+ | `/api/marketos/return` | Kiralama iade |
+| mall+ | `/api/openmall/day-rollup` | Günlük POS rollup |
 
-Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  
-`App.tsx`: LoginPage eager, diğer tüm sayfalar lazy (`scripts/lazyify-app.mjs`).  
-Jobs ticker: `tickAgentQueue` + `runCampusAutomations` (hava/ESG/HK/F&B → kuyruk).
+Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
+`App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  
+Jobs ticker: `tickAgentQueue` + `runCampusAutomations`.
 
 ### Kampüs menü (Adım 1)
 

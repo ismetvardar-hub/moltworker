@@ -125,6 +125,20 @@ export default function MarketosPage() {
                         </button>
                       </>
                     )}
+                    {l.status === 'rented' && (
+                      <button
+                        type="button"
+                        className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]"
+                        onClick={() =>
+                          void api.returnMarketRental({ listing_id: l.id }).then(() => {
+                            ping('Kiralama iade')
+                            return refresh()
+                          })
+                        }
+                      >
+                        İade
+                      </button>
+                    )}
                   </span>
                 </li>
               ))}

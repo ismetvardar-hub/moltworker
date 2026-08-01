@@ -127,3 +127,37 @@ export function syncMarketChannel(input = {}, actor = 'system') {
   });
   return { ok: true, bridge, listing: list[idx], overview: marketOsOverview() };
 }
+
+/** Kiralama iadesi — listing tekrar live */
+export function returnMarketRental(input = {}, actor = 'system') {
+  const list = ensureListings();
+  const orders = readCollection('market-orders', []) || [];
+  const olist = Array.isArray(orders) ? orders : [];
+  let order = olist.find((o) => o.id === input.order_id);
+  if (!order) order = olist.find((o) => o.listing_id === input.listing_id && o.status === 'rented');
+  if (!order || order.mode !== 'rent') {
+    // listing üzerinden
+    const idx = list.findIndex((l) => l.id === input.listing_id && l.status === 'rented');
+    if (idx < 0) return { ok: false, error: 'Aktif kiralama yok' };
+    list[idx] = { ...list[idx], status: 'live' };
+    writeCollection('market-listings', list);
+    const ret = { id: rid('mr'), listing_id: list[idx].id, at: new Date().toISOString(), actor };
+    prependItem('market-returns', ret, 200);
+    appendAudit({ actor, action: 'market.return', detail: list[idx].title, meta: { id: ret.id } });
+    return { ok: true, listing: list[idx], overview: marketOsOverview() };
+  }
+  const lidx = list.findIndex((l) => l.id === order.listing_id);
+  if (lidx >= 0) {
+    list[lidx] = { ...list[lidx], status: 'live' };
+    writeCollection('market-listings', list);
+  }
+  const oidx = olist.findIndex((o) => o.id === order.id);
+  if (oidx >= 0) {
+    olist[oidx] = { ...olist[oidx], status: 'returned', returned_at: new Date().toISOString() };
+    writeCollection('market-orders', olist);
+  }
+  const ret = { id: rid('mr'), order_id: order.id, listing_id: order.listing_id, at: new Date().toISOString(), actor };
+  prependItem('market-returns', ret, 200);
+  appendAudit({ actor, action: 'market.return', detail: order.title, meta: { id: ret.id } });
+  return { ok: true, order: olist[oidx] || order, overview: marketOsOverview() };
+}

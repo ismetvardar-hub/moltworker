@@ -25,6 +25,24 @@ export async function holdCultureTicket(body: Record<string, unknown> = {}) {
     }),
   )
 }
+export async function confirmCultureTicket(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function releaseCultureHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/release', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
 export async function setCultureLive(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/culture/live', {

@@ -44,9 +44,14 @@ function withFnb(tenants) {
 export function openMallOverview() {
   const tenants = withFnb(ensureTenants());
   const fnbTargets = tenants.filter((t) => t.fnb_min_try > 0);
+  const sales = readCollection('mall-sales', []) || [];
+  const today = new Date().toISOString().slice(0, 10);
+  const todaySales = (Array.isArray(sales) ? sales : []).filter((s) => String(s.at || '').startsWith(today));
+  const day_sales_try = todaySales.reduce((s, x) => s + (Number(x.amount_try) || 0), 0);
   return {
     title: 'Açık AVM',
     tenants,
+    day: { date: today, tickets: todaySales.length, sales_try: day_sales_try },
     summary: {
       active: tenants.filter((t) => t.status === 'active').length,
       fitout: tenants.filter((t) => t.status === 'fitout').length,
@@ -54,6 +59,8 @@ export function openMallOverview() {
       fnb_targets: fnbTargets.length,
       fnb_met: fnbTargets.filter((t) => t.fnb_met).length,
       fnb_gap_total: fnbTargets.reduce((s, t) => s + t.fnb_gap_try, 0),
+      day_sales_try,
+      day_tickets: todaySales.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -95,4 +102,28 @@ export function updateMallTenant(id, patch = {}, actor = 'system') {
   writeCollection('mall-tenants', list);
   appendAudit({ actor, action: 'mall.tenant', detail: `${id} → ${list[idx].status}`, meta: { id } });
   return withFnb([list[idx]])[0];
+}
+
+/** Günlük POS rollup — kiracı bazlı */
+export function mallDayRollup(actor = 'system') {
+  const overview = openMallOverview();
+  const sales = readCollection('mall-sales', []) || [];
+  const today = overview.day.date;
+  const todaySales = (Array.isArray(sales) ? sales : []).filter((s) => String(s.at || '').startsWith(today));
+  const byTenant = {};
+  for (const s of todaySales) {
+    byTenant[s.tenant_id] = (byTenant[s.tenant_id] || 0) + (Number(s.amount_try) || 0);
+  }
+  const rollup = {
+    id: rid('mdr'),
+    date: today,
+    by_tenant: byTenant,
+    total_try: overview.summary.day_sales_try,
+    tickets: overview.summary.day_tickets,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-day-rollups', rollup, 90);
+  appendAudit({ actor, action: 'mall.day_rollup', detail: `${today} · ${rollup.total_try} TRY`, meta: { id: rollup.id } });
+  return { ok: true, rollup, overview: openMallOverview() };
 }

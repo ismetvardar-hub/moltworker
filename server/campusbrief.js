@@ -124,6 +124,24 @@ export function runCampusAutomations(actor = 'system') {
   return { ok: true, actions };
 }
 
+/** Ops / readiness için kampüs sağlık skoru */
+export function campusHealthCheck() {
+  const brief = campusBriefOverview('health');
+  const alerts = (brief.actions || []).filter((a) => a.level === 'alert').length;
+  const warns = (brief.actions || []).filter((a) => a.level === 'warn').length;
+  const score = Math.max(0, 100 - alerts * 15 - warns * 5);
+  const status = score >= 80 ? 'healthy' : score >= 55 ? 'degraded' : 'unhealthy';
+  return {
+    status,
+    score,
+    alerts,
+    warns,
+    actions: brief.actions,
+    pulses: brief.pulses,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 export function campusBriefOverview(actor = 'system') {
   const campus = campusCoreOverview();
   const stay = stayRingOverview();
