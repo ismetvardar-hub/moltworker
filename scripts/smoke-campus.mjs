@@ -274,6 +274,14 @@ import {
   clearWarroomPatrol,
   closeWarroomConcierge,
 } from '../server/warroom.js';
+import {
+  buildOracle,
+  runOracleSweep,
+  ackOracleFlag,
+  resolveOracleAnomaly,
+  clearOracleScoreRed,
+  promoteOracleCanary,
+} from '../server/oracle.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -712,6 +720,13 @@ assert(clearWarroomHaccp({}, 'smoke').ok, 'warroom haccp clear');
 assert(clearWarroomPatrol({}, 'smoke').ok, 'warroom patrol clear');
 assert(closeWarroomConcierge({}, 'smoke').ok, 'warroom concierge close');
 assert(ackWarroomFlag({}, 'smoke').ok, 'warroom flag ack');
+
+assert(buildOracle().title, 'oracle overview');
+assert(runOracleSweep({ force: true }, 'smoke').ok, 'oracle sweep');
+assert(resolveOracleAnomaly({}, 'smoke').ok, 'oracle anomaly resolve');
+assert(clearOracleScoreRed({}, 'smoke').ok, 'oracle score clear');
+assert(promoteOracleCanary({}, 'smoke').ok, 'oracle canary promote');
+assert(ackOracleFlag({}, 'smoke').ok, 'oracle flag ack');
 
 console.log(
   JSON.stringify(

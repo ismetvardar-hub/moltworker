@@ -87,6 +87,7 @@ try {
     '/api/readiness',
     '/api/vanguard',
     '/api/warroom',
+    '/api/oracle',
     '/api/health',
   ];
   for (const p of paths) {
@@ -675,6 +676,17 @@ try {
   assert(wrConc.res.ok && wrConc.data.ok !== false, 'warroom concierge close');
   const wrAck = await req('/api/warroom/flag/ack', { method: 'POST', token, body: {} });
   assert(wrAck.res.ok && wrAck.data.ok !== false, 'warroom flag ack');
+
+  const orSweep = await req('/api/oracle/sweep', { method: 'POST', token, body: { force: true } });
+  assert(orSweep.res.ok && orSweep.data.ok !== false, 'oracle sweep');
+  const orAnom = await req('/api/oracle/anomaly/resolve', { method: 'POST', token, body: {} });
+  assert(orAnom.res.ok && orAnom.data.ok !== false, 'oracle anomaly resolve');
+  const orScore = await req('/api/oracle/score/clear', { method: 'POST', token, body: {} });
+  assert(orScore.res.ok && orScore.data.ok !== false, 'oracle score clear');
+  const orCanary = await req('/api/oracle/canary/promote', { method: 'POST', token, body: {} });
+  assert(orCanary.res.ok && orCanary.data.ok !== false, 'oracle canary promote');
+  const orAck = await req('/api/oracle/flag/ack', { method: 'POST', token, body: {} });
+  assert(orAck.res.ok && orAck.data.ok !== false, 'oracle flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -2967,7 +2967,14 @@ import {
   decidlogSummary,
   updateDecidlog,
 } from './decidlog.js';
-import { buildOracle } from './oracle.js';
+import {
+  ackOracleFlag,
+  buildOracle,
+  clearOracleScoreRed,
+  promoteOracleCanary,
+  resolveOracleAnomaly,
+  runOracleSweep,
+} from './oracle.js';
 import {
   createMemberdesk,
   listMemberdesk,
@@ -20613,6 +20620,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/oracle' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildOracle());
+          return;
+        }
+        if (path === '/api/oracle/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOracleSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/oracle/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOracleFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/oracle/anomaly/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveOracleAnomaly(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/oracle/score/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearOracleScoreRed(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/oracle/canary/promote' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, promoteOracleCanary(await readBody(req), user.username)); })();
           return;
         }
 
