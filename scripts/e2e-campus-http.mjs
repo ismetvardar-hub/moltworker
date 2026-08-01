@@ -141,6 +141,10 @@ try {
     '/api/monument',
     '/api/olympus',
     '/api/pathos',
+    '/api/prism',
+    '/api/selene',
+    '/api/serenity',
+    '/api/vault',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1325,6 +1329,50 @@ try {
   assert(patClaim.res.ok && patClaim.data.ok !== false, 'pathos claim run');
   const patAck = await req('/api/pathos/flag/ack', { method: 'POST', token, body: {} });
   assert(patAck.res.ok && patAck.data.ok !== false, 'pathos flag ack');
+
+  const priSweep = await req('/api/prism/sweep', { method: 'POST', token, body: { force: true } });
+  assert(priSweep.res.ok && priSweep.data.ok !== false, 'prism sweep');
+  const priMark = await req('/api/prism/mark/close', { method: 'POST', token, body: {} });
+  assert(priMark.res.ok && priMark.data.ok !== false, 'prism mark close');
+  const priPost = await req('/api/prism/post/live', { method: 'POST', token, body: {} });
+  assert(priPost.res.ok && priPost.data.ok !== false, 'prism post live');
+  const priDef = await req('/api/prism/defect/run', { method: 'POST', token, body: {} });
+  assert(priDef.res.ok && priDef.data.ok !== false, 'prism defect run');
+  const priAck = await req('/api/prism/flag/ack', { method: 'POST', token, body: {} });
+  assert(priAck.res.ok && priAck.data.ok !== false, 'prism flag ack');
+
+  const selSweep = await req('/api/selene/sweep', { method: 'POST', token, body: { force: true } });
+  assert(selSweep.res.ok && selSweep.data.ok !== false, 'selene sweep');
+  const selHeat = await req('/api/selene/heat/close', { method: 'POST', token, body: {} });
+  assert(selHeat.res.ok && selHeat.data.ok !== false, 'selene heat close');
+  const selSup = await req('/api/selene/supplier/live', { method: 'POST', token, body: {} });
+  assert(selSup.res.ok && selSup.data.ok !== false, 'selene supplier live');
+  const selBoard = await req('/api/selene/board/run', { method: 'POST', token, body: {} });
+  assert(selBoard.res.ok && selBoard.data.ok !== false, 'selene board run');
+  const selAck = await req('/api/selene/flag/ack', { method: 'POST', token, body: {} });
+  assert(selAck.res.ok && selAck.data.ok !== false, 'selene flag ack');
+
+  const snySweep = await req('/api/serenity/sweep', { method: 'POST', token, body: { force: true } });
+  assert(snySweep.res.ok && snySweep.data.ok !== false, 'serenity sweep');
+  const snyLeg = await req('/api/serenity/legacy/close', { method: 'POST', token, body: {} });
+  assert(snyLeg.res.ok && snyLeg.data.ok !== false, 'serenity legacy close');
+  const snyQuiet = await req('/api/serenity/quiet/live', { method: 'POST', token, body: {} });
+  assert(snyQuiet.res.ok && snyQuiet.data.ok !== false, 'serenity quiet live');
+  const snyPillow = await req('/api/serenity/pillow/run', { method: 'POST', token, body: {} });
+  assert(snyPillow.res.ok && snyPillow.data.ok !== false, 'serenity pillow run');
+  const snyAck = await req('/api/serenity/flag/ack', { method: 'POST', token, body: {} });
+  assert(snyAck.res.ok && snyAck.data.ok !== false, 'serenity flag ack');
+
+  const vltSweep = await req('/api/vault/sweep', { method: 'POST', token, body: { force: true } });
+  assert(vltSweep.res.ok && vltSweep.data.ok !== false, 'vault sweep');
+  const vltTres = await req('/api/vault/treasury/heal', { method: 'POST', token, body: {} });
+  assert(vltTres.res.ok && vltTres.data.ok !== false, 'vault treasury heal');
+  const vltAp = await req('/api/vault/ap/close', { method: 'POST', token, body: {} });
+  assert(vltAp.res.ok && vltAp.data.ok !== false, 'vault ap close');
+  const vltRecon = await req('/api/vault/recon/clear', { method: 'POST', token, body: {} });
+  assert(vltRecon.res.ok && vltRecon.data.ok !== false, 'vault recon clear');
+  const vltAck = await req('/api/vault/flag/ack', { method: 'POST', token, body: {} });
+  assert(vltAck.res.ok && vltAck.data.ok !== false, 'vault flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

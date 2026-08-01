@@ -494,8 +494,20 @@ import {
   buildPathos, runPathosSweep, ackPathosFlag, closePathosIp, livePathosRisk, runPathosClaim,
 } from '../server/pathos.js';
 import {
+  buildPrism, runPrismSweep, ackPrismFlag, closePrismMark, livePrismPost, runPrismDefect,
+} from '../server/prism.js';
+import {
   buildPyramid, runPyramidSweep, ackPyramidFlag, resolvePyramidSys, healPyramidNet, flushPyramidComms,
 } from '../server/pyramid.js';
+import {
+  buildSelene, runSeleneSweep, ackSeleneFlag, closeSeleneHeat, liveSeleneSupplier, runSeleneBoard,
+} from '../server/selene.js';
+import {
+  buildSerenity, runSerenitySweep, ackSerenityFlag, closeSerenityLegacy, liveSerenityQuiet, runSerenityPillow,
+} from '../server/serenity.js';
+import {
+  buildVault, runVaultSweep, ackVaultFlag, healVaultTreasury, closeVaultAp, clearVaultRecon,
+} from '../server/vault.js';
 import {
   buildConvoy, runConvoySweep, ackConvoyFlag, clearConvoyDispatch, readyConvoyFleet, freeConvoyCurb,
 } from '../server/convoy.js';
@@ -1348,7 +1360,35 @@ assert(livePathosRisk({}, 'smoke').ok, 'pathos risk live');
 assert(runPathosClaim({}, 'smoke').ok, 'pathos claim run');
 assert(ackPathosFlag({}, 'smoke').ok, 'pathos flag ack');
 
-console.log('MOD119_OK');
+assert(buildPrism().title, 'prism overview');
+assert(runPrismSweep({ force: true }, 'smoke').ok, 'prism sweep');
+assert(closePrismMark({}, 'smoke').ok, 'prism mark close');
+assert(livePrismPost({}, 'smoke').ok, 'prism post live');
+assert(runPrismDefect({}, 'smoke').ok, 'prism defect run');
+assert(ackPrismFlag({}, 'smoke').ok, 'prism flag ack');
+
+assert(buildSelene().title, 'selene overview');
+assert(runSeleneSweep({ force: true }, 'smoke').ok, 'selene sweep');
+assert(closeSeleneHeat({}, 'smoke').ok, 'selene heat close');
+assert(liveSeleneSupplier({}, 'smoke').ok, 'selene supplier live');
+assert(runSeleneBoard({}, 'smoke').ok, 'selene board run');
+assert(ackSeleneFlag({}, 'smoke').ok, 'selene flag ack');
+
+assert(buildSerenity().title, 'serenity overview');
+assert(runSerenitySweep({ force: true }, 'smoke').ok, 'serenity sweep');
+assert(closeSerenityLegacy({}, 'smoke').ok, 'serenity legacy close');
+assert(liveSerenityQuiet({}, 'smoke').ok, 'serenity quiet live');
+assert(runSerenityPillow({}, 'smoke').ok, 'serenity pillow run');
+assert(ackSerenityFlag({}, 'smoke').ok, 'serenity flag ack');
+
+assert(buildVault().title, 'vault overview');
+assert(runVaultSweep({ force: true }, 'smoke').ok, 'vault sweep');
+assert(healVaultTreasury({}, 'smoke').ok, 'vault treasury heal');
+assert(closeVaultAp({}, 'smoke').ok, 'vault ap close');
+assert(clearVaultRecon({}, 'smoke').ok, 'vault recon clear');
+assert(ackVaultFlag({}, 'smoke').ok, 'vault flag ack');
+
+console.log('MOD123_OK');
 
 console.log(
   JSON.stringify(

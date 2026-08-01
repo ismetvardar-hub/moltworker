@@ -3367,7 +3367,9 @@ import {
   closebookSummary,
   updateClosebook,
 } from './closebook.js';
-import { buildVault } from './vault.js';
+import {
+  ackVaultFlag, buildVault, clearVaultRecon, closeVaultAp, healVaultTreasury, runVaultSweep,
+} from './vault.js';
 import {
   createShuttlelane,
   listShuttlelane,
@@ -4425,7 +4427,9 @@ import {
   feedbackloopSummary,
   updateFeedbackloop,
 } from './feedbackloop.js';
-import { buildSerenity } from './serenity.js';
+import {
+  ackSerenityFlag, buildSerenity, closeSerenityLegacy, liveSerenityQuiet, runSerenityPillow, runSerenitySweep,
+} from './serenity.js';
 import {
   createMomentmap,
   listMomentmap,
@@ -5026,7 +5030,9 @@ import {
   rootcauseSummary,
   updateRootcause,
 } from './rootcause.js';
-import { buildPrism } from './prism.js';
+import {
+  ackPrismFlag, buildPrism, closePrismMark, livePrismPost, runPrismDefect, runPrismSweep,
+} from './prism.js';
 import {
   createCorrective,
   listCorrective,
@@ -6407,7 +6413,9 @@ import {
   sealnote3Summary,
   updateSealnote3,
 } from './sealnote3.js';
-import { buildSelene } from './selene.js';
+import {
+  ackSeleneFlag, buildSelene, closeSeleneHeat, liveSeleneSupplier, runSeleneBoard, runSeleneSweep,
+} from './selene.js';
 import {
   createLegacyflag3,
   listLegacyflag3,
@@ -22804,6 +22812,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildVault());
           return;
         }
+        if (path === '/api/vault/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVaultSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vault/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVaultFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vault/treasury/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healVaultTreasury(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vault/ap/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeVaultAp(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vault/recon/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearVaultRecon(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Mobility OS · Convoy (AŞAMA 586–600) ──
 
@@ -27358,6 +27396,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildSerenity());
           return;
         }
+        if (path === '/api/serenity/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSerenitySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSerenityFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity/legacy/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeSerenityLegacy(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity/quiet/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveSerenityQuiet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity/pillow/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSerenityPillow(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Circuit OS · Circuit (AŞAMA 766–780) ──
 
@@ -29945,6 +30013,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/prism' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildPrism());
+          return;
+        }
+        if (path === '/api/prism/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPrismSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/prism/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPrismFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/prism/mark/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePrismMark(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/prism/post/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, livePrismPost(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/prism/defect/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPrismDefect(await readBody(req), user.username)); })();
           return;
         }
 
@@ -35897,6 +35995,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/selene' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildSelene());
+          return;
+        }
+        if (path === '/api/selene/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSeleneSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/selene/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSeleneFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/selene/heat/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeSeleneHeat(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/selene/supplier/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveSeleneSupplier(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/selene/board/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSeleneBoard(await readBody(req), user.username)); })();
           return;
         }
 
