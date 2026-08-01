@@ -335,7 +335,37 @@ try {
     body: { force_condition: 'windy', minutes: 30, force: true },
   });
   assert(wxHold.res.ok, 'weather hold');
+  const wxSweep = await req('/api/extreme/weather-hold/sweep', {
+    method: 'POST',
+    token,
+    body: { force_clear: true, force_hold: true, force_condition: 'windy', minutes: 15 },
+  });
+  assert(wxSweep.res.ok && wxSweep.data.ok !== false, 'weather hold sweep');
   await req('/api/extreme/weather-clear', { method: 'POST', token, body: {} });
+  const maas = await req('/api/extreme/maas', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_can', kind: 'gopro' },
+  });
+  assert(maas.res.ok && maas.data.ok !== false, 'extreme maas');
+  const maasRenew = await req('/api/extreme/maas/renew', {
+    method: 'POST',
+    token,
+    body: { id: maas.data.maas?.id, hours: 24 },
+  });
+  assert(maasRenew.res.ok && maasRenew.data.ok !== false, 'extreme maas renew');
+  const topup = await req('/api/extreme/wallet/topup', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_can', amount: 300 },
+  });
+  assert(topup.res.ok && topup.data.ok !== false, 'extreme wallet topup');
+  const spend = await req('/api/extreme/wallet/spend', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_can', amount: 50 },
+  });
+  assert(spend.res.ok && spend.data.ok !== false, 'extreme wallet spend');
 
   await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: 'guest_can' } });
   await req('/api/extreme/slot-cancel', { method: 'POST', token, body: { user_id: 'guest_ela' } });

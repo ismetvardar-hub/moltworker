@@ -15,11 +15,14 @@ import {
   markExtremeNoShow,
   patchExtremeGear,
   promoteExtremeWaitlist,
+  renewExtremeMaas,
   reserveExtremeSlot,
   returnExtremeGear,
   runExtremeGearServiceSweep,
   runExtremeWeatherCheck,
+  runExtremeWeatherHoldSweep,
   signExtremeWaiver,
+  topUpExtremeWallet,
 } from '../services/extremepark'
 
 type Tab = 'hub' | 'vision'
@@ -200,6 +203,20 @@ export default function ExtremeParkPage() {
                 <button
                   type="button"
                   className="rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200"
+                  onClick={() =>
+                    void runExtremeWeatherHoldSweep({ force_clear: true, force_hold: true, force_condition: 'windy' }).then(
+                      (r: any) => {
+                        ping(`Weather sweep · hold ${r.sweep?.held ?? 0}`)
+                        return refresh()
+                      },
+                    )
+                  }
+                >
+                  Weather sweep
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-100"
                   onClick={() =>
                     void clearExtremeWeatherHold({}).then((r: any) => {
                       ping(`Hold clear ${r.cleared?.length || 0}`)
@@ -570,13 +587,29 @@ export default function ExtremeParkPage() {
               </div>
             </dl>
             <p className="mt-2 text-xs text-slate-500">NFC: {spec.wallet?.nfc_wallet_id}</p>
-            <button
-              type="button"
-              onClick={() => void onSpend()}
-              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-100"
-            >
-              Simüle harcama (−150 TRY)
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void onSpend()}
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-100"
+              >
+                Simüle harcama (−150 TRY)
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void topUpExtremeWallet({ user_id: userId, amount: 500 }).then((r: any) => {
+                    if (!(r as any).ok) throw new Error((r as any).error || 'Topup yok')
+                    setSpec((r as any).user_spec)
+                    ping(`Cüzdan +${(r as any).topup?.amount_try} TRY`)
+                    return refresh()
+                  })
+                }
+              >
+                Cüzdan +500
+              </button>
+            </div>
           </PanelCard>
 
           <PanelCard title="MaaS · Drone / GoPro QR">
@@ -597,6 +630,19 @@ export default function ExtremeParkPage() {
                 onClick={() => void onMaas('drone')}
               >
                 Drone QR
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void renewExtremeMaas({ user_id: userId, hours: 48 }).then((r: any) => {
+                    if (!(r as any).ok) throw new Error((r as any).error || 'Renew yok')
+                    setMaas((r as any).maas)
+                    ping(`MaaS yenilendi · ${(r as any).maas?.kind}`)
+                  })
+                }
+              >
+                MaaS yenile
               </button>
             </div>
             {maas && (

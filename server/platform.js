@@ -6685,10 +6685,13 @@ import {
   joinExtremeWaitlist,
   markExtremeNoShow,
   promoteExtremeWaitlist,
+  renewExtremeMaas,
   reserveExtremeSlot,
   returnExtremeGear,
   runExtremeGearServiceSweep,
+  runExtremeWeatherHoldSweep,
   signExtremeWaiver,
+  topUpExtremeWallet,
   updateExtremeGear,
 } from './extremepark.js';
 import {
@@ -37293,6 +37296,25 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, extremeWalletSpend(await readBody(req), user.username));
           })();
+          return;
+        }
+
+        if (path === '/api/extreme/maas/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewExtremeMaas(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/wallet/topup' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, topUpExtremeWallet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/weather-hold/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runExtremeWeatherHoldSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/extreme/gear/') && req.method === 'PATCH') {

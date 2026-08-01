@@ -122,6 +122,11 @@ import {
   signExtremeWaiver,
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
+  createExtremeMaas,
+  renewExtremeMaas,
+  topUpExtremeWallet,
+  extremeWalletSpend,
+  runExtremeWeatherHoldSweep,
 } from '../server/extremepark.js';
 import {
   runSportEligibilitySweep,
@@ -418,8 +423,11 @@ setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
 signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
 issueAthleteLicense({ athlete_id: 'ath_1' }, 'smoke');
 // Clear leftover post-comp holds from prior runs so gate allow is deterministic
-for (let i = 0; i < 12; i++) {
+for (let i = 0; i < 40; i++) {
   if (!completeBridgeRecovery({ athlete_id: 'ath_1' }, 'smoke').ok) break;
+}
+for (let i = 0; i < 10; i++) {
+  if (!completeBridgeRecovery({}, 'smoke').ok) break;
 }
 const gateOk = gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke');
 assert(gateOk.ok, 'sport gate allow');
@@ -468,7 +476,17 @@ assert(archiveAgentJobs({ force: true }, 'smoke').ok, 'agent archive');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
 const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, force: true }, 'smoke');
 assert(hold.ok, 'weather hold');
+assert(
+  runExtremeWeatherHoldSweep({ force_clear: true, force_hold: true, force_condition: 'windy', minutes: 15 }, 'smoke')
+    .ok,
+  'weather hold sweep',
+);
 clearExtremeWeatherHold({}, 'smoke');
+const maas = createExtremeMaas({ user_id: 'guest_can', kind: 'gopro' }, 'smoke');
+assert(maas.ok, 'extreme maas');
+assert(renewExtremeMaas({ id: maas.maas.id, hours: 24 }, 'smoke').ok, 'extreme maas renew');
+assert(topUpExtremeWallet({ user_id: 'guest_can', amount: 400 }, 'smoke').ok, 'extreme wallet topup');
+assert(extremeWalletSpend({ user_id: 'guest_can', amount: 100 }, 'smoke').ok, 'extreme wallet spend');
 signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
 cancelExtremeReservation({ user_id: 'guest_ela' }, 'smoke');
 cancelExtremeReservation({ user_id: 'guest_can' }, 'smoke');

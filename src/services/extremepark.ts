@@ -58,6 +58,36 @@ export async function extremeWalletSpend(body: Record<string, unknown>) {
   )
 }
 
+export async function renewExtremeMaas(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/maas/renew', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function topUpExtremeWallet(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/wallet/topup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runExtremeWeatherHoldSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/weather-hold/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function patchExtremeGear(id: string, patch: Record<string, unknown>) {
   return parse(
     await fetch(`/api/extreme/gear/${encodeURIComponent(id)}`, {
