@@ -44,3 +44,13 @@ export async function runSportEligibilitySweep(body: Record<string, unknown> = {
     }),
   )
 }
+
+export async function gateSportSlotAccess(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/sportbridge/gate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

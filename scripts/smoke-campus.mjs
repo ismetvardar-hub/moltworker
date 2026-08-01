@@ -84,7 +84,7 @@ import {
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
 } from '../server/extremepark.js';
-import { runSportEligibilitySweep } from '../server/sportbridge.js';
+import { runSportEligibilitySweep, gateSportSlotAccess } from '../server/sportbridge.js';
 import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import {
   agentFleetOverview,
@@ -279,8 +279,15 @@ assert(health.score >= 0, 'campus health');
 
 const sport = sportBridgeOverview();
 assert(sport.links?.length >= 1, 'sport links');
-syncSlotToSession({}, 'smoke');
+setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
+signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
+assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok, 'sport gate allow');
+syncSlotToSession({ extreme_user: 'guest_can' }, 'smoke');
 const elig = runSportEligibilitySweep({}, 'smoke');
+assert(elig.ok, 'sport eligibility');
+reportAthleteInjury({ athlete_id: 'ath_1', body_area: 'bilek', severity: 'moderate' }, 'smoke');
+assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block injury');
+assert(gateSportSlotAccess({ extreme_user: 'guest_can', force: true }, 'smoke').ok, 'sport gate force');
 assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 
 const brief = campusBriefOverview('smoke');

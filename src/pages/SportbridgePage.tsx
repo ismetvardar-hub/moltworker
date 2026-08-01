@@ -41,14 +41,17 @@ export default function SportbridgePage() {
           <PanelCard title="Köprüler">
             <p className="text-sm text-slate-300">
               Linked {data.summary?.linked} · Waiver gap {data.summary?.waiver_gaps} · Lisanslı{' '}
-              {data.summary?.licensed_links}
+              {data.summary?.licensed_links} · clearance gap {data.summary?.clearance_gaps ?? 0} · sakat{' '}
+              {data.summary?.injured_links ?? 0}
             </p>
             <ul className="mt-2 space-y-2 text-sm">
               {(data.links || []).map((l: any) => (
                 <li key={l.id} className="rounded-lg border border-obsidian-700 px-3 py-2 text-slate-200">
                   {l.member_name} ↔ {l.athlete_name}
                   <div className="text-xs text-slate-500">
-                    {l.sport} · {l.segment || '—'} · waiver {l.waiver_ok ? 'ok' : 'eksik'}
+                    {l.sport} · {l.segment || '—'} · waiver {l.waiver_ok ? 'ok' : 'eksik'} · clearance{' '}
+                    {l.medical_clearance || '—'}
+                    {l.injured ? ' · injured' : ''}
                   </div>
                 </li>
               ))}
@@ -56,10 +59,22 @@ export default function SportbridgePage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.gateSportSlotAccess({ extreme_user: 'guest_can' }).then((r: any) => {
+                    ping(r.ok ? `Gate ${r.status}` : `Gate block · ${(r.issues || []).join('+')}`)
+                    return refresh()
+                  })
+                }
+              >
+                Slot kapısı
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
-                  void api.syncSlotToSession({}).then(() => {
-                    ping('Slot → seans yazıldı')
+                  void api.syncSlotToSession({ force: true }).then((r: any) => {
+                    ping(r.ok ? 'Slot → seans yazıldı' : r.error || 'Sync yok')
                     return refresh()
                   })
                 }

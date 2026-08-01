@@ -6769,7 +6769,14 @@ import {
   settleCultureEvent,
   startCultureStream,
 } from './culturescene.js';
-import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
+import {
+  bridgeRecoveryPlan,
+  gateSportSlotAccess,
+  linkSportProfiles,
+  runSportEligibilitySweep,
+  sportBridgeOverview,
+  syncSlotToSession,
+} from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
 import {
   addGreenIncident,
@@ -36763,6 +36770,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runSportEligibilitySweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/sportbridge/gate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, gateSportSlotAccess(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/greenpulse/automations' && req.method === 'POST') {

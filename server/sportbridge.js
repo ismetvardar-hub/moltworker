@@ -29,6 +29,8 @@ function matchLinks(extreme, athletes) {
   const enriched = links.map((l) => {
     const member = extreme.members?.find((m) => m.user_profile?.user_id === l.extreme_user || m.id === l.extreme_user);
     const athlete = athletes.athletes?.find((a) => a.id === l.athlete_id);
+    const clearance = athlete?.medical_clearance || null;
+    const injured = athlete?.status === 'injured' || athlete?.status === 'hold';
     return {
       ...l,
       member_name: member?.user_profile?.display_name || l.extreme_user,
@@ -36,6 +38,11 @@ function matchLinks(extreme, athletes) {
       waiver_ok: !!member?.user_profile?.waiver_signed,
       segment: member?.user_profile?.segment || null,
       license: athlete?.license || null,
+      medical_clearance: clearance,
+      clearance_ok: clearance === 'cleared',
+      athlete_status: athlete?.status || null,
+      rtp_stage: athlete?.rtp_stage || null,
+      injured,
       weekly_used: member?.quota_management?.weekly_used ?? null,
     };
   });
@@ -46,6 +53,7 @@ export function sportBridgeOverview() {
   const extreme = extremeOverview();
   const athletes = athleteOsOverview();
   const links = matchLinks(extreme, athletes);
+  const gates = readCollection('sport-gate-checks', []) || [];
   return {
     title: 'Spor Köprüsü',
     ethos: 'Park slotu → kulüp seansı · waiver → lisans · ETHOS güler.',
@@ -57,10 +65,14 @@ export function sportBridgeOverview() {
     },
     club: athletes.summary,
     slots: (extreme.slots || []).slice(0, 12),
+    gate_checks: (Array.isArray(gates) ? gates : []).slice(0, 20),
     summary: {
       linked: links.length,
       waiver_gaps: links.filter((l) => !l.waiver_ok).length,
       licensed_links: links.filter((l) => l.license).length,
+      clearance_gaps: links.filter((l) => !l.clearance_ok).length,
+      injured_links: links.filter((l) => l.injured).length,
+      gate_blocks: (Array.isArray(gates) ? gates : []).filter((g) => g.status === 'blocked').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -83,6 +95,69 @@ export function linkSportProfiles(input = {}, actor = 'system') {
   return { ok: true, link: row, overview: sportBridgeOverview() };
 }
 
+/** Slot / seans öncesi waiver+lisans+clearance+injury kapısı */
+export function gateSportSlotAccess(input = {}, actor = 'system') {
+  const overview = sportBridgeOverview();
+  const links = overview.links || [];
+  const link =
+    links.find((l) => l.id === input.link_id) ||
+    links.find((l) => l.extreme_user === input.extreme_user) ||
+    links.find((l) => l.athlete_id === input.athlete_id) ||
+    links[0];
+  if (!link) return { ok: false, error: 'Köprü yok', status: 'blocked' };
+  const issues = [];
+  if (!link.waiver_ok) issues.push('waiver');
+  if (!link.license) issues.push('license');
+  if (!link.clearance_ok) issues.push('clearance');
+  if (link.injured) issues.push('injury');
+  if (link.rtp_stage && link.rtp_stage !== 'cleared') issues.push('rtp');
+  const ready = athleteReadinessRollup(actor);
+  const score = ready.athletes?.find((r) => r.athlete_id === link.athlete_id)?.score ?? null;
+  if (score != null && score < (Number(input.min_readiness) || 50)) issues.push('readiness');
+  const status = issues.length ? 'blocked' : 'allowed';
+  const row = {
+    id: rid('sg'),
+    link_id: link.id,
+    extreme_user: link.extreme_user,
+    athlete_id: link.athlete_id,
+    issues,
+    readiness: score,
+    status,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('sport-gate-checks', row, 300);
+  if (status === 'blocked') {
+    let agent = 'SPORT-BRIDGE';
+    if (issues.includes('clearance') || issues.includes('injury') || issues.includes('rtp')) agent = 'LIFE-COACH-AI';
+    else if (issues.includes('waiver')) agent = 'DAZE-VISION';
+    enqueueAgentJob(
+      {
+        agent,
+        title: `sport gate block · ${link.athlete_name || link.athlete_id} · ${issues.join('+')}`,
+        priority: 'high',
+        payload: { gate_id: row.id, issues },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'sport.gate',
+    detail: `${link.athlete_id} · ${status}${issues.length ? ` · ${issues.join('+')}` : ''}`,
+    meta: { id: row.id },
+  });
+  return {
+    ok: status === 'allowed' || !!input.force,
+    status,
+    issues,
+    gate: row,
+    link,
+    overview: sportBridgeOverview(),
+    error: status === 'blocked' && !input.force ? `Kapı: ${issues.join(', ')}` : undefined,
+  };
+}
+
 /** Extreme slot tamamlanınca athlete session yaz */
 export function syncSlotToSession(input = {}, actor = 'system') {
   const extreme = extremeOverview();
@@ -92,6 +167,13 @@ export function syncSlotToSession(input = {}, actor = 'system') {
   const userId = input.extreme_user || slot.user_id || links[0]?.extreme_user;
   const link = links.find((l) => l.extreme_user === userId) || links[0];
   if (!link) return { ok: false, error: 'Köprü yok — önce link' };
+  if (!input.skip_gate) {
+    const gate = gateSportSlotAccess(
+      { extreme_user: link.extreme_user, athlete_id: link.athlete_id, force: input.force },
+      actor,
+    );
+    if (!gate.ok) return { ok: false, error: gate.error || 'Sport gate blocked', gate };
+  }
   const session = logAthleteSession(
     {
       athlete_id: link.athlete_id,
@@ -148,6 +230,9 @@ export function runSportEligibilitySweep(input = {}, actor = 'system') {
     const issues = [];
     if (!link.waiver_ok) issues.push('waiver');
     if (!link.license) issues.push('license');
+    if (!link.clearance_ok) issues.push('clearance');
+    if (link.injured) issues.push('injury');
+    if (link.rtp_stage && link.rtp_stage !== 'cleared') issues.push('rtp');
     const weekly = Number(link.weekly_used);
     if (Number.isFinite(weekly) && weekly >= 5) issues.push('quota');
     const r = byAthlete[link.athlete_id];
@@ -166,12 +251,25 @@ export function runSportEligibilitySweep(input = {}, actor = 'system') {
     prependItem('sport-eligibility', row, 200);
     let agent = 'SPORT-BRIDGE';
     if (issues.includes('waiver')) agent = 'DAZE-VISION';
-    else if (issues.includes('readiness')) agent = 'LIFE-COACH-AI';
+    else if (
+      issues.includes('readiness') ||
+      issues.includes('clearance') ||
+      issues.includes('injury') ||
+      issues.includes('rtp')
+    ) {
+      agent = 'LIFE-COACH-AI';
+    }
     const job = enqueueAgentJob(
       {
         agent,
         title: `eligibilite · ${link.athlete_name || link.athlete_id} · ${issues.join('+')}`,
-        priority: issues.includes('readiness') || issues.includes('waiver') ? 'high' : 'normal',
+        priority:
+          issues.includes('readiness') ||
+          issues.includes('waiver') ||
+          issues.includes('clearance') ||
+          issues.includes('injury')
+            ? 'high'
+            : 'normal',
         payload: { link_id: link.id, issues, athlete_id: link.athlete_id },
       },
       actor,

@@ -288,6 +288,18 @@ try {
   });
   assert(presence.res.ok && presence.data.updated >= 1, 'presence sweep');
 
+  await req('/api/athleteos/clearance', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', status: 'cleared' },
+  });
+  await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: 'guest_can' } });
+  const gate = await req('/api/sportbridge/gate', {
+    method: 'POST',
+    token,
+    body: { extreme_user: 'guest_can' },
+  });
+  assert(gate.res.ok && gate.data.status, 'sport gate');
   const elig = await req('/api/sportbridge/eligibility', { method: 'POST', token, body: {} });
   assert(elig.res.ok, 'sport eligibility');
 

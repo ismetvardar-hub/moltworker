@@ -1234,6 +1234,7 @@ export function buildOpenApi() {
       '/api/extreme/gear-issue': { post: { summary: 'Ekipman checkout', tags: ['extreme'] } },
       '/api/extreme/gear-service-sweep': { post: { summary: 'Ekipman servis taraması', tags: ['extreme'] } },
       '/api/sportbridge/eligibility': { post: { summary: 'Spor eligibilite taraması', tags: ['sportbridge'] } },
+      '/api/sportbridge/gate': { post: { summary: 'Slot clearance/injury kapısı', tags: ['sportbridge'] } },
       '/api/greenpulse/automations': { post: { summary: 'ESG remediation playbook', tags: ['greenpulse'] } },
       '/api/greenpulse/permit': { post: { summary: 'Yeşil çalışma izni', tags: ['greenpulse'] } },
       '/api/greenpulse/permit/approve': { post: { summary: 'Çalışma izni onay/red', tags: ['greenpulse'] } },
