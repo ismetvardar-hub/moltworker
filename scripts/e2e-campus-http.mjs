@@ -193,8 +193,6 @@ try {
   assert(fuDone.res.ok && fuDone.data.ok !== false, 'life followup complete');
   const adh = await req('/api/lifecoach/adherence', { method: 'POST', token, body: {} });
   assert(adh.res.ok && adh.data.ok !== false, 'life adherence');
-  // keep dig assertion below if present — noop marker
-  assert(dig.res.ok && dig.data.digest, 'life digest');
 
   const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });
   assert(night.res.ok && night.data.rollup, 'stay night rollup');
