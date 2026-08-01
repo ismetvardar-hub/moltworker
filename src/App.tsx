@@ -374,6 +374,21 @@ import RunbooklinkPage from './pages/RunbooklinkPage';
 import CommsbridgePage from './pages/CommsbridgePage';
 import AfteractionPage from './pages/AfteractionPage';
 import KeystonePage from './pages/KeystonePage';
+import RevstreamPage from './pages/RevstreamPage';
+import PackagemixPage from './pages/PackagemixPage';
+import AncillaryPage from './pages/AncillaryPage';
+import DynamicbundlePage from './pages/DynamicbundlePage';
+import PricefloorPage from './pages/PricefloorPage';
+import CompsetPage from './pages/CompsetPage';
+import PickuppacePage from './pages/PickuppacePage';
+import NoshowriskPage from './pages/NoshowriskPage';
+import WalkinflowPage from './pages/WalkinflowPage';
+import TableturnPage from './pages/TableturnPage';
+import BeatrevenuePage from './pages/BeatrevenuePage';
+import CashforecastPage from './pages/CashforecastPage';
+import MarginwatchPage from './pages/MarginwatchPage';
+import PromoattrPage from './pages/PromoattrPage';
+import ZenithPage from './pages/ZenithPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -717,6 +732,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   commsbridge: CommsbridgePage,
   afteraction: AfteractionPage,
   keystone: KeystonePage,
+  revstream: RevstreamPage,
+  packagemix: PackagemixPage,
+  ancillary: AncillaryPage,
+  dynamicbundle: DynamicbundlePage,
+  pricefloor: PricefloorPage,
+  compset: CompsetPage,
+  pickuppace: PickuppacePage,
+  noshowrisk: NoshowriskPage,
+  walkinflow: WalkinflowPage,
+  tableturn: TableturnPage,
+  beatrevenue: BeatrevenuePage,
+  cashforecast: CashforecastPage,
+  marginwatch: MarginwatchPage,
+  promoattr: PromoattrPage,
+  zenith: ZenithPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

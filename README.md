@@ -711,6 +711,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **374** | After Action |
 | **375** | Keystone checkpoint (`/api/keystone`) |
 
+### Revenue OS · Zenith (AŞAMA 376–390)
+
+| Aşama | Özellik |
+|-------|---------|
+| **376** | Gelir Akışı |
+| **377** | Paket Mix |
+| **378** | Ancillary |
+| **379** | Dinamik Bundle |
+| **380** | Fiyat Tabanı |
+| **381** | Comp Set |
+| **382** | Pickup Pace |
+| **383** | No-show Risk |
+| **384** | Walk-in Flow |
+| **385** | Table Turn |
+| **386** | Beat Revenue |
+| **387** | Nakit Forecast |
+| **388** | Marj İzleme |
+| **389** | Promo Attribution |
+| **390** | Zenith checkpoint (`/api/zenith`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
