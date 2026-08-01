@@ -85,6 +85,15 @@ function ensureQueue() {
 
 export function agentQueueOverview() {
   const jobs = ensureQueue();
+  const now = Date.now();
+  const slaQueuedMs = 5 * 60_000;
+  const slaRunningMs = 10 * 60_000;
+  let sla_breach = 0;
+  for (const j of jobs) {
+    if (j.status === 'queued' && j.at && now - new Date(j.at).getTime() > slaQueuedMs) sla_breach++;
+    if (j.status === 'running' && (j.claimed_at || j.at) && now - new Date(j.claimed_at || j.at).getTime() > slaRunningMs)
+      sla_breach++;
+  }
   const byAgent = {};
   for (const a of AGENTS) {
     byAgent[a] = {
@@ -104,6 +113,8 @@ export function agentQueueOverview() {
       running: jobs.filter((j) => j.status === 'running').length,
       done: jobs.filter((j) => j.status === 'done').length,
       failed: jobs.filter((j) => j.status === 'failed').length,
+      sla_breach,
+      dead_letter: jobs.filter((j) => j.status === 'dead').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -231,4 +242,93 @@ export function tickAgentQueue(actor = 'system') {
     });
   }
   return { ok: true, claimed, completed, overview: agentQueueOverview() };
+}
+
+/**
+ * SLA sweep — eski queued → escalate; stall running → requeue/dead; LİKYA-1 özet.
+ * Demo: queuedAgeMs default 0 (hemen ihlal simülasyonu) veya gerçek yaş.
+ */
+export function runAgentQueueSlaSweep(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const now = Date.now();
+  const queuedLimit = Number(input.queued_ms) >= 0 ? Number(input.queued_ms) : 5 * 60_000;
+  const runningLimit = Number(input.running_ms) >= 0 ? Number(input.running_ms) : 10 * 60_000;
+  const force = !!input.force;
+  const escalated = [];
+  const requeued = [];
+  const dead = [];
+
+  for (let i = 0; i < jobs.length; i++) {
+    const j = jobs[i];
+    if (j.status === 'queued') {
+      const age = j.at ? now - new Date(j.at).getTime() : 0;
+      if (force || age >= queuedLimit) {
+        jobs[i] = {
+          ...j,
+          priority: 'high',
+          sla_breached: true,
+          sla_at: new Date().toISOString(),
+          escalated_to: 'LİKYA-1',
+        };
+        escalated.push(jobs[i].id);
+      }
+    } else if (j.status === 'running') {
+      const started = j.claimed_at || j.at;
+      const age = started ? now - new Date(started).getTime() : 0;
+      if (force || age >= runningLimit) {
+        if (j.sla_requeued) {
+          jobs[i] = {
+            ...j,
+            status: 'dead',
+            result: 'sla-dead-letter',
+            dead_at: new Date().toISOString(),
+          };
+          dead.push(jobs[i].id);
+        } else {
+          jobs[i] = {
+            ...j,
+            status: 'queued',
+            priority: 'high',
+            sla_breached: true,
+            sla_requeued: true,
+            claimed_by: null,
+            claimed_at: null,
+            sla_at: new Date().toISOString(),
+          };
+          requeued.push(jobs[i].id);
+        }
+      }
+    }
+  }
+
+  writeCollection('agent-jobs', jobs);
+
+  let digest = null;
+  if (escalated.length || requeued.length || dead.length) {
+    digest = enqueueAgentJob(
+      {
+        agent: 'LİKYA-1',
+        title: `SLA digest · esc ${escalated.length} · requeue ${requeued.length} · dead ${dead.length}`,
+        priority: 'high',
+        payload: { escalated, requeued, dead },
+      },
+      actor,
+    );
+  }
+
+  appendAudit({
+    actor,
+    action: 'agent.sla_sweep',
+    detail: `esc ${escalated.length} · requeue ${requeued.length} · dead ${dead.length}`,
+    meta: { escalated: escalated.length, requeued: requeued.length, dead: dead.length },
+  });
+
+  return {
+    ok: true,
+    escalated,
+    requeued,
+    dead,
+    digest: digest?.job || null,
+    overview: agentQueueOverview(),
+  };
 }

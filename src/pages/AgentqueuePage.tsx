@@ -88,7 +88,22 @@ export default function AgentqueuePage() {
               >
                 Claim
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runAgentQueueSlaSweep({ force: true }).then((r: any) => {
+                    ping(`SLA esc ${r.escalated?.length ?? 0} · dead ${r.dead?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                SLA sweep
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              SLA ihlal {data.summary?.sla_breach ?? 0} · dead-letter {data.summary?.dead_letter ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="İşler">
             <ul className="space-y-2 text-sm">

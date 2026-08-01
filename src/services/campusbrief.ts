@@ -16,3 +16,23 @@ export async function runCampusAutomations() {
     }),
   )
 }
+
+export async function syncCampusBriefActions() {
+  return parse(
+    await fetch('/api/campusbrief/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
+}
+
+export async function ackCampusBriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

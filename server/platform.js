@@ -6713,9 +6713,9 @@ import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, f
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import { confirmCultureTicket, createCultureEvent, cultureSceneOverview, holdCultureTicket, releaseCultureHold, setCultureLive } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
-import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
+import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
-import { campusBriefOverview, campusHealthCheck, runCampusAutomations } from './campusbrief.js';
+import { ackCampusBriefAction, campusBriefOverview, campusHealthCheck, runCampusAutomations, syncCampusBriefActions } from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
 
 
@@ -36246,6 +36246,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, tickAgentQueue(user.username));
+          return;
+        }
+
+        if (path === '/api/agentqueue/sla-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgentQueueSlaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, syncCampusBriefActions(user.username));
+          return;
+        }
+        if (path === '/api/campusbrief/actions/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCampusBriefAction(await readBody(req), user.username)); })();
           return;
         }
 

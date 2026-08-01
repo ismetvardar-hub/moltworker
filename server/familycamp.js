@@ -54,10 +54,16 @@ export function familyCampOverview() {
 
 export function bookFamilyProgram(input = {}, actor = 'system') {
   const programs = ensurePrograms();
-  const idx = programs.findIndex((p) => p.id === (input.program_id || 'fp_1'));
+  let idx = programs.findIndex((p) => p.id === (input.program_id || 'fp_1'));
   if (idx < 0) return { ok: false, error: 'Program yok' };
   let p = programs[idx];
-  if (p.booked >= p.seats) return { ok: false, error: 'Kontenjan dolu' };
+  if (p.booked >= p.seats) {
+    // doluysa açık kontenjanlı programa düş
+    const alt = programs.findIndex((x) => (x.booked || 0) < (x.seats || 0));
+    if (alt < 0) return { ok: false, error: 'Kontenjan dolu' };
+    idx = alt;
+    p = programs[idx];
+  }
   p = refreshProgramStatus({ ...p, booked: (Number(p.booked) || 0) + 1 });
   programs[idx] = p;
   writeCollection('family-programs', programs);

@@ -1842,6 +1842,8 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | extreme+ | `/api/extreme/weather-hold` · `/slot-reserve` · `/gear-return` | Hold · rezervasyon · iade |
 | sport+ | `/api/sportbridge/eligibility` | Waiver/lisans/readiness sweep |
 | green+ | `/api/greenpulse/automations` | ESG remediation playbook |
+| queue+ | `/api/agentqueue/sla-sweep` | SLA escalate / requeue / dead-letter |
+| brief+ | `/api/campusbrief/actions` · `/ack` | Kalıcı aksiyon kayıt + ack |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

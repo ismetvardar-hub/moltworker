@@ -2,7 +2,7 @@
  * CEO sabah brifi — tüm kampüs nabızları + aksiyon listesi.
  */
 import { appendAudit } from './audit.js';
-import { readCollection } from './store.js';
+import { readCollection, writeCollection } from './store.js';
 import { campusCoreOverview } from './campuscore.js';
 import { stayRingOverview } from './stayring.js';
 import { athleteOsOverview } from './athleteos.js';
@@ -186,11 +186,15 @@ export function campusBriefOverview(actor = 'system') {
     actions.push({ level: 'ok', text: `${culture.summary.live} canlı sahne/yayın`, href: 'culturescene' });
   }
 
+  const register = readCollection('campus-brief-actions', []) || [];
+  const openRegister = (Array.isArray(register) ? register : []).filter((a) => a.status === 'open');
+
   return {
     title: 'CEO Kampüs Brifi',
     ethos: 'Orman önce · sporla beslenen destinasyon · ETHOS güler.',
     headline: `${campus.title || 'LİKYA Kampüs'} — ${new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}`,
     actions,
+    register: openRegister.slice(0, 30),
     pulses: {
       campus: campus.summary,
       stay: stay.summary,
@@ -206,7 +210,71 @@ export function campusBriefOverview(actor = 'system') {
       green: green.summary,
     },
     weather: extreme.weather || null,
+    summary: {
+      derived_actions: actions.length,
+      register_open: openRegister.length,
+      register_acked: (Array.isArray(register) ? register : []).filter((a) => a.status === 'acked').length,
+    },
     generatedAt: new Date().toISOString(),
     actor,
   };
+}
+
+/** Türetilmiş brif aksiyonlarını kalıcı kayıt defterine yaz */
+export function syncCampusBriefActions(actor = 'system') {
+  const brief = campusBriefOverview(actor);
+  const existing = readCollection('campus-brief-actions', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((a) => a.status === 'open').map((a) => `${a.level}|${a.text}|${a.href}`));
+  const created = [];
+  for (const a of brief.actions || []) {
+    const key = `${a.level}|${a.text}|${a.href}`;
+    if (openKeys.has(key)) continue;
+    const row = {
+      id: `cba_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`,
+      level: a.level,
+      text: a.text,
+      href: a.href,
+      status: 'open',
+      owner: null,
+      at: new Date().toISOString(),
+      actor,
+    };
+    list.unshift(row);
+    created.push(row);
+    openKeys.add(key);
+  }
+  writeCollection('campus-brief-actions', list.slice(0, 200));
+  appendAudit({
+    actor,
+    action: 'campusbrief.sync_actions',
+    detail: `${created.length} yeni kayıt`,
+    meta: { n: created.length },
+  });
+  return { ok: true, created, overview: campusBriefOverview(actor) };
+}
+
+export function ackCampusBriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kayıt yok — önce sync' };
+  let idx = list.findIndex((a) => a.id === input.id);
+  if (idx < 0 && input.text) idx = list.findIndex((a) => a.status === 'open' && a.text === input.text);
+  if (idx < 0) idx = list.findIndex((a) => a.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık aksiyon yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    owner: input.owner || actor,
+    note: input.note || '',
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('campus-brief-actions', list);
+  appendAudit({
+    actor,
+    action: 'campusbrief.ack',
+    detail: list[idx].text,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
 }

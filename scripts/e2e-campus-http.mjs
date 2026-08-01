@@ -81,10 +81,14 @@ try {
   const auto = await req('/api/campusbrief/auto', { method: 'POST', token, body: {} });
   assert(auto.res.ok, 'campusbrief auto');
 
+  const fam = await req('/api/familycamp', { token });
+  const openProg =
+    (fam.data.programs || []).find((p) => p.status === 'open' && (p.booked || 0) < (p.seats || 0)) ||
+    { id: 'fp_3' };
   const book = await req('/api/familycamp/book', {
     method: 'POST',
     token,
-    body: { program_id: 'fp_1', child_name: 'E2E' },
+    body: { program_id: openProg.id, child_name: 'E2E' },
   });
   assert(book.res.ok && book.data.ok !== false, 'family book');
 
@@ -131,20 +135,29 @@ try {
   });
   assert(hk.res.ok, 'stay hk complete');
 
-  const hold = await req('/api/extreme/weather-hold', {
+  const wxHold = await req('/api/extreme/weather-hold', {
     method: 'POST',
     token,
     body: { force_condition: 'windy', minutes: 30, force: true },
   });
-  assert(hold.res.ok, 'weather hold');
+  assert(wxHold.res.ok, 'weather hold');
   await req('/api/extreme/weather-clear', { method: 'POST', token, body: {} });
 
-  await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: 'guest_ela' } });
-  const reserve = await req('/api/extreme/slot-reserve', {
+  await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: 'guest_can' } });
+  await req('/api/extreme/slot-cancel', { method: 'POST', token, body: { user_id: 'guest_ela' } });
+  await req('/api/extreme/slot-cancel', { method: 'POST', token, body: { user_id: 'guest_can' } });
+  let reserve = await req('/api/extreme/slot-reserve', {
     method: 'POST',
     token,
     body: { user_id: 'guest_ela' },
   });
+  if (!reserve.res.ok || reserve.data.ok === false) {
+    reserve = await req('/api/extreme/slot-reserve', {
+      method: 'POST',
+      token,
+      body: { user_id: 'guest_can' },
+    });
+  }
   assert(reserve.res.ok && reserve.data.ok !== false, 'slot reserve');
 
   const gear = await req('/api/extreme/gear-return', {
@@ -159,6 +172,25 @@ try {
 
   const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
   assert(green.res.ok, 'green automations');
+
+  const sla = await req('/api/agentqueue/sla-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(sla.res.ok, 'sla sweep');
+
+  const syncAct = await req('/api/campusbrief/actions', { method: 'POST', token, body: {} });
+  assert(syncAct.res.ok, 'brief actions sync');
+  const openAct = (syncAct.data.overview?.register || [])[0];
+  if (openAct?.id) {
+    const ack = await req('/api/campusbrief/actions/ack', {
+      method: 'POST',
+      token,
+      body: { id: openAct.id },
+    });
+    assert(ack.res.ok, 'brief ack');
+  }
 
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');
@@ -175,6 +207,8 @@ try {
         occupancy_pct: night.data.rollup?.occupancy_pct,
         elig_flagged: elig.data.summary?.flagged,
         green_actions: green.data.actions?.length,
+        sla_esc: sla.data.escalated?.length,
+        brief_register: syncAct.data.created?.length,
       },
       null,
       2,

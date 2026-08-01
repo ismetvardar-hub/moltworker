@@ -22,9 +22,21 @@ import {
   processLifeFlags,
   lifeCoachCheckIn,
 } from '../server/lifecoach.js';
-import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, tickAgentQueue } from '../server/agentqueue.js';
+import {
+  agentQueueOverview,
+  enqueueAgentJob,
+  claimAgentJob,
+  completeAgentJob,
+  tickAgentQueue,
+  runAgentQueueSlaSweep,
+} from '../server/agentqueue.js';
 import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
-import { campusBriefOverview, runCampusAutomations } from '../server/campusbrief.js';
+import {
+  campusBriefOverview,
+  runCampusAutomations,
+  syncCampusBriefActions,
+  ackCampusBriefAction,
+} from '../server/campusbrief.js';
 import {
   extremeSlotWeatherCheck,
   applyExtremeWeatherHold,
@@ -156,6 +168,13 @@ assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 const brief = campusBriefOverview('smoke');
 assert(brief.pulses?.green && brief.actions, 'campus brief');
 runCampusAutomations('smoke');
+const synced = syncCampusBriefActions('smoke');
+assert(synced.ok, 'brief actions sync');
+if ((synced.overview?.register || []).length) {
+  ackCampusBriefAction({ id: synced.overview.register[0].id }, 'smoke');
+}
+const sla = runAgentQueueSlaSweep({ force: true }, 'smoke');
+assert(sla.ok, 'agent sla sweep');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
 const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, force: true }, 'smoke');
 assert(hold.ok, 'weather hold');

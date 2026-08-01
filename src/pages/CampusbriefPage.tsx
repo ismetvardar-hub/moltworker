@@ -67,18 +67,55 @@ export default function CampusbriefPage() {
                 </li>
               ))}
             </ul>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
-              onClick={() =>
-                void api.runCampusAutomations().then((r: any) => {
-                  ping(`Otomasyon ${r.actions?.length ?? 0}`)
-                  return refresh()
-                })
-              }
-            >
-              Çapraz otomasyon çalıştır
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.runCampusAutomations().then((r: any) => {
+                    ping(`Otomasyon ${r.actions?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Çapraz otomasyon çalıştır
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.syncCampusBriefActions().then((r: any) => {
+                    ping(`Kayıt +${r.created?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Aksiyon kayıt sync
+              </button>
+            </div>
+            {(data.register || []).length > 0 && (
+              <ul className="mt-3 space-y-1 text-xs text-slate-400">
+                {(data.register || []).slice(0, 6).map((r: any) => (
+                  <li key={r.id} className="flex items-center justify-between gap-2">
+                    <span>
+                      [{r.level}] {r.text}
+                    </span>
+                    <button
+                      type="button"
+                      className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-lykia-200"
+                      onClick={() =>
+                        void api.ackCampusBriefAction({ id: r.id }).then(() => {
+                          ping('Ack')
+                          return refresh()
+                        })
+                      }
+                    >
+                      Ack
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="mt-2 text-[11px] text-slate-500">{data.ethos}</p>
           </PanelCard>
           <PanelCard title="Nabız panosu">

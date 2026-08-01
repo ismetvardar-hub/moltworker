@@ -34,3 +34,13 @@ export async function completeAgentJob(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runAgentQueueSlaSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/sla-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
