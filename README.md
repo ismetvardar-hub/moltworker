@@ -273,7 +273,7 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | Aşama | Özellik |
 |-------|---------|
 | **40** | Menü kataloğu (`/api/menu`) |
-| **41** | Kampanya / promo (`/api/campaigns`) |
+| **41** | Kampanya / promo (`/api/campdesks`) |
 | **42** | BABEL lokalizasyon notları (`/api/i18n`) |
 | **43** | LOGOS soğuk zincir (`/api/coldchain`) |
 | **44** | Vardiya teslim notları (`/api/handover`) |
@@ -298,7 +298,7 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **53** | Fire / atık (`/api/waste`) |
 | **54** | Oturma planı (`/api/seating`) |
 | **55** | Bekleme listesi (`/api/waitlist`) |
-| **56** | Şikayet kuyruğu (`/api/complaints`) |
+| **56** | Şikayet kuyruğu (`/api/guestcases`) |
 | **57** | Takdir / kudos (`/api/kudos`) |
 | **58** | Çalışma saatleri (`/api/hours`) |
 | **59** | Hava brifi (`/api/weather`) |
@@ -930,6 +930,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **538** | Scorecard |
 | **539** | Decid Log |
 | **540** | Oracle checkpoint (`/api/oracle`) |
+
+### Loyalty OS · Crown (AŞAMA 541–555)
+
+| Aşama | Özellik |
+|-------|---------|
+| **541** | Member Desk |
+| **542** | Tier Ladder |
+| **543** | Point Ledger |
+| **544** | Perk Shop |
+| **545** | Referral |
+| **546** | Gift Card |
+| **547** | VIP Desk |
+| **548** | Stay History |
+| **549** | Prefer Note |
+| **550** | NPS Pulse |
+| **551** | Complaint |
+| **552** | Praise |
+| **553** | Winback |
+| **554** | Club Night |
+| **555** | Crown checkpoint (`/api/crown`) |
+
+### Marketing OS · Beacon (AŞAMA 556–570)
+
+| Aşama | Özellik |
+|-------|---------|
+| **556** | Campaign |
+| **557** | Content Cal |
+| **558** | Social Queue |
+| **559** | Creator Desk |
+| **560** | UTM Track |
+| **561** | Landing |
+| **562** | A/B Copy |
+| **563** | SEO Page |
+| **564** | Push Desk |
+| **565** | Email Blast |
+| **566** | Press Pack |
+| **567** | Brand Kit |
+| **568** | Media Buy |
+| **569** | Lead Magnet |
+| **570** | Beacon checkpoint (`/api/beacon`) |
+
+### Treasury OS · Vault (AŞAMA 571–585)
+
+| Aşama | Özellik |
+|-------|---------|
+| **571** | Treasury |
+| **572** | Cash Flow |
+| **573** | AP Desk |
+| **574** | AR Desk |
+| **575** | Invoice Desk |
+| **576** | Tax Desk |
+| **577** | Budget Line |
+| **578** | FX Desk |
+| **579** | Bank Recon |
+| **580** | Payout |
+| **581** | Petty Cash |
+| **582** | Cost Center |
+| **583** | GL Map |
+| **584** | Close Book |
+| **585** | Vault checkpoint (`/api/vault`) |
 
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 

@@ -30,6 +30,10 @@ for (const s of stages) {
 }
 if (reserved.has(checkpoint.id) || ALWAYS.has(checkpoint.id)) throw new Error('COLLIDE ' + checkpoint.id);
 
+const RESERVED_VARS = new Set(['eval','arguments','await','yield','let','const','var','class','return','default','import','export']);
+for (const sig of checkpoint.signals || []) {
+  if (RESERVED_VARS.has(sig.varName)) throw new Error('RESERVED varName ' + sig.varName);
+}
 const iconMod = await import('lucide-react');
 for (const s of stages) {
   if (!iconMod[s.icon]) throw new Error('Missing icon ' + s.icon);
@@ -331,7 +335,7 @@ const routeBlock =
         }
 `;
 
-if (!platform.includes(`/api/${cp.id}`)) {
+if (!platform.includes(`path === '/api/${cp.id}'`)) {
   const anchor = `        if (path === '/api/${prevCheckpoint.id}' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, ${prevBuild}());
@@ -432,7 +436,7 @@ fs.writeFileSync('server/ops.js', ops);
 
 let oapi = fs.readFileSync('server/openapi.js', 'utf8');
 oapi = oapi.replace(openapiFrom, openapiTo);
-if (!oapi.includes(`/api/${cp.id}`)) {
+if (!oapi.includes(`'/api/${cp.id}':`)) {
   const paths =
     stages.map((s) => `      '/api/${s.id}': { get: { summary: '${s.title}', tags: ['${s.id}'] } },`).join('\n') +
     `\n      '/api/${cp.id}': { get: { summary: '${cp.title}', tags: ['${cp.id}'] } },`;
@@ -441,7 +445,7 @@ if (!oapi.includes(`/api/${cp.id}`)) {
     `      '/api/${prevCheckpoint.id}': { get: { summary: '${prevCheckpoint.openapiSummary || pascal(prevCheckpoint.id)}', tags: ['${prevCheckpoint.id}'] } },\n${paths}`,
   );
   // fallback if summary text differs
-  if (!oapi.includes(`/api/${cp.id}`)) {
+  if (!oapi.includes(`'/api/${cp.id}':`)) {
     const looser = new RegExp(`('/api/${prevCheckpoint.id}': \\{ get: \\{ summary: '[^']*', tags: \\['${prevCheckpoint.id}'\\] \\} \\},)`);
     if (!looser.test(oapi)) throw new Error('openapi prev path not found');
     oapi = oapi.replace(looser, `$1\n${paths}`);

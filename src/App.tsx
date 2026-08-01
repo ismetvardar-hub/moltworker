@@ -539,6 +539,51 @@ import AbtestPage from './pages/AbtestPage';
 import ScorecardPage from './pages/ScorecardPage';
 import DecidlogPage from './pages/DecidlogPage';
 import OraclePage from './pages/OraclePage';
+import MemberdeskPage from './pages/MemberdeskPage';
+import TierladderPage from './pages/TierladderPage';
+import PointledgerPage from './pages/PointledgerPage';
+import PerkshopPage from './pages/PerkshopPage';
+import ReferralPage from './pages/ReferralPage';
+import GiftcardPage from './pages/GiftcardPage';
+import VipdeskPage from './pages/VipdeskPage';
+import StayhistoryPage from './pages/StayhistoryPage';
+import PrefernotePage from './pages/PrefernotePage';
+import NpspulsePage from './pages/NpspulsePage';
+import GuestcasePage from './pages/GuestcasePage';
+import PraisePage from './pages/PraisePage';
+import WinbackPage from './pages/WinbackPage';
+import ClubnightPage from './pages/ClubnightPage';
+import CrownPage from './pages/CrownPage';
+import CampdeskPage from './pages/CampdeskPage';
+import ContentcalPage from './pages/ContentcalPage';
+import SocialqueuePage from './pages/SocialqueuePage';
+import CreatordeskPage from './pages/CreatordeskPage';
+import UtmtrackPage from './pages/UtmtrackPage';
+import LandingPage from './pages/LandingPage';
+import AbcopyPage from './pages/AbcopyPage';
+import SeopagePage from './pages/SeopagePage';
+import PushdeskPage from './pages/PushdeskPage';
+import EmailblastPage from './pages/EmailblastPage';
+import PresspackPage from './pages/PresspackPage';
+import BrandkitPage from './pages/BrandkitPage';
+import MediabuyPage from './pages/MediabuyPage';
+import LeadmagnetPage from './pages/LeadmagnetPage';
+import BeaconPage from './pages/BeaconPage';
+import TreasuryPage from './pages/TreasuryPage';
+import CashflowPage from './pages/CashflowPage';
+import ApdeskPage from './pages/ApdeskPage';
+import ArdeskPage from './pages/ArdeskPage';
+import InvoicedeskPage from './pages/InvoicedeskPage';
+import TaxdeskPage from './pages/TaxdeskPage';
+import BudgetlinePage from './pages/BudgetlinePage';
+import FxdeskPage from './pages/FxdeskPage';
+import BankreconPage from './pages/BankreconPage';
+import PayoutPage from './pages/PayoutPage';
+import PettycashPage from './pages/PettycashPage';
+import CostcenterPage from './pages/CostcenterPage';
+import GlmapPage from './pages/GlmapPage';
+import ClosebookPage from './pages/ClosebookPage';
+import VaultPage from './pages/VaultPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1047,6 +1092,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   scorecard: ScorecardPage,
   decidlog: DecidlogPage,
   oracle: OraclePage,
+  memberdesk: MemberdeskPage,
+  tierladder: TierladderPage,
+  pointledger: PointledgerPage,
+  perkshop: PerkshopPage,
+  referral: ReferralPage,
+  giftcard: GiftcardPage,
+  vipdesk: VipdeskPage,
+  stayhistory: StayhistoryPage,
+  prefernote: PrefernotePage,
+  npspulse: NpspulsePage,
+  guestcase: GuestcasePage,
+  praise: PraisePage,
+  winback: WinbackPage,
+  clubnight: ClubnightPage,
+  crown: CrownPage,
+  campdesk: CampdeskPage,
+  contentcal: ContentcalPage,
+  socialqueue: SocialqueuePage,
+  creatordesk: CreatordeskPage,
+  utmtrack: UtmtrackPage,
+  landing: LandingPage,
+  abcopy: AbcopyPage,
+  seopage: SeopagePage,
+  pushdesk: PushdeskPage,
+  emailblast: EmailblastPage,
+  presspack: PresspackPage,
+  brandkit: BrandkitPage,
+  mediabuy: MediabuyPage,
+  leadmagnet: LeadmagnetPage,
+  beacon: BeaconPage,
+  treasury: TreasuryPage,
+  cashflow: CashflowPage,
+  apdesk: ApdeskPage,
+  ardesk: ArdeskPage,
+  invoicedesk: InvoicedeskPage,
+  taxdesk: TaxdeskPage,
+  budgetline: BudgetlinePage,
+  fxdesk: FxdeskPage,
+  bankrecon: BankreconPage,
+  payout: PayoutPage,
+  pettycash: PettycashPage,
+  costcenter: CostcenterPage,
+  glmap: GlmapPage,
+  closebook: ClosebookPage,
+  vault: VaultPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
