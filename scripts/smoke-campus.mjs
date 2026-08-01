@@ -418,6 +418,18 @@ import {
   endStudioLive,
   deliverStudioBrief,
 } from '../server/studio.js';
+import {
+  buildAether, runAetherSweep, ackAetherFlag, activateAetherPartner, closeAetherDeal, liveAetherCoinvest,
+} from '../server/aether.js';
+import {
+  buildAurora, runAuroraSweep, ackAuroraFlag, clearAuroraFlow, endAuroraLight, dayAuroraNightmode,
+} from '../server/aurora.js';
+import {
+  buildHorizon, runHorizonSweep, ackHorizonFlag, clearHorizonAllergy, closeHorizonTabs, approveHorizonComps,
+} from '../server/horizon.js';
+import {
+  buildBazaar, runBazaarSweep, ackBazaarFlag, healBazaarStock, reviewBazaarShrink, dispatchBazaarDark,
+} from '../server/bazaar.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -984,6 +996,35 @@ assert(approveStudioUgc({}, 'smoke').ok, 'studio ugc approve');
 assert(endStudioLive({}, 'smoke').ok, 'studio live end');
 assert(deliverStudioBrief({}, 'smoke').ok, 'studio brief deliver');
 assert(ackStudioFlag({}, 'smoke').ok, 'studio flag ack');
+
+
+assert(buildAether().title, 'aether overview');
+assert(runAetherSweep({ force: true }, 'smoke').ok, 'aether sweep');
+assert(activateAetherPartner({}, 'smoke').ok, 'aether partner activate');
+assert(closeAetherDeal({}, 'smoke').ok, 'aether deal close');
+assert(liveAetherCoinvest({}, 'smoke').ok, 'aether coinvest live');
+assert(ackAetherFlag({}, 'smoke').ok, 'aether flag ack');
+
+assert(buildAurora().title, 'aurora overview');
+assert(runAuroraSweep({ force: true }, 'smoke').ok, 'aurora sweep');
+assert(clearAuroraFlow({}, 'smoke').ok, 'aurora flow clear');
+assert(endAuroraLight({}, 'smoke').ok, 'aurora light end');
+assert(dayAuroraNightmode({}, 'smoke').ok, 'aurora night day');
+assert(ackAuroraFlag({}, 'smoke').ok, 'aurora flag ack');
+
+assert(buildHorizon().title, 'horizon overview');
+assert(runHorizonSweep({ force: true }, 'smoke').ok, 'horizon sweep');
+assert(clearHorizonAllergy({}, 'smoke').ok, 'horizon allergy clear');
+assert(closeHorizonTabs({}, 'smoke').ok, 'horizon tab close');
+assert(approveHorizonComps({}, 'smoke').ok, 'horizon comp approve');
+assert(ackHorizonFlag({}, 'smoke').ok, 'horizon flag ack');
+
+assert(buildBazaar().title, 'bazaar overview');
+assert(runBazaarSweep({ force: true }, 'smoke').ok, 'bazaar sweep');
+assert(healBazaarStock({}, 'smoke').ok, 'bazaar stock heal');
+assert(reviewBazaarShrink({}, 'smoke').ok, 'bazaar shrink review');
+assert(dispatchBazaarDark({}, 'smoke').ok, 'bazaar dark dispatch');
+assert(ackBazaarFlag({}, 'smoke').ok, 'bazaar flag ack');
 
 console.log(
   JSON.stringify(

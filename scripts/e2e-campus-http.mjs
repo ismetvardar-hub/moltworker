@@ -105,6 +105,10 @@ try {
     '/api/meridian',
     '/api/nightly',
     '/api/studio',
+    '/api/aether',
+    '/api/aurora',
+    '/api/horizon',
+    '/api/bazaar',
     '/api/health',
   ];
   for (const p of paths) {
@@ -893,6 +897,50 @@ try {
   assert(stBrief.res.ok && stBrief.data.ok !== false, 'studio brief deliver');
   const stAck = await req('/api/studio/flag/ack', { method: 'POST', token, body: {} });
   assert(stAck.res.ok && stAck.data.ok !== false, 'studio flag ack');
+
+  const athSweep = await req('/api/aether/sweep', { method: 'POST', token, body: { force: true } });
+  assert(athSweep.res.ok && athSweep.data.ok !== false, 'aether sweep');
+  const athPart = await req('/api/aether/partner/activate', { method: 'POST', token, body: {} });
+  assert(athPart.res.ok && athPart.data.ok !== false, 'aether partner activate');
+  const athDeal = await req('/api/aether/deal/close', { method: 'POST', token, body: {} });
+  assert(athDeal.res.ok && athDeal.data.ok !== false, 'aether deal close');
+  const athCoin = await req('/api/aether/coinvest/live', { method: 'POST', token, body: {} });
+  assert(athCoin.res.ok && athCoin.data.ok !== false, 'aether coinvest live');
+  const athAck = await req('/api/aether/flag/ack', { method: 'POST', token, body: {} });
+  assert(athAck.res.ok && athAck.data.ok !== false, 'aether flag ack');
+
+  const auSweep = await req('/api/aurora/sweep', { method: 'POST', token, body: { force: true } });
+  assert(auSweep.res.ok && auSweep.data.ok !== false, 'aurora sweep');
+  const auFlow = await req('/api/aurora/flow/clear', { method: 'POST', token, body: {} });
+  assert(auFlow.res.ok && auFlow.data.ok !== false, 'aurora flow clear');
+  const auLight = await req('/api/aurora/light/end', { method: 'POST', token, body: {} });
+  assert(auLight.res.ok && auLight.data.ok !== false, 'aurora light end');
+  const auNight = await req('/api/aurora/night/day', { method: 'POST', token, body: {} });
+  assert(auNight.res.ok && auNight.data.ok !== false, 'aurora night day');
+  const auAck = await req('/api/aurora/flag/ack', { method: 'POST', token, body: {} });
+  assert(auAck.res.ok && auAck.data.ok !== false, 'aurora flag ack');
+
+  const hzSweep = await req('/api/horizon/sweep', { method: 'POST', token, body: { force: true } });
+  assert(hzSweep.res.ok && hzSweep.data.ok !== false, 'horizon sweep');
+  const hzAlg = await req('/api/horizon/allergy/clear', { method: 'POST', token, body: {} });
+  assert(hzAlg.res.ok && hzAlg.data.ok !== false, 'horizon allergy clear');
+  const hzTab = await req('/api/horizon/tab/close', { method: 'POST', token, body: {} });
+  assert(hzTab.res.ok && hzTab.data.ok !== false, 'horizon tab close');
+  const hzComp = await req('/api/horizon/comp/approve', { method: 'POST', token, body: {} });
+  assert(hzComp.res.ok && hzComp.data.ok !== false, 'horizon comp approve');
+  const hzAck = await req('/api/horizon/flag/ack', { method: 'POST', token, body: {} });
+  assert(hzAck.res.ok && hzAck.data.ok !== false, 'horizon flag ack');
+
+  const bzSweep = await req('/api/bazaar/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bzSweep.res.ok && bzSweep.data.ok !== false, 'bazaar sweep');
+  const bzStock = await req('/api/bazaar/stock/heal', { method: 'POST', token, body: {} });
+  assert(bzStock.res.ok && bzStock.data.ok !== false, 'bazaar stock heal');
+  const bzShrink = await req('/api/bazaar/shrink/review', { method: 'POST', token, body: {} });
+  assert(bzShrink.res.ok && bzShrink.data.ok !== false, 'bazaar shrink review');
+  const bzDark = await req('/api/bazaar/dark/dispatch', { method: 'POST', token, body: {} });
+  assert(bzDark.res.ok && bzDark.data.ok !== false, 'bazaar dark dispatch');
+  const bzAck = await req('/api/bazaar/flag/ack', { method: 'POST', token, body: {} });
+  assert(bzAck.res.ok && bzAck.data.ok !== false, 'bazaar flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

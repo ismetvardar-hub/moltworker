@@ -1196,7 +1196,14 @@ import {
   revpulseSummary,
   updateRevpulse,
 } from './revpulse.js';
-import { buildHorizon } from './horizon.js';
+import {
+  ackHorizonFlag,
+  approveHorizonComps,
+  buildHorizon,
+  clearHorizonAllergy,
+  closeHorizonTabs,
+  runHorizonSweep,
+} from './horizon.js';
 import {
   createStayext,
   listStayext,
@@ -2520,7 +2527,14 @@ import {
   dawnmodeSummary,
   updateDawnmode,
 } from './dawnmode.js';
-import { buildAurora } from './aurora.js';
+import {
+  ackAuroraFlag,
+  buildAurora,
+  clearAuroraFlow,
+  dayAuroraNightmode,
+  endAuroraLight,
+  runAuroraSweep,
+} from './aurora.js';
 import {
   createMiseplan,
   listMiseplan,
@@ -3752,7 +3766,14 @@ import {
   poslaneSummary,
   updatePoslane,
 } from './poslane.js';
-import { buildBazaar } from './bazaar.js';
+import {
+  ackBazaarFlag,
+  buildBazaar,
+  dispatchBazaarDark,
+  healBazaarStock,
+  reviewBazaarShrink,
+  runBazaarSweep,
+} from './bazaar.js';
 import {
   createMediawall,
   listMediawall,
@@ -6153,7 +6174,14 @@ import {
   onboardkit3Summary,
   updateOnboardkit3,
 } from './onboardkit3.js';
-import { buildAether } from './aether.js';
+import {
+  ackAetherFlag,
+  activateAetherPartner,
+  buildAether,
+  closeAetherDeal,
+  liveAetherCoinvest,
+  runAetherSweep,
+} from './aether.js';
 import {
   createInboundpo3,
   listInboundpo3,
@@ -13304,6 +13332,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildHorizon());
           return;
         }
+        if (path === '/api/horizon/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHorizonSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/horizon/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHorizonFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/horizon/allergy/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearHorizonAllergy(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/horizon/tab/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeHorizonTabs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/horizon/comp/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveHorizonComps(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 226–240 ──
 
@@ -18869,6 +18927,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildAurora());
           return;
         }
+        if (path === '/api/aurora/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAuroraSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aurora/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAuroraFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aurora/flow/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearAuroraFlow(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aurora/light/end' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, endAuroraLight(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aurora/night/day' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, dayAuroraNightmode(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Culinary OS · Hearth (AŞAMA 451–465) ──
 
@@ -24045,6 +24133,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/bazaar' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildBazaar());
+          return;
+        }
+        if (path === '/api/bazaar/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBazaarSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bazaar/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBazaarFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bazaar/stock/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healBazaarStock(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bazaar/shrink/review' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reviewBazaarShrink(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bazaar/dark/dispatch' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, dispatchBazaarDark(await readBody(req), user.username)); })();
           return;
         }
 
@@ -34131,6 +34249,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/aether' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildAether());
+          return;
+        }
+        if (path === '/api/aether/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAetherSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aether/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAetherFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aether/partner/activate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, activateAetherPartner(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aether/deal/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAetherDeal(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/aether/coinvest/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveAetherCoinvest(await readBody(req), user.username)); })();
           return;
         }
 
