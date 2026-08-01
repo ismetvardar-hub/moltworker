@@ -36,6 +36,10 @@ const IMPORTANT = new Set([
   'loyalty.adjust',
   'incidents.create',
   'incidents.ack',
+  'suppliers.create',
+  'po.create',
+  'po.receive',
+  'feedback.create',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

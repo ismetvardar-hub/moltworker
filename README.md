@@ -236,6 +236,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **26** | AURA sadakat / Daze-Gift defteri (`/api/loyalty`) |
 | **27** | Olay panosu — stok + görev + geçiş birleşik (`/api/incidents`) |
 
+### Tedarik · NPS · Export (AŞAMA 28–30)
+
+| Aşama | Özellik |
+|-------|---------|
+| **28** | AGORA tedarikçi & satınalma (`/api/suppliers`, `/api/purchase-orders`) |
+| **29** | Misafir geri bildirim / NPS (`/api/feedback`) |
+| **30** | CSV dışa aktarım merkezi (`/api/exports`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

@@ -26,6 +26,9 @@ import ShiftsPage from './pages/ShiftsPage';
 import ReservationsPage from './pages/ReservationsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import IncidentsPage from './pages/IncidentsPage';
+import SuppliersPage from './pages/SuppliersPage';
+import FeedbackPage from './pages/FeedbackPage';
+import ExportsPage from './pages/ExportsPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -60,6 +63,9 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   reservations: ReservationsPage,
   loyalty: LoyaltyPage,
   incidents: IncidentsPage,
+  suppliers: SuppliersPage,
+  feedback: FeedbackPage,
+  exports: ExportsPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,

@@ -39,6 +39,9 @@ const BACKUP_COLLECTIONS = [
   'loyalty-ledger',
   'incidents',
   'incident-acks',
+  'suppliers',
+  'purchase-orders',
+  'feedback',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

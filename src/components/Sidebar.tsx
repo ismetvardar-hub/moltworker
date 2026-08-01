@@ -27,6 +27,9 @@ import {
   CalendarCheck,
   Gift,
   AlertTriangle,
+  Truck,
+  MessageSquareHeart,
+  Download,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -44,6 +47,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'webhooks',
   'docs',
   'incidents',
+  'exports',
 ]);
 
 interface SidebarProps {
@@ -196,6 +200,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Olay Panosu',
     description: 'Stok · görev · geçiş',
     icon: AlertTriangle,
+  },
+  {
+    id: 'suppliers',
+    label: 'Tedarik',
+    description: 'AGORA satınalma',
+    icon: Truck,
+  },
+  {
+    id: 'feedback',
+    label: 'Geri Bildirim',
+    description: 'NPS & yorumlar',
+    icon: MessageSquareHeart,
+  },
+  {
+    id: 'exports',
+    label: 'Dışa Aktarım',
+    description: 'CSV katalog',
+    icon: Download,
   },
   {
     id: 'webhooks',

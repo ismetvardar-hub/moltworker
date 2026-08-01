@@ -109,6 +109,18 @@ import {
   incidentsSummary,
   listIncidents,
 } from './incidents.js';
+import {
+  createPurchaseOrder,
+  createSupplier,
+  listPurchaseOrders,
+  listSuppliers,
+  receivePurchaseOrder,
+  removePurchaseOrder,
+  suppliersSummary,
+  updatePurchaseOrder,
+} from './suppliers.js';
+import { createFeedback, feedbackSummary, listFeedback } from './feedback.js';
+import { buildExport, listExportCatalog } from './exports.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -120,6 +132,8 @@ listGuests();
 listReservations();
 listLoyaltyAccounts();
 listIncidents();
+listSuppliers();
+listFeedback();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1151,6 +1165,143 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, { incident });
           })();
+          return;
+        }
+
+        // ── AŞAMA 28: Tedarik / satınalma ─────────────────────────────
+        if (path === '/api/suppliers' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...suppliersSummary(),
+            suppliers: listSuppliers(),
+            orders: listPurchaseOrders(),
+          });
+          return;
+        }
+        if (path === '/api/suppliers' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew tedarikçi ekleyemez' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, { supplier: createSupplier(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path === '/api/purchase-orders' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            orders: listPurchaseOrders({
+              status: url.searchParams.get('status') || undefined,
+              supplierId: url.searchParams.get('supplierId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/purchase-orders' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew sipariş açamaz' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, {
+              order: createPurchaseOrder(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/purchase-orders/') && path.endsWith('/receive') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const result = receivePurchaseOrder(id, user.username);
+          if (!result) {
+            sendJson(res, 404, { error: 'Sipariş bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, result);
+          return;
+        }
+        if (path.startsWith('/api/purchase-orders/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const order = updatePurchaseOrder(id, await readBody(req), user.username);
+            if (!order) {
+              sendJson(res, 404, { error: 'Sipariş bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { order });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/purchase-orders/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const order = removePurchaseOrder(id, user.username);
+          if (!order) {
+            sendJson(res, 404, { error: 'Silinemedi (yok veya teslim alınmış)' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, order });
+          return;
+        }
+
+        // ── AŞAMA 29: Geri bildirim / NPS ─────────────────────────────
+        if (path === '/api/feedback' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...feedbackSummary(),
+            feedback: listFeedback({
+              venueId: url.searchParams.get('venueId') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+              channel: url.searchParams.get('channel') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/feedback' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { feedback: createFeedback(await readBody(req), user.username) });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 30: CSV export ──────────────────────────────────────
+        if (path === '/api/exports' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { catalog: listExportCatalog() });
+          return;
+        }
+        if (path.startsWith('/api/exports/') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const file = buildExport(id);
+          if (!file) {
+            sendJson(res, 404, { error: 'Export türü bulunamadı', catalog: listExportCatalog() });
+            return;
+          }
+          const url = new URL(req.url ?? '', 'http://local');
+          if (url.searchParams.get('format') === 'json') {
+            sendJson(res, 200, file);
+            return;
+          }
+          res.statusCode = 200;
+          res.setHeader('Content-Type', file.contentType);
+          res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(file.csv);
           return;
         }
 

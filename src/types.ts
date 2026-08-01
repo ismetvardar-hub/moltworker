@@ -22,6 +22,9 @@ export type PageId =
   | 'reservations'
   | 'loyalty'
   | 'incidents'
+  | 'suppliers'
+  | 'feedback'
+  | 'exports'
   | 'docs'
   | 'webhooks'
   | 'settings';
