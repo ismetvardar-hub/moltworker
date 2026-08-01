@@ -329,6 +329,21 @@ import QrpayPage from './pages/QrpayPage';
 import CourierpoolPage from './pages/CourierpoolPage';
 import GiftrelayPage from './pages/GiftrelayPage';
 import VanguardPage from './pages/VanguardPage';
+import EdgegatePage from './pages/EdgegatePage';
+import MeshlinkPage from './pages/MeshlinkPage';
+import RadiomeshPage from './pages/RadiomeshPage';
+import SensorfusePage from './pages/SensorfusePage';
+import OtafirmPage from './pages/OtafirmPage';
+import DevinventoryPage from './pages/DevinventoryPage';
+import PowerbudgetPage from './pages/PowerbudgetPage';
+import BackhaulPage from './pages/BackhaulPage';
+import Edgecache2Page from './pages/Edgecache2Page';
+import SyncreplPage from './pages/SyncreplPage';
+import FailoverPage from './pages/FailoverPage';
+import TelemetryPage from './pages/TelemetryPage';
+import NetslicePage from './pages/NetslicePage';
+import SatlinkPage from './pages/SatlinkPage';
+import LatticePage from './pages/LatticePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -627,6 +642,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   courierpool: CourierpoolPage,
   giftrelay: GiftrelayPage,
   vanguard: VanguardPage,
+  edgegate: EdgegatePage,
+  meshlink: MeshlinkPage,
+  radiomesh: RadiomeshPage,
+  sensorfuse: SensorfusePage,
+  otafirm: OtafirmPage,
+  devinventory: DevinventoryPage,
+  powerbudget: PowerbudgetPage,
+  backhaul: BackhaulPage,
+  edgecache2: Edgecache2Page,
+  syncrepl: SyncreplPage,
+  failover: FailoverPage,
+  telemetry: TelemetryPage,
+  netslice: NetslicePage,
+  satlink: SatlinkPage,
+  lattice: LatticePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

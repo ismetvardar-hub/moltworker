@@ -651,6 +651,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **329** | Hediye relay |
 | **330** | Vanguard · Nexus Prime (`/api/vanguard`) |
 
+### Edge Mesh · Lattice (AŞAMA 331–345)
+
+| Aşama | Özellik |
+|-------|---------|
+| **331** | Edge Gate |
+| **332** | Mesh Link |
+| **333** | Radio Mesh |
+| **334** | Sensor Fuse |
+| **335** | OTA Firmware |
+| **336** | Cihaz Envanter |
+| **337** | Güç Bütçe |
+| **338** | Backhaul |
+| **339** | Edge Store |
+| **340** | Sync Replica |
+| **341** | Failover |
+| **342** | Telemetry |
+| **343** | Net Slice |
+| **344** | Sat Link |
+| **345** | Lattice checkpoint (`/api/lattice`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

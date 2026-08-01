@@ -213,6 +213,14 @@ import {
   RefreshCw,
   Tags,
   Rocket,
+  Router,
+  RadioTower,
+  Antenna,
+  CloudUpload,
+  Cable,
+  CloudDownload,
+  Unplug,
+  Satellite,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -254,6 +262,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'brandpulse',
   'cognisphere',
   'vanguard',
+  'lattice',
 ]);
 
 interface SidebarProps {
@@ -773,6 +782,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'qrpay', label: 'QR Pay', description: 'QR ödeme oturumları.', icon: QrCode },
   { id: 'courierpool', label: 'Kurye Havuzu', description: 'Aktif kurye kapasitesi.', icon: Bike },
   { id: 'giftrelay', label: 'Hediye Relay', description: 'İkram / hediye zincir teslimatı.', icon: Gift },
+    { id: 'edgegate', label: 'Edge Gate', description: 'Kenar ağ geçidi durumu.', icon: Router },
+  { id: 'meshlink', label: 'Mesh Link', description: 'Mesh düğüm bağlantıları.', icon: Network },
+  { id: 'radiomesh', label: 'Radio Mesh', description: 'Radyo mesh kanal sağlığı.', icon: RadioTower },
+  { id: 'sensorfuse', label: 'Sensor Fuse', description: 'Sensör füzyon olayları.', icon: Antenna },
+  { id: 'otafirm', label: 'OTA Firmware', description: 'Cihaz OTA firmware kuyruğu.', icon: CloudUpload },
+  { id: 'devinventory', label: 'Cihaz Envanter', description: 'IoT cihaz envanter satırları.', icon: HardDrive },
+  { id: 'powerbudget', label: 'Güç Bütçe', description: 'Edge güç bütçe limitleri.', icon: Zap },
+  { id: 'backhaul', label: 'Backhaul', description: 'Backhaul hat durumu.', icon: Cable },
+  { id: 'edgecache2', label: 'Edge Store', description: 'Kenar önbellek / store durumu.', icon: DatabaseBackup },
+  { id: 'syncrepl', label: 'Sync Replica', description: 'Edge→cloud sync replica.', icon: CloudDownload },
+  { id: 'failover', label: 'Failover', description: 'Edge failover olayları.', icon: Unplug },
+  { id: 'telemetry', label: 'Telemetry', description: 'Telemetry örnek satırları.', icon: Activity },
+  { id: 'netslice', label: 'Net Slice', description: 'Ağ dilimi / QoS tanımları.', icon: Layers },
+  { id: 'satlink', label: 'Sat Link', description: 'Yedek uydu bağlantısı.', icon: Satellite },
+  { id: 'lattice', label: 'Lattice', description: 'AŞAMA 345 edge mesh özeti.', icon: Radar },
   { id: 'vanguard', label: 'Vanguard', description: 'AŞAMA 330 Nexus Prime özeti.', icon: Rocket },
   { id: 'cognisphere', label: 'Cognisphere', description: 'AŞAMA 315 AI özeti.', icon: BrainCircuit },
   { id: 'brandpulse', label: 'Brand Pulse', description: 'AŞAMA 300 marka özeti.', icon: Sparkles },
