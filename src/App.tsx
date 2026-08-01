@@ -134,6 +134,21 @@ import MocktailsPage from './pages/MocktailsPage';
 import PromosPage from './pages/PromosPage';
 import DawnservicePage from './pages/DawnservicePage';
 import OrbitPage from './pages/OrbitPage';
+import RostersPage from './pages/RostersPage';
+import OvertimePage from './pages/OvertimePage';
+import UniformsPage from './pages/UniformsPage';
+import HealthcardsPage from './pages/HealthcardsPage';
+import VisitorsPage from './pages/VisitorsPage';
+import CctvlogPage from './pages/CctvlogPage';
+import FiredrillPage from './pages/FiredrillPage';
+import InsurancePage from './pages/InsurancePage';
+import InvoicesPage from './pages/InvoicesPage';
+import TaxpackPage from './pages/TaxpackPage';
+import ForecastPage from './pages/ForecastPage';
+import CapexPage from './pages/CapexPage';
+import LicensesPage from './pages/LicensesPage';
+import SlabreachesPage from './pages/SlabreachesPage';
+import ApexPage from './pages/ApexPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -237,6 +252,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   promos: PromosPage,
   dawnservice: DawnservicePage,
   orbit: OrbitPage,
+  rosters: RostersPage,
+  overtime: OvertimePage,
+  uniforms: UniformsPage,
+  healthcards: HealthcardsPage,
+  visitors: VisitorsPage,
+  cctvlog: CctvlogPage,
+  firedrill: FiredrillPage,
+  insurance: InsurancePage,
+  invoices: InvoicesPage,
+  taxpack: TaxpackPage,
+  forecast: ForecastPage,
+  capex: CapexPage,
+  licenses: LicensesPage,
+  slabreaches: SlabreachesPage,
+  apex: ApexPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

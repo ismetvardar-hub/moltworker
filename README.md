@@ -391,6 +391,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **134** | Şafak servisi |
 | **135** | Orbit checkpoint (`/api/orbit`) |
 
+### İK · Finans · Apex (AŞAMA 136–150)
+
+| Aşama | Özellik |
+|-------|---------|
+| **136** | Haftalık roster |
+| **137** | Mesai |
+| **138** | Üniforma |
+| **139** | Sağlık kartı |
+| **140** | Ziyaretçi kayıt |
+| **141** | CCTV log |
+| **142** | Yangın tatbikat |
+| **143** | Sigorta |
+| **144** | Fatura |
+| **145** | Vergi paketi |
+| **146** | Gelir forecast |
+| **147** | CAPEX |
+| **148** | Ruhsat |
+| **149** | SLA ihlal |
+| **150** | Apex checkpoint (`/api/apex`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
