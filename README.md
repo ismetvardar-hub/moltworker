@@ -1811,6 +1811,11 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **1199** | Net Split |
 | **1200** | Apotheosis checkpoint (`/api/apotheosis`) |
 
+### Kampüs menü (Adım 1)
+
+CEO sidebar artık **domain hub** + **Lab arama** ile sade.
+Sayfa: `campus` (Kampüs Haritası). İnce CRUD’lar Lab’da aranır.
+
 ### Antalya Extreme Park (AŞAMA 321–325 vizyon)
 
 Bağımsız `extremepark` modülü — 316–330 Vanguard ile çakışmadan üst katman.

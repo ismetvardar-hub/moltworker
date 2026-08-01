@@ -291,103 +291,35 @@ import {
   Hexagon,
   Medal,
 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { AuthBrand } from '../services/auth';
-/** Marka süzgecinden muaf — her zaman göster (rol izinliyorsa) */
+import { CAMPUS_DOMAINS, CORE_NAV_IDS, isLabNoiseId } from '../nav/campusDomains';
+
+/** Marka süzgecinden muaf — çekirdek + kampüs (checkpoint yağmuru yok) */
 const ALWAYS_VISIBLE = new Set<string>([
   'hub',
+  'komuta',
+  'campus',
+  'brief',
+  'extremepark',
   'brands',
   'guests',
   'notifications',
   'settings',
   'ops',
   'metrics',
-  'reports',
-  'webhooks',
   'docs',
-  'incidents',
-  'exports',
-  'consent',
-  'announcements',
   'audit',
-  'brief',
-  'readiness',
-  'digest',
-  'boardpack',
-  'warroom',
-  'nightly',
-  'orbit',
-  'apex',
-  'pyramid',
-  'signalhub',
-  'skyline',
-  'sentinel',
-  'horizon',
-  'meridian',
-  'ledger',
-  'peoplehub',
-  'ecosphere',
-  'brandpulse',
-  'cognisphere',
-  'vanguard',
-  'lattice',
-  'mirror',
-  'keystone',
-  'zenith',
-  'odyssey',
-  'tide',
-  'harbor',
-  'aurora',
+  'ajanlar',
+  'empire',
+  'staybook',
   'hearth',
   'sanctum',
-  'citadel',
-  'forge',
-  'aegis',
-  'oracle',
-  'crown',
-  'beacon',
-  'vault',
-  'convoy',
-  'linen',
-  'atlas',
-  'empire',
-  'bazaar',
   'studio',
   'verdant',
-  'bastion',
-  'alliance2',
-  'artery',
-  'dominion',
-  'serenity',
-  'circuit',
-  'agora',
-  'crucible',
-  'charter',
-  'phoenix',
-  'frontier',
-  'prism',
-  'monument',
-  'olympus',
-  'bastion2',
-  'alliance3',
-  'artery2',
-  'dominion2',
-  'serenity2',
-  'circuit2',
-  'agora2',
-  'crucible2',
-  'charter2',
-  'phoenix2',
-  'elysium',
-  'aether',
-  'helios',
-  'selene',
-  'gaia',
-  'chronos',
-  'kairos',
-  'logos',
-  'pathos',
-  'apotheosis',
-  'extremepark',
+  'bazaar',
+  'weather',
+  'readiness',
 ]);
 
 interface SidebarProps {
@@ -1721,6 +1653,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'vendorfail3', label: 'Vendor Fail', description: 'Tedarikçi kesintisi.', icon: Sparkles },
   { id: 'powercut3', label: 'Power Cut', description: 'Elektrik kesintisi.', icon: Star },
   { id: 'netsplit3', label: 'Net Split', description: 'Ağ bölünmesi.', icon: Store },
+  { id: 'campus', label: 'Kampüs Haritası', description: 'Domain hub · vizyon yüzeyi', icon: Globe2 },
   { id: 'extremepark', label: 'Extreme Park', description: 'Antalya Extreme · waiver · MaaS · NFC', icon: Mountain },
   { id: 'apotheosis', label: 'Apotheosis', description: 'AŞAMA 1200 mutlak mühür.', icon: Sun },
   { id: 'pathos', label: 'Pathos', description: 'AŞAMA 1185 pathos özeti.', icon: Orbit },
@@ -1842,6 +1775,17 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+function allowedItem(
+  id: string,
+  allowedPages: string[],
+  modules: Set<string>,
+  activeBrand: AuthBrand | undefined,
+) {
+  if (!allowedPages.includes(id)) return false;
+  if (!activeBrand || ALWAYS_VISIBLE.has(id)) return true;
+  return modules.has(id);
+}
+
 export default function Sidebar({
   active,
   allowedPages,
@@ -1855,12 +1799,63 @@ export default function Sidebar({
 }: SidebarProps) {
   const activeBrand = brands.find((b) => b.id === activeBrandId);
   const modules = new Set(activeBrand?.modules ?? []);
+  const [openDomain, setOpenDomain] = useState<string | null>('sport');
+  const [labOpen, setLabOpen] = useState(false);
+  const [labQuery, setLabQuery] = useState('');
 
-  const items = NAV_ITEMS.filter((item) => {
-    if (!allowedPages.includes(item.id)) return false;
-    if (!activeBrand || ALWAYS_VISIBLE.has(item.id)) return true;
-    return modules.has(item.id);
-  });
+  const byId = useMemo(() => {
+    // lucide `Map` ikonu global Map'i gölgeler
+    const m = new globalThis.Map<string, (typeof NAV_ITEMS)[number]>();
+    for (const item of NAV_ITEMS) m.set(item.id, item);
+    return m;
+  }, []);
+
+  const coreItems = CORE_NAV_IDS.map((id) => byId.get(id)).filter(
+    (item): item is (typeof NAV_ITEMS)[number] =>
+      !!item && allowedItem(item.id, allowedPages, modules, activeBrand),
+  );
+
+  const labItems = useMemo(() => {
+    const q = labQuery.trim().toLowerCase();
+    return NAV_ITEMS.filter((item) => {
+      if (!allowedItem(item.id, allowedPages, modules, activeBrand)) return false;
+      if (CORE_NAV_IDS.includes(item.id as (typeof CORE_NAV_IDS)[number])) return false;
+      if (!q && isLabNoiseId(item.id)) return false;
+      if (!q) return false; // Lab kapalı aramada boş; arama ile açılır
+      return (
+        item.id.includes(q) ||
+        item.label.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q)
+      );
+    }).slice(0, 40);
+  }, [allowedPages, modules, activeBrand, labQuery]);
+
+  function renderNavButton(item: (typeof NAV_ITEMS)[number], dense = false) {
+    const Icon = item.icon;
+    const isActive = active === item.id;
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => onNavigate(item.id)}
+        className={`group flex w-full items-center gap-3 rounded-xl text-left transition-colors ${
+          dense ? 'px-2.5 py-2' : 'px-3.5 py-3'
+        } ${
+          isActive
+            ? 'bg-lykia-500/15 text-lykia-300'
+            : 'text-slate-300 hover:bg-obsidian-800 hover:text-slate-100'
+        }`}
+      >
+        <Icon
+          className={`shrink-0 ${dense ? 'size-4' : 'size-5'} ${isActive ? 'text-lykia-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+        />
+        <span>
+          <span className={`block font-semibold ${dense ? 'text-xs' : 'text-sm'}`}>{item.label}</span>
+          {!dense && <span className="block text-xs text-slate-500">{item.description}</span>}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col border-r border-obsidian-700 bg-obsidian-900">
@@ -1870,7 +1865,7 @@ export default function Sidebar({
         </div>
         <div>
           <h1 className="text-sm font-bold tracking-wide text-lykia-300">OLYMPOSPASS</h1>
-          <p className="text-xs text-slate-400">LİKYA CEO Paneli</p>
+          <p className="text-xs text-slate-400">LİKYA Kampüs Komuta</p>
         </div>
       </div>
 
@@ -1895,30 +1890,85 @@ export default function Sidebar({
         </div>
       )}
 
-      <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
-        {items.map(({ id, label, description, icon: Icon }) => {
-          const isActive = active === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onNavigate(id)}
-              className={`group flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-colors ${
-                isActive
-                  ? 'bg-lykia-500/15 text-lykia-300'
-                  : 'text-slate-300 hover:bg-obsidian-800 hover:text-slate-100'
-              }`}
-            >
-              <Icon
-                className={`size-5 shrink-0 ${isActive ? 'text-lykia-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+      <nav className="flex-1 space-y-3 overflow-y-auto p-3">
+        <div className="space-y-1">
+          <p className="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Çekirdek</p>
+          {coreItems.map((item) => renderNavButton(item))}
+        </div>
+
+        <div className="space-y-1">
+          <p className="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            Kampüs domain
+          </p>
+          {CAMPUS_DOMAINS.map((domain) => {
+            const open = openDomain === domain.id;
+            const childIds = domain.pages.filter((id) =>
+              allowedItem(id, allowedPages, modules, activeBrand),
+            );
+            return (
+              <div key={domain.id} className="rounded-xl border border-obsidian-700/80">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenDomain(open ? null : domain.id);
+                    if (domain.primary && allowedPages.includes(domain.primary)) {
+                      onNavigate(domain.primary);
+                    }
+                  }}
+                  className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+                >
+                  <span>
+                    <span className="block text-sm font-semibold text-slate-100">{domain.label}</span>
+                    <span className="block text-[11px] text-slate-500">{domain.description}</span>
+                  </span>
+                  <span className="text-xs text-slate-500">{open ? '−' : '+'}</span>
+                </button>
+                {open && childIds.length > 0 && (
+                  <div className="space-y-0.5 border-t border-obsidian-700/80 px-1.5 py-1.5">
+                    {childIds.map((id) => {
+                      const item = byId.get(id);
+                      return item ? renderNavButton(item, true) : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="space-y-2 rounded-xl border border-dashed border-obsidian-600 p-2">
+          <button
+            type="button"
+            onClick={() => setLabOpen((v) => !v)}
+            className="flex w-full items-center justify-between px-1 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+          >
+            Lab / arşiv modüller
+            <span>{labOpen ? '−' : '+'}</span>
+          </button>
+          {labOpen && (
+            <>
+              <input
+                value={labQuery}
+                onChange={(e) => setLabQuery(e.target.value)}
+                placeholder="Modül ara (örn. folio, waiver…)"
+                className="w-full rounded-lg border border-obsidian-600 bg-obsidian-950 px-2 py-1.5 text-xs text-slate-200 placeholder:text-slate-600"
               />
-              <span>
-                <span className="block text-sm font-semibold">{label}</span>
-                <span className="block text-xs text-slate-500">{description}</span>
-              </span>
-            </button>
-          );
-        })}
+              <div className="max-h-48 space-y-0.5 overflow-y-auto">
+                {labQuery.trim() ? (
+                  labItems.length ? (
+                    labItems.map((item) => renderNavButton(item, true))
+                  ) : (
+                    <p className="px-1 text-[11px] text-slate-500">Sonuç yok</p>
+                  )
+                ) : (
+                  <p className="px-1 text-[11px] text-slate-500">
+                    ~1200 ince modül Lab’da. Arayarak aç — menüyü şişirmiyoruz.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </nav>
 
       <div className="border-t border-obsidian-700 p-4">
@@ -1939,7 +1989,7 @@ export default function Sidebar({
         <p className="text-[11px] leading-relaxed text-slate-500">
           Centilmenlik · Naiflik · Esprili Üslup
           <br />
-          Antalya / Likya bölgesi operasyon merkezi
+          Antalya Extreme Yaşam Kampüsü
         </p>
       </div>
     </aside>

@@ -1157,6 +1157,7 @@ export type PageId =
   | 'netsplit3'
   | 'apotheosis'
   | 'extremepark'
+  | 'campus'
   | 'mysteryshop'
   | 'partners'
   | 'shuttle'

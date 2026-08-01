@@ -1231,6 +1231,7 @@ export const ROLE_PAGES = {
     'netsplit3',
     'apotheosis',
     'extremepark',
+    'campus',
     'docs',
     'webhooks',
     'settings',

@@ -1308,6 +1308,7 @@ const DEFAULT_BRANDS = [
       'netsplit3',
       'apotheosis',
       'extremepark',
+      'campus',
     ],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
     status: 'active',
