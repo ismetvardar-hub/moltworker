@@ -454,6 +454,18 @@ import {
 import {
   buildPhoenix2, runPhoenix2Sweep, ackPhoenix2Flag, closePhoenix2Backup, livePhoenix2Runbook, closePhoenix2Drill,
 } from '../server/phoenix2.js';
+import {
+  buildOdyssey, runOdysseySweep, ackOdysseyFlag, recoverOdysseyOkr, coolOdysseyRisk, hitOdysseyStar,
+} from '../server/odyssey.js';
+import {
+  buildSignalhub, runSignalhubSweep, ackSignalhubFlag, clearSignalhubWater, clearSignalhubChem, clearSignalhubGate,
+} from '../server/signalhub.js';
+import {
+  buildLinen, runLinenSweep, ackLinenFlag, passLinenInspect, releaseLinenOoo, completeLinenHk,
+} from '../server/linen.js';
+import {
+  buildCharter2, runCharter2Sweep, ackCharter2Flag, closeCharter2Ethics, liveCharter2Risk, doneCharter2Claim,
+} from '../server/charter2.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1107,6 +1119,34 @@ assert(closePhoenix2Backup({}, 'smoke').ok, 'phoenix2 backup close');
 assert(livePhoenix2Runbook({}, 'smoke').ok, 'phoenix2 runbook live');
 assert(closePhoenix2Drill({}, 'smoke').ok, 'phoenix2 drill close');
 assert(ackPhoenix2Flag({}, 'smoke').ok, 'phoenix2 flag ack');
+
+assert(buildOdyssey().title, 'odyssey overview');
+assert(runOdysseySweep({ force: true }, 'smoke').ok, 'odyssey sweep');
+assert(recoverOdysseyOkr({}, 'smoke').ok, 'odyssey okr recover');
+assert(coolOdysseyRisk({}, 'smoke').ok, 'odyssey risk cool');
+assert(hitOdysseyStar({}, 'smoke').ok, 'odyssey star hit');
+assert(ackOdysseyFlag({}, 'smoke').ok, 'odyssey flag ack');
+
+assert(buildSignalhub().title, 'signalhub overview');
+assert(runSignalhubSweep({ force: true }, 'smoke').ok, 'signalhub sweep');
+assert(clearSignalhubWater({}, 'smoke').ok, 'signalhub water clear');
+assert(clearSignalhubChem({}, 'smoke').ok, 'signalhub chem clear');
+assert(clearSignalhubGate({}, 'smoke').ok, 'signalhub gate clear');
+assert(ackSignalhubFlag({}, 'smoke').ok, 'signalhub flag ack');
+
+assert(buildLinen().title, 'linen overview');
+assert(runLinenSweep({ force: true }, 'smoke').ok, 'linen sweep');
+assert(passLinenInspect({}, 'smoke').ok, 'linen inspect pass');
+assert(releaseLinenOoo({}, 'smoke').ok, 'linen ooo release');
+assert(completeLinenHk({}, 'smoke').ok, 'linen hk complete');
+assert(ackLinenFlag({}, 'smoke').ok, 'linen flag ack');
+
+assert(buildCharter2().title, 'charter2 overview');
+assert(runCharter2Sweep({ force: true }, 'smoke').ok, 'charter2 sweep');
+assert(closeCharter2Ethics({}, 'smoke').ok, 'charter2 ethics close');
+assert(liveCharter2Risk({}, 'smoke').ok, 'charter2 risk live');
+assert(doneCharter2Claim({}, 'smoke').ok, 'charter2 claim done');
+assert(ackCharter2Flag({}, 'smoke').ok, 'charter2 flag ack');
 
 console.log(
   JSON.stringify(

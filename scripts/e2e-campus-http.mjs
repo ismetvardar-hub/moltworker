@@ -117,6 +117,10 @@ try {
     '/api/skyline',
     '/api/atlas',
     '/api/phoenix2',
+    '/api/odyssey',
+    '/api/signalhub',
+    '/api/linen',
+    '/api/charter2',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1037,6 +1041,50 @@ try {
   assert(pxDrill.res.ok && pxDrill.data.ok !== false, 'phoenix2 drill close');
   const pxAck = await req('/api/phoenix2/flag/ack', { method: 'POST', token, body: {} });
   assert(pxAck.res.ok && pxAck.data.ok !== false, 'phoenix2 flag ack');
+
+  const odSweep = await req('/api/odyssey/sweep', { method: 'POST', token, body: { force: true } });
+  assert(odSweep.res.ok && odSweep.data.ok !== false, 'odyssey sweep');
+  const odOkr = await req('/api/odyssey/okr/recover', { method: 'POST', token, body: {} });
+  assert(odOkr.res.ok && odOkr.data.ok !== false, 'odyssey okr recover');
+  const odRisk = await req('/api/odyssey/risk/cool', { method: 'POST', token, body: {} });
+  assert(odRisk.res.ok && odRisk.data.ok !== false, 'odyssey risk cool');
+  const odStar = await req('/api/odyssey/star/hit', { method: 'POST', token, body: {} });
+  assert(odStar.res.ok && odStar.data.ok !== false, 'odyssey star hit');
+  const odAck = await req('/api/odyssey/flag/ack', { method: 'POST', token, body: {} });
+  assert(odAck.res.ok && odAck.data.ok !== false, 'odyssey flag ack');
+
+  const shSweep = await req('/api/signalhub/sweep', { method: 'POST', token, body: { force: true } });
+  assert(shSweep.res.ok && shSweep.data.ok !== false, 'signalhub sweep');
+  const shWater = await req('/api/signalhub/water/clear', { method: 'POST', token, body: {} });
+  assert(shWater.res.ok && shWater.data.ok !== false, 'signalhub water clear');
+  const shChem = await req('/api/signalhub/chem/clear', { method: 'POST', token, body: {} });
+  assert(shChem.res.ok && shChem.data.ok !== false, 'signalhub chem clear');
+  const shGate = await req('/api/signalhub/gate/clear', { method: 'POST', token, body: {} });
+  assert(shGate.res.ok && shGate.data.ok !== false, 'signalhub gate clear');
+  const shAck = await req('/api/signalhub/flag/ack', { method: 'POST', token, body: {} });
+  assert(shAck.res.ok && shAck.data.ok !== false, 'signalhub flag ack');
+
+  const lnSweep = await req('/api/linen/sweep', { method: 'POST', token, body: { force: true } });
+  assert(lnSweep.res.ok && lnSweep.data.ok !== false, 'linen sweep');
+  const lnPass = await req('/api/linen/inspect/pass', { method: 'POST', token, body: {} });
+  assert(lnPass.res.ok && lnPass.data.ok !== false, 'linen inspect pass');
+  const lnOoo = await req('/api/linen/ooo/release', { method: 'POST', token, body: {} });
+  assert(lnOoo.res.ok && lnOoo.data.ok !== false, 'linen ooo release');
+  const lnHk = await req('/api/linen/hk/complete', { method: 'POST', token, body: {} });
+  assert(lnHk.res.ok && lnHk.data.ok !== false, 'linen hk complete');
+  const lnAck = await req('/api/linen/flag/ack', { method: 'POST', token, body: {} });
+  assert(lnAck.res.ok && lnAck.data.ok !== false, 'linen flag ack');
+
+  const c2Sweep = await req('/api/charter2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(c2Sweep.res.ok && c2Sweep.data.ok !== false, 'charter2 sweep');
+  const c2Ethics = await req('/api/charter2/ethics/close', { method: 'POST', token, body: {} });
+  assert(c2Ethics.res.ok && c2Ethics.data.ok !== false, 'charter2 ethics close');
+  const c2Risk = await req('/api/charter2/risk/live', { method: 'POST', token, body: {} });
+  assert(c2Risk.res.ok && c2Risk.data.ok !== false, 'charter2 risk live');
+  const c2Claim = await req('/api/charter2/claim/done', { method: 'POST', token, body: {} });
+  assert(c2Claim.res.ok && c2Claim.data.ok !== false, 'charter2 claim done');
+  const c2Ack = await req('/api/charter2/flag/ack', { method: 'POST', token, body: {} });
+  assert(c2Ack.res.ok && c2Ack.data.ok !== false, 'charter2 flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -941,7 +941,9 @@ import {
   recovslotsSummary,
   updateRecovslots,
 } from './recovslots.js';
-import { buildSignalhub } from './signalhub.js';
+import {
+  ackSignalhubFlag, buildSignalhub, clearSignalhubChem, clearSignalhubGate, clearSignalhubWater, runSignalhubSweep,
+} from './signalhub.js';
 import {
   createHelipad,
   listHelipad,
@@ -2276,7 +2278,9 @@ import {
   northstarSummary,
   updateNorthstar,
 } from './northstar.js';
-import { buildOdyssey } from './odyssey.js';
+import {
+  ackOdysseyFlag, buildOdyssey, coolOdysseyRisk, hitOdysseyStar, recoverOdysseyOkr, runOdysseySweep,
+} from './odyssey.js';
 import {
   createTidewatch,
   listTidewatch,
@@ -3519,7 +3523,9 @@ import {
   publicareaSummary,
   updatePublicarea,
 } from './publicarea.js';
-import { buildLinen } from './linen.js';
+import {
+  ackLinenFlag, buildLinen, completeLinenHk, passLinenInspect, releaseLinenOoo, runLinenSweep,
+} from './linen.js';
 import {
   createNightaudit,
   listNightaudit,
@@ -5931,7 +5937,9 @@ import {
   auditevidence2Summary,
   updateAuditevidence2,
 } from './auditevidence2.js';
-import { buildCharter2 } from './charter2.js';
+import {
+  ackCharter2Flag, buildCharter2, closeCharter2Ethics, doneCharter2Claim, liveCharter2Risk, runCharter2Sweep,
+} from './charter2.js';
 import {
   createBoardresolve2,
   listBoardresolve2,
@@ -12277,6 +12285,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildSignalhub());
           return;
         }
+        if (path === '/api/signalhub/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSignalhubSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/signalhub/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSignalhubFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/signalhub/water/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSignalhubWater(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/signalhub/chem/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSignalhubChem(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/signalhub/gate/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSignalhubGate(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 181–195 ──
 
@@ -17932,6 +17970,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildOdyssey());
           return;
         }
+        if (path === '/api/odyssey/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOdysseySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/odyssey/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOdysseyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/odyssey/okr/recover' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recoverOdysseyOkr(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/odyssey/risk/cool' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, coolOdysseyRisk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/odyssey/star/hit' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, hitOdysseyStar(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Coastal Ops · Tide (AŞAMA 406–420) ──
 
@@ -23198,6 +23266,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/linen' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildLinen());
+          return;
+        }
+        if (path === '/api/linen/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLinenSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/linen/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLinenFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/linen/inspect/pass' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, passLinenInspect(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/linen/ooo/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseLinenOoo(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/linen/hk/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeLinenHk(await readBody(req), user.username)); })();
           return;
         }
 
@@ -33374,6 +33472,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/charter2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildCharter2());
+          return;
+        }
+        if (path === '/api/charter2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCharter2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCharter2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter2/ethics/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCharter2Ethics(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter2/risk/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCharter2Risk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter2/claim/done' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, doneCharter2Claim(await readBody(req), user.username)); })();
           return;
         }
 
