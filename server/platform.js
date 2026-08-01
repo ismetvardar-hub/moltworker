@@ -1026,7 +1026,9 @@ import {
   soundcheckSummary,
   updateSoundcheck,
 } from './soundcheck.js';
-import { buildSkyline } from './skyline.js';
+import {
+  ackSkylineFlag, buildSkyline, endSkylineEscape, passSkylineSound, runSkylineSweep, serviceSkylineJet,
+} from './skyline.js';
 import {
   createCrowddens,
   listCrowddens,
@@ -2359,7 +2361,9 @@ import {
   coastpatrolSummary,
   updateCoastpatrol,
 } from './coastpatrol.js';
-import { buildTide } from './tide.js';
+import {
+  ackTideFlag, buildTide, clearTideReef, freeTidePier, openTideCliff, runTideSweep,
+} from './tide.js';
 import {
   createHarborlane,
   listHarborlane,
@@ -3600,7 +3604,9 @@ import {
   conciergejobSummary,
   updateConciergejob,
 } from './conciergejob.js';
-import { buildAtlas } from './atlas.js';
+import {
+  ackAtlasFlag, buildAtlas, closeAtlasFolio, runAtlasAudit, runAtlasSweep, serveAtlasDesk,
+} from './atlas.js';
 import {
   createTybridge,
   listTybridge,
@@ -6010,7 +6016,9 @@ import {
   netsplit2Summary,
   updateNetsplit2,
 } from './netsplit2.js';
-import { buildPhoenix2 } from './phoenix2.js';
+import {
+  ackPhoenix2Flag, buildPhoenix2, closePhoenix2Backup, closePhoenix2Drill, livePhoenix2Runbook, runPhoenix2Sweep,
+} from './phoenix2.js';
 import {
   createAccessgate3,
   listAccessgate3,
@@ -12626,6 +12634,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildSkyline());
           return;
         }
+        if (path === '/api/skyline/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSkylineSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/skyline/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSkylineFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/skyline/sound/pass' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, passSkylineSound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/skyline/escape/end' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, endSkylineEscape(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/skyline/jet/service' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, serviceSkylineJet(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 196–210 ──
 
@@ -18251,6 +18289,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildTide());
           return;
         }
+        if (path === '/api/tide/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runTideSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tide/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackTideFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tide/reef/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearTideReef(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tide/cliff/open' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, openTideCliff(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tide/pier/free' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, freeTidePier(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Port Logistics · Harbor (AŞAMA 421–435) ──
 
@@ -23487,6 +23555,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/atlas' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildAtlas());
+          return;
+        }
+        if (path === '/api/atlas/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAtlasSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/atlas/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAtlasFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/atlas/folio/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAtlasFolio(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/atlas/desk/serve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, serveAtlasDesk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/atlas/audit/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAtlasAudit(await readBody(req), user.username)); })();
           return;
         }
 
@@ -33633,6 +33731,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/phoenix2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildPhoenix2());
+          return;
+        }
+        if (path === '/api/phoenix2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPhoenix2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPhoenix2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix2/backup/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePhoenix2Backup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix2/runbook/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, livePhoenix2Runbook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix2/drill/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePhoenix2Drill(await readBody(req), user.username)); })();
           return;
         }
 

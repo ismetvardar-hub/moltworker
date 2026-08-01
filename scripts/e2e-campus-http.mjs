@@ -113,6 +113,10 @@ try {
     '/api/sentinel',
     '/api/empire',
     '/api/elysium',
+    '/api/tide',
+    '/api/skyline',
+    '/api/atlas',
+    '/api/phoenix2',
     '/api/health',
   ];
   for (const p of paths) {
@@ -989,6 +993,50 @@ try {
   assert(elyBreach.res.ok && elyBreach.data.ok !== false, 'elysium breach archive');
   const elyAck = await req('/api/elysium/flag/ack', { method: 'POST', token, body: {} });
   assert(elyAck.res.ok && elyAck.data.ok !== false, 'elysium flag ack');
+
+  const tdSweep = await req('/api/tide/sweep', { method: 'POST', token, body: { force: true } });
+  assert(tdSweep.res.ok && tdSweep.data.ok !== false, 'tide sweep');
+  const tdReef = await req('/api/tide/reef/clear', { method: 'POST', token, body: {} });
+  assert(tdReef.res.ok && tdReef.data.ok !== false, 'tide reef clear');
+  const tdCliff = await req('/api/tide/cliff/open', { method: 'POST', token, body: {} });
+  assert(tdCliff.res.ok && tdCliff.data.ok !== false, 'tide cliff open');
+  const tdPier = await req('/api/tide/pier/free', { method: 'POST', token, body: {} });
+  assert(tdPier.res.ok && tdPier.data.ok !== false, 'tide pier free');
+  const tdAck = await req('/api/tide/flag/ack', { method: 'POST', token, body: {} });
+  assert(tdAck.res.ok && tdAck.data.ok !== false, 'tide flag ack');
+
+  const skSweep = await req('/api/skyline/sweep', { method: 'POST', token, body: { force: true } });
+  assert(skSweep.res.ok && skSweep.data.ok !== false, 'skyline sweep');
+  const skSound = await req('/api/skyline/sound/pass', { method: 'POST', token, body: {} });
+  assert(skSound.res.ok && skSound.data.ok !== false, 'skyline sound pass');
+  const skEsc = await req('/api/skyline/escape/end', { method: 'POST', token, body: {} });
+  assert(skEsc.res.ok && skEsc.data.ok !== false, 'skyline escape end');
+  const skJet = await req('/api/skyline/jet/service', { method: 'POST', token, body: {} });
+  assert(skJet.res.ok && skJet.data.ok !== false, 'skyline jet service');
+  const skAck = await req('/api/skyline/flag/ack', { method: 'POST', token, body: {} });
+  assert(skAck.res.ok && skAck.data.ok !== false, 'skyline flag ack');
+
+  const atlSweep = await req('/api/atlas/sweep', { method: 'POST', token, body: { force: true } });
+  assert(atlSweep.res.ok && atlSweep.data.ok !== false, 'atlas sweep');
+  const atlFolio = await req('/api/atlas/folio/close', { method: 'POST', token, body: {} });
+  assert(atlFolio.res.ok && atlFolio.data.ok !== false, 'atlas folio close');
+  const atlDesk = await req('/api/atlas/desk/serve', { method: 'POST', token, body: {} });
+  assert(atlDesk.res.ok && atlDesk.data.ok !== false, 'atlas desk serve');
+  const atlAudit = await req('/api/atlas/audit/run', { method: 'POST', token, body: {} });
+  assert(atlAudit.res.ok && atlAudit.data.ok !== false, 'atlas audit run');
+  const atlAck = await req('/api/atlas/flag/ack', { method: 'POST', token, body: {} });
+  assert(atlAck.res.ok && atlAck.data.ok !== false, 'atlas flag ack');
+
+  const pxSweep = await req('/api/phoenix2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(pxSweep.res.ok && pxSweep.data.ok !== false, 'phoenix2 sweep');
+  const pxBackup = await req('/api/phoenix2/backup/close', { method: 'POST', token, body: {} });
+  assert(pxBackup.res.ok && pxBackup.data.ok !== false, 'phoenix2 backup close');
+  const pxRun = await req('/api/phoenix2/runbook/live', { method: 'POST', token, body: {} });
+  assert(pxRun.res.ok && pxRun.data.ok !== false, 'phoenix2 runbook live');
+  const pxDrill = await req('/api/phoenix2/drill/close', { method: 'POST', token, body: {} });
+  assert(pxDrill.res.ok && pxDrill.data.ok !== false, 'phoenix2 drill close');
+  const pxAck = await req('/api/phoenix2/flag/ack', { method: 'POST', token, body: {} });
+  assert(pxAck.res.ok && pxAck.data.ok !== false, 'phoenix2 flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

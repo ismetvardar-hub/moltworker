@@ -1,6 +1,27 @@
 import { authHeaders } from './auth'
-export async function fetchAtlas() {
-  const res = await fetch('/api/atlas', { headers: authHeaders() })
-  if (!res.ok) throw new Error('Atlas alınamadı')
-  return res.json()
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string }
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`)
+  return data
 }
+export async function fetchAtlas() { return parse(await fetch('/api/atlas', { headers: authHeaders() })) }
+export async function runAtlasSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/atlas/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function closeAtlasFolio(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/atlas/folio/close', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function serveAtlasDesk(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/atlas/desk/serve', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function runAtlasAudit(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/atlas/audit/run', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackAtlasFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/atlas/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+

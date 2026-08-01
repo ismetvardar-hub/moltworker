@@ -442,6 +442,18 @@ import {
 import {
   buildElysium, runElysiumSweep, ackElysiumFlag, closeElysiumAccess, approveElysiumRole, archiveElysiumBreach,
 } from '../server/elysium.js';
+import {
+  buildTide, runTideSweep, ackTideFlag, clearTideReef, openTideCliff, freeTidePier,
+} from '../server/tide.js';
+import {
+  buildSkyline, runSkylineSweep, ackSkylineFlag, passSkylineSound, endSkylineEscape, serviceSkylineJet,
+} from '../server/skyline.js';
+import {
+  buildAtlas, runAtlasSweep, ackAtlasFlag, closeAtlasFolio, serveAtlasDesk, runAtlasAudit,
+} from '../server/atlas.js';
+import {
+  buildPhoenix2, runPhoenix2Sweep, ackPhoenix2Flag, closePhoenix2Backup, livePhoenix2Runbook, closePhoenix2Drill,
+} from '../server/phoenix2.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1066,6 +1078,35 @@ assert(closeElysiumAccess({}, 'smoke').ok, 'elysium access close');
 assert(approveElysiumRole({}, 'smoke').ok, 'elysium role approve');
 assert(archiveElysiumBreach({}, 'smoke').ok, 'elysium breach archive');
 assert(ackElysiumFlag({}, 'smoke').ok, 'elysium flag ack');
+
+
+assert(buildTide().title, 'tide overview');
+assert(runTideSweep({ force: true }, 'smoke').ok, 'tide sweep');
+assert(clearTideReef({}, 'smoke').ok, 'tide reef clear');
+assert(openTideCliff({}, 'smoke').ok, 'tide cliff open');
+assert(freeTidePier({}, 'smoke').ok, 'tide pier free');
+assert(ackTideFlag({}, 'smoke').ok, 'tide flag ack');
+
+assert(buildSkyline().title, 'skyline overview');
+assert(runSkylineSweep({ force: true }, 'smoke').ok, 'skyline sweep');
+assert(passSkylineSound({}, 'smoke').ok, 'skyline sound pass');
+assert(endSkylineEscape({}, 'smoke').ok, 'skyline escape end');
+assert(serviceSkylineJet({}, 'smoke').ok, 'skyline jet service');
+assert(ackSkylineFlag({}, 'smoke').ok, 'skyline flag ack');
+
+assert(buildAtlas().title, 'atlas overview');
+assert(runAtlasSweep({ force: true }, 'smoke').ok, 'atlas sweep');
+assert(closeAtlasFolio({}, 'smoke').ok, 'atlas folio close');
+assert(serveAtlasDesk({}, 'smoke').ok, 'atlas desk serve');
+assert(runAtlasAudit({}, 'smoke').ok, 'atlas audit run');
+assert(ackAtlasFlag({}, 'smoke').ok, 'atlas flag ack');
+
+assert(buildPhoenix2().title, 'phoenix2 overview');
+assert(runPhoenix2Sweep({ force: true }, 'smoke').ok, 'phoenix2 sweep');
+assert(closePhoenix2Backup({}, 'smoke').ok, 'phoenix2 backup close');
+assert(livePhoenix2Runbook({}, 'smoke').ok, 'phoenix2 runbook live');
+assert(closePhoenix2Drill({}, 'smoke').ok, 'phoenix2 drill close');
+assert(ackPhoenix2Flag({}, 'smoke').ok, 'phoenix2 flag ack');
 
 console.log(
   JSON.stringify(
