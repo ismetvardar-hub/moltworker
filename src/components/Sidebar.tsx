@@ -191,6 +191,15 @@ import {
   ArrowLeftRight,
   Trophy,
   HardHat,
+  Factory,
+  Droplets,
+  Fan,
+  SunMedium,
+  TreeDeciduous,
+  Recycle,
+  BadgeCheck,
+  FileCheck2,
+  Gavel,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -228,6 +237,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'meridian',
   'ledger',
   'peoplehub',
+  'ecosphere',
 ]);
 
 interface SidebarProps {
@@ -691,6 +701,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'safetybrief', label: 'İSG Brifi', description: 'İş güvenliği brifing.', icon: HardHat },
   { id: 'nearmiss', label: 'Near Miss', description: 'Ramak kala olay raporları.', icon: TriangleAlert },
   { id: 'whistle', label: 'Bildirim Hattı', description: 'Anonim etik bildirim.', icon: Megaphone },
+  { id: 'carbonlog', label: 'Karbon Log', description: 'Karbon ayak izi kayıtları.', icon: Factory },
+  { id: 'wateraudit', label: 'Su Denetim', description: 'Su tüketim denetim satırları.', icon: Droplets },
+  { id: 'airquality', label: 'Hava Kalite', description: 'İç ortam hava kalitesi.', icon: Fan },
+  { id: 'solarops', label: 'Güneş Enerji', description: 'Solar üretim / durum.', icon: SunMedium },
+  { id: 'biodiversity', label: 'Biyoçeşitlilik', description: 'Yerel flora/fauna gözlem.', icon: TreeDeciduous },
+  { id: 'recycling', label: 'Geri Dönüşüm', description: 'Geri dönüşüm tonaj kayıt.', icon: Recycle },
+  { id: 'greencert', label: 'Yeşil Sertifika', description: 'Çevre sertifika takibi.', icon: BadgeCheck },
+  { id: 'auditfind', label: 'Denetim Bulgu', description: 'İç/dış denetim bulguları.', icon: ClipboardList },
+  { id: 'policyack', label: 'Politika Onay', description: 'Politika okuma onayları.', icon: FileCheck2 },
+  { id: 'dataprotect', label: 'Veri Koruma', description: 'KVKK işlem kayıtları.', icon: ShieldCheck },
+  { id: 'retention', label: 'Saklama Politikası', description: 'Veri saklama süre satırları.', icon: ScrollText },
+  { id: 'accessreview', label: 'Erişim Gözden Geçir', description: 'Rol/erişim periyodik review.', icon: KeyRound },
+  { id: 'vendorrisk', label: 'Tedarik Risk', description: 'Vendor risk skorları.', icon: TriangleAlert },
+  { id: 'legalhold', label: 'Legal Hold', description: 'Hukuki saklama emirleri.', icon: Gavel },
+  { id: 'ecosphere', label: 'Ecosphere', description: 'AŞAMA 285 ESG özeti.', icon: Leaf },
   { id: 'peoplehub', label: 'People Hub', description: 'AŞAMA 270 İK özeti.', icon: Users },
   { id: 'ledger', label: 'Ledger', description: 'AŞAMA 255 finans özeti.', icon: BookMarked },
   { id: 'meridian', label: 'Meridian', description: 'AŞAMA 240 oda servis özeti.', icon: Compass },

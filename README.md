@@ -571,6 +571,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **269** | Bildirim hattı |
 | **270** | People Hub checkpoint (`/api/peoplehub`) |
 
+### ESG · Ecosphere (AŞAMA 271–285)
+
+| Aşama | Özellik |
+|-------|---------|
+| **271** | Karbon log |
+| **272** | Su denetim |
+| **273** | Hava kalite |
+| **274** | Güneş enerji |
+| **275** | Biyoçeşitlilik |
+| **276** | Geri dönüşüm |
+| **277** | Yeşil sertifika |
+| **278** | Denetim bulgu |
+| **279** | Politika onay |
+| **280** | Veri koruma |
+| **281** | Saklama politikası |
+| **282** | Erişim gözden geçir |
+| **283** | Tedarik risk |
+| **284** | Legal hold |
+| **285** | Ecosphere checkpoint (`/api/ecosphere`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

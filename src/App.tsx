@@ -269,6 +269,21 @@ import SafetybriefPage from './pages/SafetybriefPage';
 import NearmissPage from './pages/NearmissPage';
 import WhistlePage from './pages/WhistlePage';
 import PeoplehubPage from './pages/PeoplehubPage';
+import CarbonlogPage from './pages/CarbonlogPage';
+import WaterauditPage from './pages/WaterauditPage';
+import AirqualityPage from './pages/AirqualityPage';
+import SolaropsPage from './pages/SolaropsPage';
+import BiodiversityPage from './pages/BiodiversityPage';
+import RecyclingPage from './pages/RecyclingPage';
+import GreencertPage from './pages/GreencertPage';
+import AuditfindPage from './pages/AuditfindPage';
+import PolicyackPage from './pages/PolicyackPage';
+import DataprotectPage from './pages/DataprotectPage';
+import RetentionPage from './pages/RetentionPage';
+import AccessreviewPage from './pages/AccessreviewPage';
+import VendorriskPage from './pages/VendorriskPage';
+import LegalholdPage from './pages/LegalholdPage';
+import EcospherePage from './pages/EcospherePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -507,6 +522,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   nearmiss: NearmissPage,
   whistle: WhistlePage,
   peoplehub: PeoplehubPage,
+  carbonlog: CarbonlogPage,
+  wateraudit: WaterauditPage,
+  airquality: AirqualityPage,
+  solarops: SolaropsPage,
+  biodiversity: BiodiversityPage,
+  recycling: RecyclingPage,
+  greencert: GreencertPage,
+  auditfind: AuditfindPage,
+  policyack: PolicyackPage,
+  dataprotect: DataprotectPage,
+  retention: RetentionPage,
+  accessreview: AccessreviewPage,
+  vendorrisk: VendorriskPage,
+  legalhold: LegalholdPage,
+  ecosphere: EcospherePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
