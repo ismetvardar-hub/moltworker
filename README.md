@@ -80,6 +80,16 @@ Araştırma içeren talimatlar (örn. *"Avrupa'daki turnikesiz geçiş sistemler
 
 Bağımsız proxy: `npm run search-proxy` (port 8787). Anahtar örnekleri: `.env.example`.
 
+### Talimat Hafızası & Zincir Arşivi (AŞAMA 2)
+
+Tamamlanan (veya hata alan) her üretim zinciri `localStorage` içinde saklanır (`src/services/archive.ts`):
+
+- Komuta Merkezi altındaki **Talimat Hafızası & Zincir Arşivi** panelinden geçmiş görevler listelenir
+- Metin / ajan / durum filtreleri
+- Tek kayıt veya tüm filtre sonucu için **JSON dışa aktarma**
+- Kaydı açıp adım çıktılarını ve HERODOT kaynaklarını yeniden görüntüleme
+- "Bu zinciri üretim kartında yeniden görüntüle" ile aktif pipeline paneline geri yükleme
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import StatusBadge from '../components/StatusBadge';
+import ArchivePanel from '../components/ArchivePanel';
 import {
   TARGET_MODELS,
   checkOllamaStatus,
@@ -38,6 +39,12 @@ import {
   reportFromSources,
   type ResearchSource,
 } from '../services/research';
+import {
+  buildArchiveEntry,
+  loadArchive,
+  saveArchiveEntry,
+  type ArchiveEntry,
+} from '../services/archive';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -197,7 +204,12 @@ export default function CommandCenter() {
   const [pipeline, setPipeline] = useState<PipelineStep[]>([]);
   const [pipelineTitle, setPipelineTitle] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [archive, setArchive] = useState<ArchiveEntry[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setArchive(loadArchive());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -230,19 +242,44 @@ export default function CommandCenter() {
     setDirectives((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
   };
 
-  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
-    setPipeline((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
-  };
-
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
   }, []);
+
+  const restoreArchive = (entry: ArchiveEntry) => {
+    setPipelineTitle(entry.text);
+    setPipeline(
+      entry.steps.map((s) => ({
+        assignment: {
+          agentId: s.agentId,
+          agentName: s.agentName,
+          subtask: s.subtask,
+        },
+        engine: s.engine,
+        status: s.status,
+        output: s.output,
+        sources: s.sources,
+        searchProvider: s.searchProvider,
+        searchLive: s.searchLive,
+      })),
+    );
+  };
 
   const issueDirective = async () => {
     const text = draft.trim();
     if (!text || streaming) return;
 
     const steps = buildPipeline(text);
+    // Çalışma kopyası: React state asenkron olduğu için arşive buradan yazılır.
+    let working: PipelineStep[] = steps.map((s) => ({ ...s }));
+    const syncPipeline = (next: PipelineStep[]) => {
+      working = next;
+      setPipeline(next);
+    };
+    const patchStep = (index: number, patch: Partial<PipelineStep>) => {
+      syncPipeline(working.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+    };
+
     const directive: Directive = {
       id: uid(),
       text,
@@ -253,23 +290,24 @@ export default function CommandCenter() {
     };
     setDirectives((prev) => [directive, ...prev]);
     setDraft('');
-    setPipeline(steps);
+    syncPipeline(working);
     setPipelineTitle(text);
     setStreaming(true);
 
     const controller = new AbortController();
     abortRef.current = controller;
     let previous = '';
+    let finalStatus: 'tamamlandi' | 'hata' = 'tamamlandi';
 
     try {
-      for (let i = 0; i < steps.length; i++) {
+      for (let i = 0; i < working.length; i++) {
         if (controller.signal.aborted) break;
-        updateStep(i, { status: 'calisiyor' });
-        const agentId = steps[i].assignment.agentId;
+        patchStep(i, { status: 'calisiyor' });
+        const agentId = working[i].assignment.agentId;
         let stepOut = '';
         const append = (t: string) => {
           stepOut += t;
-          updateStep(i, { output: stepOut });
+          patchStep(i, { output: stepOut });
         };
 
         // HERODOT: canlı web proxy → kaynak günlüğü → Ollama analist raporu.
@@ -281,7 +319,7 @@ export default function CommandCenter() {
             const search = await fetchLiveSources(text, controller.signal);
             liveSources = search.results;
             searchLive = search.live;
-            updateStep(i, {
+            patchStep(i, {
               sources: liveSources,
               searchProvider: search.provider,
               searchLive: search.live,
@@ -298,7 +336,7 @@ export default function CommandCenter() {
             // Proxy tamamen erişilemezse boş kaynakla rapora devam et.
             liveSources = [];
             searchLive = false;
-            updateStep(i, {
+            patchStep(i, {
               sources: [],
               searchProvider: 'offline',
               searchLive: false,
@@ -309,7 +347,7 @@ export default function CommandCenter() {
         }
 
         if (controller.signal.aborted) {
-          updateStep(i, { status: 'tamamlandi' });
+          patchStep(i, { status: 'tamamlandi' });
           break;
         }
 
@@ -317,8 +355,8 @@ export default function CommandCenter() {
           const prompt =
             agentId === 'herodot'
               ? buildResearchPrompt(text, liveSources)
-              : buildStepPrompt(steps[i], text, previous);
-          const stepModel = resolveModel(steps[i].engine, installed, model);
+              : buildStepPrompt(working[i], text, previous);
+          const stepModel = resolveModel(working[i].engine, installed, model);
           for await (const token of streamGenerate(stepModel, prompt, controller.signal)) {
             append(token);
           }
@@ -334,32 +372,45 @@ export default function CommandCenter() {
           }
         }
 
-        updateStep(i, { status: 'tamamlandi' });
+        patchStep(i, { status: 'tamamlandi' });
         previous = stepOut;
       }
       updateDirective(directive.id, { status: 'tamamlandi' });
+      finalStatus = 'tamamlandi';
     } catch (err) {
       if (controller.signal.aborted) {
-        setPipeline((prev) =>
-          prev.map((s) =>
+        syncPipeline(
+          working.map((s) =>
             s.status === 'calisiyor'
               ? { ...s, status: 'tamamlandi', output: `${s.output}\n\n[Akış durduruldu]` }
               : s,
           ),
         );
         updateDirective(directive.id, { status: 'tamamlandi' });
+        finalStatus = 'tamamlandi';
       } else {
         const message = err instanceof Error ? err.message : 'Bilinmeyen hata';
-        setPipeline((prev) =>
-          prev.map((s) =>
+        syncPipeline(
+          working.map((s) =>
             s.status === 'calisiyor'
               ? { ...s, status: 'hata', output: `${s.output}\n\n[HATA] ${message}` }
               : s,
           ),
         );
         updateDirective(directive.id, { status: 'hata' });
+        finalStatus = 'hata';
       }
     } finally {
+      // Zincir çıktısını kalıcı arşive yaz (localStorage).
+      const entry = buildArchiveEntry({
+        id: directive.id,
+        text: directive.text,
+        issuedAt: directive.issuedAt,
+        status: finalStatus,
+        model: directive.model,
+        steps: working,
+      });
+      setArchive(saveArchiveEntry(entry));
       setStreaming(false);
       abortRef.current = null;
     }
@@ -583,6 +634,8 @@ export default function CommandCenter() {
           )}
         </PanelCard>
       </div>
+
+      <ArchivePanel entries={archive} onChange={setArchive} onRestore={restoreArchive} />
     </div>
   );
 }
