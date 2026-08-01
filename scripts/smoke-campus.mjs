@@ -258,6 +258,14 @@ import {
   quarantineOpsFile,
   clearOpsDegraded,
 } from '../server/ops.js';
+import {
+  buildVanguard,
+  runVanguardSweep,
+  ackVanguardFlag,
+  forceVanguardPosOnline,
+  clearVanguardInvDrift,
+  flushVanguardMintQueue,
+} from '../server/vanguard.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -682,6 +690,13 @@ assert(runOpsIntegritySweep({ force: true }, 'smoke').ok, 'ops integrity');
 assert(rotateOpsBackup({ note: 'smoke' }, 'smoke').ok, 'ops backup rotate');
 assert(quarantineOpsFile({ file: 'ops-backup-rotations.json', reason: 'smoke' }, 'smoke').ok, 'ops quarantine');
 assert(clearOpsDegraded({}, 'smoke').ok, 'ops clear degraded');
+
+assert(buildVanguard().title, 'vanguard overview');
+assert(runVanguardSweep({ force: true }, 'smoke').ok, 'vanguard sweep');
+assert(forceVanguardPosOnline({}, 'smoke').ok, 'vanguard pos online');
+assert(clearVanguardInvDrift({ force: true }, 'smoke').ok, 'vanguard inv clear');
+assert(flushVanguardMintQueue({}, 'smoke').ok, 'vanguard mint flush');
+assert(ackVanguardFlag({}, 'smoke').ok, 'vanguard flag ack');
 
 console.log(
   JSON.stringify(

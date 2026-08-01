@@ -85,6 +85,7 @@ try {
     '/api/agentqueue',
     '/api/cognisphere',
     '/api/readiness',
+    '/api/vanguard',
     '/api/health',
   ];
   for (const p of paths) {
@@ -651,6 +652,17 @@ try {
   assert(opsQ.res.ok && opsQ.data.ok !== false, 'ops quarantine');
   const opsClear = await req('/api/ops/degraded/clear', { method: 'POST', token, body: {} });
   assert(opsClear.res.ok && opsClear.data.ok !== false, 'ops clear degraded');
+
+  const vgSweep = await req('/api/vanguard/sweep', { method: 'POST', token, body: { force: true } });
+  assert(vgSweep.res.ok && vgSweep.data.ok !== false, 'vanguard sweep');
+  const vgPos = await req('/api/vanguard/pos/online', { method: 'POST', token, body: {} });
+  assert(vgPos.res.ok && vgPos.data.ok !== false, 'vanguard pos online');
+  const vgInv = await req('/api/vanguard/inv/clear', { method: 'POST', token, body: { force: true } });
+  assert(vgInv.res.ok && vgInv.data.ok !== false, 'vanguard inv clear');
+  const vgMint = await req('/api/vanguard/mint/flush', { method: 'POST', token, body: {} });
+  assert(vgMint.res.ok && vgMint.data.ok !== false, 'vanguard mint flush');
+  const vgAck = await req('/api/vanguard/flag/ack', { method: 'POST', token, body: {} });
+  assert(vgAck.res.ok && vgAck.data.ok !== false, 'vanguard flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

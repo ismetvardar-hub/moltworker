@@ -1763,7 +1763,14 @@ import {
   giftrelaySummary,
   updateGiftrelay,
 } from './giftrelay.js';
-import { buildVanguard } from './vanguard.js';
+import {
+  ackVanguardFlag,
+  buildVanguard,
+  clearVanguardInvDrift,
+  flushVanguardMintQueue,
+  forceVanguardPosOnline,
+  runVanguardSweep,
+} from './vanguard.js';
 import {
   createEdgegate,
   listEdgegate,
@@ -15541,6 +15548,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/vanguard' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildVanguard());
+          return;
+        }
+        if (path === '/api/vanguard/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVanguardSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vanguard/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVanguardFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vanguard/pos/online' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, forceVanguardPosOnline(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vanguard/inv/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearVanguardInvDrift(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vanguard/mint/flush' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flushVanguardMintQueue(await readBody(req), user.username)); })();
           return;
         }
 
