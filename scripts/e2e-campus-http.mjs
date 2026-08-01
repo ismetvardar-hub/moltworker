@@ -133,6 +133,10 @@ try {
     '/api/dominion',
     '/api/frontier',
     '/api/gaia',
+    '/api/helios',
+    '/api/kairos',
+    '/api/keystone',
+    '/api/lattice',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1229,6 +1233,50 @@ try {
   assert(gaPillow.res.ok && gaPillow.data.ok !== false, 'gaia pillow run');
   const gaAck = await req('/api/gaia/flag/ack', { method: 'POST', token, body: {} });
   assert(gaAck.res.ok && gaAck.data.ok !== false, 'gaia flag ack');
+
+  const helSweep = await req('/api/helios/sweep', { method: 'POST', token, body: { force: true } });
+  assert(helSweep.res.ok && helSweep.data.ok !== false, 'helios sweep');
+  const helInbound = await req('/api/helios/inbound/run', { method: 'POST', token, body: {} });
+  assert(helInbound.res.ok && helInbound.data.ok !== false, 'helios inbound run');
+  const helAsn = await req('/api/helios/asn/busy', { method: 'POST', token, body: {} });
+  assert(helAsn.res.ok && helAsn.data.ok !== false, 'helios asn busy');
+  const helSlot = await req('/api/helios/slot/live', { method: 'POST', token, body: {} });
+  assert(helSlot.res.ok && helSlot.data.ok !== false, 'helios slot live');
+  const helAck = await req('/api/helios/flag/ack', { method: 'POST', token, body: {} });
+  assert(helAck.res.ok && helAck.data.ok !== false, 'helios flag ack');
+
+  const kaiSweep = await req('/api/kairos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(kaiSweep.res.ok && kaiSweep.data.ok !== false, 'kairos sweep');
+  const kaiDrill = await req('/api/kairos/drill/run', { method: 'POST', token, body: {} });
+  assert(kaiDrill.res.ok && kaiDrill.data.ok !== false, 'kairos drill run');
+  const kaiCircle = await req('/api/kairos/circle/busy', { method: 'POST', token, body: {} });
+  assert(kaiCircle.res.ok && kaiCircle.data.ok !== false, 'kairos circle busy');
+  const kaiBadge = await req('/api/kairos/badge/live', { method: 'POST', token, body: {} });
+  assert(kaiBadge.res.ok && kaiBadge.data.ok !== false, 'kairos badge live');
+  const kaiAck = await req('/api/kairos/flag/ack', { method: 'POST', token, body: {} });
+  assert(kaiAck.res.ok && kaiAck.data.ok !== false, 'kairos flag ack');
+
+  const keySweep = await req('/api/keystone/sweep', { method: 'POST', token, body: { force: true } });
+  assert(keySweep.res.ok && keySweep.data.ok !== false, 'keystone sweep');
+  const keyBus = await req('/api/keystone/bus/clear', { method: 'POST', token, body: {} });
+  assert(keyBus.res.ok && keyBus.data.ok !== false, 'keystone bus clear');
+  const keySlo = await req('/api/keystone/slo/heal', { method: 'POST', token, body: {} });
+  assert(keySlo.res.ok && keySlo.data.ok !== false, 'keystone slo heal');
+  const keyEsc = await req('/api/keystone/esc/close', { method: 'POST', token, body: {} });
+  assert(keyEsc.res.ok && keyEsc.data.ok !== false, 'keystone esc close');
+  const keyAck = await req('/api/keystone/flag/ack', { method: 'POST', token, body: {} });
+  assert(keyAck.res.ok && keyAck.data.ok !== false, 'keystone flag ack');
+
+  const latSweep = await req('/api/lattice/sweep', { method: 'POST', token, body: { force: true } });
+  assert(latSweep.res.ok && latSweep.data.ok !== false, 'lattice sweep');
+  const latGate = await req('/api/lattice/gate/heal', { method: 'POST', token, body: {} });
+  assert(latGate.res.ok && latGate.data.ok !== false, 'lattice gate heal');
+  const latOta = await req('/api/lattice/ota/retry', { method: 'POST', token, body: {} });
+  assert(latOta.res.ok && latOta.data.ok !== false, 'lattice ota retry');
+  const latFail = await req('/api/lattice/failback/clear', { method: 'POST', token, body: {} });
+  assert(latFail.res.ok && latFail.data.ok !== false, 'lattice failback clear');
+  const latAck = await req('/api/lattice/flag/ack', { method: 'POST', token, body: {} });
+  assert(latAck.res.ok && latAck.data.ok !== false, 'lattice flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

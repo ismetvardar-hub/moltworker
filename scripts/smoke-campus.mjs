@@ -470,6 +470,18 @@ import {
   buildZenith, runZenithSweep, ackZenithFlag, catchZenithPace, healZenithMargin, coolZenithDemand,
 } from '../server/zenith.js';
 import {
+  buildHelios, runHeliosSweep, ackHeliosFlag, runHeliosInbound, busyHeliosAsn, liveHeliosSlot,
+} from '../server/helios.js';
+import {
+  buildKairos, runKairosSweep, ackKairosFlag, runKairosDrill, busyKairosCircle, liveKairosBadge,
+} from '../server/kairos.js';
+import {
+  buildKeystone, runKeystoneSweep, ackKeystoneFlag, clearKeystoneBus, healKeystoneSlo, closeKeystoneEsc,
+} from '../server/keystone.js';
+import {
+  buildLattice, runLatticeSweep, ackLatticeFlag, healLatticeGate, retryLatticeOta, clearLatticeFailback,
+} from '../server/lattice.js';
+import {
   buildPyramid, runPyramidSweep, ackPyramidFlag, resolvePyramidSys, healPyramidNet, flushPyramidComms,
 } from '../server/pyramid.js';
 import {
@@ -1267,6 +1279,36 @@ assert(closeGaiaLegacy({}, 'smoke').ok, 'gaia legacy close');
 assert(liveGaiaQuiet({}, 'smoke').ok, 'gaia quiet live');
 assert(runGaiaPillow({}, 'smoke').ok, 'gaia pillow run');
 assert(ackGaiaFlag({}, 'smoke').ok, 'gaia flag ack');
+
+assert(buildHelios().title, 'helios overview');
+assert(runHeliosSweep({ force: true }, 'smoke').ok, 'helios sweep');
+assert(runHeliosInbound({}, 'smoke').ok, 'helios inbound run');
+assert(busyHeliosAsn({}, 'smoke').ok, 'helios asn busy');
+assert(liveHeliosSlot({}, 'smoke').ok, 'helios slot live');
+assert(ackHeliosFlag({}, 'smoke').ok, 'helios flag ack');
+
+assert(buildKairos().title, 'kairos overview');
+assert(runKairosSweep({ force: true }, 'smoke').ok, 'kairos sweep');
+assert(runKairosDrill({}, 'smoke').ok, 'kairos drill run');
+assert(busyKairosCircle({}, 'smoke').ok, 'kairos circle busy');
+assert(liveKairosBadge({}, 'smoke').ok, 'kairos badge live');
+assert(ackKairosFlag({}, 'smoke').ok, 'kairos flag ack');
+
+assert(buildKeystone().title, 'keystone overview');
+assert(runKeystoneSweep({ force: true }, 'smoke').ok, 'keystone sweep');
+assert(clearKeystoneBus({}, 'smoke').ok, 'keystone bus clear');
+assert(healKeystoneSlo({}, 'smoke').ok, 'keystone slo heal');
+assert(closeKeystoneEsc({}, 'smoke').ok, 'keystone esc close');
+assert(ackKeystoneFlag({}, 'smoke').ok, 'keystone flag ack');
+
+assert(buildLattice().title, 'lattice overview');
+assert(runLatticeSweep({ force: true }, 'smoke').ok, 'lattice sweep');
+assert(healLatticeGate({}, 'smoke').ok, 'lattice gate heal');
+assert(retryLatticeOta({}, 'smoke').ok, 'lattice ota retry');
+assert(clearLatticeFailback({}, 'smoke').ok, 'lattice failback clear');
+assert(ackLatticeFlag({}, 'smoke').ok, 'lattice flag ack');
+
+console.log('MOD115_OK');
 
 console.log(
   JSON.stringify(

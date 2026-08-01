@@ -1940,7 +1940,9 @@ import {
   satlinkSummary,
   updateSatlink,
 } from './satlink.js';
-import { buildLattice } from './lattice.js';
+import {
+  ackLatticeFlag, buildLattice, clearLatticeFailback, healLatticeGate, retryLatticeOta, runLatticeSweep,
+} from './lattice.js';
 import {
   createGuesttwin,
   listGuesttwin,
@@ -2110,7 +2112,9 @@ import {
   afteractionSummary,
   updateAfteraction,
 } from './afteraction.js';
-import { buildKeystone } from './keystone.js';
+import {
+  ackKeystoneFlag, buildKeystone, clearKeystoneBus, closeKeystoneEsc, healKeystoneSlo, runKeystoneSweep,
+} from './keystone.js';
 import {
   createRevstream,
   listRevstream,
@@ -6310,7 +6314,9 @@ import {
   safetystock3Summary,
   updateSafetystock3,
 } from './safetystock3.js';
-import { buildHelios } from './helios.js';
+import {
+  ackHeliosFlag, buildHelios, busyHeliosAsn, liveHeliosSlot, runHeliosInbound, runHeliosSweep,
+} from './helios.js';
 import {
   createSupplierkpi3,
   listSupplierkpi3,
@@ -6654,7 +6660,9 @@ import {
   ritualcal3Summary,
   updateRitualcal3,
 } from './ritualcal3.js';
-import { buildKairos } from './kairos.js';
+import {
+  ackKairosFlag, buildKairos, busyKairosCircle, liveKairosBadge, runKairosDrill, runKairosSweep,
+} from './kairos.js';
 import {
   createCohort3,
   listCohort3,
@@ -16596,6 +16604,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildLattice());
           return;
         }
+        if (path === '/api/lattice/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLatticeSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lattice/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLatticeFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lattice/gate/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healLatticeGate(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lattice/ota/retry' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, retryLatticeOta(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lattice/failback/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearLatticeFailback(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Guest Twin · Mirror (AŞAMA 346–360) ──
 
@@ -17308,6 +17346,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/keystone' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildKeystone());
+          return;
+        }
+        if (path === '/api/keystone/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKeystoneSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keystone/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKeystoneFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keystone/bus/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearKeystoneBus(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keystone/slo/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healKeystoneSlo(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keystone/esc/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeKeystoneEsc(await readBody(req), user.username)); })();
           return;
         }
 
@@ -35346,6 +35414,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildHelios());
           return;
         }
+        if (path === '/api/helios/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHeliosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/helios/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHeliosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/helios/inbound/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHeliosInbound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/helios/asn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyHeliosAsn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/helios/slot/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveHeliosSlot(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Selene OS · Selene (AŞAMA 1096–1110) ──
 
@@ -36832,6 +36930,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/kairos' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildKairos());
+          return;
+        }
+        if (path === '/api/kairos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKairosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kairos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKairosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kairos/drill/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKairosDrill(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kairos/circle/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyKairosCircle(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kairos/badge/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveKairosBadge(await readBody(req), user.username)); })();
           return;
         }
 
