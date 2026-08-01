@@ -188,6 +188,14 @@ docker compose up --build           # data volume ile
 
 Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası geçerli).
 
+### Tesisler · Ops · Bildirimler (AŞAMA 10–12)
+
+| Aşama | Özellik |
+|-------|---------|
+| **10** | Çoklu tesis (`/api/venues`), NEXUS cihazlarında `venueId` filtresi |
+| **11** | `GET /api/health`, `GET /api/ops/backup`, `POST /api/ops/restore` |
+| **12** | Bildirim merkezi (`/api/notifications`), SSE ile canlı gelen kutusu |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

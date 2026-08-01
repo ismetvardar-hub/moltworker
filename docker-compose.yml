@@ -10,6 +10,11 @@ services:
       # Opsiyonel: AUTH_CEO_PASS, BRAVE_SEARCH_API_KEY, TWILIO_*, ...
     volumes:
       - likya-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4173/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
 volumes:

@@ -26,15 +26,32 @@ import {
 } from './jobs.js';
 import { addSseClient, sseClientCount } from './events.js';
 import { buildOpsReport, reportToMarkdown } from './report.js';
+import {
+  createVenue,
+  getVenue,
+  listVenues,
+  removeVenue,
+  updateVenue,
+  venuesSummary,
+} from './venues.js';
+import { createBackup, healthCheck, listDataFiles, restoreBackup } from './ops.js';
+import {
+  listNotifications,
+  markAllRead,
+  markRead,
+  unreadCount,
+} from './notifications.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
+// tesis tohumu
+listVenues();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Cache-Control', 'no-store');
   res.end(JSON.stringify(body));
@@ -102,6 +119,9 @@ function hubSummary() {
     recentNexus: nexus.slice(0, 8),
     recentAudit: audit,
     recentJobs: jobs.recent,
+    venues: venuesSummary(),
+    unreadNotifications: unreadCount(),
+    health: healthCheck().status,
     agentHits: Object.entries(byAgent)
       .map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count)
@@ -447,6 +467,147 @@ export function createPlatformMiddleware() {
           if (!user) return;
           const id = path.split('/')[3];
           sendJson(res, 200, { jobs: deleteJob(id) });
+          return;
+        }
+
+        // ── AŞAMA 10: Tesisler ────────────────────────────────────────
+        if (path === '/api/venues' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, venuesSummary());
+          return;
+        }
+        if (path === '/api/venues' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              if (!body.name) {
+                sendJson(res, 400, { error: 'name zorunlu' });
+                return;
+              }
+              const venue = createVenue(body, user.username);
+              sendJson(res, 200, { venue });
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Tesis oluşturulamadı',
+              });
+            }
+          })();
+          return;
+        }
+        if (path.startsWith('/api/venues/') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const venue = getVenue(id);
+          if (!venue) {
+            sendJson(res, 404, { error: 'Tesis bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { venue });
+          return;
+        }
+        if (path.startsWith('/api/venues/') && req.method === 'PATCH') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const patch = await readBody(req);
+            const venue = updateVenue(id, patch, user.username);
+            if (!venue) {
+              sendJson(res, 404, { error: 'Tesis bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { venue });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/venues/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const venue = removeVenue(id, user.username);
+          if (!venue) {
+            sendJson(res, 404, { error: 'Tesis bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, venue });
+          return;
+        }
+
+        // ── AŞAMA 11: Health + yedek ──────────────────────────────────
+        if (path === '/api/health' && req.method === 'GET') {
+          // health auth gerektirmez (load balancer / docker healthcheck)
+          sendJson(res, 200, healthCheck());
+          return;
+        }
+        if (path === '/api/ops/files' && req.method === 'GET') {
+          if (!requireCeo(req, res)) return;
+          sendJson(res, 200, { files: listDataFiles() });
+          return;
+        }
+        if (path === '/api/ops/backup' && req.method === 'GET') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const backup = createBackup();
+          appendAudit({
+            actor: user.username,
+            action: 'ops.backup',
+            detail: `Yedek alındı (${Object.keys(backup.collections).length} koleksiyon)`,
+          });
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="likya-backup-${backup.createdAt.slice(0, 10)}.json"`,
+          );
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(JSON.stringify(backup, null, 2));
+          return;
+        }
+        if (path === '/api/ops/restore' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              const result = restoreBackup(body, user.username);
+              sendJson(res, 200, result);
+            } catch (err) {
+              sendJson(res, 400, {
+                error: err instanceof Error ? err.message : 'Geri yükleme başarısız',
+              });
+            }
+          })();
+          return;
+        }
+
+        // ── AŞAMA 12: Bildirimler ─────────────────────────────────────
+        if (path === '/api/notifications' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          const unreadOnly = url.searchParams.get('unread') === '1';
+          const limit = Number(url.searchParams.get('limit') || 50);
+          sendJson(res, 200, {
+            unread: unreadCount(),
+            notifications: listNotifications(limit, unreadOnly),
+          });
+          return;
+        }
+        if (path === '/api/notifications/read-all' && req.method === 'POST') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, markAllRead());
+          return;
+        }
+        if (path.startsWith('/api/notifications/') && path.endsWith('/read') && req.method === 'POST') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const n = markRead(id);
+          if (!n) {
+            sendJson(res, 404, { error: 'Bildirim bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { notification: n, unread: unreadCount() });
           return;
         }
 

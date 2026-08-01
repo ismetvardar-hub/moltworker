@@ -43,11 +43,14 @@ export const ROLE_PAGES = {
     'vision',
     'nexus',
     'jobs',
+    'venues',
     'reports',
+    'notifications',
+    'ops',
     'settings',
   ],
-  kitchen: ['hub', 'chef', 'nexus', 'jobs'],
-  crew: ['hub', 'crew', 'olympospass', 'vision'],
+  kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications'],
+  crew: ['hub', 'crew', 'olympospass', 'vision', 'notifications'],
 };
 
 function loadSessions() {

@@ -207,6 +207,7 @@ const devices = [
     firmware: 'esp32-v1.4',
     state: 'locked',
     online: true,
+    venueId: 'venue_olympos_beach',
   },
   {
     id: 'gate-vip',
@@ -217,6 +218,7 @@ const devices = [
     firmware: 'rpi-relay-0.9',
     state: 'locked',
     online: true,
+    venueId: 'venue_kaleici',
   },
   {
     id: 'gate-beach',
@@ -227,6 +229,7 @@ const devices = [
     firmware: 'esp32-rfid-2.1',
     state: 'idle',
     online: true,
+    venueId: 'venue_olympos_beach',
   },
   {
     id: 'kitchen-display',
@@ -237,6 +240,7 @@ const devices = [
     firmware: 'rpi-kiosk-1.2',
     state: 'active',
     online: true,
+    venueId: 'venue_kaleici',
   },
 ];
 
@@ -252,11 +256,15 @@ if (nexusEvents.length === 0) {
   });
 }
 
-function handleNexusDevices(_req, res) {
+function handleNexusDevices(req, res) {
+  const url = new URL(req.url ?? '', 'http://local');
+  const venueId = url.searchParams.get('venueId');
+  const list = venueId ? devices.filter((d) => d.venueId === venueId) : devices;
   sendJson(res, 200, {
     protocol: 'likya-nexus-v1',
     mode: process.env.NEXUS_LIVE_URL ? 'live-bridge' : 'simulation',
-    devices,
+    venueId: venueId || null,
+    devices: list,
   });
 }
 

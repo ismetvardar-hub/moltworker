@@ -48,6 +48,14 @@ export interface HubSummary {
   }>;
   recentAudit: AuditEntry[];
   recentJobs: HubJob[];
+  venues?: {
+    total: number;
+    active: number;
+    seasonal: number;
+    venues: Array<{ id: string; name: string; status: string; city: string }>;
+  };
+  unreadNotifications?: number;
+  health?: string;
   agentHits: Array<{ agent: string; count: number }>;
   generatedAt: string;
 }

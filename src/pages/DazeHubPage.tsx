@@ -123,6 +123,18 @@ export default function DazeHubPage() {
             icon: Settings2,
             detail: 'Yapılandırılmış anahtarlar',
           },
+          {
+            label: 'Tesisler',
+            value: summary?.venues?.active ?? '—',
+            icon: Network,
+            detail: `${summary?.venues?.total ?? 0} toplam · sağlık ${summary?.health ?? '—'}`,
+          },
+          {
+            label: 'Bildirim',
+            value: summary?.unreadNotifications ?? '—',
+            icon: Sparkles,
+            detail: 'Okunmamış operasyon uyarısı',
+          },
         ].map(({ label, value, icon: Icon, detail }) => (
           <PanelCard key={label} className="!p-0">
             <div className="flex size-10 items-center justify-center rounded-lg bg-lykia-500/10 text-lykia-400">

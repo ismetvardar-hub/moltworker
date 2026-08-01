@@ -9,7 +9,10 @@ export type PageId =
   | 'vision'
   | 'nexus'
   | 'jobs'
+  | 'venues'
   | 'reports'
+  | 'notifications'
+  | 'ops'
   | 'settings';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';

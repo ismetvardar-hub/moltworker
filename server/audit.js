@@ -5,6 +5,7 @@
 import { prependItem, readCollection } from './store.js';
 import { randomBytes } from 'node:crypto';
 import { broadcast } from './events.js';
+import { notifyFromAudit } from './notifications.js';
 
 export function appendAudit({ actor, action, detail, meta }) {
   const entry = {
@@ -16,6 +17,7 @@ export function appendAudit({ actor, action, detail, meta }) {
     meta: meta ?? undefined,
   };
   prependItem('audit', entry, 300);
+  const ntf = notifyFromAudit(entry);
   broadcast({
     type: 'audit',
     id: entry.id,
@@ -24,7 +26,19 @@ export function appendAudit({ actor, action, detail, meta }) {
     action: entry.action,
     detail: entry.detail,
     meta: entry.meta,
+    notificationId: ntf?.id,
   });
+  if (ntf) {
+    broadcast({
+      type: 'notification',
+      id: ntf.id,
+      at: ntf.at,
+      actor: ntf.actor,
+      action: ntf.action,
+      detail: ntf.detail,
+      level: ntf.level,
+    });
+  }
   return entry;
 }
 

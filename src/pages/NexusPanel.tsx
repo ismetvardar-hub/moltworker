@@ -18,6 +18,7 @@ import {
   type NexusDevice,
   type NexusEvent,
 } from '../services/nexus';
+import { fetchVenues, type Venue } from '../services/venues';
 
 const ACTIONS: { action: NexusAction; label: string; icon: typeof Lock }[] = [
   { action: 'unlock', label: 'Aç', icon: Unlock },
@@ -30,6 +31,8 @@ const ACTIONS: { action: NexusAction; label: string; icon: typeof Lock }[] = [
 export default function NexusPanel() {
   const [devices, setDevices] = useState<NexusDevice[]>([]);
   const [events, setEvents] = useState<NexusEvent[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [venueFilter, setVenueFilter] = useState('');
   const [mode, setMode] = useState('simulation');
   const [protocol, setProtocol] = useState('likya-nexus-v1');
   const [passCode, setPassCode] = useState('OLP-7A21');
@@ -38,16 +41,21 @@ export default function NexusPanel() {
 
   const refresh = useCallback(async () => {
     try {
-      const [d, e] = await Promise.all([fetchNexusDevices(), fetchNexusEvents()]);
+      const [d, e, v] = await Promise.all([
+        fetchNexusDevices(venueFilter || undefined),
+        fetchNexusEvents(),
+        fetchVenues().catch(() => ({ venues: [] as Venue[] })),
+      ]);
       setDevices(d.devices);
       setMode(d.mode);
       setProtocol(d.protocol);
       setEvents(e);
+      setVenues(v.venues);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'NEXUS erişilemedi');
     }
-  }, []);
+  }, [venueFilter]);
 
   useEffect(() => {
     void refresh();
@@ -100,24 +108,40 @@ export default function NexusPanel() {
         </div>
       )}
 
-      <PanelCard
-        title="Geçiş Kodu"
-        subtitle="unlock / pulse / scan komutlarına eklenir (OlymposPass)"
-      >
-        <input
-          value={passCode}
-          onChange={(e) => setPassCode(e.target.value.toUpperCase())}
-          className="w-full max-w-sm rounded-xl border border-obsidian-700 bg-obsidian-950 px-4 py-2.5 font-mono text-sm uppercase text-lykia-300 focus:border-lykia-500 focus:outline-none"
-          placeholder="OLP-XXXX"
-        />
-      </PanelCard>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <PanelCard
+          title="Geçiş Kodu"
+          subtitle="unlock / pulse / scan komutlarına eklenir (OlymposPass)"
+        >
+          <input
+            value={passCode}
+            onChange={(e) => setPassCode(e.target.value.toUpperCase())}
+            className="w-full rounded-xl border border-obsidian-700 bg-obsidian-950 px-4 py-2.5 font-mono text-sm uppercase text-lykia-300 focus:border-lykia-500 focus:outline-none"
+            placeholder="OLP-XXXX"
+          />
+        </PanelCard>
+        <PanelCard title="Tesis Filtresi" subtitle="AŞAMA 10 — cihazları locasyona göre süz">
+          <select
+            value={venueFilter}
+            onChange={(e) => setVenueFilter(e.target.value)}
+            className="w-full rounded-xl border border-obsidian-700 bg-obsidian-950 px-4 py-2.5 text-sm text-slate-200 focus:border-lykia-500 focus:outline-none"
+          >
+            <option value="">Tüm tesisler</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+        </PanelCard>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {devices.map((d) => (
           <PanelCard
             key={d.id}
             title={d.name}
-            subtitle={`${d.type} · ${d.protocol} · ${d.host} · ${d.firmware}`}
+            subtitle={`${d.type} · ${d.protocol} · ${d.host} · ${d.firmware}${d.venueId ? ` · ${d.venueId}` : ''}`}
             actions={
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${

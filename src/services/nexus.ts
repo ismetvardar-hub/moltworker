@@ -11,6 +11,7 @@ export interface NexusDevice {
   firmware: string;
   state: string;
   online: boolean;
+  venueId?: string;
 }
 
 export interface NexusEvent {
@@ -24,14 +25,21 @@ export interface NexusEvent {
   mode?: string;
 }
 
-export async function fetchNexusDevices(): Promise<{
+export async function fetchNexusDevices(venueId?: string): Promise<{
   protocol: string;
   mode: string;
+  venueId: string | null;
   devices: NexusDevice[];
 }> {
-  const res = await fetch('/api/nexus/devices');
+  const qs = venueId ? `?venueId=${encodeURIComponent(venueId)}` : '';
+  const res = await fetch(`/api/nexus/devices${qs}`);
   if (!res.ok) throw new Error(`NEXUS devices HTTP ${res.status}`);
-  return (await res.json()) as { protocol: string; mode: string; devices: NexusDevice[] };
+  return (await res.json()) as {
+    protocol: string;
+    mode: string;
+    venueId: string | null;
+    devices: NexusDevice[];
+  };
 }
 
 export async function fetchNexusEvents(): Promise<NexusEvent[]> {

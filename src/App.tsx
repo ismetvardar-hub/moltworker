@@ -13,6 +13,9 @@ import NexusPanel from './pages/NexusPanel';
 import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
 import ReportsPage from './pages/ReportsPage';
+import VenuesPage from './pages/VenuesPage';
+import OpsPage from './pages/OpsPage';
+import NotificationsPage from './pages/NotificationsPage';
 import {
   fetchMe,
   getStoredUser,
@@ -32,7 +35,10 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   vision: DazeVisionPage,
   nexus: NexusPanel,
   jobs: JobsPage,
+  venues: VenuesPage,
   reports: ReportsPage,
+  notifications: NotificationsPage,
+  ops: OpsPage,
   settings: SettingsPage,
 };
 
