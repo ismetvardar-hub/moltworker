@@ -386,6 +386,38 @@ import {
   encodeOrbitKeys,
   retryOrbitGuestapp,
 } from '../server/orbit.js';
+import {
+  buildHearth,
+  runHearthSweep,
+  ackHearthFlag,
+  runHearthPass,
+  clearHearthAllergen,
+  sendHearthPlate,
+} from '../server/hearth.js';
+import {
+  buildMeridian,
+  runMeridianSweep,
+  ackMeridianFlag,
+  approveMeridianMove,
+  approveMeridianEarly,
+  clearMeridianTurndown,
+} from '../server/meridian.js';
+import {
+  buildNightly,
+  runNightlySweep,
+  ackNightlyFlag,
+  closeNightlyLog,
+  closeNightlyFolio,
+  approveNightlyLate,
+} from '../server/nightly.js';
+import {
+  buildStudio,
+  runStudioSweep,
+  ackStudioFlag,
+  approveStudioUgc,
+  endStudioLive,
+  deliverStudioBrief,
+} from '../server/studio.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -923,6 +955,35 @@ assert(clearVerdantWater({}, 'smoke').ok, 'verdant water clear');
 assert(closeVerdantEsg({}, 'smoke').ok, 'verdant esg close');
 assert(fixVerdantEv({}, 'smoke').ok, 'verdant ev fix');
 assert(ackVerdantFlag({}, 'smoke').ok, 'verdant flag ack');
+
+
+assert(buildHearth().title, 'hearth overview');
+assert(runHearthSweep({ force: true }, 'smoke').ok, 'hearth sweep');
+assert(runHearthPass({}, 'smoke').ok, 'hearth pass run');
+assert(clearHearthAllergen({}, 'smoke').ok, 'hearth allergen clear');
+assert(sendHearthPlate({}, 'smoke').ok, 'hearth plate send');
+assert(ackHearthFlag({}, 'smoke').ok, 'hearth flag ack');
+
+assert(buildMeridian().title, 'meridian overview');
+assert(runMeridianSweep({ force: true }, 'smoke').ok, 'meridian sweep');
+assert(approveMeridianMove({}, 'smoke').ok, 'meridian move approve');
+assert(approveMeridianEarly({}, 'smoke').ok, 'meridian early approve');
+assert(clearMeridianTurndown({}, 'smoke').ok, 'meridian turndown clear');
+assert(ackMeridianFlag({}, 'smoke').ok, 'meridian flag ack');
+
+assert(buildNightly().title, 'nightly overview');
+assert(runNightlySweep({ force: true }, 'smoke').ok, 'nightly sweep');
+assert(closeNightlyLog({}, 'smoke').ok, 'nightly log close');
+assert(closeNightlyFolio({}, 'smoke').ok, 'nightly folio close');
+assert(approveNightlyLate({}, 'smoke').ok, 'nightly late approve');
+assert(ackNightlyFlag({}, 'smoke').ok, 'nightly flag ack');
+
+assert(buildStudio().title, 'studio overview');
+assert(runStudioSweep({ force: true }, 'smoke').ok, 'studio sweep');
+assert(approveStudioUgc({}, 'smoke').ok, 'studio ugc approve');
+assert(endStudioLive({}, 'smoke').ok, 'studio live end');
+assert(deliverStudioBrief({}, 'smoke').ok, 'studio brief deliver');
+assert(ackStudioFlag({}, 'smoke').ok, 'studio flag ack');
 
 console.log(
   JSON.stringify(

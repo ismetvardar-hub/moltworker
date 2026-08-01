@@ -580,7 +580,14 @@ import {
   nightlogSummary,
   updateNightlog,
 } from './nightlog.js';
-import { buildNightly } from './nightly.js';
+import {
+  ackNightlyFlag,
+  approveNightlyLate,
+  buildNightly,
+  closeNightlyFolio,
+  closeNightlyLog,
+  runNightlySweep,
+} from './nightly.js';
 import {
   createKeycards,
   listKeycards,
@@ -1274,7 +1281,14 @@ import {
   petstaySummary,
   updatePetstay,
 } from './petstay.js';
-import { buildMeridian } from './meridian.js';
+import {
+  ackMeridianFlag,
+  approveMeridianEarly,
+  approveMeridianMove,
+  buildMeridian,
+  clearMeridianTurndown,
+  runMeridianSweep,
+} from './meridian.js';
 import {
   createArbill,
   listArbill,
@@ -2591,7 +2605,14 @@ import {
   supplypullSummary,
   updateSupplypull,
 } from './supplypull.js';
-import { buildHearth } from './hearth.js';
+import {
+  ackHearthFlag,
+  buildHearth,
+  clearHearthAllergen,
+  runHearthPass,
+  runHearthSweep,
+  sendHearthPlate,
+} from './hearth.js';
 import {
   createSpaflow,
   listSpaflow,
@@ -3816,7 +3837,14 @@ import {
   briefdeskSummary,
   updateBriefdesk,
 } from './briefdesk.js';
-import { buildStudio } from './studio.js';
+import {
+  ackStudioFlag,
+  approveStudioUgc,
+  buildStudio,
+  deliverStudioBrief,
+  endStudioLive,
+  runStudioSweep,
+} from './studio.js';
 import {
   createCarbonledger,
   listCarbonledger,
@@ -10687,6 +10715,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildNightly());
           return;
         }
+        if (path === '/api/nightly/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runNightlySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightly/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackNightlyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightly/log/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeNightlyLog(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightly/folio/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeNightlyFolio(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightly/late/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveNightlyLate(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 121–135 ──
 
@@ -13601,6 +13659,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/meridian' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildMeridian());
+          return;
+        }
+        if (path === '/api/meridian/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMeridianSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meridian/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMeridianFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meridian/move/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveMeridianMove(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meridian/early/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveMeridianEarly(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meridian/turndown/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearMeridianTurndown(await readBody(req), user.username)); })();
           return;
         }
 
@@ -19138,6 +19226,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildHearth());
           return;
         }
+        if (path === '/api/hearth/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHearthSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hearth/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHearthFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hearth/pass/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHearthPass(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hearth/allergen/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearHearthAllergen(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hearth/plate/send' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, sendHearthPlate(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Wellness OS · Sanctum (AŞAMA 466–480) ──
 
@@ -24284,6 +24402,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/studio' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildStudio());
+          return;
+        }
+        if (path === '/api/studio/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runStudioSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/studio/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackStudioFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/studio/ugc/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveStudioUgc(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/studio/live/end' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, endStudioLive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/studio/brief/deliver' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, deliverStudioBrief(await readBody(req), user.username)); })();
           return;
         }
 

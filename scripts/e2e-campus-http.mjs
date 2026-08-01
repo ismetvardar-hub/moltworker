@@ -101,6 +101,10 @@ try {
     '/api/ledger',
     '/api/orbit',
     '/api/verdant',
+    '/api/hearth',
+    '/api/meridian',
+    '/api/nightly',
+    '/api/studio',
     '/api/health',
   ];
   for (const p of paths) {
@@ -845,6 +849,50 @@ try {
   assert(vdEv.res.ok && vdEv.data.ok !== false, 'verdant ev fix');
   const vdAck = await req('/api/verdant/flag/ack', { method: 'POST', token, body: {} });
   assert(vdAck.res.ok && vdAck.data.ok !== false, 'verdant flag ack');
+
+  const hhSweep = await req('/api/hearth/sweep', { method: 'POST', token, body: { force: true } });
+  assert(hhSweep.res.ok && hhSweep.data.ok !== false, 'hearth sweep');
+  const hhPass = await req('/api/hearth/pass/run', { method: 'POST', token, body: {} });
+  assert(hhPass.res.ok && hhPass.data.ok !== false, 'hearth pass run');
+  const hhAlg = await req('/api/hearth/allergen/clear', { method: 'POST', token, body: {} });
+  assert(hhAlg.res.ok && hhAlg.data.ok !== false, 'hearth allergen clear');
+  const hhPlate = await req('/api/hearth/plate/send', { method: 'POST', token, body: {} });
+  assert(hhPlate.res.ok && hhPlate.data.ok !== false, 'hearth plate send');
+  const hhAck = await req('/api/hearth/flag/ack', { method: 'POST', token, body: {} });
+  assert(hhAck.res.ok && hhAck.data.ok !== false, 'hearth flag ack');
+
+  const mdSweep = await req('/api/meridian/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mdSweep.res.ok && mdSweep.data.ok !== false, 'meridian sweep');
+  const mdMove = await req('/api/meridian/move/approve', { method: 'POST', token, body: {} });
+  assert(mdMove.res.ok && mdMove.data.ok !== false, 'meridian move approve');
+  const mdEarly = await req('/api/meridian/early/approve', { method: 'POST', token, body: {} });
+  assert(mdEarly.res.ok && mdEarly.data.ok !== false, 'meridian early approve');
+  const mdTurn = await req('/api/meridian/turndown/clear', { method: 'POST', token, body: {} });
+  assert(mdTurn.res.ok && mdTurn.data.ok !== false, 'meridian turndown clear');
+  const mdAck = await req('/api/meridian/flag/ack', { method: 'POST', token, body: {} });
+  assert(mdAck.res.ok && mdAck.data.ok !== false, 'meridian flag ack');
+
+  const ntSweep = await req('/api/nightly/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ntSweep.res.ok && ntSweep.data.ok !== false, 'nightly sweep');
+  const ntLog = await req('/api/nightly/log/close', { method: 'POST', token, body: {} });
+  assert(ntLog.res.ok && ntLog.data.ok !== false, 'nightly log close');
+  const ntFolio = await req('/api/nightly/folio/close', { method: 'POST', token, body: {} });
+  assert(ntFolio.res.ok && ntFolio.data.ok !== false, 'nightly folio close');
+  const ntLate = await req('/api/nightly/late/approve', { method: 'POST', token, body: {} });
+  assert(ntLate.res.ok && ntLate.data.ok !== false, 'nightly late approve');
+  const ntAck = await req('/api/nightly/flag/ack', { method: 'POST', token, body: {} });
+  assert(ntAck.res.ok && ntAck.data.ok !== false, 'nightly flag ack');
+
+  const stSweep = await req('/api/studio/sweep', { method: 'POST', token, body: { force: true } });
+  assert(stSweep.res.ok && stSweep.data.ok !== false, 'studio sweep');
+  const stUgc = await req('/api/studio/ugc/approve', { method: 'POST', token, body: {} });
+  assert(stUgc.res.ok && stUgc.data.ok !== false, 'studio ugc approve');
+  const stLive = await req('/api/studio/live/end', { method: 'POST', token, body: {} });
+  assert(stLive.res.ok && stLive.data.ok !== false, 'studio live end');
+  const stBrief = await req('/api/studio/brief/deliver', { method: 'POST', token, body: {} });
+  assert(stBrief.res.ok && stBrief.data.ok !== false, 'studio brief deliver');
+  const stAck = await req('/api/studio/flag/ack', { method: 'POST', token, body: {} });
+  assert(stAck.res.ok && stAck.data.ok !== false, 'studio flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
