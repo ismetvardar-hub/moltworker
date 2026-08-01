@@ -30,6 +30,10 @@ import {
   closeAgentBridgeChannel,
   runAgentBridgeAlertSlaSweep,
   routeAgentBridgeAlert,
+  muteAgentBridgeAlert,
+  unmuteAgentBridgeAlerts,
+  snoozeAgentBridgeChannel,
+  wakeSnoozedAgentBridgeChannels,
 } from '../server/agentbridge.js';
 import {
   stayRingOverview,
@@ -259,6 +263,10 @@ assert(
   'bridge alert',
 );
 assert(routeAgentBridgeAlert({ mode: 'work_order' }, 'smoke').ok, 'bridge alert route');
+assert(muteAgentBridgeAlert({ minutes: 1, reason: 'smoke mute' }, 'smoke').ok, 'bridge alert mute');
+assert(unmuteAgentBridgeAlerts({ force: true }, 'smoke').ok, 'bridge alert unmute');
+assert(snoozeAgentBridgeChannel({ minutes: 1, reason: 'smoke snooze' }, 'smoke').ok, 'bridge channel snooze');
+assert(wakeSnoozedAgentBridgeChannels({ force: true }, 'smoke').ok, 'bridge channel wake');
 assert(runAgentBridgeAlertSlaSweep({ force: true }, 'smoke').ok, 'bridge alert sla');
 assert(resolveAgentBridgeAlert({}, 'smoke').ok, 'bridge alert resolve');
 assert(closeAgentBridgeChannel({}, 'smoke').ok, 'bridge channel close');

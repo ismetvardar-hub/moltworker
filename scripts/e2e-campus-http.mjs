@@ -958,6 +958,30 @@ try {
     body: { mode: 'work_order' },
   });
   assert(alertRoute.res.ok && alertRoute.data.ok !== false, 'bridge alert route');
+  const alertMute = await req('/api/agentbridge/alert/mute', {
+    method: 'POST',
+    token,
+    body: { minutes: 1, reason: 'e2e mute' },
+  });
+  assert(alertMute.res.ok && alertMute.data.ok !== false, 'bridge alert mute');
+  const alertUnmute = await req('/api/agentbridge/alert/unmute', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(alertUnmute.res.ok && alertUnmute.data.ok !== false, 'bridge alert unmute');
+  const chSnooze = await req('/api/agentbridge/channel/snooze', {
+    method: 'POST',
+    token,
+    body: { minutes: 1 },
+  });
+  assert(chSnooze.res.ok && chSnooze.data.ok !== false, 'bridge channel snooze');
+  const chWake = await req('/api/agentbridge/channel/wake', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(chWake.res.ok && chWake.data.ok !== false, 'bridge channel wake');
   const alertSla = await req('/api/agentbridge/alert/sla-sweep', {
     method: 'POST',
     token,

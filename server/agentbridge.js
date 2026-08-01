@@ -56,8 +56,8 @@ export function agentBridgeOverview() {
     master_rule: fleet.master_rule,
     agents,
     fleet: fleet.summary,
-    channels: chList.filter((c) => c.status === 'open').slice(0, 20),
-    alerts: alertList.filter((a) => a.status === 'open').slice(0, 20),
+    channels: chList.filter((c) => c.status === 'open' || c.status === 'snoozed').slice(0, 24),
+    alerts: alertList.filter((a) => a.status === 'open' || a.status === 'muted').slice(0, 24),
     pulses: {
       campus: campus.summary,
       stay: stay.summary,
@@ -92,8 +92,10 @@ export function agentBridgeOverview() {
     summary: {
       agents: agents.length,
       channels_open: chList.filter((c) => c.status === 'open').length,
+      channels_snoozed: chList.filter((c) => c.status === 'snoozed').length,
       channels_closed: chList.filter((c) => c.status === 'closed').length,
       alerts_open: alertList.filter((a) => a.status === 'open').length,
+      alerts_muted: alertList.filter((a) => a.status === 'muted').length,
       alerts_routed: alertList.filter((a) => a.routed).length,
       alerts_sla_breach: alertList.filter((a) => a.sla_breach).length,
       fleet_online: fleet.summary?.online ?? 0,
@@ -270,8 +272,8 @@ export function escalateAgentBridgeAlert(input = {}, actor = 'system') {
 export function resolveAgentBridgeAlert(input = {}, actor = 'system') {
   const list = readCollection('agent-bridge-alerts', []) || [];
   if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Alert yok' };
-  let idx = list.findIndex((a) => a.id === input.id && a.status === 'open');
-  if (idx < 0) idx = list.findIndex((a) => a.status === 'open');
+  let idx = list.findIndex((a) => a.id === input.id && (a.status === 'open' || a.status === 'muted'));
+  if (idx < 0) idx = list.findIndex((a) => a.status === 'open' || a.status === 'muted');
   if (idx < 0) return { ok: false, error: 'Açık alert yok' };
   list[idx] = {
     ...list[idx],
@@ -294,9 +296,9 @@ export function resolveAgentBridgeAlert(input = {}, actor = 'system') {
 export function closeAgentBridgeChannel(input = {}, actor = 'system') {
   const list = readCollection('agent-bridge-channels', []) || [];
   if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kanal yok' };
-  let idx = list.findIndex((c) => c.id === input.id && c.status === 'open');
-  if (idx < 0) idx = list.findIndex((c) => c.topic === input.topic && c.status === 'open');
-  if (idx < 0) idx = list.findIndex((c) => c.status === 'open');
+  let idx = list.findIndex((c) => c.id === input.id && (c.status === 'open' || c.status === 'snoozed'));
+  if (idx < 0) idx = list.findIndex((c) => c.topic === input.topic && (c.status === 'open' || c.status === 'snoozed'));
+  if (idx < 0) idx = list.findIndex((c) => c.status === 'open' || c.status === 'snoozed');
   if (idx < 0) return { ok: false, error: 'Açık kanal yok' };
   list[idx] = {
     ...list[idx],
@@ -332,7 +334,7 @@ export function runAgentBridgeAlertSlaSweep(input = {}, actor = 'system') {
   const breached = [];
   for (let i = 0; i < (Array.isArray(list) ? list.length : 0); i++) {
     const a = list[i];
-    if (a.status !== 'open') continue;
+    if (a.status !== 'open') continue; // muted alertler SLA dışı
     const at = a.at ? new Date(a.at).getTime() : 0;
     const force = input.force === true || input.id === a.id;
     if (!force && at && at > cutoff) continue;
@@ -370,6 +372,131 @@ export function runAgentBridgeAlertSlaSweep(input = {}, actor = 'system') {
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, breached, overview: agentBridgeOverview() };
+}
+
+/** Alert geçici sustur (mute) — SLA sweep atlar */
+export function muteAgentBridgeAlert(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-alerts', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Alert yok' };
+  let idx = list.findIndex((a) => a.id === input.id && a.status === 'open');
+  if (idx < 0) idx = list.findIndex((a) => a.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık alert yok' };
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 60));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  list[idx] = {
+    ...list[idx],
+    status: 'muted',
+    mute_until: until,
+    mute_reason: String(input.reason || '').slice(0, 240) || undefined,
+    muted_at: new Date().toISOString(),
+    muted_by: actor,
+  };
+  writeCollection('agent-bridge-alerts', list);
+  appendAudit({
+    actor,
+    action: 'agent.alert_mute',
+    detail: `${list[idx].title} · ${minutes}dk`,
+    meta: { id: list[idx].id, minutes },
+  });
+  return { ok: true, alert: list[idx], overview: agentBridgeOverview() };
+}
+
+/** Mute süresi dolan / force unmute */
+export function unmuteAgentBridgeAlerts(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-alerts', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: true, unmuted: [], overview: agentBridgeOverview() };
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const unmuted = [];
+  for (let i = 0; i < list.length && unmuted.length < limit; i++) {
+    const a = list[i];
+    if (a.status !== 'muted') continue;
+    if (input.id && a.id !== input.id) continue;
+    const until = a.mute_until ? new Date(a.mute_until).getTime() : 0;
+    if (!force && !input.id && until && until > now) continue;
+    list[i] = {
+      ...a,
+      status: 'open',
+      mute_until: null,
+      unmuted_at: new Date().toISOString(),
+      unmuted_by: actor,
+    };
+    unmuted.push(list[i].id);
+  }
+  if (unmuted.length) {
+    writeCollection('agent-bridge-alerts', list);
+    appendAudit({
+      actor,
+      action: 'agent.alert_unmute',
+      detail: `${unmuted.length} alert`,
+      meta: { n: unmuted.length },
+    });
+  }
+  return { ok: true, unmuted, overview: agentBridgeOverview() };
+}
+
+/** Kanal snooze — pulse/SLA dışında beklet */
+export function snoozeAgentBridgeChannel(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-channels', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kanal yok' };
+  let idx = list.findIndex((c) => c.id === input.id && c.status === 'open');
+  if (idx < 0) idx = list.findIndex((c) => c.topic === input.topic && c.status === 'open');
+  if (idx < 0) idx = list.findIndex((c) => c.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık kanal yok' };
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 30));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  list[idx] = {
+    ...list[idx],
+    status: 'snoozed',
+    snooze_until: until,
+    snooze_reason: String(input.reason || '').slice(0, 240) || undefined,
+    snoozed_at: new Date().toISOString(),
+    snoozed_by: actor,
+  };
+  writeCollection('agent-bridge-channels', list);
+  appendAudit({
+    actor,
+    action: 'agent.channel_snooze',
+    detail: `${list[idx].topic} · ${minutes}dk`,
+    meta: { id: list[idx].id, minutes },
+  });
+  return { ok: true, channel: list[idx], overview: agentBridgeOverview() };
+}
+
+/** Snooze kanal uyandır */
+export function wakeSnoozedAgentBridgeChannels(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-channels', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: true, woken: [], overview: agentBridgeOverview() };
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const woken = [];
+  for (let i = 0; i < list.length && woken.length < limit; i++) {
+    const c = list[i];
+    if (c.status !== 'snoozed') continue;
+    if (input.id && c.id !== input.id) continue;
+    const until = c.snooze_until ? new Date(c.snooze_until).getTime() : 0;
+    if (!force && !input.id && until && until > now) continue;
+    list[i] = {
+      ...c,
+      status: 'open',
+      snooze_until: null,
+      woken_at: new Date().toISOString(),
+      woken_by: actor,
+    };
+    woken.push(list[i].id);
+  }
+  if (woken.length) {
+    writeCollection('agent-bridge-channels', list);
+    appendAudit({
+      actor,
+      action: 'agent.channel_wake',
+      detail: `${woken.length} kanal`,
+      meta: { n: woken.length },
+    });
+  }
+  return { ok: true, woken, overview: agentBridgeOverview() };
 }
 
 /** Alert → campus WO veya fleet directive route */

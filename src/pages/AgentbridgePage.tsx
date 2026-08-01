@@ -147,9 +147,58 @@ export default function AgentbridgePage() {
               >
                 Alert route
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.muteAgentBridgeAlert({ minutes: 30, reason: 'ops mute' }).then((r: any) => {
+                    ping(r.ok ? 'Alert mute' : r.error || 'Mute yok')
+                    return refresh()
+                  })
+                }
+              >
+                Alert mute
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/10 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.unmuteAgentBridgeAlerts({ force: true }).then((r: any) => {
+                    ping(`Unmute ${r.unmuted?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Alert unmute
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.snoozeAgentBridgeChannel({ minutes: 20 }).then((r: any) => {
+                    ping(r.ok ? `Kanal snooze · ${r.channel?.topic}` : r.error || 'Snooze yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kanal snooze
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.wakeSnoozedAgentBridgeChannels({ force: true }).then((r: any) => {
+                    ping(`Kanal wake ${r.woken?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Kanal wake
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Kanal {data.summary?.channels_open ?? 0} · alert {data.summary?.alerts_open ?? 0} · SLA{' '}
+              Kanal {data.summary?.channels_open ?? 0} · snooze {data.summary?.channels_snoozed ?? 0} · alert{' '}
+              {data.summary?.alerts_open ?? 0} · mute {data.summary?.alerts_muted ?? 0} · SLA{' '}
               {data.summary?.alerts_sla_breach ?? 0} · routed {data.summary?.alerts_routed ?? 0}
             </p>
           </PanelCard>

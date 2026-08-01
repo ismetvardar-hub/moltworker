@@ -92,3 +92,43 @@ export async function routeAgentBridgeAlert(body: Record<string, unknown> = {}) 
   )
 }
 
+export async function muteAgentBridgeAlert(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/alert/mute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function unmuteAgentBridgeAlerts(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/alert/unmute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function snoozeAgentBridgeChannel(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/channel/snooze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function wakeSnoozedAgentBridgeChannels(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/channel/wake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
