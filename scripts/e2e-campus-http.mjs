@@ -84,6 +84,7 @@ try {
     '/api/sportbridge',
     '/api/agentqueue',
     '/api/cognisphere',
+    '/api/readiness',
     '/api/health',
   ];
   for (const p of paths) {
@@ -610,6 +611,33 @@ try {
   assert(cogMit.res.ok && cogMit.data.ok !== false, 'cognisphere mitigate');
   const cogAck = await req('/api/cognisphere/flag/ack', { method: 'POST', token, body: {} });
   assert(cogAck.res.ok && cogAck.data.ok !== false, 'cognisphere flag ack');
+
+  const readySnap = await req('/api/readiness/snapshot', {
+    method: 'POST',
+    token,
+    body: { note: 'e2e' },
+  });
+  assert(readySnap.res.ok && readySnap.data.ok !== false, 'readiness snapshot');
+  const readyThr = await req('/api/readiness/threshold', {
+    method: 'POST',
+    token,
+    body: { warn: 72, alert: 58, critical: 42 },
+  });
+  assert(readyThr.res.ok && readyThr.data.ok !== false, 'readiness threshold');
+  const readyAck = await req('/api/readiness/ack', {
+    method: 'POST',
+    token,
+    body: { id: 'bridge' },
+  });
+  assert(readyAck.res.ok && readyAck.data.ok !== false, 'readiness ack');
+  const readyEsc = await req('/api/readiness/escalate', {
+    method: 'POST',
+    token,
+    body: { id: 'agents', reason: 'e2e' },
+  });
+  assert(readyEsc.res.ok && readyEsc.data.ok !== false, 'readiness escalate');
+  const readyGap = await req('/api/readiness/gap/resolve', { method: 'POST', token, body: {} });
+  assert(readyGap.res.ok && readyGap.data.ok !== false, 'readiness gap resolve');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

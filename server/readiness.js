@@ -12,13 +12,39 @@ import { seatingSummary } from './seating.js';
 import { waitlistSummary } from './waitlist.js';
 import { wasteSummary } from './waste.js';
 import { campusHealthCheck } from './campusbrief.js';
-import { agentQueueOverview } from './agentqueue.js';
+import { agentQueueOverview, enqueueAgentJob } from './agentqueue.js';
 import { greenPulseOverview } from './greenpulse.js';
 import { campusCoreOverview } from './campuscore.js';
 import { agentBridgeOverview } from './agentbridge.js';
+import { prependItem, readCollection, writeCollection } from './store.js';
+import { appendAudit } from './audit.js';
 
 function clamp(n) {
   return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function rid(p) {
+  return `${p}_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`;
+}
+
+function loadThresholds() {
+  const defaults = { warn: 70, alert: 55, critical: 40 };
+  const stored = readCollection('readiness-thresholds', null);
+  if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+    return {
+      warn: Number(stored.warn) || defaults.warn,
+      alert: Number(stored.alert) || defaults.alert,
+      critical: Number(stored.critical) || defaults.critical,
+    };
+  }
+  if (Array.isArray(stored) && stored[0]) {
+    return {
+      warn: Number(stored[0].warn) || defaults.warn,
+      alert: Number(stored[0].alert) || defaults.alert,
+      critical: Number(stored[0].critical) || defaults.critical,
+    };
+  }
+  return defaults;
 }
 
 export function buildReadiness() {
@@ -151,11 +177,38 @@ export function buildReadiness() {
   else if (overall >= 60) grade = 'C';
   else grade = 'D';
 
+  const thresholds = loadThresholds();
+  const acks = readCollection('readiness-acks', []) || [];
+  const ackList = Array.isArray(acks) ? acks : [];
+  const openAcks = new Set(
+    ackList.filter((a) => a.status === 'acked').map((a) => a.dimension_id),
+  );
+  const gaps = readCollection('readiness-gaps', []) || [];
+  const gapList = Array.isArray(gaps) ? gaps : [];
+  const openGaps = gapList.filter((g) => g.status === 'open');
+  const snapshots = readCollection('readiness-snapshots', []) || [];
+
+  const enriched = dimensions.map((d) => {
+    let level = 'ok';
+    if (d.score < thresholds.critical) level = 'critical';
+    else if (d.score < thresholds.alert) level = 'alert';
+    else if (d.score < thresholds.warn) level = 'warn';
+    return {
+      ...d,
+      level,
+      acked: openAcks.has(d.id),
+      below_threshold: d.score < thresholds.warn,
+    };
+  });
+
   return {
     overall,
     grade,
     generatedAt: new Date().toISOString(),
-    dimensions,
+    dimensions: enriched,
+    thresholds,
+    gaps: openGaps.slice(0, 20),
+    snapshots: (Array.isArray(snapshots) ? snapshots : []).slice(0, 10),
     campus,
     signals: {
       lowStock: inv.lowStock,
@@ -174,5 +227,161 @@ export function buildReadiness() {
       bridgeSla,
       bridgeChannels,
     },
+    summary: {
+      overall,
+      grade,
+      dims_warn: enriched.filter((d) => d.level === 'warn').length,
+      dims_alert: enriched.filter((d) => d.level === 'alert' || d.level === 'critical').length,
+      dims_acked: enriched.filter((d) => d.acked).length,
+      gaps_open: openGaps.length,
+      snapshots: Array.isArray(snapshots) ? snapshots.length : 0,
+    },
   };
+}
+
+/** Anlık hazırlık snapshot kaydet */
+export function refreshReadinessSnapshot(input = {}, actor = 'system') {
+  const board = buildReadiness();
+  const snapshot = {
+    id: rid('rds'),
+    overall: board.overall,
+    grade: board.grade,
+    dims_alert: board.summary?.dims_alert || 0,
+    dims_warn: board.summary?.dims_warn || 0,
+    note: String(input.note || '').slice(0, 240) || undefined,
+    dimensions: (board.dimensions || []).map((d) => ({
+      id: d.id,
+      score: d.score,
+      level: d.level,
+    })),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('readiness-snapshots', snapshot, 120);
+  appendAudit({
+    actor,
+    action: 'readiness.snapshot',
+    detail: `skor ${snapshot.overall} · ${snapshot.grade}`,
+    meta: { id: snapshot.id },
+  });
+  return { ok: true, snapshot, overview: buildReadiness() };
+}
+
+/** Uyarı eşiklerini ayarla */
+export function setReadinessThreshold(input = {}, actor = 'system') {
+  const current = loadThresholds();
+  const next = {
+    warn: Math.max(1, Math.min(99, Number(input.warn) || current.warn)),
+    alert: Math.max(1, Math.min(99, Number(input.alert) || current.alert)),
+    critical: Math.max(1, Math.min(99, Number(input.critical) || current.critical)),
+    updated_at: new Date().toISOString(),
+    updated_by: actor,
+  };
+  if (next.critical > next.alert) next.critical = next.alert;
+  if (next.alert > next.warn) next.alert = next.warn;
+  writeCollection('readiness-thresholds', next);
+  appendAudit({
+    actor,
+    action: 'readiness.threshold',
+    detail: `warn ${next.warn} · alert ${next.alert} · crit ${next.critical}`,
+    meta: next,
+  });
+  return { ok: true, thresholds: next, overview: buildReadiness() };
+}
+
+/** Boyut ack — düşük skor bilindi olarak işaretle */
+export function ackReadinessDimension(input = {}, actor = 'system') {
+  const board = buildReadiness();
+  let dim = (board.dimensions || []).find((d) => d.id === input.id || d.id === input.dimension_id);
+  if (!dim) dim = (board.dimensions || []).find((d) => d.below_threshold);
+  if (!dim) dim = (board.dimensions || [])[0];
+  if (!dim) return { ok: false, error: 'Boyut yok' };
+  const list = readCollection('readiness-acks', []) || [];
+  const arr = Array.isArray(list) ? list : [];
+  const row = {
+    id: rid('rda'),
+    dimension_id: dim.id,
+    label: dim.label,
+    score: dim.score,
+    level: dim.level,
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    at: new Date().toISOString(),
+    actor,
+  };
+  arr.unshift(row);
+  writeCollection('readiness-acks', arr.slice(0, 200));
+  appendAudit({
+    actor,
+    action: 'readiness.ack',
+    detail: `${dim.label} · ${dim.score}`,
+    meta: { id: row.id, dimension_id: dim.id },
+  });
+  return { ok: true, ack: row, dimension: dim, overview: buildReadiness() };
+}
+
+/** Eşik altı boyutu escalate → LİKYA-1 + gap kaydı */
+export function escalateReadinessGap(input = {}, actor = 'system') {
+  const board = buildReadiness();
+  let dim = (board.dimensions || []).find((d) => d.id === input.id || d.id === input.dimension_id);
+  if (!dim) {
+    dim = (board.dimensions || [])
+      .filter((d) => d.below_threshold || d.level === 'alert' || d.level === 'critical')
+      .sort((a, b) => a.score - b.score)[0];
+  }
+  if (!dim) dim = (board.dimensions || []).slice().sort((a, b) => a.score - b.score)[0];
+  if (!dim) return { ok: false, error: 'Escalate edilecek boyut yok' };
+  const gap = {
+    id: rid('rdg'),
+    dimension_id: dim.id,
+    label: dim.label,
+    score: dim.score,
+    level: dim.level,
+    status: 'open',
+    reason: String(input.reason || 'readiness gap').slice(0, 240),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('readiness-gaps', gap, 200);
+  enqueueAgentJob(
+    {
+      agent: 'LİKYA-1',
+      title: `readiness gap · ${dim.label} · skor ${dim.score}`,
+      priority: dim.level === 'critical' || dim.level === 'alert' ? 'high' : 'normal',
+      payload: { gap_id: gap.id, dimension_id: dim.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'readiness.escalate',
+    detail: `${dim.label} · ${dim.score}`,
+    meta: { id: gap.id },
+  });
+  return { ok: true, gap, dimension: dim, overview: buildReadiness() };
+}
+
+/** Açık gap kapat */
+export function resolveReadinessGap(input = {}, actor = 'system') {
+  const list = readCollection('readiness-gaps', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Gap yok' };
+  let idx = list.findIndex((g) => g.id === input.id && g.status === 'open');
+  if (idx < 0) idx = list.findIndex((g) => g.dimension_id === input.dimension_id && g.status === 'open');
+  if (idx < 0) idx = list.findIndex((g) => g.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık gap yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'resolved',
+    resolution: String(input.resolution || 'resolved').slice(0, 240),
+    resolved_at: new Date().toISOString(),
+    resolved_by: actor,
+  };
+  writeCollection('readiness-gaps', list);
+  appendAudit({
+    actor,
+    action: 'readiness.gap_resolve',
+    detail: list[idx].label,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, gap: list[idx], overview: buildReadiness() };
 }

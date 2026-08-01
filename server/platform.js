@@ -250,7 +250,14 @@ import {
 import { createKudos, kudosSummary, listKudos } from './kudos.js';
 import { hoursSummary, listHours, updateHours } from './hours.js';
 import { buildWeatherBrief, refreshWeather } from './weather.js';
-import { buildReadiness } from './readiness.js';
+import {
+  ackReadinessDimension,
+  buildReadiness,
+  escalateReadinessGap,
+  refreshReadinessSnapshot,
+  resolveReadinessGap,
+  setReadinessThreshold,
+} from './readiness.js';
 
 import {
   createSpa, listSpa, spaSummary, updateSpa,
@@ -9034,6 +9041,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/readiness' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildReadiness());
+          return;
+        }
+        if (path === '/api/readiness/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshReadinessSnapshot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/readiness/threshold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setReadinessThreshold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/readiness/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackReadinessDimension(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/readiness/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateReadinessGap(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/readiness/gap/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveReadinessGap(await readBody(req), user.username)); })();
           return;
         }
 

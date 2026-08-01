@@ -231,7 +231,14 @@ import {
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
-import { buildReadiness } from '../server/readiness.js';
+import {
+  buildReadiness,
+  refreshReadinessSnapshot,
+  setReadinessThreshold,
+  ackReadinessDimension,
+  escalateReadinessGap,
+  resolveReadinessGap,
+} from '../server/readiness.js';
 import {
   buildCognisphere,
   runCognisphereSweep,
@@ -529,6 +536,11 @@ assert(
     readiness.dimensions?.some((d) => d.id === 'bridge'),
   'readiness work_orders/bridge dims',
 );
+assert(refreshReadinessSnapshot({ note: 'smoke' }, 'smoke').ok, 'readiness snapshot');
+assert(setReadinessThreshold({ warn: 72, alert: 58, critical: 42 }, 'smoke').ok, 'readiness threshold');
+assert(ackReadinessDimension({ id: 'bridge' }, 'smoke').ok, 'readiness ack');
+assert(escalateReadinessGap({ id: 'agents', reason: 'smoke' }, 'smoke').ok, 'readiness escalate');
+assert(resolveReadinessGap({}, 'smoke').ok, 'readiness gap resolve');
 runCampusAutomations('smoke');
 const synced = syncCampusBriefActions('smoke');
 assert(synced.ok, 'brief actions sync');
