@@ -478,6 +478,18 @@ import {
 import {
   buildCrucible2, runCrucible2Sweep, ackCrucible2Flag, liveCrucible2Pilot, busyCrucible2Learn, shipCrucible2Lab,
 } from '../server/crucible2.js';
+import {
+  buildAgora, runAgoraSweep, ackAgoraFlag, runAgoraDrill, busyAgoraCircle, liveAgoraBadge,
+} from '../server/agora.js';
+import {
+  buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
+} from '../server/beacon.js';
+import {
+  buildChronos, runChronosSweep, ackChronosFlag, busyChronosMoment, closeChronosHook, liveChronosSchema,
+} from '../server/chronos.js';
+import {
+  buildCircuit, runCircuitSweep, ackCircuitFlag, busyCircuitMoment, closeCircuitHook, liveCircuitSchema,
+} from '../server/circuit.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1187,6 +1199,34 @@ assert(liveCrucible2Pilot({}, 'smoke').ok, 'crucible2 pilot live');
 assert(busyCrucible2Learn({}, 'smoke').ok, 'crucible2 learn busy');
 assert(shipCrucible2Lab({}, 'smoke').ok, 'crucible2 lab ship');
 assert(ackCrucible2Flag({}, 'smoke').ok, 'crucible2 flag ack');
+
+assert(buildAgora().title, 'agora overview');
+assert(runAgoraSweep({ force: true }, 'smoke').ok, 'agora sweep');
+assert(runAgoraDrill({}, 'smoke').ok, 'agora drill run');
+assert(busyAgoraCircle({}, 'smoke').ok, 'agora circle busy');
+assert(liveAgoraBadge({}, 'smoke').ok, 'agora badge live');
+assert(ackAgoraFlag({}, 'smoke').ok, 'agora flag ack');
+
+assert(buildBeacon().title, 'beacon overview');
+assert(runBeaconSweep({ force: true }, 'smoke').ok, 'beacon sweep');
+assert(liveBeaconCamp({}, 'smoke').ok, 'beacon camp live');
+assert(fixBeaconSocial({}, 'smoke').ok, 'beacon social fix');
+assert(healBeaconSeo({}, 'smoke').ok, 'beacon seo heal');
+assert(ackBeaconFlag({}, 'smoke').ok, 'beacon flag ack');
+
+assert(buildChronos().title, 'chronos overview');
+assert(runChronosSweep({ force: true }, 'smoke').ok, 'chronos sweep');
+assert(busyChronosMoment({}, 'smoke').ok, 'chronos moment busy');
+assert(closeChronosHook({}, 'smoke').ok, 'chronos hook close');
+assert(liveChronosSchema({}, 'smoke').ok, 'chronos schema live');
+assert(ackChronosFlag({}, 'smoke').ok, 'chronos flag ack');
+
+assert(buildCircuit().title, 'circuit overview');
+assert(runCircuitSweep({ force: true }, 'smoke').ok, 'circuit sweep');
+assert(busyCircuitMoment({}, 'smoke').ok, 'circuit moment busy');
+assert(closeCircuitHook({}, 'smoke').ok, 'circuit hook close');
+assert(liveCircuitSchema({}, 'smoke').ok, 'circuit schema live');
+assert(ackCircuitFlag({}, 'smoke').ok, 'circuit flag ack');
 
 console.log(
   JSON.stringify(

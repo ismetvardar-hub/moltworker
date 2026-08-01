@@ -125,6 +125,10 @@ try {
     '/api/pyramid',
     '/api/convoy',
     '/api/crucible2',
+    '/api/agora',
+    '/api/beacon',
+    '/api/chronos',
+    '/api/circuit',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1133,6 +1137,50 @@ try {
   assert(crLab.res.ok && crLab.data.ok !== false, 'crucible2 lab ship');
   const crAck = await req('/api/crucible2/flag/ack', { method: 'POST', token, body: {} });
   assert(crAck.res.ok && crAck.data.ok !== false, 'crucible2 flag ack');
+
+  const agSweep = await req('/api/agora/sweep', { method: 'POST', token, body: { force: true } });
+  assert(agSweep.res.ok && agSweep.data.ok !== false, 'agora sweep');
+  const agDrill = await req('/api/agora/drill/run', { method: 'POST', token, body: {} });
+  assert(agDrill.res.ok && agDrill.data.ok !== false, 'agora drill run');
+  const agCircle = await req('/api/agora/circle/busy', { method: 'POST', token, body: {} });
+  assert(agCircle.res.ok && agCircle.data.ok !== false, 'agora circle busy');
+  const agBadge = await req('/api/agora/badge/live', { method: 'POST', token, body: {} });
+  assert(agBadge.res.ok && agBadge.data.ok !== false, 'agora badge live');
+  const agAck = await req('/api/agora/flag/ack', { method: 'POST', token, body: {} });
+  assert(agAck.res.ok && agAck.data.ok !== false, 'agora flag ack');
+
+  const bcSweep = await req('/api/beacon/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bcSweep.res.ok && bcSweep.data.ok !== false, 'beacon sweep');
+  const bcCamp = await req('/api/beacon/camp/live', { method: 'POST', token, body: {} });
+  assert(bcCamp.res.ok && bcCamp.data.ok !== false, 'beacon camp live');
+  const bcSocial = await req('/api/beacon/social/fix', { method: 'POST', token, body: {} });
+  assert(bcSocial.res.ok && bcSocial.data.ok !== false, 'beacon social fix');
+  const bcSeo = await req('/api/beacon/seo/heal', { method: 'POST', token, body: {} });
+  assert(bcSeo.res.ok && bcSeo.data.ok !== false, 'beacon seo heal');
+  const bcAck = await req('/api/beacon/flag/ack', { method: 'POST', token, body: {} });
+  assert(bcAck.res.ok && bcAck.data.ok !== false, 'beacon flag ack');
+
+  const chSweep = await req('/api/chronos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(chSweep.res.ok && chSweep.data.ok !== false, 'chronos sweep');
+  const chMoment = await req('/api/chronos/moment/busy', { method: 'POST', token, body: {} });
+  assert(chMoment.res.ok && chMoment.data.ok !== false, 'chronos moment busy');
+  const chHook = await req('/api/chronos/hook/close', { method: 'POST', token, body: {} });
+  assert(chHook.res.ok && chHook.data.ok !== false, 'chronos hook close');
+  const chSchema = await req('/api/chronos/schema/live', { method: 'POST', token, body: {} });
+  assert(chSchema.res.ok && chSchema.data.ok !== false, 'chronos schema live');
+  const chAck = await req('/api/chronos/flag/ack', { method: 'POST', token, body: {} });
+  assert(chAck.res.ok && chAck.data.ok !== false, 'chronos flag ack');
+
+  const ciSweep = await req('/api/circuit/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ciSweep.res.ok && ciSweep.data.ok !== false, 'circuit sweep');
+  const ciMoment = await req('/api/circuit/moment/busy', { method: 'POST', token, body: {} });
+  assert(ciMoment.res.ok && ciMoment.data.ok !== false, 'circuit moment busy');
+  const ciHook = await req('/api/circuit/hook/close', { method: 'POST', token, body: {} });
+  assert(ciHook.res.ok && ciHook.data.ok !== false, 'circuit hook close');
+  const ciSchema = await req('/api/circuit/schema/live', { method: 'POST', token, body: {} });
+  assert(ciSchema.res.ok && ciSchema.data.ok !== false, 'circuit schema live');
+  const ciAck = await req('/api/circuit/flag/ack', { method: 'POST', token, body: {} });
+  assert(ciAck.res.ok && ciAck.data.ok !== false, 'circuit flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

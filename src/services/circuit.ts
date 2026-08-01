@@ -1,6 +1,26 @@
 import { authHeaders } from './auth'
-export async function fetchCircuit() {
-  const res = await fetch('/api/circuit', { headers: authHeaders() })
-  if (!res.ok) throw new Error('Circuit alınamadı')
-  return res.json()
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string }
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`)
+  return data
+}
+export async function fetchCircuit() { return parse(await fetch('/api/circuit', { headers: authHeaders() })) }
+export async function runCircuitSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/circuit/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function busyCircuitMoment(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/circuit/moment/busy', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function closeCircuitHook(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/circuit/hook/close', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function liveCircuitSchema(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/circuit/schema/live', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackCircuitFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/circuit/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
 }

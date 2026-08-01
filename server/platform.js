@@ -3272,7 +3272,9 @@ import {
   leadmagnetSummary,
   updateLeadmagnet,
 } from './leadmagnet.js';
-import { buildBeacon } from './beacon.js';
+import {
+  ackBeaconFlag, buildBeacon, fixBeaconSocial, healBeaconSeo, liveBeaconCamp, runBeaconSweep,
+} from './beacon.js';
 import {
   createTreasury,
   listTreasury,
@@ -4498,7 +4500,9 @@ import {
   rollbackSummary,
   updateRollback,
 } from './rollback.js';
-import { buildCircuit } from './circuit.js';
+import {
+  ackCircuitFlag, buildCircuit, busyCircuitMoment, closeCircuitHook, liveCircuitSchema, runCircuitSweep,
+} from './circuit.js';
 import {
   createChaosdrill,
   listChaosdrill,
@@ -4583,7 +4587,9 @@ import {
   ritualcalSummary,
   updateRitualcal,
 } from './ritualcal.js';
-import { buildAgora } from './agora.js';
+import {
+  ackAgoraFlag, buildAgora, busyAgoraCircle, liveAgoraBadge, runAgoraDrill, runAgoraSweep,
+} from './agora.js';
 import {
   createCohort,
   listCohort,
@@ -6553,7 +6559,9 @@ import {
   rollback3Summary,
   updateRollback3,
 } from './rollback3.js';
-import { buildChronos } from './chronos.js';
+import {
+  ackChronosFlag, buildChronos, busyChronosMoment, closeChronosHook, liveChronosSchema, runChronosSweep,
+} from './chronos.js';
 import {
   createChaosdrill3,
   listChaosdrill3,
@@ -22265,6 +22273,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildBeacon());
           return;
         }
+        if (path === '/api/beacon/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBeaconSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beacon/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBeaconFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beacon/camp/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveBeaconCamp(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beacon/social/fix' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fixBeaconSocial(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beacon/seo/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healBeaconSeo(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Treasury OS · Vault (AŞAMA 571–585) ──
 
@@ -27503,6 +27541,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildCircuit());
           return;
         }
+        if (path === '/api/circuit/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCircuitSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCircuitFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit/moment/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyCircuitMoment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit/hook/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCircuitHook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/circuit/schema/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCircuitSchema(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Agora OS · Agora (AŞAMA 781–795) ──
 
@@ -27858,6 +27926,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/agora' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildAgora());
+          return;
+        }
+        if (path === '/api/agora/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgoraSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAgoraFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora/drill/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgoraDrill(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora/circle/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyAgoraCircle(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora/badge/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveAgoraBadge(await readBody(req), user.username)); })();
           return;
         }
 
@@ -36219,6 +36317,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/chronos' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildChronos());
+          return;
+        }
+        if (path === '/api/chronos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runChronosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/chronos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackChronosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/chronos/moment/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyChronosMoment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/chronos/hook/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeChronosHook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/chronos/schema/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveChronosSchema(await readBody(req), user.username)); })();
           return;
         }
 
