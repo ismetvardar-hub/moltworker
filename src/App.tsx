@@ -299,6 +299,21 @@ import SocialinboxPage from './pages/SocialinboxPage';
 import MediaembargoPage from './pages/MediaembargoPage';
 import CreativereqPage from './pages/CreativereqPage';
 import BrandpulsePage from './pages/BrandpulsePage';
+import ModelopsPage from './pages/ModelopsPage';
+import PromptlibPage from './pages/PromptlibPage';
+import AgentevalPage from './pages/AgentevalPage';
+import TokenbudgetPage from './pages/TokenbudgetPage';
+import RagindexPage from './pages/RagindexPage';
+import ToolpermitPage from './pages/ToolpermitPage';
+import SandboxrunPage from './pages/SandboxrunPage';
+import HallucheckPage from './pages/HallucheckPage';
+import DatasetcurPage from './pages/DatasetcurPage';
+import RedteamPage from './pages/RedteamPage';
+import SlaagentPage from './pages/SlaagentPage';
+import CostguardPage from './pages/CostguardPage';
+import LatencylogPage from './pages/LatencylogPage';
+import DriftmonitorPage from './pages/DriftmonitorPage';
+import CognispherePage from './pages/CognispherePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -567,6 +582,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   mediaembargo: MediaembargoPage,
   creativereq: CreativereqPage,
   brandpulse: BrandpulsePage,
+  modelops: ModelopsPage,
+  promptlib: PromptlibPage,
+  agenteval: AgentevalPage,
+  tokenbudget: TokenbudgetPage,
+  ragindex: RagindexPage,
+  toolpermit: ToolpermitPage,
+  sandboxrun: SandboxrunPage,
+  hallucheck: HallucheckPage,
+  datasetcur: DatasetcurPage,
+  redteam: RedteamPage,
+  slaagent: SlaagentPage,
+  costguard: CostguardPage,
+  latencylog: LatencylogPage,
+  driftmonitor: DriftmonitorPage,
+  cognisphere: CognispherePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

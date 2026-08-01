@@ -611,6 +611,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **299** | Kreatif talep |
 | **300** | Brand Pulse checkpoint (`/api/brandpulse`) |
 
+### AI · Cognisphere (AŞAMA 301–315)
+
+| Aşama | Özellik |
+|-------|---------|
+| **301** | Model ops |
+| **302** | Prompt lib |
+| **303** | Ajan eval |
+| **304** | Token bütçe |
+| **305** | RAG index |
+| **306** | Tool izin |
+| **307** | Sandbox run |
+| **308** | Hallucination check |
+| **309** | Dataset kürasyon |
+| **310** | Red team |
+| **311** | Ajan SLA |
+| **312** | AI cost guard |
+| **313** | Latency log |
+| **314** | Drift monitor |
+| **315** | Cognisphere checkpoint (`/api/cognisphere`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

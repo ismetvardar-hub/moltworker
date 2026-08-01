@@ -205,6 +205,8 @@ import {
   Podcast,
   Hash,
   PenLine,
+  Swords,
+  BrainCircuit,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -244,6 +246,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'peoplehub',
   'ecosphere',
   'brandpulse',
+  'cognisphere',
 ]);
 
 interface SidebarProps {
@@ -735,6 +738,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'socialinbox', label: 'Sosyal Inbox', description: 'Sosyal mesaj / DM kuyruğu.', icon: MessageSquareHeart },
   { id: 'mediaembargo', label: 'Embargo', description: 'Medya embargo takvimi.', icon: Clock3 },
   { id: 'creativereq', label: 'Kreatif Talep', description: 'ARTE / kreatif brief kuyruğu.', icon: PenLine },
+  { id: 'modelops', label: 'Model Ops', description: 'Model deploy / sürüm.', icon: Cpu },
+  { id: 'promptlib', label: 'Prompt Lib', description: 'Prompt şablon kütüphanesi.', icon: NotebookPen },
+  { id: 'agenteval', label: 'Ajan Eval', description: 'Ajan kalite skorları.', icon: Bot },
+  { id: 'tokenbudget', label: 'Token Bütçe', description: 'Ajan token limitleri.', icon: Gauge },
+  { id: 'ragindex', label: 'RAG Index', description: 'Bilgi bankası index işleri.', icon: DatabaseBackup },
+  { id: 'toolpermit', label: 'Tool İzin', description: 'Ajan tool izin matrisi.', icon: KeySquare },
+  { id: 'sandboxrun', label: 'Sandbox Run', description: 'Güvenli ajan deneme koşuları.', icon: Terminal },
+  { id: 'hallucheck', label: 'Hallucination Check', description: 'Halüsinasyon denetim satırları.', icon: Eye },
+  { id: 'datasetcur', label: 'Dataset Kürasyon', description: 'Eğitim / eval veri setleri.', icon: Boxes },
+  { id: 'redteam', label: 'Red Team', description: 'AI red-team testleri.', icon: Swords },
+  { id: 'slaagent', label: 'Ajan SLA', description: 'Ajan yanıt SLA kayıtları.', icon: Timer },
+  { id: 'costguard', label: 'AI Cost Guard', description: 'AI maliyet koruma alarmları.', icon: Wallet },
+  { id: 'latencylog', label: 'Latency Log', description: 'Model latency örnekleri.', icon: Activity },
+  { id: 'driftmonitor', label: 'Drift Monitor', description: 'Model drift izleme.', icon: LineChart },
+  { id: 'cognisphere', label: 'Cognisphere', description: 'AŞAMA 315 AI özeti.', icon: BrainCircuit },
   { id: 'brandpulse', label: 'Brand Pulse', description: 'AŞAMA 300 marka özeti.', icon: Sparkles },
   { id: 'ecosphere', label: 'Ecosphere', description: 'AŞAMA 285 ESG özeti.', icon: Leaf },
   { id: 'peoplehub', label: 'People Hub', description: 'AŞAMA 270 İK özeti.', icon: Users },
