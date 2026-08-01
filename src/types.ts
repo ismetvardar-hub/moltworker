@@ -28,6 +28,9 @@ export type PageId =
   | 'consent'
   | 'announcements'
   | 'recipes'
+  | 'checklists'
+  | 'lostfound'
+  | 'tips'
   | 'docs'
   | 'webhooks'
   | 'settings';

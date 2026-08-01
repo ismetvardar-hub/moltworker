@@ -43,6 +43,9 @@ const IMPORTANT = new Set([
   'consent.record',
   'announcements.create',
   'recipes.cook',
+  'checklist.start',
+  'lostfound.create',
+  'tips.payout',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

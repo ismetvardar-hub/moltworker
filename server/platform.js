@@ -137,6 +137,20 @@ import {
   removeRecipe,
   updateRecipe,
 } from './recipes.js';
+import {
+  checklistsSummary,
+  listChecklistRuns,
+  listChecklistTemplates,
+  startChecklistRun,
+  toggleChecklistItem,
+} from './checklists.js';
+import {
+  createLostFound,
+  listLostFound,
+  lostFoundSummary,
+  updateLostFound,
+} from './lostfound.js';
+import { addTip, tipSummary } from './tips.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -153,6 +167,9 @@ listFeedback();
 listConsents();
 listAnnouncements();
 listRecipes();
+listChecklistTemplates();
+listLostFound();
+tipSummary();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1460,6 +1477,103 @@ export function createPlatformMiddleware() {
             return;
           }
           sendJson(res, 200, { ok: true, recipe });
+          return;
+        }
+
+        // ── AŞAMA 34: Kontrol listeleri ───────────────────────────────
+        if (path === '/api/checklists' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...checklistsSummary(),
+            templates: listChecklistTemplates(),
+            runs: listChecklistRuns(),
+          });
+          return;
+        }
+        if (path === '/api/checklists/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            const run = startChecklistRun(body.templateId, user.username);
+            if (!run) {
+              sendJson(res, 404, { error: 'Şablon bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { run });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/checklists/') && path.includes('/toggle') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const runId = path.split('/')[3];
+            const body = await readBody(req);
+            const run = toggleChecklistItem(runId, body.checkId, body.done, user.username);
+            if (!run) {
+              sendJson(res, 404, { error: 'Çalıştırma bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { run });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 35: Kayıp eşya ──────────────────────────────────────
+        if (path === '/api/lost-found' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...lostFoundSummary(),
+            items: listLostFound({
+              status: url.searchParams.get('status') || undefined,
+              venueId: url.searchParams.get('venueId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/lost-found' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createLostFound(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/lost-found/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const item = updateLostFound(id, await readBody(req), user.username);
+            if (!item) {
+              sendJson(res, 404, { error: 'Kayıt bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 36: Bahşiş havuzu ───────────────────────────────────
+        if (path === '/api/tips' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, tipSummary());
+          return;
+        }
+        if (path === '/api/tips' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            const result = addTip(body, user.username);
+            if (!result) {
+              sendJson(res, 400, { error: 'Geçersiz tutar veya yetersiz bakiye' });
+              return;
+            }
+            sendJson(res, 200, result);
+          })();
           return;
         }
 

@@ -252,6 +252,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **32** | Holding duyuru panosu (`/api/announcements`) |
 | **33** | Mutfak reçeteleri + stok düşüm (`/api/recipes`, `/cook`) |
 
+### Operasyon sahası (AŞAMA 34–36)
+
+| Aşama | Özellik |
+|-------|---------|
+| **34** | Açılış/kapanış kontrol listeleri (`/api/checklists`) |
+| **35** | Kayıp eşya defteri (`/api/lost-found`) |
+| **36** | Crew bahşiş havuzu (`/api/tips`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

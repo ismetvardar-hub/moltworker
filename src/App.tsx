@@ -32,6 +32,9 @@ import ExportsPage from './pages/ExportsPage';
 import ConsentPage from './pages/ConsentPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import RecipesPage from './pages/RecipesPage';
+import ChecklistsPage from './pages/ChecklistsPage';
+import LostFoundPage from './pages/LostFoundPage';
+import TipsPage from './pages/TipsPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -72,6 +75,9 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   consent: ConsentPage,
   announcements: AnnouncementsPage,
   recipes: RecipesPage,
+  checklists: ChecklistsPage,
+  lostfound: LostFoundPage,
+  tips: TipsPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,

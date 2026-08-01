@@ -63,6 +63,9 @@ export const ROLE_PAGES = {
     'consent',
     'announcements',
     'recipes',
+    'checklists',
+    'lostfound',
+    'tips',
     'docs',
     'webhooks',
     'settings',
@@ -82,6 +85,8 @@ export const ROLE_PAGES = {
     'feedback',
     'announcements',
     'recipes',
+    'checklists',
+    'lostfound',
     'docs',
   ],
   crew: [
@@ -97,6 +102,9 @@ export const ROLE_PAGES = {
     'loyalty',
     'feedback',
     'announcements',
+    'checklists',
+    'lostfound',
+    'tips',
   ],
 };
 

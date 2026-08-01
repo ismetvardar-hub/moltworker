@@ -33,6 +33,9 @@ import {
   Scale,
   Megaphone,
   UtensilsCrossed,
+  ClipboardCheck,
+  Search,
+  Coins,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -241,6 +244,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Reçeteler',
     description: 'Mutfak · stok düşüm',
     icon: UtensilsCrossed,
+  },
+  {
+    id: 'checklists',
+    label: 'Kontrol Listeleri',
+    description: 'Açılış / kapanış',
+    icon: ClipboardCheck,
+  },
+  {
+    id: 'lostfound',
+    label: 'Kayıp Eşya',
+    description: 'Buluntu defteri',
+    icon: Search,
+  },
+  {
+    id: 'tips',
+    label: 'Bahşiş Havuzu',
+    description: 'Crew tip pool',
+    icon: Coins,
   },
   {
     id: 'webhooks',

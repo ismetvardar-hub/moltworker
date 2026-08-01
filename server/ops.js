@@ -45,6 +45,11 @@ const BACKUP_COLLECTIONS = [
   'consents',
   'announcements',
   'recipes',
+  'checklist-templates',
+  'checklist-runs',
+  'lost-found',
+  'tip-pool',
+  'tip-entries',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];
