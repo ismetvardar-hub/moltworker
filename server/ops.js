@@ -1139,6 +1139,12 @@ const BACKUP_COLLECTIONS = [
   'music-requests',
   'valet-tickets',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
+  'extreme-members',
+  'extreme-slots',
+  'extreme-waivers',
+  'extreme-gear',
+  'extreme-maas',
+  'extreme-notices',
   'sessions',
 ];
 

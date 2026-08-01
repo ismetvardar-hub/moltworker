@@ -387,6 +387,7 @@ const ALWAYS_VISIBLE = new Set<string>([
   'logos',
   'pathos',
   'apotheosis',
+  'extremepark',
 ]);
 
 interface SidebarProps {
@@ -1720,6 +1721,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'vendorfail3', label: 'Vendor Fail', description: 'Tedarikçi kesintisi.', icon: Sparkles },
   { id: 'powercut3', label: 'Power Cut', description: 'Elektrik kesintisi.', icon: Star },
   { id: 'netsplit3', label: 'Net Split', description: 'Ağ bölünmesi.', icon: Store },
+  { id: 'extremepark', label: 'Extreme Park', description: 'Antalya Extreme · waiver · MaaS · NFC', icon: Mountain },
   { id: 'apotheosis', label: 'Apotheosis', description: 'AŞAMA 1200 mutlak mühür.', icon: Sun },
   { id: 'pathos', label: 'Pathos', description: 'AŞAMA 1185 pathos özeti.', icon: Orbit },
   { id: 'logos', label: 'Logos', description: 'AŞAMA 1170 logos özeti.', icon: Hexagon },

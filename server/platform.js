@@ -6670,6 +6670,15 @@ import {
   updateNetsplit3,
 } from './netsplit3.js';
 import { buildApotheosis } from './apotheosis.js';
+import {
+  createExtremeMaas,
+  extremeOverview,
+  extremeSlotWeatherCheck,
+  extremeUserSpec,
+  extremeWalletSpend,
+  signExtremeWaiver,
+  updateExtremeGear,
+} from './extremepark.js';
 
 
 
@@ -35885,6 +35894,64 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildApotheosis());
           return;
         }
+
+        // ── Antalya Extreme Park (AŞAMA 321–325 vizyon / extremepark) ──
+        if (path === '/api/extreme' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, extremeOverview());
+          return;
+        }
+        if (path === '/api/extreme/user-spec' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          {
+            const q = new URL(req.url ?? '', 'http://local');
+            sendJson(res, 200, extremeUserSpec(q.searchParams.get('user_id') || 'guest_can'));
+          }
+          return;
+        }
+        if (path === '/api/extreme/waiver' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, signExtremeWaiver(await readBody(req), user.username));
+          })();
+          return;
+        }
+        if (path === '/api/extreme/slot-weather-check' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, extremeSlotWeatherCheck(await readBody(req), user.username));
+          })();
+          return;
+        }
+        if (path === '/api/extreme/maas' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, createExtremeMaas(await readBody(req), user.username));
+          })();
+          return;
+        }
+        if (path === '/api/extreme/wallet/spend' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, extremeWalletSpend(await readBody(req), user.username));
+          })();
+          return;
+        }
+        if (path.startsWith('/api/extreme/gear/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateExtremeGear(path.split('/')[4], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Ekipman bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
 
         next();
   };

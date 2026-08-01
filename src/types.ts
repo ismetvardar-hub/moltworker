@@ -1156,6 +1156,7 @@ export type PageId =
   | 'powercut3'
   | 'netsplit3'
   | 'apotheosis'
+  | 'extremepark'
   | 'mysteryshop'
   | 'partners'
   | 'shuttle'

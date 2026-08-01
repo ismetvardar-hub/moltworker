@@ -1230,6 +1230,7 @@ export const ROLE_PAGES = {
     'powercut3',
     'netsplit3',
     'apotheosis',
+    'extremepark',
     'docs',
     'webhooks',
     'settings',

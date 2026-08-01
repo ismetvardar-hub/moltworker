@@ -1811,6 +1811,21 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **1199** | Net Split |
 | **1200** | Apotheosis checkpoint (`/api/apotheosis`) |
 
+### Antalya Extreme Park (AŞAMA 321–325 vizyon)
+
+Bağımsız `extremepark` modülü — 316–330 Vanguard ile çakışmadan üst katman.
+
+| Uç nokta | Açıklama |
+|----------|----------|
+| `GET /api/extreme` | Hub özeti · slot · hava · ekipman |
+| `GET /api/extreme/user-spec` | Üye yetki / kota / F&B şeması |
+| `POST /api/extreme/waiver` | Dijital feragatname |
+| `POST /api/extreme/slot-weather-check` | Hava oto-iptal + REMINDER-AI WA |
+| `POST /api/extreme/maas` | Drone/GoPro MaaS QR |
+| `POST /api/extreme/wallet/spend` | NFC cüzdan F&B |
+
+> `server/events.js` ve `server/integrations.js` dokunulmaz; bildirim `appendAudit` ile akar.
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

@@ -1199,6 +1199,7 @@ import Vendorfail3Page from './pages/Vendorfail3Page';
 import Powercut3Page from './pages/Powercut3Page';
 import Netsplit3Page from './pages/Netsplit3Page';
 import ApotheosisPage from './pages/ApotheosisPage';
+import ExtremeParkPage from './pages/ExtremeParkPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -2366,6 +2367,7 @@ const PAGES: Record<string, () => React.JSX.Element> = {
   powercut3: Powercut3Page,
   netsplit3: Netsplit3Page,
   apotheosis: ApotheosisPage,
+  extremepark: ExtremeParkPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
