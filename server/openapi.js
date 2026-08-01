@@ -1253,6 +1253,8 @@ export function buildOpenApi() {
       '/api/lifecoach/checkin': { post: { summary: 'Yaşam uzmanı check-in', tags: ['lifecoach'] } },
       '/api/stayring/hk-complete': { post: { summary: 'HK görevi tamamla', tags: ['stayring'] } },
       '/api/stayring/night-rollup': { post: { summary: 'Gece doluluk/RevPAR', tags: ['stayring'] } },
+      '/api/stayring/request': { post: { summary: 'Misafir amenity istek', tags: ['stayring'] } },
+      '/api/stayring/request/complete': { post: { summary: 'Misafir istek tamamla', tags: ['stayring'] } },
       '/api/familycamp/book': { post: { summary: 'Aile program rezervasyon', tags: ['familycamp'] } },
       '/api/familycamp/transfer': { post: { summary: 'Emanet/program transfer', tags: ['familycamp'] } },
       '/api/culture/confirm': { post: { summary: 'Bilet hold onay', tags: ['culturescene'] } },

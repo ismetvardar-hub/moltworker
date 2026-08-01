@@ -156,7 +156,36 @@ export default function StayringPage() {
               >
                 Gece rollup
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api
+                    .createStayGuestRequest({ unit_id: occupied?.id, kind: 'amenity', note: 'Ek yastık' })
+                    .then(() => {
+                      ping('Misafir istek → DAZE-CREW')
+                      return refresh()
+                    })
+                }
+              >
+                Amenity istek
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.completeStayGuestRequest({}).then(() => {
+                    ping('İstek tamam')
+                    return refresh()
+                  })
+                }
+              >
+                İstek tamamla
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Açık misafir istek: {data.summary?.guest_requests_open ?? 0}
+            </p>
             {(data.summary?.occupancy_pct != null || data.summary?.revpar_try != null) && (
               <p className="mt-2 text-xs text-slate-500">
                 Son gece: %{data.summary.occupancy_pct} doluluk · RevPAR {data.summary.revpar_try} TRY

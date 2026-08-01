@@ -48,12 +48,15 @@ export function stayRingOverview() {
   const hk = ensureHk();
   const rollups = readCollection('stay-night-rollups', []) || [];
   const lastRollup = Array.isArray(rollups) && rollups[0] ? rollups[0] : null;
+  const guestReqs = readCollection('stay-guest-requests', []) || [];
+  const openReqs = (Array.isArray(guestReqs) ? guestReqs : []).filter((r) => r.status === 'open');
   return {
     title: 'Konaklama Halkası',
     units,
     bookings: bookings.slice(0, 30),
     keys: keys.slice(0, 20),
     hk: hk.slice(0, 20),
+    guest_requests: (Array.isArray(guestReqs) ? guestReqs : []).slice(0, 20),
     night_rollups: (Array.isArray(rollups) ? rollups : []).slice(0, 10),
     summary: {
       free: units.filter((u) => u.status === 'free').length,
@@ -62,6 +65,7 @@ export function stayRingOverview() {
       hold: units.filter((u) => u.status === 'hold').length,
       hk_dirty: units.filter((u) => u.hk === 'dirty' || u.hk === 'inspect').length,
       keys_active: keys.filter((k) => k.status === 'active').length,
+      guest_requests_open: openReqs.length,
       occupancy_pct: lastRollup?.occupancy_pct ?? null,
       revpar_try: lastRollup?.revpar_try ?? null,
       byType: {
@@ -251,6 +255,68 @@ export function completeStayHk(input = {}, actor = 'system') {
     meta: { id: task.id },
   });
   return { ok: true, task: list[tidx] || task, overview: stayRingOverview() };
+}
+
+/** Misafir amenity / istek → DAZE-CREW veya HEPHAESTUS */
+export function createStayGuestRequest(input = {}, actor = 'system') {
+  const units = ensureUnits();
+  const unit =
+    units.find((u) => u.id === input.unit_id || u.code === input.unit_id) ||
+    units.find((u) => u.status === 'occupied') ||
+    units[0];
+  if (!unit) return { ok: false, error: 'Ünite yok' };
+  const kind = input.kind || 'amenity';
+  const row = {
+    id: rid('sgr'),
+    unit_id: unit.id,
+    unit_code: unit.code,
+    kind,
+    note: input.note || 'Ek yastık / su',
+    status: 'open',
+    priority: input.priority || 'normal',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-guest-requests', row, 300);
+  const agent = kind === 'maintenance' || kind === 'hk' ? 'HEPHAESTUS' : 'DAZE-CREW';
+  enqueueAgentJob(
+    {
+      agent,
+      title: `stay request · ${unit.code} · ${kind}`,
+      priority: row.priority === 'high' ? 'high' : 'normal',
+      payload: { request_id: row.id, unit_id: unit.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.guest_request',
+    detail: `${unit.code} · ${kind}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, request: row, overview: stayRingOverview() };
+}
+
+export function completeStayGuestRequest(input = {}, actor = 'system') {
+  const list = readCollection('stay-guest-requests', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İstek yok' };
+  let idx = list.findIndex((r) => r.id === input.id && r.status === 'open');
+  if (idx < 0) idx = list.findIndex((r) => r.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık istek yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'done',
+    done_at: new Date().toISOString(),
+    done_by: actor,
+  };
+  writeCollection('stay-guest-requests', list);
+  appendAudit({
+    actor,
+    action: 'stay.guest_request_done',
+    detail: list[idx].unit_code,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, request: list[idx], overview: stayRingOverview() };
 }
 
 /** Gece doluluk + gelir rollup */

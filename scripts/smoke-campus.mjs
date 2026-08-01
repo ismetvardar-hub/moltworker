@@ -20,6 +20,8 @@ import {
   setStayWintering,
   completeStayHk,
   stayNightRollup,
+  createStayGuestRequest,
+  completeStayGuestRequest,
 } from '../server/stayring.js';
 import { athleteOsOverview, issueAthleteLicense, logAthleteSession, athleteReadinessRollup } from '../server/athleteos.js';
 import {
@@ -112,6 +114,8 @@ setStayWintering({ unit_id: 'su_4' }, 'smoke');
 completeStayHk({ unit_id: 'su_2' }, 'smoke');
 const night = stayNightRollup('smoke');
 assert(night.ok && night.rollup?.occupancy_pct != null, 'stay night rollup');
+assert(createStayGuestRequest({ kind: 'amenity' }, 'smoke').ok, 'stay guest request');
+completeStayGuestRequest({}, 'smoke');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');

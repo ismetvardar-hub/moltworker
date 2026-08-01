@@ -6689,8 +6689,10 @@ import {
 import { addCampusIncident, campusCapacityRollup, campusCoreOverview, resolveCampusIncident, transitionCampusZone, updateCampusZone } from './campuscore.js';
 import {
   checkoutStay,
+  completeStayGuestRequest,
   completeStayHk,
   createStayBooking,
+  createStayGuestRequest,
   createStayHkTask,
   issueStayKeyless,
   setStayWintering,
@@ -36054,6 +36056,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, stayNightRollup(user.username));
+          return;
+        }
+
+        if (path === '/api/stayring/request' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createStayGuestRequest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/request/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeStayGuestRequest(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/lifecoach' && req.method === 'GET') {

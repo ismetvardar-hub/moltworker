@@ -139,6 +139,14 @@ try {
   const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });
   assert(night.res.ok && night.data.rollup, 'stay night rollup');
 
+  const greq = await req('/api/stayring/request', {
+    method: 'POST',
+    token,
+    body: { kind: 'amenity', note: 'e2e' },
+  });
+  assert(greq.res.ok && greq.data.ok !== false, 'stay guest request');
+  await req('/api/stayring/request/complete', { method: 'POST', token, body: {} });
+
   const hk = await req('/api/stayring/hk-complete', {
     method: 'POST',
     token,
