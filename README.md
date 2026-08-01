@@ -331,6 +331,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **76–89** | Dolap · Kids Club · Şezlong · Transfer · Kart baskı · Toplantı · Medya · ESG · Alerjen · Şarap · Lounge · Shuttle · Partner · Gizli müşteri |
 | **90** | Board Pack checkpoint (`/api/boardpack`) |
 
+### Gelir · Uyum · War Room (AŞAMA 91–105)
+
+| Aşama | Özellik |
+|-------|---------|
+| **91** | Concierge talepleri |
+| **92** | Minibar ikmal |
+| **93** | Misafir hesap / folio |
+| **94** | Banket / düğün |
+| **95** | Tur masası |
+| **96** | Marina / bağlama |
+| **97** | Hamam randevu |
+| **98** | Havlu takibi |
+| **99** | Günlük bileklik |
+| **100** | HACCP kayıt |
+| **101** | Güvenlik turu |
+| **102** | Araç filosu |
+| **103** | Bordro özeti |
+| **104** | Flash rapor |
+| **105** | War Room checkpoint (`/api/warroom`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

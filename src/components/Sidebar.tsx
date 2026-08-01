@@ -90,6 +90,17 @@ import {
   Hotel,
   Eye,
   BriefcaseBusiness,
+  ConciergeBell,
+  Receipt,
+  PartyPopper,
+  MapPinned,
+  Anchor,
+  Bath,
+  Watch,
+  ClipboardList,
+  Shield,
+  Banknote,
+  Radar,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -115,6 +126,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'readiness',
   'digest',
   'boardpack',
+  'warroom',
 ]);
 
 interface SidebarProps {
@@ -410,6 +422,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'shuttle', label: 'Shuttle Saatleri', description: 'Ring seferleri.', icon: Bus },
   { id: 'partners', label: 'Partner Oteller', description: 'B2B partner listesi.', icon: Hotel },
   { id: 'mysteryshop', label: 'Gizli Müşteri', description: 'Mystery shopper skorları.', icon: Eye },
+  { id: 'concierge', label: 'Concierge', description: 'Misafir concierge talepleri.', icon: ConciergeBell },
+  { id: 'minibar', label: 'Minibar', description: 'Oda minibar ikmal.', icon: Wine },
+  { id: 'folio', label: 'Misafir Hesap', description: 'Folio charge post.', icon: Receipt },
+  { id: 'banquet', label: 'Banket', description: 'Düğün / banket ops.', icon: PartyPopper },
+  { id: 'tours', label: 'Tur Masası', description: 'Tur / gezi rezervasyonu.', icon: MapPinned },
+  { id: 'marina', label: 'Marina', description: 'Tekne bağlama / slip.', icon: Anchor },
+  { id: 'hammam', label: 'Hamam', description: 'Hamam randevu (spa dışı).', icon: Bath },
+  { id: 'towels', label: 'Havlu Takibi', description: 'Plaj/havuz havlu stok.', icon: Shirt },
+  { id: 'bands', label: 'Günlük Bileklik', description: 'Day-use bileklik dağıtım.', icon: Watch },
+  { id: 'haccp', label: 'HACCP', description: 'Gıda güvenliği kayıtları.', icon: ClipboardList },
+  { id: 'patrol', label: 'Güvenlik Turu', description: 'Gece/gündüz patrol log.', icon: Shield },
+  { id: 'fleet', label: 'Araç Filosu', description: 'Transfer/vale araç durumu.', icon: Car },
+  { id: 'payroll', label: 'Bordro Özeti', description: 'Haftalık bordro satırları.', icon: Banknote },
+  { id: 'flash', label: 'Flash Rapor', description: 'Günlük doluluk / gelir satırı.', icon: Zap },
+  { id: 'warroom', label: 'War Room', description: 'AŞAMA 105 komuta özeti.', icon: Radar },
   { id: 'boardpack', label: 'Board Pack', description: 'AŞAMA 90 yönetim paketi.', icon: BriefcaseBusiness },
   { id: 'digest', label: 'CEO Digest', description: 'AŞAMA 75 yönetici özeti.', icon: Newspaper },
   { id: 'readiness', label: 'Hazırlık Skoru', description: 'AŞAMA 60 panosu', icon: Gauge },

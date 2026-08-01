@@ -89,6 +89,21 @@ import ShuttlePage from './pages/ShuttlePage';
 import PartnersPage from './pages/PartnersPage';
 import MysteryshopPage from './pages/MysteryshopPage';
 import BoardpackPage from './pages/BoardpackPage';
+import ConciergePage from './pages/ConciergePage';
+import MinibarPage from './pages/MinibarPage';
+import FolioPage from './pages/FolioPage';
+import BanquetPage from './pages/BanquetPage';
+import ToursPage from './pages/ToursPage';
+import MarinaPage from './pages/MarinaPage';
+import HammamPage from './pages/HammamPage';
+import TowelsPage from './pages/TowelsPage';
+import BandsPage from './pages/BandsPage';
+import HaccpPage from './pages/HaccpPage';
+import PatrolPage from './pages/PatrolPage';
+import FleetPage from './pages/FleetPage';
+import PayrollPage from './pages/PayrollPage';
+import FlashPage from './pages/FlashPage';
+import WarroomPage from './pages/WarroomPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -147,6 +162,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   readiness: ReadinessPage,
   digest: DigestPage,
   boardpack: BoardpackPage,
+  concierge: ConciergePage,
+  minibar: MinibarPage,
+  folio: FolioPage,
+  banquet: BanquetPage,
+  tours: ToursPage,
+  marina: MarinaPage,
+  hammam: HammamPage,
+  towels: TowelsPage,
+  bands: BandsPage,
+  haccp: HaccpPage,
+  patrol: PatrolPage,
+  fleet: FleetPage,
+  payroll: PayrollPage,
+  flash: FlashPage,
+  warroom: WarroomPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
