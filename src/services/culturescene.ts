@@ -102,3 +102,33 @@ export async function cultureBoxOfficeRollup() {
     }),
   )
 }
+
+export async function expireCultureHolds(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/holds/expire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function refundCultureSale(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/refund', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function settleCultureEvent(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/event/settle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

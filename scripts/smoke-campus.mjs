@@ -103,6 +103,9 @@ import {
   endCultureStream,
   setCultureStageStatus,
   cultureBoxOfficeRollup,
+  expireCultureHolds,
+  refundCultureSale,
+  settleCultureEvent,
 } from '../server/culturescene.js';
 import { returnMarketRental, restockMarketListing, reconcileMarketChannels } from '../server/marketos.js';
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
@@ -244,6 +247,10 @@ pulseCultureStream({ viewers: 33 }, 'smoke');
 endCultureStream({}, 'smoke');
 setCultureStageStatus({ stage_id: 'cs_studio', status: 'ready' }, 'smoke');
 assert(cultureBoxOfficeRollup('smoke').ok, 'culture box office');
+holdCultureTicket({ event_id: culture.events[0].id, qty: 1, guest: 'expire-me' }, 'smoke');
+assert(expireCultureHolds({ force: true }, 'smoke').ok, 'culture hold expire');
+assert(refundCultureSale({}, 'smoke').ok, 'culture refund');
+assert(settleCultureEvent({ event_id: culture.events[0].id }, 'smoke').ok, 'culture settle');
 
 const health = campusHealthCheck();
 assert(health.score >= 0, 'campus health');

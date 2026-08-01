@@ -281,6 +281,26 @@ try {
   const box = await req('/api/culture/box-office', { method: 'POST', token, body: {} });
   assert(box.res.ok && box.data.rollup, 'culture box office');
 
+  await req('/api/culture/hold', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1', qty: 1, guest: 'expire-e2e' },
+  });
+  const expire = await req('/api/culture/holds/expire', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(expire.res.ok && expire.data.ok !== false, 'culture hold expire');
+  const refund = await req('/api/culture/refund', { method: 'POST', token, body: {} });
+  assert(refund.res.ok && refund.data.ok !== false, 'culture refund');
+  const settleEv = await req('/api/culture/event/settle', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1' },
+  });
+  assert(settleEv.res.ok && settleEv.data.ok !== false, 'culture settle');
+
   const restock = await req('/api/marketos/restock', {
     method: 'POST',
     token,

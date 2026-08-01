@@ -76,6 +76,10 @@ export function cultureSceneOverview() {
   const saleList = Array.isArray(sales) ? sales : [];
   const streamList = Array.isArray(streams) ? streams : [];
   const liveStreams = streamList.filter((s) => s.status === 'live');
+  const refunds = readCollection('culture-refunds', []) || [];
+  const settlements = readCollection('culture-settlements', []) || [];
+  const refundList = Array.isArray(refunds) ? refunds : [];
+  const settleList = Array.isArray(settlements) ? settlements : [];
   return {
     title: 'Kültür & Sahne',
     ethos: 'Sahne ormanın sesi — bilet, yayın, sanat tek nabız.',
@@ -84,6 +88,8 @@ export function cultureSceneOverview() {
     holds: holdList.slice(0, 20),
     sales: saleList.slice(0, 20),
     streams: streamList.slice(0, 20),
+    refunds: refundList.slice(0, 20),
+    settlements: settleList.slice(0, 15),
     summary: {
       stages_ready: stages.filter((s) => s.status === 'ready').length,
       on_sale: events.filter((e) => e.status === 'on_sale').length,
@@ -93,7 +99,9 @@ export function cultureSceneOverview() {
       streams: events.filter((e) => e.stream).length,
       streams_live: liveStreams.length,
       viewers_peak: liveStreams.reduce((s, x) => s + (Number(x.viewers_peak) || 0), 0),
-      open_holds: holdList.filter((h) => h.status !== 'sold' && h.status !== 'released').length,
+      open_holds: holdList.filter((h) => h.status !== 'sold' && h.status !== 'released' && h.status !== 'expired').length,
+      refunds_try: refundList.reduce((s, r) => s + (Number(r.amount_try) || 0), 0),
+      settlements: settleList.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -326,6 +334,173 @@ export function cultureBoxOfficeRollup(actor = 'system') {
     meta: { id: rollup.id },
   });
   return { ok: true, rollup, overview: cultureSceneOverview() };
+}
+
+/** Bayat hold temizliği — threshold dk */
+export function expireCultureHolds(input = {}, actor = 'system') {
+  const minutes = Number(input.minutes);
+  const thresholdMs = (Number.isFinite(minutes) ? minutes : 15) * 60_000;
+  const cutoff = Date.now() - thresholdMs;
+  const holds = readCollection('culture-holds', []) || [];
+  const list = Array.isArray(holds) ? [...holds] : [];
+  const events = ensureEvents();
+  const expired = [];
+  for (let i = 0; i < list.length; i++) {
+    const h = list[i];
+    if (h.status === 'sold' || h.status === 'released' || h.status === 'expired') continue;
+    if (input.event_id && h.event_id !== input.event_id) continue;
+    const at = h.at ? new Date(h.at).getTime() : 0;
+    if (!input.force && at > cutoff) continue;
+    list[i] = { ...h, status: 'expired', expired_at: new Date().toISOString(), expired_by: actor };
+    expired.push(list[i]);
+    const eidx = events.findIndex((e) => e.id === h.event_id);
+    if (eidx >= 0) {
+      events[eidx] = {
+        ...events[eidx],
+        tickets_held: Math.max(0, (Number(events[eidx].tickets_held) || 0) - (Number(h.qty) || 0)),
+      };
+    }
+  }
+  if (!expired.length) return { ok: false, error: 'Bayat hold yok' };
+  writeCollection('culture-holds', list);
+  writeCollection('culture-events', events);
+  const row = {
+    id: rid('che'),
+    expired: expired.length,
+    qty: expired.reduce((s, h) => s + (Number(h.qty) || 0), 0),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-hold-expiries', row, 100);
+  appendAudit({
+    actor,
+    action: 'culture.hold_expire',
+    detail: `${row.expired} hold · ${row.qty} bilet`,
+    meta: { id: row.id },
+  });
+  return { ok: true, expiry: row, expired, overview: cultureSceneOverview() };
+}
+
+/** Satış iadesi — partial/full */
+export function refundCultureSale(input = {}, actor = 'system') {
+  const sales = readCollection('culture-sales', []) || [];
+  const list = Array.isArray(sales) ? [...sales] : [];
+  let idx = list.findIndex((s) => s.id === input.sale_id);
+  if (idx < 0) idx = list.findIndex((s) => !s.refunded_try || s.refunded_try < s.price_try);
+  if (idx < 0) return { ok: false, error: 'İade edilebilir satış yok' };
+  const sale = list[idx];
+  const already = Number(sale.refunded_try) || 0;
+  const max = Math.max(0, (Number(sale.price_try) || 0) - already);
+  let amount = Number(input.amount_try);
+  if (!Number.isFinite(amount) || amount <= 0) amount = max;
+  amount = Math.min(amount, max);
+  if (amount <= 0) return { ok: false, error: 'İade tutarı kalmadı' };
+  const refunded = already + amount;
+  list[idx] = {
+    ...sale,
+    refunded_try: refunded,
+    status: refunded >= (Number(sale.price_try) || 0) ? 'refunded' : 'partial_refund',
+  };
+  writeCollection('culture-sales', list);
+  const refund = {
+    id: rid('crf'),
+    sale_id: sale.id,
+    event_id: sale.event_id,
+    amount_try: amount,
+    qty: Number(input.qty) || sale.qty,
+    reason: input.reason || 'müşteri iptal',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-refunds', refund, 300);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `culture refund · ${sale.event_id} · ${amount} TRY`,
+      priority: 'normal',
+      payload: { refund_id: refund.id, sale_id: sale.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.refund',
+    detail: `${sale.event_id} · ${amount} TRY`,
+    meta: { id: refund.id },
+  });
+  return { ok: true, refund, sale: list[idx], overview: cultureSceneOverview() };
+}
+
+/** Etkinlik closeout — gelir / sanatçı / ops payı */
+export function settleCultureEvent(input = {}, actor = 'system') {
+  const events = ensureEvents();
+  const idx = events.findIndex((e) => e.id === input.event_id);
+  const event = idx >= 0 ? events[idx] : events.find((e) => e.status === 'live' || e.status === 'ended') || events[0];
+  if (!event) return { ok: false, error: 'Etkinlik yok' };
+  const sales = (readCollection('culture-sales', []) || []).filter((s) => s.event_id === event.id);
+  const refunds = (readCollection('culture-refunds', []) || []).filter((r) => r.event_id === event.id);
+  const streams = (readCollection('culture-streams', []) || []).filter((s) => s.event_id === event.id);
+  const gross = sales.reduce((s, x) => s + (Number(x.price_try) || 0), 0);
+  const refunded = refunds.reduce((s, x) => s + (Number(x.amount_try) || 0), 0);
+  const net = Math.max(0, gross - refunded);
+  const qty = sales.reduce((s, x) => s + (Number(x.qty) || 0), 0);
+  const capacity = Number(event.tickets_total) || 0;
+  const utilization = capacity ? Math.round((qty / capacity) * 100) : 0;
+  const peak = streams.reduce((m, s) => Math.max(m, Number(s.viewers_peak) || 0), 0);
+  const artistShare = Math.round(net * (Number(input.artist_pct) || 0.55));
+  const stageShare = Math.round(net * (Number(input.stage_pct) || 0.15));
+  const opsShare = Math.max(0, net - artistShare - stageShare);
+  const settlement = {
+    id: rid('cset'),
+    event_id: event.id,
+    title: event.title,
+    artist: event.artist,
+    tickets_sold: qty,
+    capacity,
+    utilization_pct: utilization,
+    gross_try: gross,
+    refunded_try: refunded,
+    net_try: net,
+    viewers_peak: peak,
+    lines: [
+      { code: 'artist', label: 'Sanatçı payı', amount_try: artistShare },
+      { code: 'stage', label: 'Sahne/venue', amount_try: stageShare },
+      { code: 'ops', label: 'Ops / LİKYA', amount_try: opsShare },
+    ],
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-settlements', settlement, 200);
+  const eidx = events.findIndex((e) => e.id === event.id);
+  if (eidx >= 0) {
+    events[eidx] = { ...events[eidx], status: 'settled', settled_at: settlement.at, settlement_id: settlement.id };
+    writeCollection('culture-events', events);
+  }
+  enqueueAgentJob(
+    {
+      agent: 'CULTURE-AI',
+      title: `closeout · ${event.title} · ${net} TRY`,
+      priority: 'normal',
+      payload: { settlement_id: settlement.id, event_id: event.id },
+    },
+    actor,
+  );
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `culture settle pay · artist ${artistShare} / ops ${opsShare}`,
+      priority: 'normal',
+      payload: { settlement_id: settlement.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.settle',
+    detail: `${event.title} · net ${net} TRY · %${utilization}`,
+    meta: { id: settlement.id },
+  });
+  return { ok: true, settlement, overview: cultureSceneOverview() };
 }
 
 /** Sahne fitout → ready (veya tersi) */

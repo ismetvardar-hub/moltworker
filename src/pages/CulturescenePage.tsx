@@ -156,10 +156,51 @@ export default function CulturescenePage() {
               >
                 Gişe rollup
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.expireCultureHolds({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Hold expire · ${r.expiry?.expired}` : r.error || 'Hold yok')
+                    return refresh()
+                  })
+                }
+              >
+                Hold temizle
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.refundCultureSale({}).then((r: any) => {
+                    ping(r.ok ? `İade · ${r.refund?.amount_try} TRY` : r.error || 'İade yok')
+                    return refresh()
+                  })
+                }
+              >
+                Refund
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.settleCultureEvent({ event_id: data.events?.[0]?.id }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `Closeout · ${r.settlement?.net_try} TRY · %${r.settlement?.utilization_pct}`
+                        : r.error || 'Settle yok',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Event closeout
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı
-              stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0}
+              stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0} · iade{' '}
+              {data.summary?.refunds_try ?? 0} TRY · settle {data.summary?.settlements ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Program">

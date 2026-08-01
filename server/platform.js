@@ -6746,11 +6746,14 @@ import {
   cultureBoxOfficeRollup,
   cultureSceneOverview,
   endCultureStream,
+  expireCultureHolds,
   holdCultureTicket,
   pulseCultureStream,
+  refundCultureSale,
   releaseCultureHold,
   setCultureLive,
   setCultureStageStatus,
+  settleCultureEvent,
   startCultureStream,
 } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
@@ -36308,6 +36311,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, cultureBoxOfficeRollup(user.username));
+          return;
+        }
+
+        if (path === '/api/culture/holds/expire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, expireCultureHolds(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/refund' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refundCultureSale(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/event/settle' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, settleCultureEvent(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge' && req.method === 'GET') {
