@@ -57,7 +57,60 @@ export default function AgentbridgePage() {
               >
                 Broadcast
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.openAgentBridgeChannel({ topic: 'kampüs-ops' }).then((r: any) => {
+                    ping(r.ok ? `Kanal · ${r.channel?.topic}` : r.error || 'Kanal yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kanal aç
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.pulseAgentBridgeChannel({}).then((r: any) => {
+                    ping(`Pulse ×${r.channel?.pulses ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Kanal pulse
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api
+                    .escalateAgentBridgeAlert({ title: 'ESG kritik', domain: 'green', severity: 'high' })
+                    .then((r: any) => {
+                      ping(r.ok ? `Alert · ${r.alert?.id}` : r.error || 'Alert yok')
+                      return refresh()
+                    })
+                }
+              >
+                Alert escalate
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.resolveAgentBridgeAlert({}).then((r: any) => {
+                    ping(r.ok ? 'Alert kapandı' : r.error || 'Alert yok')
+                    return refresh()
+                  })
+                }
+              >
+                Alert kapat
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Kanal {data.summary?.channels_open ?? 0} · alert {data.summary?.alerts_open ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Kampüs nabızları">
             <pre className="overflow-auto rounded-lg bg-obsidian-950 p-3 text-[11px] text-slate-400">{JSON.stringify(data.pulses, null, 2)}</pre>

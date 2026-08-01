@@ -14,7 +14,13 @@ import {
   completeCampusWorkOrder,
   runCampusWorkOrderSweep,
 } from '../server/campuscore.js';
-import { agentBridgeBroadcast } from '../server/agentbridge.js';
+import {
+  agentBridgeBroadcast,
+  openAgentBridgeChannel,
+  pulseAgentBridgeChannel,
+  escalateAgentBridgeAlert,
+  resolveAgentBridgeAlert,
+} from '../server/agentbridge.js';
 import {
   stayRingOverview,
   createStayBooking,
@@ -164,6 +170,13 @@ assert(createCampusWorkOrder({ zone_id: 'z_sport', title: 'smoke WO' }, 'smoke')
 assert(runCampusWorkOrderSweep({ force: true }, 'smoke').ok, 'campus WO sweep');
 assert(completeCampusWorkOrder({}, 'smoke').ok, 'campus WO complete');
 assert(agentBridgeBroadcast({ title: 'smoke broadcast' }, 'smoke').ok, 'bridge broadcast');
+assert(openAgentBridgeChannel({ topic: 'smoke-ops' }, 'smoke').ok, 'bridge channel');
+assert(pulseAgentBridgeChannel({}, 'smoke').ok, 'bridge channel pulse');
+assert(
+  escalateAgentBridgeAlert({ title: 'smoke alert', domain: 'green', severity: 'high' }, 'smoke').ok,
+  'bridge alert',
+);
+assert(resolveAgentBridgeAlert({}, 'smoke').ok, 'bridge alert resolve');
 
 const stay = stayRingOverview();
 assert(stay.units?.length >= 4, 'stay units');

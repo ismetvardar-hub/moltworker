@@ -1166,6 +1166,8 @@ const BACKUP_COLLECTIONS = [
   'green-incidents',
   'agent-pings',
   'agent-presence',
+  'agent-bridge-alerts',
+  'agent-bridge-channels',
   'fleet-directives',
   'fleet-handoffs',
   'fleet-shifts',

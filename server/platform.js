@@ -6773,7 +6773,15 @@ import {
   runFamilySafetySweep,
   transferFamilyChild,
 } from './familycamp.js';
-import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
+import {
+  agentBridgeBroadcast,
+  agentBridgeOverview,
+  agentBridgePing,
+  escalateAgentBridgeAlert,
+  openAgentBridgeChannel,
+  pulseAgentBridgeChannel,
+  resolveAgentBridgeAlert,
+} from './agentbridge.js';
 import {
   confirmCultureTicket,
   createCultureEvent,
@@ -36358,6 +36366,31 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, agentBridgeBroadcast(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/agentbridge/channel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, openAgentBridgeChannel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentbridge/channel/pulse' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, pulseAgentBridgeChannel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentbridge/alert' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateAgentBridgeAlert(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentbridge/alert/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveAgentBridgeAlert(await readBody(req), user.username)); })();
           return;
         }
 

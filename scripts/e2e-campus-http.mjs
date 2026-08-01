@@ -468,6 +468,22 @@ try {
     body: { title: 'e2e broadcast' },
   });
   assert(bc.res.ok && bc.data.ok !== false, 'bridge broadcast');
+  const ch = await req('/api/agentbridge/channel', {
+    method: 'POST',
+    token,
+    body: { topic: 'e2e-ops' },
+  });
+  assert(ch.res.ok && ch.data.ok !== false, 'bridge channel');
+  const chPulse = await req('/api/agentbridge/channel/pulse', { method: 'POST', token, body: {} });
+  assert(chPulse.res.ok && chPulse.data.ok !== false, 'bridge channel pulse');
+  const alertEsc = await req('/api/agentbridge/alert', {
+    method: 'POST',
+    token,
+    body: { title: 'e2e alert', domain: 'green', severity: 'high' },
+  });
+  assert(alertEsc.res.ok && alertEsc.data.ok !== false, 'bridge alert');
+  const alertRes = await req('/api/agentbridge/alert/resolve', { method: 'POST', token, body: {} });
+  assert(alertRes.res.ok && alertRes.data.ok !== false, 'bridge alert resolve');
 
   const sla = await req('/api/agentqueue/sla-sweep', {
     method: 'POST',
