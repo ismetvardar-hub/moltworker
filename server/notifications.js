@@ -30,6 +30,8 @@ const IMPORTANT = new Set([
   'guests.sync',
   'playbooks.create',
   'webhooks.create',
+  'inventory.adjust',
+  'shifts.create',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

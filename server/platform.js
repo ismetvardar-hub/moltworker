@@ -81,6 +81,15 @@ import {
   listWebhooks,
   removeWebhook,
 } from './webhooks.js';
+import { buildOpenApi } from './openapi.js';
+import { adjustStock, inventorySummary, listInventory } from './inventory.js';
+import {
+  createShift,
+  listShifts,
+  removeShift,
+  shiftsSummary,
+  updateShift,
+} from './shifts.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -90,6 +99,8 @@ listHolders();
 listBrands();
 listGuests();
 listPlaybooks();
+listInventory();
+listShifts();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -909,6 +920,94 @@ export function createPlatformMiddleware() {
             return;
           }
           sendJson(res, 200, { ok: true, webhook: hook });
+          return;
+        }
+
+        // ── AŞAMA 22: OpenAPI ─────────────────────────────────────────
+        if ((path === '/api/openapi.json' || path === '/api/docs') && req.method === 'GET') {
+          sendJson(res, 200, buildOpenApi());
+          return;
+        }
+
+        // ── AŞAMA 23: Envanter ────────────────────────────────────────
+        if (path === '/api/inventory' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...inventorySummary(),
+            items: listInventory({
+              venueId: url.searchParams.get('venueId') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/inventory/adjust' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew stok düşemez' });
+            return;
+          }
+          void (async () => {
+            const body = await readBody(req);
+            const result = adjustStock(body, user.username);
+            if (!result) {
+              sendJson(res, 404, { error: 'SKU bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, result);
+          })();
+          return;
+        }
+
+        // ── AŞAMA 24: Vardiyalar ──────────────────────────────────────
+        if (path === '/api/shifts' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...shiftsSummary(),
+            shifts: listShifts({
+              date: url.searchParams.get('date') || undefined,
+              venueId: url.searchParams.get('venueId') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/shifts' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            sendJson(res, 200, { shift: createShift(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/shifts/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const shift = updateShift(id, await readBody(req), user.username);
+            if (!shift) {
+              sendJson(res, 404, { error: 'Vardiya bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { shift });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/shifts/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const shift = removeShift(id, user.username);
+          if (!shift) {
+            sendJson(res, 404, { error: 'Vardiya bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, shift });
           return;
         }
 

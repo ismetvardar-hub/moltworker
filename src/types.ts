@@ -17,6 +17,9 @@ export type PageId =
   | 'ops'
   | 'metrics'
   | 'field'
+  | 'inventory'
+  | 'shifts'
+  | 'docs'
   | 'webhooks'
   | 'settings';
 

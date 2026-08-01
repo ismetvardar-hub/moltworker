@@ -31,6 +31,9 @@ const BACKUP_COLLECTIONS = [
   'playbooks',
   'webhooks',
   'webhook-deliveries',
+  'inventory',
+  'inventory-movements',
+  'shifts',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

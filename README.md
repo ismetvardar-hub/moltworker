@@ -220,6 +220,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **20** | Komuta playbook şablonları (`/api/playbooks`) |
 | **21** | Outbound webhooks (`/api/webhooks`) + delivery log |
 
+### OpenAPI · Envanter · Vardiya (AŞAMA 22–24)
+
+| Aşama | Özellik |
+|-------|---------|
+| **22** | OpenAPI sözleşmesi (`GET /api/openapi.json`, `GET /api/docs`) + Docs paneli |
+| **23** | HEPHAESTUS stok envanteri (`/api/inventory`, `/api/inventory/adjust`) |
+| **24** | Crew vardiya planı (`/api/shifts` CRUD) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

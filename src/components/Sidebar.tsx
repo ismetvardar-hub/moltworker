@@ -21,6 +21,9 @@ import {
   UserRound,
   Users,
   Webhook,
+  Package,
+  CalendarClock,
+  BookOpen,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -36,6 +39,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'metrics',
   'reports',
   'webhooks',
+  'docs',
 ]);
 
 interface SidebarProps {
@@ -160,10 +164,28 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     icon: BarChart3,
   },
   {
+    id: 'inventory',
+    label: 'Envanter',
+    description: 'HEPHAESTUS stok & hareket',
+    icon: Package,
+  },
+  {
+    id: 'shifts',
+    label: 'Vardiyalar',
+    description: 'Crew vardiya planı',
+    icon: CalendarClock,
+  },
+  {
     id: 'webhooks',
     label: 'Webhooks',
     description: 'Outbound olay POST',
     icon: Webhook,
+  },
+  {
+    id: 'docs',
+    label: 'API Docs',
+    description: 'OpenAPI uç noktaları',
+    icon: BookOpen,
   },
   {
     id: 'settings',

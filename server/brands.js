@@ -12,7 +12,7 @@ const DEFAULT_BRANDS = [
     name: 'OlymposPass',
     shortName: 'OLP',
     color: '#e8a020',
-    modules: ['olympospass', 'nexus', 'venues', 'field'],
+    modules: ['olympospass', 'nexus', 'venues', 'field', 'inventory', 'shifts'],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
     status: 'active',
   },
@@ -21,7 +21,7 @@ const DEFAULT_BRANDS = [
     name: 'Daze',
     shortName: 'DAZE',
     color: '#38bdf8',
-    modules: ['chef', 'crew', 'vision', 'field', 'jobs'],
+    modules: ['chef', 'crew', 'vision', 'field', 'jobs', 'inventory', 'shifts'],
     venueIds: ['venue_olympos_beach', 'venue_kaleici'],
     status: 'active',
   },
@@ -30,7 +30,18 @@ const DEFAULT_BRANDS = [
     name: 'LİKYA Holding',
     shortName: 'LİKYA',
     color: '#ffd98a',
-    modules: ['komuta', 'hub', 'ajanlar', 'ollama', 'reports', 'metrics', 'ops', 'settings'],
+    modules: [
+      'komuta',
+      'hub',
+      'ajanlar',
+      'ollama',
+      'reports',
+      'metrics',
+      'ops',
+      'settings',
+      'inventory',
+      'shifts',
+    ],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],
     status: 'active',
   },
@@ -49,7 +60,20 @@ function ensureSeed() {
     writeCollection('brands', DEFAULT_BRANDS);
     return DEFAULT_BRANDS;
   }
-  return list;
+  // Varsayılan markalara yeni modülleri birleştir (mevcut data/*.json için)
+  let dirty = false;
+  const merged = list.map((b) => {
+    const def = DEFAULT_BRANDS.find((d) => d.id === b.id);
+    if (!def) return b;
+    const modules = Array.from(new Set([...(b.modules || []), ...def.modules]));
+    if (modules.length !== (b.modules || []).length) {
+      dirty = true;
+      return { ...b, modules };
+    }
+    return b;
+  });
+  if (dirty) writeCollection('brands', merged);
+  return merged;
 }
 
 export function listBrands() {
