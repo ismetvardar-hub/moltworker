@@ -76,6 +76,44 @@ export function cancelJob(id, actor = 'system') {
   return job;
 }
 
+/**
+ * Hazır talimatı Komuta Merkezi'ne teslim et.
+ * scheduled ise önce ready yapar, sonra claimed işaretler.
+ */
+export async function claimDirective(id, actor = 'system') {
+  let job = getJob(id);
+  if (!job || job.kind !== 'directive.queue') return null;
+  if (job.status === 'claimed' || job.status === 'done' || job.status === 'cancelled') {
+    return { error: `Görev durumu claim için uygun değil: ${job.status}`, job };
+  }
+  if (job.status === 'scheduled') {
+    job = (await runJob(id, actor)) ?? job;
+  }
+  if (job.status !== 'ready' && job.status !== 'claimed') {
+    // runJob ready yapar; failed ise dur
+    if (job.status === 'failed') return { error: job.error || 'Görev başarısız', job };
+  }
+  const text = String(job.payload?.text || job.title || '').trim();
+  if (!text) return { error: 'Talimat metni boş', job };
+
+  const claimed = updateJob(id, {
+    status: 'claimed',
+    result: {
+      ...(job.result && typeof job.result === 'object' ? job.result : {}),
+      claimedBy: actor,
+      claimedAt: new Date().toISOString(),
+      text,
+    },
+  });
+  appendAudit({
+    actor,
+    action: 'jobs.claim',
+    detail: `Komuta'ya alındı: ${text.slice(0, 80)}`,
+    meta: { id },
+  });
+  return { job: claimed, text };
+}
+
 export function deleteJob(id) {
   const next = listJobs().filter((j) => j.id !== id);
   writeCollection('jobs', next);

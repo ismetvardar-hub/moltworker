@@ -14,6 +14,7 @@ import { appendAudit, readAudit } from './audit.js';
 import { applySettingsToEnv, getPublicSettings, saveSettings } from './settings.js';
 import {
   cancelJob,
+  claimDirective,
   createJob,
   deleteJob,
   getJob,
@@ -23,6 +24,7 @@ import {
   startJobTicker,
   tickJobs,
 } from './jobs.js';
+import { addSseClient, sseClientCount } from './events.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -93,6 +95,7 @@ function hubSummary() {
     jobsByStatus: jobs.byStatus,
     upcomingJobs: jobs.upcoming,
     readyDirectives: jobs.readyDirectives,
+    sseClients: sseClientCount(),
     recentArchive: archive.slice(0, 5),
     recentWhatsapp: whatsapp.slice(0, 5),
     recentNexus: nexus.slice(0, 8),
@@ -364,6 +367,47 @@ export function platformPlugin() {
             return;
           }
           sendJson(res, 200, { job });
+          return;
+        }
+        if (path.startsWith('/api/jobs/') && path.endsWith('/claim') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew talimat claim edemez' });
+            return;
+          }
+          const id = path.split('/')[3];
+          void (async () => {
+            const result = await claimDirective(id, user.username);
+            if (!result) {
+              sendJson(res, 404, { error: 'Talimat görevi bulunamadı' });
+              return;
+            }
+            if (result.error) {
+              sendJson(res, 409, { error: result.error, job: result.job });
+              return;
+            }
+            sendJson(res, 200, { job: result.job, text: result.text });
+          })();
+          return;
+        }
+        // SSE canlı olay akışı (AŞAMA 7) — token query ile (EventSource header desteklemez)
+        if (path === '/api/events' && req.method === 'GET') {
+          const url = new URL(req.url ?? '', 'http://local');
+          const token = url.searchParams.get('token') || getToken(req);
+          const user = sessionFromToken(token);
+          if (!user) {
+            sendJson(res, 401, { error: 'Oturum gerekli' });
+            return;
+          }
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            Connection: 'keep-alive',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.write(`: connected as ${user.username}\n\n`);
+          addSseClient(res);
           return;
         }
         if (path.startsWith('/api/jobs/') && req.method === 'GET') {

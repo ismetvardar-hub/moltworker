@@ -9,7 +9,9 @@ import {
   Cpu,
   ExternalLink,
   Globe2,
+  Inbox,
   Loader2,
+  Play,
   Send,
   ShieldCheck,
   Square,
@@ -46,6 +48,12 @@ import {
   type ArchiveEntry,
 } from '../services/archive';
 import { syncArchiveToServer } from '../services/hub';
+import {
+  claimDirective,
+  fetchReadyDirectives,
+  type Job,
+} from '../services/jobs';
+import LiveFeed from '../components/LiveFeed';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -206,10 +214,36 @@ export default function CommandCenter() {
   const [pipelineTitle, setPipelineTitle] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [archive, setArchive] = useState<ArchiveEntry[]>([]);
+  const [readyJobs, setReadyJobs] = useState<Job[]>([]);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const issueRef = useRef<(text?: string) => Promise<void>>(async () => undefined);
 
   useEffect(() => {
     setArchive(loadArchive());
+    const pending = sessionStorage.getItem('likya-pending-directive');
+    if (pending) {
+      sessionStorage.removeItem('likya-pending-directive');
+      setDraft(pending);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      try {
+        const jobs = await fetchReadyDirectives();
+        if (!cancelled) setReadyJobs(jobs);
+      } catch {
+        /* kuyruk opsiyonel */
+      }
+    };
+    void pull();
+    const t = setInterval(() => void pull(), 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
   }, []);
 
   useEffect(() => {
@@ -266,8 +300,8 @@ export default function CommandCenter() {
     );
   };
 
-  const issueDirective = async () => {
-    const text = draft.trim();
+  const issueDirective = async (overrideText?: string) => {
+    const text = (overrideText ?? draft).trim();
     if (!text || streaming) return;
 
     const steps = buildPipeline(text);
@@ -417,6 +451,24 @@ export default function CommandCenter() {
       abortRef.current = null;
     }
   };
+  issueRef.current = issueDirective;
+
+  const takeFromQueue = async (jobId: string, autoRun: boolean) => {
+    if (streaming || claimingId) return;
+    setClaimingId(jobId);
+    try {
+      const { text } = await claimDirective(jobId);
+      setReadyJobs((prev) => prev.filter((j) => j.id !== jobId));
+      setDraft(text);
+      if (autoRun) {
+        await issueRef.current(text);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setClaimingId(null);
+    }
+  };
 
   const aiHealth: SystemHealth = aiOnline === null ? 'unknown' : aiOnline ? 'online' : 'offline';
   const completedSteps = pipeline.filter((s) => s.status === 'tamamlandi').length;
@@ -481,6 +533,51 @@ export default function CommandCenter() {
           </PanelCard>
         ))}
       </div>
+
+      {readyJobs.length > 0 && (
+        <PanelCard
+          title="Kuyruktan Hazır Talimatlar"
+          subtitle="Görev Kuyruğu → Komuta köprüsü (AŞAMA 7)"
+        >
+          <ul className="space-y-2">
+            {readyJobs.map((job) => (
+              <li
+                key={job.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-lykia-500/30 bg-lykia-500/5 px-3 py-2.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 truncate text-sm text-slate-100">
+                    <Inbox className="size-3.5 shrink-0 text-lykia-400" />
+                    {String(job.payload?.text || job.title)}
+                  </p>
+                  <p className="mt-0.5 font-mono text-[11px] text-slate-500">
+                    {job.createdBy} · {new Date(job.dueAt).toLocaleString('tr-TR')}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={!!claimingId || streaming}
+                    onClick={() => void takeFromQueue(job.id, false)}
+                    className="rounded-lg border border-obsidian-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:border-lykia-500/40 hover:text-lykia-300 disabled:opacity-40"
+                  >
+                    Taslağa Al
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!!claimingId || streaming}
+                    onClick={() => void takeFromQueue(job.id, true)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-lykia-500 px-2.5 py-1.5 text-[11px] font-semibold text-obsidian-950 hover:bg-lykia-400 disabled:opacity-40"
+                  >
+                    <Play className="size-3" />
+                    Al & Çalıştır
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <PanelCard
@@ -636,6 +733,8 @@ export default function CommandCenter() {
           )}
         </PanelCard>
       </div>
+
+      <LiveFeed title="Komuta — Canlı Olay Akışı" />
 
       <ArchivePanel entries={archive} onChange={setArchive} onRestore={restoreArchive} />
     </div>

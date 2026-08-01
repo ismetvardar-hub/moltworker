@@ -161,6 +161,14 @@ Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer tok
 | `POST /api/jobs/:id/run` | Hemen çalıştır |
 | `POST /api/jobs/:id/cancel` | İptal |
 | `POST /api/jobs/tick` | Manuel tick (CEO) |
+| `POST /api/jobs/:id/claim` | Hazır talimatı Komuta’ya teslim et |
+| `GET /api/events?token=` | SSE canlı olay akışı |
+
+### Kuyruk → Komuta & SSE (AŞAMA 7)
+
+- Hazır `directive.queue` görevleri Komuta Merkezi’nde listelenir
+- **Taslağa Al** / **Al & Çalıştır** veya Hub’dan **Komuta’ya Al**
+- Audit ve operasyon olayları SSE ile Hub/Komuta canlı feed’ine akar
 
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 

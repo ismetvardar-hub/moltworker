@@ -11,8 +11,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import LiveFeed from '../components/LiveFeed';
 import { AGENTS, DEPARTMENTS } from '../data/agents';
 import { fetchHubSummary, type HubSummary } from '../services/hub';
+import { claimDirective } from '../services/jobs';
 
 export default function DazeHubPage() {
   const [summary, setSummary] = useState<HubSummary | null>(null);
@@ -133,6 +135,8 @@ export default function DazeHubPage() {
         ))}
       </div>
 
+      <LiveFeed title="Daze Hub — Canlı Olay Akışı (SSE)" />
+
       <PanelCard
         title="Canlı Ajan Filosu"
         subtitle={`${activeCount} aktif iz · ${AGENTS.length} ajan · ${DEPARTMENTS.length} departman`}
@@ -169,11 +173,11 @@ export default function DazeHubPage() {
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <PanelCard title="Yaklaşan / Hazır Görevler" subtitle="AŞAMA 6 kuyruk">
+        <PanelCard title="Yaklaşan / Hazır Görevler" subtitle="AŞAMA 6–7 kuyruk">
           <ul className="space-y-2">
             {[
-              ...(summary?.readyDirectives ?? []).map((j) => ({ ...j, tag: 'hazır' })),
-              ...(summary?.upcomingJobs ?? []).map((j) => ({ ...j, tag: 'zamanlı' })),
+              ...(summary?.readyDirectives ?? []).map((j) => ({ ...j, tag: 'hazır' as const })),
+              ...(summary?.upcomingJobs ?? []).map((j) => ({ ...j, tag: 'zamanlı' as const })),
             ]
               .slice(0, 8)
               .map((j) => (
@@ -187,9 +191,26 @@ export default function DazeHubPage() {
                       {j.kind} · {new Date(j.dueAt).toLocaleString('tr-TR')}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-lykia-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-lykia-300">
-                    {j.tag}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {j.tag === 'hazır' && j.kind === 'directive.queue' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void claimDirective(j.id).then(({ text }) => {
+                            sessionStorage.setItem('likya-pending-directive', text);
+                            window.location.hash = '/komuta';
+                            void refresh();
+                          });
+                        }}
+                        className="rounded-lg bg-lykia-500 px-2 py-1 text-[10px] font-semibold text-obsidian-950 hover:bg-lykia-400"
+                      >
+                        Komuta&apos;ya Al
+                      </button>
+                    )}
+                    <span className="rounded-full bg-lykia-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-lykia-300">
+                      {j.tag}
+                    </span>
+                  </div>
                 </li>
               ))}
             {(summary?.upcomingJobs?.length ?? 0) +

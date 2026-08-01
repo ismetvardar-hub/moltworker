@@ -4,6 +4,7 @@
 
 import { prependItem, readCollection } from './store.js';
 import { randomBytes } from 'node:crypto';
+import { broadcast } from './events.js';
 
 export function appendAudit({ actor, action, detail, meta }) {
   const entry = {
@@ -15,6 +16,15 @@ export function appendAudit({ actor, action, detail, meta }) {
     meta: meta ?? undefined,
   };
   prependItem('audit', entry, 300);
+  broadcast({
+    type: 'audit',
+    id: entry.id,
+    at: entry.at,
+    actor: entry.actor,
+    action: entry.action,
+    detail: entry.detail,
+    meta: entry.meta,
+  });
   return entry;
 }
 

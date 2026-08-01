@@ -5,6 +5,7 @@ export type JobStatus =
   | 'scheduled'
   | 'running'
   | 'ready'
+  | 'claimed'
   | 'done'
   | 'failed'
   | 'cancelled';
@@ -81,4 +82,21 @@ export async function cancelJob(id: string): Promise<Job> {
   if (!res.ok) throw new Error('Görev iptal edilemedi');
   const data = (await res.json()) as { job: Job };
   return data.job;
+}
+
+export async function claimDirective(id: string): Promise<{ job: Job; text: string }> {
+  const res = await fetch(`/api/jobs/${id}/claim`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error || 'Talimat alınamadı');
+  }
+  return (await res.json()) as { job: Job; text: string };
+}
+
+export async function fetchReadyDirectives(): Promise<Job[]> {
+  const data = await fetchJobs({ kind: 'directive.queue', status: 'ready' });
+  return data.jobs;
 }
