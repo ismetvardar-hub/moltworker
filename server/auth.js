@@ -1241,6 +1241,7 @@ export const ROLE_PAGES = {
     'familycamp',
     'agentbridge',
     'sportbridge',
+    'agentqueue',
     'culturescene',
     'docs',
     'webhooks',

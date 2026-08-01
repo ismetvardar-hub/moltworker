@@ -1167,6 +1167,7 @@ export type PageId =
   | 'familycamp'
   | 'agentbridge'
   | 'sportbridge'
+  | 'agentqueue'
   | 'culturescene'
   | 'mysteryshop'
   | 'partners'

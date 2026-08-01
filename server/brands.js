@@ -1318,6 +1318,7 @@ const DEFAULT_BRANDS = [
       'familycamp',
       'agentbridge',
       'sportbridge',
+      'agentqueue',
       'culturescene',
     ],
     venueIds: ['venue_olympos_beach', 'venue_kaleici', 'venue_phaseelis'],

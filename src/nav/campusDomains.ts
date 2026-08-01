@@ -91,7 +91,7 @@ export const CAMPUS_DOMAINS: CampusDomain[] = [
     label: 'Ajan Komuta',
     description: 'NEXUS · HEPHAESTUS · REMINDER · MINT · DAZE',
     primary: 'agentbridge',
-    pages: ['agentbridge', 'komuta', 'ajanlar', 'cognisphere', 'vanguard', 'oracle', 'warroom'],
+    pages: ['agentbridge', 'agentqueue', 'komuta', 'ajanlar', 'cognisphere', 'vanguard', 'oracle', 'warroom'],
   },
   {
     id: 'system',

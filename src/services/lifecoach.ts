@@ -7,11 +7,40 @@ async function parse<T>(res: Response): Promise<T> {
 export async function fetchLifeCoach() {
   return parse(await fetch('/api/lifecoach', { headers: authHeaders() }))
 }
-
 export async function ingestWearable(body: Record<string, unknown> = {}) {
-  return parse(await fetch('/api/lifecoach/wearable', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+  return parse(
+    await fetch('/api/lifecoach/wearable', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
 }
 export async function createLifePlan(body: Record<string, unknown> = {}) {
-  return parse(await fetch('/api/lifecoach/plan', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+  return parse(
+    await fetch('/api/lifecoach/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
 }
-
+export async function registerLifeDevice(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/device', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+/** Demo webhook (auth’lu panelden); imza sunucuda demo_skip ile de kabul */
+export async function postLifeWebhook(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), 'X-Likya-Demo': '1' },
+      body: JSON.stringify(body),
+    }),
+  )
+}

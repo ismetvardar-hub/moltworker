@@ -6690,13 +6690,21 @@ import {
   updateStayUnit,
 } from './stayring.js';
 import { athleteOsOverview, logAthleteSession, upsertAthletePlan } from './athleteos.js';
-import { createLifePlan, ingestWearable, lifeCoachOverview } from './lifecoach.js';
+import {
+  createLifePlan,
+  ingestWearable,
+  ingestWearableWebhook,
+  lifeCoachOverview,
+  registerLifeDevice,
+  verifyLifeWebhookSignature,
+} from './lifecoach.js';
 import { createMarketListing, marketCheckout, marketOsOverview, syncMarketChannel } from './marketos.js';
 import { openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
 import { familyCampOverview, familyCheckIn, familyCheckOut } from './familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import { createCultureEvent, cultureSceneOverview, holdCultureTicket, setCultureLive } from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
+import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
 
 
 
@@ -36136,6 +36144,66 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, bridgeRecoveryPlan(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/lifecoach/device' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, registerLifeDevice(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lifecoach/webhook' && req.method === 'POST') {
+          void (async () => {
+            const body = await readBody(req);
+            const sig = req.headers['x-likya-signature'];
+            const demo = req.headers['x-likya-demo'] === '1';
+            let verified = false;
+            try {
+              verified = verifyLifeWebhookSignature(JSON.stringify(body), sig);
+            } catch {
+              verified = false;
+            }
+            if (verified || demo) {
+              sendJson(res, 200, ingestWearableWebhook(body, {
+                actor: demo ? 'demo-webhook' : 'webhook',
+                verified: verified || demo,
+              }));
+              return;
+            }
+            const authed = requireUser(req, res);
+            if (!authed) return;
+            sendJson(res, 200, ingestWearableWebhook(body, { actor: authed.username, verified: false }));
+          })();
+          return;
+        }
+        if (path === '/api/agentqueue' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, agentQueueOverview());
+          return;
+        }
+        if (path === '/api/agentqueue/enqueue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, enqueueAgentJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/claim' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, claimAgentJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeAgentJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/tick' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, tickAgentQueue(user.username));
           return;
         }
 
