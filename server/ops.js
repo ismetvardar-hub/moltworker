@@ -64,6 +64,16 @@ const BACKUP_COLLECTIONS = [
   'energy-readings',
   'training-quizzes',
   'training-attempts',
+  'venue-hours',
+  'kudos',
+  'complaints',
+  'waitlist',
+  'seating',
+  'waste-log',
+  'vendor-scores',
+  'documents',
+  'music-requests',
+  'valet-tickets',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

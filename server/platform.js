@@ -205,6 +205,52 @@ import {
   submitAttempt,
   trainingSummary,
 } from './training.js';
+import {
+  createValet,
+  listValet,
+  updateValet,
+  valetSummary,
+} from './valet.js';
+import {
+  createMusicRequest,
+  listMusic,
+  musicSummary,
+  updateMusicRequest,
+} from './music.js';
+import {
+  createDocument,
+  documentsSummary,
+  listDocuments,
+  removeDocument,
+} from './documents.js';
+import {
+  listVendorScores,
+  upsertVendorScore,
+  vendorScoreSummary,
+} from './vendorscore.js';
+import { listWaste, logWaste, wasteSummary } from './waste.js';
+import {
+  createSeat,
+  listSeating,
+  seatingSummary,
+  updateSeat,
+} from './seating.js';
+import {
+  createWaitlistEntry,
+  listWaitlist,
+  updateWaitlist,
+  waitlistSummary,
+} from './waitlist.js';
+import {
+  complaintsSummary,
+  createComplaint,
+  listComplaints,
+  updateComplaint,
+} from './complaints.js';
+import { createKudos, kudosSummary, listKudos } from './kudos.js';
+import { hoursSummary, listHours, updateHours } from './hours.js';
+import { buildWeatherBrief, refreshWeather } from './weather.js';
+import { buildReadiness } from './readiness.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -237,6 +283,16 @@ listQuizzes();
 listPlaybooks();
 listInventory();
 listShifts();
+listValet();
+listMusic();
+listDocuments();
+listVendorScores();
+listSeating();
+listWaitlist();
+listComplaints();
+listHours();
+buildWeatherBrief();
+buildReadiness();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -1998,6 +2054,276 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, { attempt, recent: listAttempts(10) });
           })();
+          return;
+        }
+
+        // ── AŞAMA 49: Vale ────────────────────────────────────────────
+        if (path === '/api/valet' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...valetSummary(), tickets: listValet() });
+          return;
+        }
+        if (path === '/api/valet' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { ticket: createValet(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/valet/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const ticket = updateValet(path.split('/')[3], await readBody(req), user.username);
+            if (!ticket) {
+              sendJson(res, 404, { error: 'Fiş bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { ticket });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 50: Müzik ───────────────────────────────────────────
+        if (path === '/api/music' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...musicSummary(), requests: listMusic() });
+          return;
+        }
+        if (path === '/api/music' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              request: createMusicRequest(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/music/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const request = updateMusicRequest(
+              path.split('/')[3],
+              await readBody(req),
+              user.username,
+            );
+            if (!request) {
+              sendJson(res, 404, { error: 'İstek bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { request });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 51: Belgeler ────────────────────────────────────────
+        if (path === '/api/documents' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...documentsSummary(), documents: listDocuments() });
+          return;
+        }
+        if (path === '/api/documents' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              document: createDocument(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/documents/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const document = removeDocument(path.split('/')[3], user.username);
+          if (!document) {
+            sendJson(res, 404, { error: 'Belge bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, document });
+          return;
+        }
+
+        // ── AŞAMA 52: Tedarikçi skor ──────────────────────────────────
+        if (path === '/api/vendor-scores' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...vendorScoreSummary(), scores: listVendorScores() });
+          return;
+        }
+        if (path === '/api/vendor-scores' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              score: upsertVendorScore(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 53: Fire ────────────────────────────────────────────
+        if (path === '/api/waste' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, wasteSummary());
+          return;
+        }
+        if (path === '/api/waste' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { entry: logWaste(await readBody(req), user.username) });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 54: Oturma ──────────────────────────────────────────
+        if (path === '/api/seating' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...seatingSummary(), tables: listSeating() });
+          return;
+        }
+        if (path === '/api/seating' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { table: createSeat(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/seating/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const table = updateSeat(path.split('/')[3], await readBody(req), user.username);
+            if (!table) {
+              sendJson(res, 404, { error: 'Masa bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { table });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 55: Bekleme listesi ─────────────────────────────────
+        if (path === '/api/waitlist' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...waitlistSummary(), entries: listWaitlist() });
+          return;
+        }
+        if (path === '/api/waitlist' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              entry: createWaitlistEntry(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/waitlist/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const entry = updateWaitlist(path.split('/')[3], await readBody(req), user.username);
+            if (!entry) {
+              sendJson(res, 404, { error: 'Kayıt bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { entry });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 56: Şikayetler ──────────────────────────────────────
+        if (path === '/api/complaints' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { ...complaintsSummary(), complaints: listComplaints() });
+          return;
+        }
+        if (path === '/api/complaints' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              complaint: createComplaint(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/complaints/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const complaint = updateComplaint(
+              path.split('/')[3],
+              await readBody(req),
+              user.username,
+            );
+            if (!complaint) {
+              sendJson(res, 404, { error: 'Şikayet bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { complaint });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 57: Kudos ───────────────────────────────────────────
+        if (path === '/api/kudos' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, kudosSummary());
+          return;
+        }
+        if (path === '/api/kudos' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { entry: createKudos(await readBody(req), user.username) });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 58: Çalışma saatleri ────────────────────────────────
+        if (path === '/api/hours' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, hoursSummary());
+          return;
+        }
+        if (path.startsWith('/api/hours/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const venueId = path.split('/')[3];
+            const row = updateHours(venueId, await readBody(req), user.username);
+            if (!row) {
+              sendJson(res, 404, { error: 'Tesis saatleri bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { hours: row });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 59: Hava brifi ──────────────────────────────────────
+        if (path === '/api/weather' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildWeatherBrief());
+          return;
+        }
+        if (path === '/api/weather/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, refreshWeather(user.username));
+          return;
+        }
+
+        // ── AŞAMA 60: Hazırlık skoru ──────────────────────────────────
+        if (path === '/api/readiness' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildReadiness());
           return;
         }
 

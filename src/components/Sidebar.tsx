@@ -47,6 +47,18 @@ import {
   Wallet,
   Boxes,
   Zap,
+  Car,
+  Music2,
+  FileText,
+  Star,
+  Trash2,
+  Armchair,
+  ListOrdered,
+  MessageCircleWarning,
+  Award,
+  Clock3,
+  CloudSun,
+  Gauge,
   GraduationCap,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
@@ -70,6 +82,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'announcements',
   'audit',
   'brief',
+  'readiness',
 ]);
 
 interface SidebarProps {
@@ -337,6 +350,18 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     description: 'Sayaç okumaları',
     icon: Zap,
   },
+  { id: 'readiness', label: 'Hazırlık Skoru', description: 'AŞAMA 60 panosu', icon: Gauge },
+  { id: 'weather', label: 'Hava Brifi', description: 'Sahil operasyon', icon: CloudSun },
+  { id: 'valet', label: 'Vale', description: 'Otopark fişleri', icon: Car },
+  { id: 'music', label: 'Müzik', description: 'Playlist istekleri', icon: Music2 },
+  { id: 'documents', label: 'Belgeler', description: 'Prosedür kasası', icon: FileText },
+  { id: 'vendorscore', label: 'Tedarik Skor', description: 'Vendor scorecard', icon: Star },
+  { id: 'waste', label: 'Fire', description: 'Atık günlüğü', icon: Trash2 },
+  { id: 'seating', label: 'Oturma', description: 'Masa durumu', icon: Armchair },
+  { id: 'waitlist', label: 'Bekleme', description: 'Misafir sırası', icon: ListOrdered },
+  { id: 'complaints', label: 'Şikayetler', description: 'Escalation', icon: MessageCircleWarning },
+  { id: 'kudos', label: 'Takdir', description: 'Kudos panosu', icon: Award },
+  { id: 'hours', label: 'Saatler', description: 'Açılış/kapanış', icon: Clock3 },
   {
     id: 'training',
     label: 'Eğitim',

@@ -47,6 +47,18 @@ import CashPage from './pages/CashPage';
 import AssetsPage from './pages/AssetsPage';
 import EnergyPage from './pages/EnergyPage';
 import TrainingPage from './pages/TrainingPage';
+import ValetPage from './pages/ValetPage';
+import MusicPage from './pages/MusicPage';
+import DocumentsPage from './pages/DocumentsPage';
+import VendorscorePage from './pages/VendorscorePage';
+import WastePage from './pages/WastePage';
+import SeatingPage from './pages/SeatingPage';
+import WaitlistPage from './pages/WaitlistPage';
+import ComplaintsPage from './pages/ComplaintsPage';
+import KudosPage from './pages/KudosPage';
+import HoursPage from './pages/HoursPage';
+import WeatherPage from './pages/WeatherPage';
+import ReadinessPage from './pages/ReadinessPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -102,6 +114,18 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   assets: AssetsPage,
   energy: EnergyPage,
   training: TrainingPage,
+  readiness: ReadinessPage,
+  weather: WeatherPage,
+  hours: HoursPage,
+  kudos: KudosPage,
+  complaints: ComplaintsPage,
+  waitlist: WaitlistPage,
+  seating: SeatingPage,
+  waste: WastePage,
+  vendorscore: VendorscorePage,
+  documents: DocumentsPage,
+  music: MusicPage,
+  valet: ValetPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,

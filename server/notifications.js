@@ -56,6 +56,7 @@ const IMPORTANT = new Set([
   'assets.create',
   'energy.log',
   'training.attempt',
+  'valet.create',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

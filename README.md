@@ -287,6 +287,23 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **47** | Enerji sayaç okumaları (`/api/energy`) |
 | **48** | SOCRATES eğitim quiz (`/api/training`) |
 
+### Sahada tamamlayıcılar · Checkpoint (AŞAMA 49–60)
+
+| Aşama | Özellik |
+|-------|---------|
+| **49** | Vale / otopark (`/api/valet`) |
+| **50** | Müzik istekleri (`/api/music`) |
+| **51** | Belge kasası (`/api/documents`) |
+| **52** | Tedarikçi skor kartı (`/api/vendor-scores`) |
+| **53** | Fire / atık (`/api/waste`) |
+| **54** | Oturma planı (`/api/seating`) |
+| **55** | Bekleme listesi (`/api/waitlist`) |
+| **56** | Şikayet kuyruğu (`/api/complaints`) |
+| **57** | Takdir / kudos (`/api/kudos`) |
+| **58** | Çalışma saatleri (`/api/hours`) |
+| **59** | Hava brifi (`/api/weather`) |
+| **60** | Hazırlık skoru checkpoint (`/api/readiness`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
