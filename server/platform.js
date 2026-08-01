@@ -4170,7 +4170,9 @@ import {
   onboardkitSummary,
   updateOnboardkit,
 } from './onboardkit.js';
-import { buildAlliance2 } from './alliance2.js';
+import {
+  ackAlliance2Flag, buildAlliance2, busyAlliance2Partner, closeAlliance2Channel, liveAlliance2Invest, runAlliance2Sweep,
+} from './alliance2.js';
 import {
   createInboundpo,
   listInboundpo,
@@ -4255,7 +4257,9 @@ import {
   safetystockSummary,
   updateSafetystock,
 } from './safetystock.js';
-import { buildArtery } from './artery.js';
+import {
+  ackArteryFlag, buildArtery, busyArteryAsn, closeArteryDock, runArteryInbound, runArterySweep,
+} from './artery.js';
 import {
   createSupplierkpi,
   listSupplierkpi,
@@ -5291,7 +5295,9 @@ import {
   zerohour2Summary,
   updateZerohour2,
 } from './zerohour2.js';
-import { buildBastion2 } from './bastion2.js';
+import {
+  ackBastion2Flag, approveBastion2Role, archiveBastion2Breach, buildBastion2, closeBastion2Access, runBastion2Sweep,
+} from './bastion2.js';
 import {
   createPartnerdesk2,
   listPartnerdesk2,
@@ -5801,7 +5807,9 @@ import {
   ritualcal2Summary,
   updateRitualcal2,
 } from './ritualcal2.js';
-import { buildAgora2 } from './agora2.js';
+import {
+  ackAgora2Flag, buildAgora2, busyAgora2Circle, liveAgora2Badge, runAgora2Drill, runAgora2Sweep,
+} from './agora2.js';
 import {
   createCohort2,
   listCohort2,
@@ -26295,6 +26303,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildAlliance2());
           return;
         }
+        if (path === '/api/alliance2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAlliance2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAlliance2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance2/partner/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyAlliance2Partner(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance2/channel/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAlliance2Channel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alliance2/invest/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveAlliance2Invest(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Supply OS · Artery (AŞAMA 721–735) ──
 
@@ -26650,6 +26688,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/artery' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildArtery());
+          return;
+        }
+        if (path === '/api/artery/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runArterySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackArteryFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery/inbound/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runArteryInbound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery/asn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyArteryAsn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artery/dock/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeArteryDock(await readBody(req), user.username)); })();
           return;
         }
 
@@ -31176,6 +31244,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildBastion2());
           return;
         }
+        if (path === '/api/bastion2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBastion2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBastion2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion2/access/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeBastion2Access(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion2/role/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveBastion2Role(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion2/breach/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveBastion2Breach(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Alliance OS · Alliance3 (AŞAMA 916–930) ──
 
@@ -33316,6 +33414,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/agora2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildAgora2());
+          return;
+        }
+        if (path === '/api/agora2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgora2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAgora2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora2/drill/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgora2Drill(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora2/circle/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyAgora2Circle(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agora2/badge/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveAgora2Badge(await readBody(req), user.username)); })();
           return;
         }
 

@@ -145,6 +145,10 @@ try {
     '/api/selene',
     '/api/serenity',
     '/api/vault',
+    '/api/alliance2',
+    '/api/artery',
+    '/api/bastion2',
+    '/api/agora2',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1373,6 +1377,50 @@ try {
   assert(vltRecon.res.ok && vltRecon.data.ok !== false, 'vault recon clear');
   const vltAck = await req('/api/vault/flag/ack', { method: 'POST', token, body: {} });
   assert(vltAck.res.ok && vltAck.data.ok !== false, 'vault flag ack');
+
+  const al2Sweep = await req('/api/alliance2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(al2Sweep.res.ok && al2Sweep.data.ok !== false, 'alliance2 sweep');
+  const al2Partner = await req('/api/alliance2/partner/busy', { method: 'POST', token, body: {} });
+  assert(al2Partner.res.ok && al2Partner.data.ok !== false, 'alliance2 partner busy');
+  const al2Channel = await req('/api/alliance2/channel/close', { method: 'POST', token, body: {} });
+  assert(al2Channel.res.ok && al2Channel.data.ok !== false, 'alliance2 channel close');
+  const al2Invest = await req('/api/alliance2/invest/live', { method: 'POST', token, body: {} });
+  assert(al2Invest.res.ok && al2Invest.data.ok !== false, 'alliance2 invest live');
+  const al2Ack = await req('/api/alliance2/flag/ack', { method: 'POST', token, body: {} });
+  assert(al2Ack.res.ok && al2Ack.data.ok !== false, 'alliance2 flag ack');
+
+  const artSweep = await req('/api/artery/sweep', { method: 'POST', token, body: { force: true } });
+  assert(artSweep.res.ok && artSweep.data.ok !== false, 'artery sweep');
+  const artInbound = await req('/api/artery/inbound/run', { method: 'POST', token, body: {} });
+  assert(artInbound.res.ok && artInbound.data.ok !== false, 'artery inbound run');
+  const artAsn = await req('/api/artery/asn/busy', { method: 'POST', token, body: {} });
+  assert(artAsn.res.ok && artAsn.data.ok !== false, 'artery asn busy');
+  const artDock = await req('/api/artery/dock/close', { method: 'POST', token, body: {} });
+  assert(artDock.res.ok && artDock.data.ok !== false, 'artery dock close');
+  const artAck = await req('/api/artery/flag/ack', { method: 'POST', token, body: {} });
+  assert(artAck.res.ok && artAck.data.ok !== false, 'artery flag ack');
+
+  const bs2Sweep = await req('/api/bastion2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bs2Sweep.res.ok && bs2Sweep.data.ok !== false, 'bastion2 sweep');
+  const bs2Acc = await req('/api/bastion2/access/close', { method: 'POST', token, body: {} });
+  assert(bs2Acc.res.ok && bs2Acc.data.ok !== false, 'bastion2 access close');
+  const bs2Role = await req('/api/bastion2/role/approve', { method: 'POST', token, body: {} });
+  assert(bs2Role.res.ok && bs2Role.data.ok !== false, 'bastion2 role approve');
+  const bs2Breach = await req('/api/bastion2/breach/archive', { method: 'POST', token, body: {} });
+  assert(bs2Breach.res.ok && bs2Breach.data.ok !== false, 'bastion2 breach archive');
+  const bs2Ack = await req('/api/bastion2/flag/ack', { method: 'POST', token, body: {} });
+  assert(bs2Ack.res.ok && bs2Ack.data.ok !== false, 'bastion2 flag ack');
+
+  const ag2Sweep = await req('/api/agora2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ag2Sweep.res.ok && ag2Sweep.data.ok !== false, 'agora2 sweep');
+  const ag2Drill = await req('/api/agora2/drill/run', { method: 'POST', token, body: {} });
+  assert(ag2Drill.res.ok && ag2Drill.data.ok !== false, 'agora2 drill run');
+  const ag2Circle = await req('/api/agora2/circle/busy', { method: 'POST', token, body: {} });
+  assert(ag2Circle.res.ok && ag2Circle.data.ok !== false, 'agora2 circle busy');
+  const ag2Badge = await req('/api/agora2/badge/live', { method: 'POST', token, body: {} });
+  assert(ag2Badge.res.ok && ag2Badge.data.ok !== false, 'agora2 badge live');
+  const ag2Ack = await req('/api/agora2/flag/ack', { method: 'POST', token, body: {} });
+  assert(ag2Ack.res.ok && ag2Ack.data.ok !== false, 'agora2 flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

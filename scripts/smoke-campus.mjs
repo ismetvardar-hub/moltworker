@@ -518,6 +518,18 @@ import {
   buildAgora, runAgoraSweep, ackAgoraFlag, runAgoraDrill, busyAgoraCircle, liveAgoraBadge,
 } from '../server/agora.js';
 import {
+  buildAgora2, runAgora2Sweep, ackAgora2Flag, runAgora2Drill, busyAgora2Circle, liveAgora2Badge,
+} from '../server/agora2.js';
+import {
+  buildAlliance2, runAlliance2Sweep, ackAlliance2Flag, busyAlliance2Partner, closeAlliance2Channel, liveAlliance2Invest,
+} from '../server/alliance2.js';
+import {
+  buildArtery, runArterySweep, ackArteryFlag, runArteryInbound, busyArteryAsn, closeArteryDock,
+} from '../server/artery.js';
+import {
+  buildBastion2, runBastion2Sweep, ackBastion2Flag, closeBastion2Access, approveBastion2Role, archiveBastion2Breach,
+} from '../server/bastion2.js';
+import {
   buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
 } from '../server/beacon.js';
 import {
@@ -1388,7 +1400,35 @@ assert(closeVaultAp({}, 'smoke').ok, 'vault ap close');
 assert(clearVaultRecon({}, 'smoke').ok, 'vault recon clear');
 assert(ackVaultFlag({}, 'smoke').ok, 'vault flag ack');
 
-console.log('MOD123_OK');
+assert(buildAlliance2().title, 'alliance2 overview');
+assert(runAlliance2Sweep({ force: true }, 'smoke').ok, 'alliance2 sweep');
+assert(busyAlliance2Partner({}, 'smoke').ok, 'alliance2 partner busy');
+assert(closeAlliance2Channel({}, 'smoke').ok, 'alliance2 channel close');
+assert(liveAlliance2Invest({}, 'smoke').ok, 'alliance2 invest live');
+assert(ackAlliance2Flag({}, 'smoke').ok, 'alliance2 flag ack');
+
+assert(buildArtery().title, 'artery overview');
+assert(runArterySweep({ force: true }, 'smoke').ok, 'artery sweep');
+assert(runArteryInbound({}, 'smoke').ok, 'artery inbound run');
+assert(busyArteryAsn({}, 'smoke').ok, 'artery asn busy');
+assert(closeArteryDock({}, 'smoke').ok, 'artery dock close');
+assert(ackArteryFlag({}, 'smoke').ok, 'artery flag ack');
+
+assert(buildBastion2().title, 'bastion2 overview');
+assert(runBastion2Sweep({ force: true }, 'smoke').ok, 'bastion2 sweep');
+assert(closeBastion2Access({}, 'smoke').ok, 'bastion2 access close');
+assert(approveBastion2Role({}, 'smoke').ok, 'bastion2 role approve');
+assert(archiveBastion2Breach({}, 'smoke').ok, 'bastion2 breach archive');
+assert(ackBastion2Flag({}, 'smoke').ok, 'bastion2 flag ack');
+
+assert(buildAgora2().title, 'agora2 overview');
+assert(runAgora2Sweep({ force: true }, 'smoke').ok, 'agora2 sweep');
+assert(runAgora2Drill({}, 'smoke').ok, 'agora2 drill run');
+assert(busyAgora2Circle({}, 'smoke').ok, 'agora2 circle busy');
+assert(liveAgora2Badge({}, 'smoke').ok, 'agora2 badge live');
+assert(ackAgora2Flag({}, 'smoke').ok, 'agora2 flag ack');
+
+console.log('MOD127_OK');
 
 console.log(
   JSON.stringify(
