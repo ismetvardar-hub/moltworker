@@ -449,6 +449,51 @@ import ScenectrlPage from './pages/ScenectrlPage';
 import NightmodePage from './pages/NightmodePage';
 import DawnmodePage from './pages/DawnmodePage';
 import AuroraPage from './pages/AuroraPage';
+import MiseplanPage from './pages/MiseplanPage';
+import PassrailPage from './pages/PassrailPage';
+import PlateupPage from './pages/PlateupPage';
+import GardebayPage from './pages/GardebayPage';
+import PastrylabPage from './pages/PastrylabPage';
+import TastingmenuPage from './pages/TastingmenuPage';
+import CellarboxPage from './pages/CellarboxPage';
+import BarrailPage from './pages/BarrailPage';
+import RoomservicePage from './pages/RoomservicePage';
+import CaterdeskPage from './pages/CaterdeskPage';
+import AllergenmapPage from './pages/AllergenmapPage';
+import WastekitchenPage from './pages/WastekitchenPage';
+import ChefbriefPage from './pages/ChefbriefPage';
+import SupplypullPage from './pages/SupplypullPage';
+import HearthPage from './pages/HearthPage';
+import SpaflowPage from './pages/SpaflowPage';
+import ThermalbayPage from './pages/ThermalbayPage';
+import SaunalogPage from './pages/SaunalogPage';
+import CryochamberPage from './pages/CryochamberPage';
+import FloatpodPage from './pages/FloatpodPage';
+import MassagebookPage from './pages/MassagebookPage';
+import YogamatPage from './pages/YogamatPage';
+import BreathworkPage from './pages/BreathworkPage';
+import RecoverybayPage from './pages/RecoverybayPage';
+import IvloungePage from './pages/IvloungePage';
+import SleepcoachPage from './pages/SleepcoachPage';
+import NutritionPage from './pages/NutritionPage';
+import BiomarkerPage from './pages/BiomarkerPage';
+import WellnesskitPage from './pages/WellnesskitPage';
+import SanctumPage from './pages/SanctumPage';
+import AssetmapPage from './pages/AssetmapPage';
+import PlantroomPage from './pages/PlantroomPage';
+import HvacloopPage from './pages/HvacloopPage';
+import WaterloopPage from './pages/WaterloopPage';
+import PowergridPage from './pages/PowergridPage';
+import ElevatorlogPage from './pages/ElevatorlogPage';
+import SparepartsPage from './pages/SparepartsPage';
+import WorkorderPage from './pages/WorkorderPage';
+import LeaseholdPage from './pages/LeaseholdPage';
+import TenantopsPage from './pages/TenantopsPage';
+import FacilitytourPage from './pages/FacilitytourPage';
+import CapexdeskPage from './pages/CapexdeskPage';
+import OpexdeskPage from './pages/OpexdeskPage';
+import EstatescanPage from './pages/EstatescanPage';
+import CitadelPage from './pages/CitadelPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -867,6 +912,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   nightmode: NightmodePage,
   dawnmode: DawnmodePage,
   aurora: AuroraPage,
+  miseplan: MiseplanPage,
+  passrail: PassrailPage,
+  plateup: PlateupPage,
+  gardebay: GardebayPage,
+  pastrylab: PastrylabPage,
+  tastingmenu: TastingmenuPage,
+  cellarbox: CellarboxPage,
+  barrail: BarrailPage,
+  roomservice: RoomservicePage,
+  caterdesk: CaterdeskPage,
+  allergenmap: AllergenmapPage,
+  wastekitchen: WastekitchenPage,
+  chefbrief: ChefbriefPage,
+  supplypull: SupplypullPage,
+  hearth: HearthPage,
+  spaflow: SpaflowPage,
+  thermalbay: ThermalbayPage,
+  saunalog: SaunalogPage,
+  cryochamber: CryochamberPage,
+  floatpod: FloatpodPage,
+  massagebook: MassagebookPage,
+  yogamat: YogamatPage,
+  breathwork: BreathworkPage,
+  recoverybay: RecoverybayPage,
+  ivlounge: IvloungePage,
+  sleepcoach: SleepcoachPage,
+  nutrition: NutritionPage,
+  biomarker: BiomarkerPage,
+  wellnesskit: WellnesskitPage,
+  sanctum: SanctumPage,
+  assetmap: AssetmapPage,
+  plantroom: PlantroomPage,
+  hvacloop: HvacloopPage,
+  waterloop: WaterloopPage,
+  powergrid: PowergridPage,
+  elevatorlog: ElevatorlogPage,
+  spareparts: SparepartsPage,
+  workorder: WorkorderPage,
+  leasehold: LeaseholdPage,
+  tenantops: TenantopsPage,
+  facilitytour: FacilitytourPage,
+  capexdesk: CapexdeskPage,
+  opexdesk: OpexdeskPage,
+  estatescan: EstatescanPage,
+  citadel: CitadelPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

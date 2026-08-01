@@ -811,6 +811,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **449** | Dawn Mode |
 | **450** | Aurora checkpoint (`/api/aurora`) |
 
+### Culinary OS · Hearth (AŞAMA 451–465)
+
+| Aşama | Özellik |
+|-------|---------|
+| **451** | Mise Plan |
+| **452** | Pass Rail |
+| **453** | Plate Up |
+| **454** | Garde Bay |
+| **455** | Pastry Lab |
+| **456** | Tasting Menu |
+| **457** | Cellar Box |
+| **458** | Bar Rail |
+| **459** | Room Service |
+| **460** | Cater Desk |
+| **461** | Allergen Map |
+| **462** | Kitchen Waste |
+| **463** | Chef Brief |
+| **464** | Supply Pull |
+| **465** | Hearth checkpoint (`/api/hearth`) |
+
+### Wellness OS · Sanctum (AŞAMA 466–480)
+
+| Aşama | Özellik |
+|-------|---------|
+| **466** | Spa Flow |
+| **467** | Thermal Bay |
+| **468** | Sauna Log |
+| **469** | Cryo Chamber |
+| **470** | Float Pod |
+| **471** | Massage Book |
+| **472** | Yoga Mat |
+| **473** | Breathwork |
+| **474** | Recovery Bay |
+| **475** | IV Lounge |
+| **476** | Sleep Coach |
+| **477** | Nutrition Desk |
+| **478** | Biomarker |
+| **479** | Wellness Kit |
+| **480** | Sanctum checkpoint (`/api/sanctum`) |
+
+### Estate Ops · Citadel (AŞAMA 481–495)
+
+| Aşama | Özellik |
+|-------|---------|
+| **481** | Asset Map |
+| **482** | Plant Room |
+| **483** | HVAC Loop |
+| **484** | Water Loop |
+| **485** | Power Grid |
+| **486** | Elevator Log |
+| **487** | Spare Parts |
+| **488** | Work Order |
+| **489** | Leasehold |
+| **490** | Tenant Ops |
+| **491** | Facility Tour |
+| **492** | Capex Desk |
+| **493** | Opex Desk |
+| **494** | Estate Scan |
+| **495** | Citadel checkpoint (`/api/citadel`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
