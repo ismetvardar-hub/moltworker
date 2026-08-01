@@ -1034,7 +1034,9 @@ try {
 
   const syncAct = await req('/api/campusbrief/actions', { method: 'POST', token, body: {} });
   assert(syncAct.res.ok, 'brief actions sync');
-  const openAct = (syncAct.data.overview?.register || [])[0];
+  const openAct = (syncAct.data.overview?.register || []).find(
+    (a) => a.status === 'open' || a.status === 'assigned',
+  ) || (syncAct.data.overview?.register || [])[0];
   if (openAct?.id) {
     const assign = await req('/api/campusbrief/actions/assign', {
       method: 'POST',
@@ -1042,6 +1044,30 @@ try {
       body: { id: openAct.id, owner: 'LİKYA-1' },
     });
     assert(assign.res.ok && assign.data.ok !== false, 'brief assign');
+    const esc = await req('/api/campusbrief/actions/escalate', {
+      method: 'POST',
+      token,
+      body: { id: openAct.id, reason: 'e2e esc' },
+    });
+    assert(esc.res.ok && esc.data.ok !== false, 'brief escalate');
+    const snoozeAct = await req('/api/campusbrief/actions/snooze', {
+      method: 'POST',
+      token,
+      body: { id: openAct.id, minutes: 1 },
+    });
+    assert(snoozeAct.res.ok && snoozeAct.data.ok !== false, 'brief snooze');
+    const wakeAct = await req('/api/campusbrief/actions/wake', {
+      method: 'POST',
+      token,
+      body: { force: true },
+    });
+    assert(wakeAct.res.ok && wakeAct.data.ok !== false, 'brief wake');
+    const dismiss = await req('/api/campusbrief/actions/dismiss', {
+      method: 'POST',
+      token,
+      body: { id: openAct.id, reason: 'e2e dismiss' },
+    });
+    assert(dismiss.res.ok && dismiss.data.ok !== false, 'brief dismiss');
     const ack = await req('/api/campusbrief/actions/ack', {
       method: 'POST',
       token,

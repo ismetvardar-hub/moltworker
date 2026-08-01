@@ -115,6 +115,10 @@ import {
   syncCampusBriefActions,
   ackCampusBriefAction,
   assignCampusBriefAction,
+  escalateCampusBriefAction,
+  snoozeCampusBriefAction,
+  wakeSnoozedCampusBriefActions,
+  dismissCampusBriefAction,
   publishCampusBriefDigest,
 } from '../server/campusbrief.js';
 import {
@@ -513,6 +517,14 @@ if ((synced.overview?.register || []).length) {
     'brief assign',
   );
   ackCampusBriefAction({ id: synced.overview.register[0].id }, 'smoke');
+}
+const syncedEsc = syncCampusBriefActions('smoke');
+const escTarget = (syncedEsc.overview?.register || []).find((a) => a.status === 'open' || a.status === 'assigned');
+if (escTarget?.id) {
+  assert(escalateCampusBriefAction({ id: escTarget.id, reason: 'smoke esc' }, 'smoke').ok, 'brief escalate');
+  assert(snoozeCampusBriefAction({ id: escTarget.id, minutes: 1, reason: 'smoke snooze' }, 'smoke').ok, 'brief snooze');
+  assert(wakeSnoozedCampusBriefActions({ force: true }, 'smoke').ok, 'brief wake');
+  assert(dismissCampusBriefAction({ id: escTarget.id, reason: 'smoke dismiss' }, 'smoke').ok, 'brief dismiss');
 }
 assert(publishCampusBriefDigest('smoke').ok, 'brief publish');
 const sla = runAgentQueueSlaSweep({ force: true }, 'smoke');

@@ -6896,9 +6896,13 @@ import {
   assignCampusBriefAction,
   campusBriefOverview,
   campusHealthCheck,
+  dismissCampusBriefAction,
+  escalateCampusBriefAction,
   publishCampusBriefDigest,
   runCampusAutomations,
+  snoozeCampusBriefAction,
   syncCampusBriefActions,
+  wakeSnoozedCampusBriefActions,
 } from './campusbrief.js';
 import {
   acknowledgeFleetDirective,
@@ -36908,6 +36912,30 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, assignCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/snooze' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, snoozeCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/wake' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, wakeSnoozedCampusBriefActions(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/dismiss' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, dismissCampusBriefAction(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campusbrief/publish' && req.method === 'POST') {

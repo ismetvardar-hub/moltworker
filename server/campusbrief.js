@@ -224,9 +224,9 @@ export function campusBriefOverview(actor = 'system') {
   }
 
   const register = readCollection('campus-brief-actions', []) || [];
-  const openRegister = (Array.isArray(register) ? register : []).filter(
-    (a) => a.status === 'open' || a.status === 'assigned',
-  );
+  const regList = Array.isArray(register) ? register : [];
+  const openRegister = regList.filter((a) => a.status === 'open' || a.status === 'assigned');
+  const snoozedRegister = regList.filter((a) => a.status === 'snoozed');
   const digests = readCollection('campus-brief-digests', []) || [];
 
   return {
@@ -234,7 +234,7 @@ export function campusBriefOverview(actor = 'system') {
     ethos: 'Orman önce · sporla beslenen destinasyon · ETHOS güler.',
     headline: `${campus.title || 'LİKYA Kampüs'} — ${new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}`,
     actions,
-    register: openRegister.slice(0, 30),
+    register: [...openRegister, ...snoozedRegister].slice(0, 40),
     digests: (Array.isArray(digests) ? digests : []).slice(0, 10),
     pulses: {
       campus: campus.summary,
@@ -255,9 +255,11 @@ export function campusBriefOverview(actor = 'system') {
     weather: extreme.weather || null,
     summary: {
       derived_actions: actions.length,
-      register_open: openRegister.length,
-      register_acked: (Array.isArray(register) ? register : []).filter((a) => a.status === 'acked').length,
-      register_assigned: (Array.isArray(register) ? register : []).filter((a) => a.status === 'assigned').length,
+      register_open: openRegister.filter((a) => a.status === 'open').length,
+      register_acked: regList.filter((a) => a.status === 'acked').length,
+      register_assigned: regList.filter((a) => a.status === 'assigned').length,
+      register_snoozed: snoozedRegister.length,
+      register_escalated: regList.filter((a) => a.escalated).length,
       digests: Array.isArray(digests) ? digests.length : 0,
     },
     generatedAt: new Date().toISOString(),
@@ -267,14 +269,19 @@ export function campusBriefOverview(actor = 'system') {
 
 /** Türetilmiş brif aksiyonlarını kalıcı kayıt defterine yaz */
 export function syncCampusBriefActions(actor = 'system') {
+  wakeSnoozedCampusBriefActions({ limit: 40 }, actor);
   const brief = campusBriefOverview(actor);
   const existing = readCollection('campus-brief-actions', []) || [];
   const list = Array.isArray(existing) ? existing : [];
-  const openKeys = new Set(list.filter((a) => a.status === 'open').map((a) => `${a.level}|${a.text}|${a.href}`));
+  const activeKeys = new Set(
+    list
+      .filter((a) => ['open', 'assigned', 'snoozed'].includes(a.status))
+      .map((a) => `${a.text}|${a.href}`),
+  );
   const created = [];
   for (const a of brief.actions || []) {
-    const key = `${a.level}|${a.text}|${a.href}`;
-    if (openKeys.has(key)) continue;
+    const key = `${a.text}|${a.href}`;
+    if (activeKeys.has(key)) continue;
     const row = {
       id: `cba_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`,
       level: a.level,
@@ -287,7 +294,7 @@ export function syncCampusBriefActions(actor = 'system') {
     };
     list.unshift(row);
     created.push(row);
-    openKeys.add(key);
+    activeKeys.add(key);
   }
   writeCollection('campus-brief-actions', list.slice(0, 200));
   appendAudit({
@@ -354,6 +361,134 @@ export function assignCampusBriefAction(input = {}, actor = 'system') {
     actor,
     action: 'campusbrief.assign',
     detail: `${list[idx].text} → ${owner}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
+}
+
+/** Brif aksiyonunu escalate → alert + LİKYA-1 job */
+export function escalateCampusBriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kayıt yok — önce sync' };
+  let idx = list.findIndex(
+    (a) => a.id === input.id && ['open', 'assigned', 'snoozed'].includes(a.status),
+  );
+  if (idx < 0) idx = list.findIndex((a) => ['open', 'assigned'].includes(a.status));
+  if (idx < 0) return { ok: false, error: 'Escalate edilecek aksiyon yok' };
+  const owner = input.owner || list[idx].owner || 'LİKYA-1';
+  list[idx] = {
+    ...list[idx],
+    level: 'alert',
+    status: list[idx].status === 'snoozed' ? 'assigned' : list[idx].status === 'open' ? 'assigned' : list[idx].status,
+    owner,
+    escalated: true,
+    escalated_at: new Date().toISOString(),
+    escalated_by: actor,
+    escalate_reason: String(input.reason || '').slice(0, 240) || undefined,
+    snooze_until: null,
+  };
+  writeCollection('campus-brief-actions', list);
+  enqueueAgentJob(
+    {
+      agent: owner,
+      title: `brif ESCALATE · ${list[idx].text}`,
+      priority: 'high',
+      payload: { action_id: list[idx].id, href: list[idx].href, escalated: true },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campusbrief.escalate',
+    detail: list[idx].text,
+    meta: { id: list[idx].id, owner },
+  });
+  return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
+}
+
+/** Brif aksiyonunu ertele */
+export function snoozeCampusBriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kayıt yok — önce sync' };
+  let idx = list.findIndex((a) => a.id === input.id && ['open', 'assigned'].includes(a.status));
+  if (idx < 0) idx = list.findIndex((a) => ['open', 'assigned'].includes(a.status));
+  if (idx < 0) return { ok: false, error: 'Snooze edilecek aksiyon yok' };
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 60));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  list[idx] = {
+    ...list[idx],
+    status: 'snoozed',
+    snooze_until: until,
+    snooze_reason: String(input.reason || '').slice(0, 240) || undefined,
+    snoozed_at: new Date().toISOString(),
+    snoozed_by: actor,
+  };
+  writeCollection('campus-brief-actions', list);
+  appendAudit({
+    actor,
+    action: 'campusbrief.snooze',
+    detail: `${list[idx].text} · ${minutes}dk`,
+    meta: { id: list[idx].id, minutes },
+  });
+  return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
+}
+
+/** Snooze süresi dolan brif aksiyonlarını aç */
+export function wakeSnoozedCampusBriefActions(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: true, woken: [], overview: campusBriefOverview(actor) };
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const woken = [];
+  for (let i = 0; i < list.length && woken.length < limit; i++) {
+    const a = list[i];
+    if (a.status !== 'snoozed') continue;
+    const until = a.snooze_until ? new Date(a.snooze_until).getTime() : 0;
+    if (!force && until && until > now) continue;
+    list[i] = {
+      ...a,
+      status: a.owner ? 'assigned' : 'open',
+      snooze_until: null,
+      woken_at: new Date().toISOString(),
+      woken_by: actor,
+    };
+    woken.push(list[i].id);
+  }
+  if (woken.length) {
+    writeCollection('campus-brief-actions', list);
+    appendAudit({
+      actor,
+      action: 'campusbrief.snooze_wake',
+      detail: `${woken.length} aksiyon uyandı`,
+      meta: { n: woken.length },
+    });
+  }
+  return { ok: true, woken, overview: campusBriefOverview(actor) };
+}
+
+/** Brif aksiyonunu kapat / dismiss */
+export function dismissCampusBriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kayıt yok — önce sync' };
+  let idx = list.findIndex(
+    (a) => a.id === input.id && ['open', 'assigned', 'snoozed'].includes(a.status),
+  );
+  if (idx < 0) idx = list.findIndex((a) => ['open', 'assigned', 'snoozed'].includes(a.status));
+  if (idx < 0) return { ok: false, error: 'Dismiss edilecek aksiyon yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'dismissed',
+    dismiss_reason: String(input.reason || 'dismissed').slice(0, 240) || 'dismissed',
+    dismissed_at: new Date().toISOString(),
+    dismissed_by: actor,
+    snooze_until: null,
+  };
+  writeCollection('campus-brief-actions', list);
+  appendAudit({
+    actor,
+    action: 'campusbrief.dismiss',
+    detail: list[idx].text,
     meta: { id: list[idx].id },
   });
   return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };

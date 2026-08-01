@@ -116,17 +116,31 @@ export default function CampusbriefPage() {
               >
                 CEO brif yayınla
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.wakeSnoozedCampusBriefActions({ force: true }).then((r: any) => {
+                    ping(`Wake ${r.woken?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Snooze wake
+              </button>
             </div>
             {(data.register || []).length > 0 && (
               <ul className="mt-3 space-y-1 text-xs text-slate-400">
-                {(data.register || []).slice(0, 6).map((r: any) => (
+                {(data.register || []).slice(0, 8).map((r: any) => (
                   <li key={r.id} className="flex items-center justify-between gap-2">
                     <span>
                       [{r.level}] {r.text}
                       {r.owner ? ` · ${r.owner}` : ''}
+                      {r.status === 'snoozed' ? ' · snooze' : ''}
+                      {r.escalated ? ' · esc' : ''}
                     </span>
-                    <span className="flex gap-1">
-                      {r.status !== 'assigned' && (
+                    <span className="flex flex-wrap gap-1">
+                      {r.status !== 'assigned' && r.status !== 'snoozed' && (
                         <button
                           type="button"
                           className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-sky-200"
@@ -140,17 +154,59 @@ export default function CampusbriefPage() {
                           Ata
                         </button>
                       )}
+                      {(r.status === 'open' || r.status === 'assigned' || r.status === 'snoozed') && (
+                        <button
+                          type="button"
+                          className="rounded bg-rose-500/20 px-2 py-0.5 text-[10px] text-rose-100"
+                          onClick={() =>
+                            void api.escalateCampusBriefAction({ id: r.id, reason: 'ops' }).then((x: any) => {
+                              ping(x.ok ? 'Escalate' : x.error || 'Esc yok')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Esc
+                        </button>
+                      )}
+                      {(r.status === 'open' || r.status === 'assigned') && (
+                        <button
+                          type="button"
+                          className="rounded bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-100"
+                          onClick={() =>
+                            void api.snoozeCampusBriefAction({ id: r.id, minutes: 30 }).then((x: any) => {
+                              ping(x.ok ? 'Snooze' : x.error || 'Snooze yok')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Snooze
+                        </button>
+                      )}
+                      {r.status !== 'snoozed' && (
+                        <button
+                          type="button"
+                          className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-lykia-200"
+                          onClick={() =>
+                            void api.ackCampusBriefAction({ id: r.id }).then(() => {
+                              ping('Ack')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Ack
+                        </button>
+                      )}
                       <button
                         type="button"
-                        className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-lykia-200"
+                        className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-slate-300"
                         onClick={() =>
-                          void api.ackCampusBriefAction({ id: r.id }).then(() => {
-                            ping('Ack')
+                          void api.dismissCampusBriefAction({ id: r.id, reason: 'ops' }).then((x: any) => {
+                            ping(x.ok ? 'Dismiss' : x.error || 'Dismiss yok')
                             return refresh()
                           })
                         }
                       >
-                        Ack
+                        X
                       </button>
                     </span>
                   </li>
@@ -158,7 +214,8 @@ export default function CampusbriefPage() {
               </ul>
             )}
             <p className="mt-2 text-xs text-slate-500">
-              Açık {data.summary?.register_open ?? 0} · atanmış {data.summary?.register_assigned ?? 0} · digest{' '}
+              Açık {data.summary?.register_open ?? 0} · atanmış {data.summary?.register_assigned ?? 0} · snooze{' '}
+              {data.summary?.register_snoozed ?? 0} · esc {data.summary?.register_escalated ?? 0} · digest{' '}
               {data.summary?.digests ?? 0}
             </p>
             <p className="mt-2 text-[11px] text-slate-500">{data.ethos}</p>

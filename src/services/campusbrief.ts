@@ -47,6 +47,46 @@ export async function assignCampusBriefAction(body: Record<string, unknown> = {}
   )
 }
 
+export async function escalateCampusBriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/escalate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function snoozeCampusBriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/snooze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function wakeSnoozedCampusBriefActions(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/wake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function dismissCampusBriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/dismiss', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function publishCampusBriefDigest() {
   return parse(
     await fetch('/api/campusbrief/publish', {
