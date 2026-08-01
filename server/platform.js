@@ -6782,14 +6782,17 @@ import {
   syncMarketChannel,
 } from './marketos.js';
 import {
+  disputeMallInvoice,
   generateMallCamRun,
   generateMallRentRun,
   holdMallLease,
   mallDayRollup,
   openMallOverview,
+  pauseMallTenant,
   payMallInvoice,
   recordMallSale,
   releaseMallLease,
+  resumeMallTenant,
   runMallDunningSweep,
   settleMallTenantFnb,
   updateMallTenant,
@@ -37082,6 +37085,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, releaseMallLease(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/openmall/invoice/dispute' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, disputeMallInvoice(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/tenant/pause' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, pauseMallTenant(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/tenant/resume' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resumeMallTenant(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campus/health' && req.method === 'GET') {

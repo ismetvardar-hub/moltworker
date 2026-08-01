@@ -97,3 +97,33 @@ export async function releaseMallLease(body: Record<string, unknown> = {}) {
   )
 }
 
+export async function disputeMallInvoice(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/invoice/dispute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function pauseMallTenant(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/tenant/pause', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function resumeMallTenant(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/tenant/resume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+

@@ -162,11 +162,48 @@ export default function OpenmallPage() {
               >
                 Lease release
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.disputeMallInvoice({ reason: 'ui_dispute' }).then((r: any) => {
+                    ping(r.ok ? `İtiraz · ${r.dispute?.amount_try} TRY` : r.error || 'Dispute yok')
+                    return refresh()
+                  })
+                }
+              >
+                Fatura itiraz
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.pauseMallTenant({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Pause · ${r.tenant?.name}` : r.error || 'Pause yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kiracı pause
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.resumeMallTenant({}).then((r: any) => {
+                    ping(r.ok ? `Resume · ${r.tenant?.name}` : r.error || 'Resume yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kiracı resume
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Açık fatura {data.summary?.invoices_open ?? 0} · gecikmiş {data.summary?.invoices_overdue ?? 0} · bakiye{' '}
               {data.summary?.invoices_balance_try?.toLocaleString?.('tr-TR') ?? 0} TRY · hold{' '}
-              {data.summary?.lease_holds_open ?? 0} · on-hold kiracı {data.summary?.on_hold ?? 0}
+              {data.summary?.lease_holds_open ?? 0} · on-hold kiracı {data.summary?.on_hold ?? 0} · dispute{' '}
+              {data.summary?.invoices_disputed ?? 0} · paused {data.summary?.tenants_paused ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Kiracılar">

@@ -159,6 +159,9 @@ import {
   generateMallCamRun,
   holdMallLease,
   releaseMallLease,
+  disputeMallInvoice,
+  pauseMallTenant,
+  resumeMallTenant,
 } from '../server/openmall.js';
 import {
   familyCampOverview,
@@ -366,6 +369,13 @@ settleMallTenantFnb({ tenant_id: 'mt_2' }, 'smoke');
 const rentRun = generateMallRentRun({ period: '2026-08', force: true, due_days: -3 }, 'smoke');
 assert(rentRun.ok && rentRun.created?.length >= 1, 'mall rent run');
 assert(payMallInvoice({ invoice_id: rentRun.created[0].id, amount_try: 1000 }, 'smoke').ok, 'mall invoice pay');
+assert(
+  disputeMallInvoice({ invoice_id: rentRun.created[0].id, reason: 'smoke' }, 'smoke').ok ||
+    disputeMallInvoice({ reason: 'smoke' }, 'smoke').ok,
+  'mall invoice dispute',
+);
+assert(pauseMallTenant({ force: true }, 'smoke').ok, 'mall tenant pause');
+assert(resumeMallTenant({}, 'smoke').ok, 'mall tenant resume');
 assert(runMallDunningSweep({ force: true }, 'smoke').ok, 'mall dunning');
 assert(generateMallCamRun({ period: '2026-08', force: true }, 'smoke').ok, 'mall cam run');
 assert(holdMallLease({ force: true }, 'smoke').ok, 'mall lease hold');

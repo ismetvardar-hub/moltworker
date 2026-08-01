@@ -83,6 +83,8 @@ export function openMallOverview() {
       ),
       cam_invoices_open: unpaid.filter((i) => i.kind === 'cam' || (i.lines || []).some((l) => l.code === 'cam')).length,
       lease_holds_open: openHolds.length,
+      invoices_disputed: invList.filter((i) => i.status === 'disputed').length,
+      tenants_paused: tenants.filter((t) => t.status === 'paused').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -539,4 +541,134 @@ export function releaseMallLease(input = {}, actor = 'system') {
     tenant: tidx >= 0 ? withFnb([tenants[tidx]])[0] : null,
     overview: openMallOverview(),
   };
+}
+
+/** Fatura itirazı — tahsilat durur */
+export function disputeMallInvoice(input = {}, actor = 'system') {
+  const invoices = readCollection('mall-invoices', []) || [];
+  if (!Array.isArray(invoices) || !invoices.length) return { ok: false, error: 'Fatura yok' };
+  let idx = invoices.findIndex((i) => i.id === input.invoice_id && (i.status === 'open' || i.status === 'partial'));
+  if (idx < 0) {
+    idx = invoices.findIndex(
+      (i) =>
+        (i.status === 'open' || i.status === 'partial') &&
+        (!input.tenant_id || i.tenant_id === input.tenant_id),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Açık fatura yok' };
+  const inv = invoices[idx];
+  invoices[idx] = {
+    ...inv,
+    status: 'disputed',
+    dispute_reason: String(input.reason || 'tenant_dispute').slice(0, 240),
+    disputed_at: new Date().toISOString(),
+    disputed_by: actor,
+  };
+  writeCollection('mall-invoices', invoices);
+  const dispute = {
+    id: rid('mdis'),
+    invoice_id: inv.id,
+    tenant_id: inv.tenant_id,
+    tenant_name: inv.tenant_name,
+    amount_try: Math.max(0, (Number(inv.total_try) || 0) - (Number(inv.paid_try) || 0)),
+    reason: invoices[idx].dispute_reason,
+    status: 'open',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-invoice-disputes', dispute, 120);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `mall invoice dispute · ${inv.tenant_name || inv.tenant_id}`,
+      priority: 'high',
+      payload: { dispute_id: dispute.id, invoice_id: inv.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'mall.invoice_dispute',
+    detail: `${inv.tenant_name || inv.tenant_id} · ${dispute.amount_try} TRY`,
+    meta: { id: dispute.id },
+  });
+  return { ok: true, invoice: invoices[idx], dispute, overview: openMallOverview() };
+}
+
+/** Kiracı operasyon pause — satış/kira askı */
+export function pauseMallTenant(input = {}, actor = 'system') {
+  const list = ensureTenants();
+  let idx = list.findIndex((t) => t.id === input.tenant_id || t.name === input.tenant_id);
+  if (idx < 0) idx = list.findIndex((t) => t.status === 'active');
+  if (idx < 0) return { ok: false, error: 'Kiracı yok' };
+  if (list[idx].status === 'paused' && !input.force) {
+    return { ok: false, error: 'Zaten paused', tenant: list[idx] };
+  }
+  const prev = list[idx].status;
+  list[idx] = {
+    ...list[idx],
+    status: 'paused',
+    status_before_pause: prev,
+    pause_reason: String(input.reason || 'ops_pause').slice(0, 240),
+    paused_at: new Date().toISOString(),
+    paused_by: actor,
+  };
+  writeCollection('mall-tenants', list);
+  const pause = {
+    id: rid('mpause'),
+    tenant_id: list[idx].id,
+    tenant_name: list[idx].name,
+    reason: list[idx].pause_reason,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-tenant-pauses', pause, 120);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `tenant pause · ${list[idx].name}`,
+      priority: 'high',
+      payload: { pause_id: pause.id, tenant_id: list[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'mall.tenant_pause',
+    detail: list[idx].name,
+    meta: { id: pause.id },
+  });
+  return { ok: true, tenant: list[idx], pause, overview: openMallOverview() };
+}
+
+/** Pause kaldır */
+export function resumeMallTenant(input = {}, actor = 'system') {
+  const list = ensureTenants();
+  let idx = list.findIndex((t) => (t.id === input.tenant_id || t.name === input.tenant_id) && t.status === 'paused');
+  if (idx < 0) idx = list.findIndex((t) => t.status === 'paused');
+  if (idx < 0) return { ok: false, error: 'Paused kiracı yok' };
+  const restore = input.status || list[idx].status_before_pause || 'active';
+  list[idx] = {
+    ...list[idx],
+    status: restore,
+    resumed_at: new Date().toISOString(),
+    resumed_by: actor,
+    pause_reason: null,
+  };
+  writeCollection('mall-tenants', list);
+  const resume = {
+    id: rid('mres'),
+    tenant_id: list[idx].id,
+    tenant_name: list[idx].name,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-tenant-resumes', resume, 80);
+  appendAudit({
+    actor,
+    action: 'mall.tenant_resume',
+    detail: list[idx].name,
+    meta: { id: resume.id },
+  });
+  return { ok: true, tenant: list[idx], resume, overview: openMallOverview() };
 }

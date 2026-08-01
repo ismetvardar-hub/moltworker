@@ -738,6 +738,27 @@ try {
     body: { invoice_id: rentRun.data.created?.[0]?.id, amount_try: 1000 },
   });
   assert(invPay.res.ok && invPay.data.ok !== false, 'mall invoice pay');
+  let invDispute = await req('/api/openmall/invoice/dispute', {
+    method: 'POST',
+    token,
+    body: { invoice_id: rentRun.data.created?.[0]?.id, reason: 'e2e' },
+  });
+  if (!invDispute.res.ok || invDispute.data.ok === false) {
+    invDispute = await req('/api/openmall/invoice/dispute', {
+      method: 'POST',
+      token,
+      body: { reason: 'e2e' },
+    });
+  }
+  assert(invDispute.res.ok && invDispute.data.ok !== false, 'mall invoice dispute');
+  const tenantPause = await req('/api/openmall/tenant/pause', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(tenantPause.res.ok && tenantPause.data.ok !== false, 'mall tenant pause');
+  const tenantResume = await req('/api/openmall/tenant/resume', { method: 'POST', token, body: {} });
+  assert(tenantResume.res.ok && tenantResume.data.ok !== false, 'mall tenant resume');
   const dunning = await req('/api/openmall/dunning', {
     method: 'POST',
     token,
