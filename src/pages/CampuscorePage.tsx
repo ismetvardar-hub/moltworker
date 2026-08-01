@@ -32,6 +32,20 @@ export default function CampuscorePage() {
               <div><dt className="text-xs text-slate-500">Koruma</dt><dd>{data.summary?.protected}</dd></div>
             </dl>
             <p className="mt-2 text-xs text-slate-500">{data.ethos}</p>
+            <button
+              type="button"
+              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+              onClick={() =>
+                void api
+                  .addCampusIncident({ title: 'Saha turu notu', zone_id: 'z_forest', severity: 'info' })
+                  .then(() => {
+                    ping('Saha notu kaydedildi')
+                    return refresh()
+                  })
+              }
+            >
+              Saha notu ekle
+            </button>
           </PanelCard>
           <PanelCard title="Zonlar">
             <ul className="space-y-2 text-sm">

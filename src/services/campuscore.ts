@@ -8,3 +8,12 @@ export async function fetchCampusCore() {
   return parse(await fetch('/api/campus', { headers: authHeaders() }))
 }
 
+export async function addCampusIncident(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/incident', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
