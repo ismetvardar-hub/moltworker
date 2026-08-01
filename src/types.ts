@@ -7,7 +7,8 @@ export type PageId =
   | 'chef'
   | 'crew'
   | 'vision'
-  | 'nexus';
+  | 'nexus'
+  | 'settings';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';
 

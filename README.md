@@ -133,6 +133,19 @@ Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer tok
 
 `data/` dizini git’e eklenmez. WhatsApp ve NEXUS logları da aynı depoya yazılır.
 
+### Platform Operasyonları (AŞAMA 5)
+
+| Özellik | Açıklama |
+|---------|----------|
+| **Platform Ayarları** | CEO-only UI → `data/settings.json`; anahtarlar çalışma zamanında `process.env` üzerine uygulanır |
+| **Audit günlüğü** | Login, arşiv, WhatsApp, NEXUS, ayar değişiklikleri (`GET /api/audit`) |
+| **Canlı filo** | Daze Hub’da 28 ajanın arşiv bazlı aktif/beklemede durumu |
+
+| Uç nokta | Amaç |
+|----------|------|
+| `GET/POST /api/settings` | Maskelenmiş ayarlar (CEO) |
+| `GET /api/audit` | Operasyon izleri |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

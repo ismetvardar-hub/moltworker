@@ -41,6 +41,7 @@ export const ROLE_PAGES = {
     'crew',
     'vision',
     'nexus',
+    'settings',
   ],
   kitchen: ['hub', 'chef', 'nexus'],
   crew: ['hub', 'crew', 'olympospass', 'vision'],

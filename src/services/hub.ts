@@ -1,10 +1,22 @@
 import { authHeaders } from './auth';
 import type { ArchiveEntry } from './archive';
 
+export interface AuditEntry {
+  id: string;
+  at: string;
+  actor: string;
+  action: string;
+  detail: string;
+  meta?: Record<string, unknown>;
+}
+
 export interface HubSummary {
   archiveCount: number;
   whatsappCount: number;
   nexusEventCount: number;
+  auditCount: number;
+  settingsConfigured: number;
+  settingsTotal: number;
   recentArchive: ArchiveEntry[];
   recentWhatsapp: Array<{
     id: string;
@@ -21,6 +33,7 @@ export interface HubSummary {
     action: string;
     detail: string;
   }>;
+  recentAudit: AuditEntry[];
   agentHits: Array<{ agent: string; count: number }>;
   generatedAt: string;
 }

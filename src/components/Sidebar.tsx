@@ -8,6 +8,7 @@ import {
   Mountain,
   Network,
   Radio,
+  Settings,
   Ticket,
   Users,
 } from 'lucide-react';
@@ -76,6 +77,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'NEXUS IoT',
     description: 'Turnike · kapı · RFID',
     icon: Radio,
+  },
+  {
+    id: 'settings',
+    label: 'Platform Ayarları',
+    description: 'API anahtarları & köprüler',
+    icon: Settings,
   },
 ];
 

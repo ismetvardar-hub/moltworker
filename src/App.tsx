@@ -10,6 +10,7 @@ import DazeChefPage from './pages/DazeChefPage';
 import DazeCrewPage from './pages/DazeCrewPage';
 import DazeVisionPage from './pages/DazeVisionPage';
 import NexusPanel from './pages/NexusPanel';
+import SettingsPage from './pages/SettingsPage';
 import {
   fetchMe,
   getStoredUser,
@@ -28,6 +29,7 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   crew: DazeCrewPage,
   vision: DazeVisionPage,
   nexus: NexusPanel,
+  settings: SettingsPage,
 };
 
 function pageFromHash(allowed: string[]): PageId {

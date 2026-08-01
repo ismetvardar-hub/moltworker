@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   Cpu,
   MessageCircle,
   Network,
   RefreshCw,
+  ScrollText,
+  Settings2,
   Sparkles,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import { AGENTS, DEPARTMENTS } from '../data/agents';
 import { fetchHubSummary, type HubSummary } from '../services/hub';
 
 export default function DazeHubPage() {
@@ -29,6 +32,25 @@ export default function DazeHubPage() {
     return () => clearInterval(t);
   }, [refresh]);
 
+  const hitMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const h of summary?.agentHits ?? []) m.set(h.agent, h.count);
+    return m;
+  }, [summary]);
+
+  const fleet = useMemo(() => {
+    return AGENTS.map((a) => {
+      const hits = hitMap.get(a.name) ?? 0;
+      return {
+        ...a,
+        hits,
+        live: hits > 0 ? ('aktif' as const) : a.state,
+      };
+    });
+  }, [hitMap]);
+
+  const activeCount = fleet.filter((a) => a.live === 'aktif').length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -38,7 +60,7 @@ export default function DazeHubPage() {
             Daze Hub — Merkezi Operasyon Beyni
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Arşiv, WhatsApp, NEXUS ve ajan aktivitelerinin tek ekranda özeti.
+            Arşiv, WhatsApp, NEXUS, audit ve ajan filosunun tek ekranda özeti.
           </p>
         </div>
         <button
@@ -57,7 +79,7 @@ export default function DazeHubPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {[
           {
             label: 'Zincir Arşivi',
@@ -77,6 +99,21 @@ export default function DazeHubPage() {
             icon: Cpu,
             detail: 'IoT protokol günlüğü',
           },
+          {
+            label: 'Audit',
+            value: summary?.auditCount ?? '—',
+            icon: ScrollText,
+            detail: 'Operasyon izleri',
+          },
+          {
+            label: 'Ayarlar',
+            value:
+              summary != null
+                ? `${summary.settingsConfigured}/${summary.settingsTotal}`
+                : '—',
+            icon: Settings2,
+            detail: 'Yapılandırılmış anahtarlar',
+          },
         ].map(({ label, value, icon: Icon, detail }) => (
           <PanelCard key={label} className="!p-0">
             <div className="flex size-10 items-center justify-center rounded-lg bg-lykia-500/10 text-lykia-400">
@@ -89,7 +126,63 @@ export default function DazeHubPage() {
         ))}
       </div>
 
+      <PanelCard
+        title="Canlı Ajan Filosu"
+        subtitle={`${activeCount} aktif iz · ${AGENTS.length} ajan · ${DEPARTMENTS.length} departman`}
+      >
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {fleet.map((a) => (
+            <div
+              key={a.id}
+              className="flex items-center justify-between rounded-xl border border-obsidian-700 bg-obsidian-950/60 px-3 py-2.5"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-mono text-sm text-lykia-300">{a.name}</p>
+                <p className="truncate text-[11px] text-slate-500">{a.role}</p>
+              </div>
+              <div className="ml-3 shrink-0 text-right">
+                <span
+                  className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    a.live === 'aktif'
+                      ? 'bg-emerald-500/15 text-emerald-300'
+                      : a.live === 'hata'
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : 'bg-slate-500/15 text-slate-400'
+                  }`}
+                >
+                  {a.live}
+                </span>
+                {a.hits > 0 && (
+                  <p className="mt-1 text-[10px] text-slate-600">{a.hits} görev</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </PanelCard>
+
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <PanelCard title="Operasyon Audit" subtitle="Son olaylar">
+          <ul className="max-h-72 space-y-2 overflow-y-auto font-mono text-xs">
+            {(summary?.recentAudit ?? []).length === 0 && (
+              <li className="font-sans text-sm text-slate-600">Henüz audit kaydı yok.</li>
+            )}
+            {(summary?.recentAudit ?? []).map((e) => (
+              <li
+                key={e.id}
+                className="rounded-lg border border-obsidian-700 bg-obsidian-950/60 px-3 py-2"
+              >
+                <div className="flex justify-between gap-2 text-slate-600">
+                  <span>{new Date(e.at).toLocaleTimeString('tr-TR')}</span>
+                  <span className="text-sky-300">{e.actor}</span>
+                </div>
+                <p className="mt-0.5 text-lykia-300">{e.action}</p>
+                <p className="mt-0.5 font-sans text-[11px] text-slate-400">{e.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+
         <PanelCard title="Son Talimatlar" subtitle="Sunucu arşivinden">
           <ul className="space-y-2">
             {(summary?.recentArchive ?? []).length === 0 && (
@@ -151,7 +244,7 @@ export default function DazeHubPage() {
           </ul>
         </PanelCard>
 
-        <PanelCard title="Son NEXUS Olayları" subtitle="IoT protokolü">
+        <PanelCard title="Son NEXUS Olayları" subtitle="IoT protokolü" className="xl:col-span-2">
           <ul className="max-h-64 space-y-2 overflow-y-auto font-mono text-xs">
             {(summary?.recentNexus ?? []).map((e) => (
               <li

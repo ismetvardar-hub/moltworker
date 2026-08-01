@@ -1,5 +1,5 @@
 /**
- * AŞAMA 4 — Platform API: auth + kalıcı arşiv + hub özeti
+ * AŞAMA 4–5 — Platform API: auth + arşiv + hub + ayarlar + audit
  */
 
 import { login, logout, sessionFromToken, listDemoUsers, ROLE_PAGES } from './auth.js';
@@ -10,6 +10,10 @@ import {
   deleteItem,
   clearCollection,
 } from './store.js';
+import { appendAudit, readAudit } from './audit.js';
+import { applySettingsToEnv, getPublicSettings, saveSettings } from './settings.js';
+
+applySettingsToEnv();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -44,25 +48,42 @@ function requireUser(req, res) {
   return user;
 }
 
+function requireCeo(req, res) {
+  const user = requireUser(req, res);
+  if (!user) return null;
+  if (user.role !== 'ceo') {
+    sendJson(res, 403, { error: 'Yalnızca CEO erişebilir' });
+    return null;
+  }
+  return user;
+}
+
 function hubSummary() {
   const archive = readCollection('archive', []);
   const whatsapp = readCollection('whatsapp', []);
   const nexus = readCollection('nexus-events', []);
+  const audit = readAudit(12);
+  const settings = getPublicSettings();
   const byAgent = {};
   for (const e of archive) {
     for (const a of e.agents ?? []) byAgent[a] = (byAgent[a] ?? 0) + 1;
   }
+  const configuredKeys = settings.fields.filter((f) => f.configured).length;
   return {
     archiveCount: archive.length,
     whatsappCount: whatsapp.length,
     nexusEventCount: nexus.length,
+    auditCount: readCollection('audit', []).length,
+    settingsConfigured: configuredKeys,
+    settingsTotal: settings.fields.length,
     recentArchive: archive.slice(0, 5),
     recentWhatsapp: whatsapp.slice(0, 5),
     recentNexus: nexus.slice(0, 8),
+    recentAudit: audit,
     agentHits: Object.entries(byAgent)
       .map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8),
+      .slice(0, 12),
     generatedAt: new Date().toISOString(),
   };
 }
@@ -90,9 +111,19 @@ export function platformPlugin() {
               const { username, password } = await readBody(req);
               const result = login(username, password);
               if (!result) {
+                appendAudit({
+                  actor: username || 'unknown',
+                  action: 'auth.login_failed',
+                  detail: 'Hatalı kimlik bilgisi',
+                });
                 sendJson(res, 401, { error: 'Kullanıcı adı veya şifre hatalı' });
                 return;
               }
+              appendAudit({
+                actor: result.user.username,
+                action: 'auth.login',
+                detail: `${result.user.name} oturum açtı (${result.user.role})`,
+              });
               sendJson(res, 200, result);
             } catch (err) {
               sendJson(res, 500, { error: err instanceof Error ? err.message : 'Login hatası' });
@@ -101,7 +132,15 @@ export function platformPlugin() {
           return;
         }
         if (path === '/api/auth/logout' && req.method === 'POST') {
+          const user = sessionFromToken(getToken(req));
           logout(getToken(req));
+          if (user) {
+            appendAudit({
+              actor: user.username,
+              action: 'auth.logout',
+              detail: 'Oturum kapatıldı',
+            });
+          }
           sendJson(res, 200, { ok: true });
           return;
         }
@@ -122,7 +161,8 @@ export function platformPlugin() {
           return;
         }
         if (path === '/api/archive' && req.method === 'POST') {
-          if (!requireUser(req, res)) return;
+          const user = requireUser(req, res);
+          if (!user) return;
           void (async () => {
             try {
               const entry = await readBody(req);
@@ -131,6 +171,12 @@ export function platformPlugin() {
                 return;
               }
               const entries = prependItem('archive', entry, 200);
+              appendAudit({
+                actor: user.username,
+                action: 'archive.save',
+                detail: String(entry.text).slice(0, 100),
+                meta: { id: entry.id, agents: entry.agents },
+              });
               sendJson(res, 200, { ok: true, entries });
             } catch (err) {
               sendJson(res, 500, { error: err instanceof Error ? err.message : 'Arşiv yazılamadı' });
@@ -139,14 +185,26 @@ export function platformPlugin() {
           return;
         }
         if (path.startsWith('/api/archive/') && req.method === 'DELETE') {
-          if (!requireUser(req, res)) return;
+          const user = requireUser(req, res);
+          if (!user) return;
           const id = Number(path.split('/').pop());
+          appendAudit({
+            actor: user.username,
+            action: 'archive.delete',
+            detail: `Kayıt silindi: ${id}`,
+          });
           sendJson(res, 200, { entries: deleteItem('archive', id) });
           return;
         }
         if (path === '/api/archive' && req.method === 'DELETE') {
-          if (!requireUser(req, res)) return;
+          const user = requireUser(req, res);
+          if (!user) return;
           clearCollection('archive');
+          appendAudit({
+            actor: user.username,
+            action: 'archive.clear',
+            detail: 'Arşiv temizlendi',
+          });
           sendJson(res, 200, { entries: [] });
           return;
         }
@@ -158,6 +216,43 @@ export function platformPlugin() {
           return;
         }
 
+        // Audit
+        if (path === '/api/audit' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          const limit = Number(url.searchParams.get('limit') || 50);
+          sendJson(res, 200, { entries: readAudit(limit) });
+          return;
+        }
+
+        // Ayarlar (CEO)
+        if (path === '/api/settings' && req.method === 'GET') {
+          if (!requireCeo(req, res)) return;
+          sendJson(res, 200, getPublicSettings());
+          return;
+        }
+        if (path === '/api/settings' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const patch = await readBody(req);
+              const result = saveSettings(patch);
+              appendAudit({
+                actor: user.username,
+                action: 'settings.update',
+                detail: `Ayarlar güncellendi (${result.fields.filter((f) => f.configured).length}/${result.fields.length} yapılandırıldı)`,
+              });
+              sendJson(res, 200, result);
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Ayarlar kaydedilemedi',
+              });
+            }
+          })();
+          return;
+        }
+
         next();
       });
     },
@@ -166,11 +261,27 @@ export function platformPlugin() {
 
 /** Entegrasyon katmanından kalıcı log yazmak için. */
 export function persistWhatsapp(entry) {
-  return prependItem('whatsapp', entry, 100);
+  const list = prependItem('whatsapp', entry, 100);
+  appendAudit({
+    actor: 'REMINDER-AI',
+    action: 'whatsapp.send',
+    detail: String(entry.body ?? '').slice(0, 100),
+    meta: { provider: entry.provider, status: entry.status, guest: entry.guest },
+  });
+  return list;
 }
 
 export function persistNexusEvent(event) {
-  return prependItem('nexus-events', event, 200);
+  const list = prependItem('nexus-events', event, 200);
+  if (event.action !== 'protocol_ready') {
+    appendAudit({
+      actor: 'NEXUS',
+      action: `nexus.${event.action}`,
+      detail: event.detail || event.deviceId,
+      meta: { deviceId: event.deviceId, ok: event.ok },
+    });
+  }
+  return list;
 }
 
 export function readWhatsapp() {
@@ -181,5 +292,4 @@ export function readNexusEvents() {
   return readCollection('nexus-events', []);
 }
 
-// re-export store helpers used by integrations
 export { writeCollection, readCollection };
