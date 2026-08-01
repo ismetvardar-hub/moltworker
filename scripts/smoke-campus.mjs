@@ -490,6 +490,18 @@ import {
 import {
   buildCircuit, runCircuitSweep, ackCircuitFlag, busyCircuitMoment, closeCircuitHook, liveCircuitSchema,
 } from '../server/circuit.js';
+import {
+  buildCrown, runCrownSweep, ackCrownFlag, houseCrownVip, closeCrownCase, liveCrownWinback,
+} from '../server/crown.js';
+import {
+  buildDominion, runDominionSweep, ackDominionFlag, liveDominionSupplier, runDominionBoard, busyDominionCash,
+} from '../server/dominion.js';
+import {
+  buildFrontier, runFrontierSweep, ackFrontierFlag, runFrontierRestore, busyFrontierSite, liveFrontierHire,
+} from '../server/frontier.js';
+import {
+  buildGaia, runGaiaSweep, ackGaiaFlag, closeGaiaLegacy, liveGaiaQuiet, runGaiaPillow,
+} from '../server/gaia.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1227,6 +1239,34 @@ assert(busyCircuitMoment({}, 'smoke').ok, 'circuit moment busy');
 assert(closeCircuitHook({}, 'smoke').ok, 'circuit hook close');
 assert(liveCircuitSchema({}, 'smoke').ok, 'circuit schema live');
 assert(ackCircuitFlag({}, 'smoke').ok, 'circuit flag ack');
+
+assert(buildCrown().title, 'crown overview');
+assert(runCrownSweep({ force: true }, 'smoke').ok, 'crown sweep');
+assert(houseCrownVip({}, 'smoke').ok, 'crown vip house');
+assert(closeCrownCase({}, 'smoke').ok, 'crown case close');
+assert(liveCrownWinback({}, 'smoke').ok, 'crown winback live');
+assert(ackCrownFlag({}, 'smoke').ok, 'crown flag ack');
+
+assert(buildDominion().title, 'dominion overview');
+assert(runDominionSweep({ force: true }, 'smoke').ok, 'dominion sweep');
+assert(liveDominionSupplier({}, 'smoke').ok, 'dominion supplier live');
+assert(runDominionBoard({}, 'smoke').ok, 'dominion board run');
+assert(busyDominionCash({}, 'smoke').ok, 'dominion cash busy');
+assert(ackDominionFlag({}, 'smoke').ok, 'dominion flag ack');
+
+assert(buildFrontier().title, 'frontier overview');
+assert(runFrontierSweep({ force: true }, 'smoke').ok, 'frontier sweep');
+assert(runFrontierRestore({}, 'smoke').ok, 'frontier restore run');
+assert(busyFrontierSite({}, 'smoke').ok, 'frontier site busy');
+assert(liveFrontierHire({}, 'smoke').ok, 'frontier hire live');
+assert(ackFrontierFlag({}, 'smoke').ok, 'frontier flag ack');
+
+assert(buildGaia().title, 'gaia overview');
+assert(runGaiaSweep({ force: true }, 'smoke').ok, 'gaia sweep');
+assert(closeGaiaLegacy({}, 'smoke').ok, 'gaia legacy close');
+assert(liveGaiaQuiet({}, 'smoke').ok, 'gaia quiet live');
+assert(runGaiaPillow({}, 'smoke').ok, 'gaia pillow run');
+assert(ackGaiaFlag({}, 'smoke').ok, 'gaia flag ack');
 
 console.log(
   JSON.stringify(

@@ -129,6 +129,10 @@ try {
     '/api/beacon',
     '/api/chronos',
     '/api/circuit',
+    '/api/crown',
+    '/api/dominion',
+    '/api/frontier',
+    '/api/gaia',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1181,6 +1185,50 @@ try {
   assert(ciSchema.res.ok && ciSchema.data.ok !== false, 'circuit schema live');
   const ciAck = await req('/api/circuit/flag/ack', { method: 'POST', token, body: {} });
   assert(ciAck.res.ok && ciAck.data.ok !== false, 'circuit flag ack');
+
+  const crwSweep = await req('/api/crown/sweep', { method: 'POST', token, body: { force: true } });
+  assert(crwSweep.res.ok && crwSweep.data.ok !== false, 'crown sweep');
+  const crwVip = await req('/api/crown/vip/house', { method: 'POST', token, body: {} });
+  assert(crwVip.res.ok && crwVip.data.ok !== false, 'crown vip house');
+  const crwCase = await req('/api/crown/case/close', { method: 'POST', token, body: {} });
+  assert(crwCase.res.ok && crwCase.data.ok !== false, 'crown case close');
+  const crwWin = await req('/api/crown/winback/live', { method: 'POST', token, body: {} });
+  assert(crwWin.res.ok && crwWin.data.ok !== false, 'crown winback live');
+  const crwAck = await req('/api/crown/flag/ack', { method: 'POST', token, body: {} });
+  assert(crwAck.res.ok && crwAck.data.ok !== false, 'crown flag ack');
+
+  const domSweep = await req('/api/dominion/sweep', { method: 'POST', token, body: { force: true } });
+  assert(domSweep.res.ok && domSweep.data.ok !== false, 'dominion sweep');
+  const domSup = await req('/api/dominion/supplier/live', { method: 'POST', token, body: {} });
+  assert(domSup.res.ok && domSup.data.ok !== false, 'dominion supplier live');
+  const domBoard = await req('/api/dominion/board/run', { method: 'POST', token, body: {} });
+  assert(domBoard.res.ok && domBoard.data.ok !== false, 'dominion board run');
+  const domCash = await req('/api/dominion/cash/busy', { method: 'POST', token, body: {} });
+  assert(domCash.res.ok && domCash.data.ok !== false, 'dominion cash busy');
+  const domAck = await req('/api/dominion/flag/ack', { method: 'POST', token, body: {} });
+  assert(domAck.res.ok && domAck.data.ok !== false, 'dominion flag ack');
+
+  const frSweep = await req('/api/frontier/sweep', { method: 'POST', token, body: { force: true } });
+  assert(frSweep.res.ok && frSweep.data.ok !== false, 'frontier sweep');
+  const frRestore = await req('/api/frontier/restore/run', { method: 'POST', token, body: {} });
+  assert(frRestore.res.ok && frRestore.data.ok !== false, 'frontier restore run');
+  const frSite = await req('/api/frontier/site/busy', { method: 'POST', token, body: {} });
+  assert(frSite.res.ok && frSite.data.ok !== false, 'frontier site busy');
+  const frHire = await req('/api/frontier/hire/live', { method: 'POST', token, body: {} });
+  assert(frHire.res.ok && frHire.data.ok !== false, 'frontier hire live');
+  const frAck = await req('/api/frontier/flag/ack', { method: 'POST', token, body: {} });
+  assert(frAck.res.ok && frAck.data.ok !== false, 'frontier flag ack');
+
+  const gaSweep = await req('/api/gaia/sweep', { method: 'POST', token, body: { force: true } });
+  assert(gaSweep.res.ok && gaSweep.data.ok !== false, 'gaia sweep');
+  const gaLegacy = await req('/api/gaia/legacy/close', { method: 'POST', token, body: {} });
+  assert(gaLegacy.res.ok && gaLegacy.data.ok !== false, 'gaia legacy close');
+  const gaQuiet = await req('/api/gaia/quiet/live', { method: 'POST', token, body: {} });
+  assert(gaQuiet.res.ok && gaQuiet.data.ok !== false, 'gaia quiet live');
+  const gaPillow = await req('/api/gaia/pillow/run', { method: 'POST', token, body: {} });
+  assert(gaPillow.res.ok && gaPillow.data.ok !== false, 'gaia pillow run');
+  const gaAck = await req('/api/gaia/flag/ack', { method: 'POST', token, body: {} });
+  assert(gaAck.res.ok && gaAck.data.ok !== false, 'gaia flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

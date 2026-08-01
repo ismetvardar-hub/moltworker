@@ -3187,7 +3187,9 @@ import {
   clubnightSummary,
   updateClubnight,
 } from './clubnight.js';
-import { buildCrown } from './crown.js';
+import {
+  ackCrownFlag, buildCrown, closeCrownCase, houseCrownVip, liveCrownWinback, runCrownSweep,
+} from './crown.js';
 import {
   createCampdesk,
   listCampdesk,
@@ -4330,7 +4332,9 @@ import {
   sealnoteSummary,
   updateSealnote,
 } from './sealnote.js';
-import { buildDominion } from './dominion.js';
+import {
+  ackDominionFlag, buildDominion, busyDominionCash, liveDominionSupplier, runDominionBoard, runDominionSweep,
+} from './dominion.js';
 import {
   createLegacyflag,
   listLegacyflag,
@@ -4929,7 +4933,9 @@ import {
   goliveSummary,
   updateGolive,
 } from './golive.js';
-import { buildFrontier } from './frontier.js';
+import {
+  ackFrontierFlag, buildFrontier, busyFrontierSite, liveFrontierHire, runFrontierRestore, runFrontierSweep,
+} from './frontier.js';
 import {
   createPostlaunch,
   listPostlaunch,
@@ -6474,7 +6480,9 @@ import {
   feedbackloop3Summary,
   updateFeedbackloop3,
 } from './feedbackloop3.js';
-import { buildGaia } from './gaia.js';
+import {
+  ackGaiaFlag, buildGaia, closeGaiaLegacy, liveGaiaQuiet, runGaiaPillow, runGaiaSweep,
+} from './gaia.js';
 import {
   createMomentmap3,
   listMomentmap3,
@@ -21916,6 +21924,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildCrown());
           return;
         }
+        if (path === '/api/crown/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCrownSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crown/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCrownFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crown/vip/house' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, houseCrownVip(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crown/case/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCrownCase(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crown/winback/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCrownWinback(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Marketing OS · Beacon (AŞAMA 556–570) ──
 
@@ -26827,6 +26865,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildDominion());
           return;
         }
+        if (path === '/api/dominion/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDominionSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDominionFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion/supplier/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveDominionSupplier(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion/board/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDominionBoard(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion/cash/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyDominionCash(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Serenity OS · Serenity (AŞAMA 751–765) ──
 
@@ -29384,6 +29452,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/frontier' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildFrontier());
+          return;
+        }
+        if (path === '/api/frontier/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFrontierSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/frontier/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackFrontierFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/frontier/restore/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFrontierRestore(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/frontier/site/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyFrontierSite(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/frontier/hire/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveFrontierHire(await readBody(req), user.username)); })();
           return;
         }
 
@@ -35960,6 +36058,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/gaia' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildGaia());
+          return;
+        }
+        if (path === '/api/gaia/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGaiaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/gaia/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackGaiaFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/gaia/legacy/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeGaiaLegacy(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/gaia/quiet/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveGaiaQuiet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/gaia/pillow/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGaiaPillow(await readBody(req), user.username)); })();
           return;
         }
 
