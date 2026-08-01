@@ -1071,6 +1071,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **644** | Pack Folio |
 | **645** | Empire checkpoint (`/api/empire`) |
 
+### Retail OS · Bazaar (AŞAMA 646–660)
+
+| Aşama | Özellik |
+|-------|---------|
+| **646** | Retail Floor |
+| **647** | Planogram |
+| **648** | Shelf Scan |
+| **649** | Price Audit |
+| **650** | Shrink Log |
+| **651** | Vendor Portal |
+| **652** | Assort Mix |
+| **653** | Promo Plane |
+| **654** | Category Buy |
+| **655** | Demand Plan |
+| **656** | Stock Health |
+| **657** | Return Bay |
+| **658** | Dark Store |
+| **659** | POS Lane |
+| **660** | Bazaar checkpoint (`/api/bazaar`) |
+
+### Media OS · Studio (AŞAMA 661–675)
+
+| Aşama | Özellik |
+|-------|---------|
+| **661** | Media Wall |
+| **662** | Content Rights |
+| **663** | Ad Slot |
+| **664** | Sponsor Pack |
+| **665** | Brand Ambass |
+| **666** | Creator Pay |
+| **667** | UGC Queue |
+| **668** | Press Room |
+| **669** | Live Cast |
+| **670** | Event Stream |
+| **671** | Affiliate Net |
+| **672** | Boost Desk |
+| **673** | Asset Lib |
+| **674** | Brief Desk |
+| **675** | Studio checkpoint (`/api/studio`) |
+
+### Green OS · Verdant (AŞAMA 676–690)
+
+| Aşama | Özellik |
+|-------|---------|
+| **676** | Carbon Ledger |
+| **677** | Water Use |
+| **678** | Waste Sort |
+| **679** | Energy Bid |
+| **680** | Solar Yield |
+| **681** | Green Team |
+| **682** | ESG Audit |
+| **683** | Bio Survey |
+| **684** | Offset Buy |
+| **685** | Climate Goal |
+| **686** | Green Bond |
+| **687** | Plastic Audit |
+| **688** | EV Charger |
+| **689** | Reef Watch |
+| **690** | Verdant checkpoint (`/api/verdant`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

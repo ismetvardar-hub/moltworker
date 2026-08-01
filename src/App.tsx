@@ -644,6 +644,51 @@ import NexusgatePage from './pages/NexusgatePage';
 import MintbundlePage from './pages/MintbundlePage';
 import PackfolioPage from './pages/PackfolioPage';
 import EmpirePage from './pages/EmpirePage';
+import RetailfloorPage from './pages/RetailfloorPage';
+import PlanogramPage from './pages/PlanogramPage';
+import ShelfscanPage from './pages/ShelfscanPage';
+import PriceauditPage from './pages/PriceauditPage';
+import ShrinklogPage from './pages/ShrinklogPage';
+import VendorportalPage from './pages/VendorportalPage';
+import AssortmixPage from './pages/AssortmixPage';
+import PromoplanePage from './pages/PromoplanePage';
+import CategorybuyPage from './pages/CategorybuyPage';
+import DemandplanPage from './pages/DemandplanPage';
+import StockhealthPage from './pages/StockhealthPage';
+import ReturnbayPage from './pages/ReturnbayPage';
+import DarkstorePage from './pages/DarkstorePage';
+import PoslanePage from './pages/PoslanePage';
+import BazaarPage from './pages/BazaarPage';
+import MediawallPage from './pages/MediawallPage';
+import ContentrightsPage from './pages/ContentrightsPage';
+import AdslotPage from './pages/AdslotPage';
+import SponsorpackPage from './pages/SponsorpackPage';
+import BrandambassPage from './pages/BrandambassPage';
+import CreatorpayPage from './pages/CreatorpayPage';
+import UgcqueuePage from './pages/UgcqueuePage';
+import PressroomPage from './pages/PressroomPage';
+import LivecastPage from './pages/LivecastPage';
+import EventstreamPage from './pages/EventstreamPage';
+import AffiliatenetPage from './pages/AffiliatenetPage';
+import BoostdeskPage from './pages/BoostdeskPage';
+import AssetlibPage from './pages/AssetlibPage';
+import BriefdeskPage from './pages/BriefdeskPage';
+import StudioPage from './pages/StudioPage';
+import CarbonledgerPage from './pages/CarbonledgerPage';
+import WaterusePage from './pages/WaterusePage';
+import WastesortPage from './pages/WastesortPage';
+import EnergybidPage from './pages/EnergybidPage';
+import SolaryieldPage from './pages/SolaryieldPage';
+import GreenteamPage from './pages/GreenteamPage';
+import EsgauditPage from './pages/EsgauditPage';
+import BiosurveyPage from './pages/BiosurveyPage';
+import OffsetbuyPage from './pages/OffsetbuyPage';
+import ClimategoalPage from './pages/ClimategoalPage';
+import GreenbondPage from './pages/GreenbondPage';
+import PlasticauditPage from './pages/PlasticauditPage';
+import EvchargerPage from './pages/EvchargerPage';
+import ReefwatchPage from './pages/ReefwatchPage';
+import VerdantPage from './pages/VerdantPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1257,6 +1302,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   mintbundle: MintbundlePage,
   packfolio: PackfolioPage,
   empire: EmpirePage,
+  retailfloor: RetailfloorPage,
+  planogram: PlanogramPage,
+  shelfscan: ShelfscanPage,
+  priceaudit: PriceauditPage,
+  shrinklog: ShrinklogPage,
+  vendorportal: VendorportalPage,
+  assortmix: AssortmixPage,
+  promoplane: PromoplanePage,
+  categorybuy: CategorybuyPage,
+  demandplan: DemandplanPage,
+  stockhealth: StockhealthPage,
+  returnbay: ReturnbayPage,
+  darkstore: DarkstorePage,
+  poslane: PoslanePage,
+  bazaar: BazaarPage,
+  mediawall: MediawallPage,
+  contentrights: ContentrightsPage,
+  adslot: AdslotPage,
+  sponsorpack: SponsorpackPage,
+  brandambass: BrandambassPage,
+  creatorpay: CreatorpayPage,
+  ugcqueue: UgcqueuePage,
+  pressroom: PressroomPage,
+  livecast: LivecastPage,
+  eventstream: EventstreamPage,
+  affiliatenet: AffiliatenetPage,
+  boostdesk: BoostdeskPage,
+  assetlib: AssetlibPage,
+  briefdesk: BriefdeskPage,
+  studio: StudioPage,
+  carbonledger: CarbonledgerPage,
+  wateruse: WaterusePage,
+  wastesort: WastesortPage,
+  energybid: EnergybidPage,
+  solaryield: SolaryieldPage,
+  greenteam: GreenteamPage,
+  esgaudit: EsgauditPage,
+  biosurvey: BiosurveyPage,
+  offsetbuy: OffsetbuyPage,
+  climategoal: ClimategoalPage,
+  greenbond: GreenbondPage,
+  plasticaudit: PlasticauditPage,
+  evcharger: EvchargerPage,
+  reefwatch: ReefwatchPage,
+  verdant: VerdantPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
