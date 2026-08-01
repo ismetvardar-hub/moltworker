@@ -511,6 +511,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **224** | Rev pulse |
 | **225** | Horizon checkpoint (`/api/horizon`) |
 
+### Oda servis · Meridian (AŞAMA 226–240)
+
+| Aşama | Özellik |
+|-------|---------|
+| **226** | Konaklama uzatma |
+| **227** | Oda taşıma |
+| **228** | Erken check-in |
+| **229** | Bagaj |
+| **230** | Turndown |
+| **231** | Yastık menü |
+| **232** | Oda kokusu |
+| **233** | DND / MUR |
+| **234** | Bornoz stok |
+| **235** | Ütü talebi |
+| **236** | Pressing |
+| **237** | Ayakkabı boya |
+| **238** | Bebek karyola |
+| **239** | Pet stay |
+| **240** | Meridian checkpoint (`/api/meridian`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

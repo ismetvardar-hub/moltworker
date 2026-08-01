@@ -176,6 +176,9 @@ import {
   ScanLine,
   Ban,
   Split,
+  Footprints,
+  PawPrint,
+  Compass,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -210,6 +213,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'skyline',
   'sentinel',
   'horizon',
+  'meridian',
 ]);
 
 interface SidebarProps {
@@ -631,6 +635,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'passticket', label: 'Pass Ticket', description: 'Pass desk hızlı bilet.', icon: Ticket },
   { id: 'zoneheat', label: 'Zone Heat', description: 'Bölge ısı haritası satırı.', icon: Flame },
   { id: 'revpulse', label: 'Rev Pulse', description: 'Anlık gelir nabız satırı.', icon: LineChart },
+  { id: 'stayext', label: 'Konaklama Uzat', description: 'Stay extension teklifleri.', icon: CalendarClock },
+  { id: 'roommove', label: 'Oda Taşıma', description: 'Room move talepleri.', icon: DoorOpen },
+  { id: 'earlyin', label: 'Erken Check-in', description: 'Early check-in kuyruğu.', icon: AlarmClock },
+  { id: 'luggage', label: 'Bagaj', description: 'Bagaj emanet / taşıma.', icon: Briefcase },
+  { id: 'turndown', label: 'Turndown', description: 'Akşam turndown servisi.', icon: MoonStar },
+  { id: 'pillowmenu', label: 'Yastık Menü', description: 'Yastık tercihleri.', icon: BedDouble },
+  { id: 'scenting', label: 'Oda Kokusu', description: 'Oda scenting tercihleri.', icon: Flower2 },
+  { id: 'dndflags', label: 'DND / MUR', description: 'DND ve Make Up Room bayrakları.', icon: DoorClosed },
+  { id: 'bathstock', label: 'Bornoz Stok', description: 'Bornoz / terlik zimmet.', icon: Shirt },
+  { id: 'ironreq', label: 'Ütü Talebi', description: 'Ütü / board talepleri.', icon: Zap },
+  { id: 'pressing', label: 'Pressing', description: 'Kuru temizleme / pressing.', icon: Sparkles },
+  { id: 'shoeshine', label: 'Ayakkabı Boya', description: 'Shoe shine servisi.', icon: Footprints },
+  { id: 'babycot', label: 'Bebek Karyola', description: 'Baby cot / beşik talepleri.', icon: Baby },
+  { id: 'petstay', label: 'Pet Stay', description: 'Evcil hayvan konak kayıt.', icon: PawPrint },
+  { id: 'meridian', label: 'Meridian', description: 'AŞAMA 240 oda servis özeti.', icon: Compass },
   { id: 'horizon', label: 'Horizon', description: 'AŞAMA 225 F&B/gelir özeti.', icon: Sunrise },
   { id: 'sentinel', label: 'Sentinel', description: 'AŞAMA 210 güvenlik özeti.', icon: ShieldAlert },
   { id: 'skyline', label: 'Skyline', description: 'AŞAMA 195 leisure özeti.', icon: Castle },

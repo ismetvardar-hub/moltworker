@@ -224,6 +224,21 @@ import PassticketPage from './pages/PassticketPage';
 import ZoneheatPage from './pages/ZoneheatPage';
 import RevpulsePage from './pages/RevpulsePage';
 import HorizonPage from './pages/HorizonPage';
+import StayextPage from './pages/StayextPage';
+import RoommovePage from './pages/RoommovePage';
+import EarlyinPage from './pages/EarlyinPage';
+import LuggagePage from './pages/LuggagePage';
+import TurndownPage from './pages/TurndownPage';
+import PillowmenuPage from './pages/PillowmenuPage';
+import ScentingPage from './pages/ScentingPage';
+import DndflagsPage from './pages/DndflagsPage';
+import BathstockPage from './pages/BathstockPage';
+import IronreqPage from './pages/IronreqPage';
+import PressingPage from './pages/PressingPage';
+import ShoeshinePage from './pages/ShoeshinePage';
+import BabycotPage from './pages/BabycotPage';
+import PetstayPage from './pages/PetstayPage';
+import MeridianPage from './pages/MeridianPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -417,6 +432,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   zoneheat: ZoneheatPage,
   revpulse: RevpulsePage,
   horizon: HorizonPage,
+  stayext: StayextPage,
+  roommove: RoommovePage,
+  earlyin: EarlyinPage,
+  luggage: LuggagePage,
+  turndown: TurndownPage,
+  pillowmenu: PillowmenuPage,
+  scenting: ScentingPage,
+  dndflags: DndflagsPage,
+  bathstock: BathstockPage,
+  ironreq: IronreqPage,
+  pressing: PressingPage,
+  shoeshine: ShoeshinePage,
+  babycot: BabycotPage,
+  petstay: PetstayPage,
+  meridian: MeridianPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
