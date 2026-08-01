@@ -494,6 +494,51 @@ import CapexdeskPage from './pages/CapexdeskPage';
 import OpexdeskPage from './pages/OpexdeskPage';
 import EstatescanPage from './pages/EstatescanPage';
 import CitadelPage from './pages/CitadelPage';
+import TalentdeskPage from './pages/TalentdeskPage';
+import ShiftbidPage from './pages/ShiftbidPage';
+import SkillmatrixPage from './pages/SkillmatrixPage';
+import CerttrackPage from './pages/CerttrackPage';
+import TraininghubPage from './pages/TraininghubPage';
+import MentorshipPage from './pages/MentorshipPage';
+import SuccessionPage from './pages/SuccessionPage';
+import PayrollrunPage from './pages/PayrollrunPage';
+import PerformnotePage from './pages/PerformnotePage';
+import ReviewcyclePage from './pages/ReviewcyclePage';
+import HeadcountPage from './pages/HeadcountPage';
+import AttritionPage from './pages/AttritionPage';
+import CulturepulsePage from './pages/CulturepulsePage';
+import ShifttradePage from './pages/ShifttradePage';
+import ForgePage from './pages/ForgePage';
+import SafetylogPage from './pages/SafetylogPage';
+import IncidentlogPage from './pages/IncidentlogPage';
+import HazardnotePage from './pages/HazardnotePage';
+import EvacroutePage from './pages/EvacroutePage';
+import DrillrunPage from './pages/DrillrunPage';
+import AidkitPage from './pages/AidkitPage';
+import HazmatbayPage from './pages/HazmatbayPage';
+import PpekitPage from './pages/PpekitPage';
+import LockouttagPage from './pages/LockouttagPage';
+import PermitworkPage from './pages/PermitworkPage';
+import CompliancerowPage from './pages/CompliancerowPage';
+import Audittrail2Page from './pages/Audittrail2Page';
+import CctvreviewPage from './pages/CctvreviewPage';
+import GuestsafetyPage from './pages/GuestsafetyPage';
+import AegisPage from './pages/AegisPage';
+import DatalakePage from './pages/DatalakePage';
+import FeatureflagPage from './pages/FeatureflagPage';
+import ModelcardPage from './pages/ModelcardPage';
+import PromptlabPage from './pages/PromptlabPage';
+import EvalbenchPage from './pages/EvalbenchPage';
+import DatasetcatPage from './pages/DatasetcatPage';
+import LineagePage from './pages/LineagePage';
+import VectorstorePage from './pages/VectorstorePage';
+import InsightboardPage from './pages/InsightboardPage';
+import AnomalyPage from './pages/AnomalyPage';
+import DemandcastPage from './pages/DemandcastPage';
+import AbtestPage from './pages/AbtestPage';
+import ScorecardPage from './pages/ScorecardPage';
+import DecidlogPage from './pages/DecidlogPage';
+import OraclePage from './pages/OraclePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -957,6 +1002,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   opexdesk: OpexdeskPage,
   estatescan: EstatescanPage,
   citadel: CitadelPage,
+  talentdesk: TalentdeskPage,
+  shiftbid: ShiftbidPage,
+  skillmatrix: SkillmatrixPage,
+  certtrack: CerttrackPage,
+  traininghub: TraininghubPage,
+  mentorship: MentorshipPage,
+  succession: SuccessionPage,
+  payrollrun: PayrollrunPage,
+  performnote: PerformnotePage,
+  reviewcycle: ReviewcyclePage,
+  headcount: HeadcountPage,
+  attrition: AttritionPage,
+  culturepulse: CulturepulsePage,
+  shifttrade: ShifttradePage,
+  forge: ForgePage,
+  safetylog: SafetylogPage,
+  incidentlog: IncidentlogPage,
+  hazardnote: HazardnotePage,
+  evacroute: EvacroutePage,
+  drillrun: DrillrunPage,
+  aidkit: AidkitPage,
+  hazmatbay: HazmatbayPage,
+  ppekit: PpekitPage,
+  lockouttag: LockouttagPage,
+  permitwork: PermitworkPage,
+  compliancerow: CompliancerowPage,
+  audittrail2: Audittrail2Page,
+  cctvreview: CctvreviewPage,
+  guestsafety: GuestsafetyPage,
+  aegis: AegisPage,
+  datalake: DatalakePage,
+  featureflag: FeatureflagPage,
+  modelcard: ModelcardPage,
+  promptlab: PromptlabPage,
+  evalbench: EvalbenchPage,
+  datasetcat: DatasetcatPage,
+  lineage: LineagePage,
+  vectorstore: VectorstorePage,
+  insightboard: InsightboardPage,
+  anomaly: AnomalyPage,
+  demandcast: DemandcastPage,
+  abtest: AbtestPage,
+  scorecard: ScorecardPage,
+  decidlog: DecidlogPage,
+  oracle: OraclePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

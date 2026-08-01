@@ -1,0 +1,54 @@
+/**
+ * AŞAMA 507 — Attrition.
+ */
+import { randomBytes } from 'node:crypto';
+import { prependItem, readCollection, writeCollection } from './store.js';
+import { appendAudit } from './audit.js';
+function ensure() {
+  const list = readCollection('attrition', null);
+  if (!Array.isArray(list) || list.length === 0) {
+    const seed = [{ id: 'atr_1', person: "Ali",
+      reason: "Relocation", status: 'notice', at: new Date().toISOString() }];
+    writeCollection('attrition', seed);
+    return seed;
+  }
+  return list;
+}
+export function listAttrition(filter = {}) {
+  let list = ensure();
+  if (filter.status) list = list.filter((x) => x.status === filter.status);
+  return list;
+}
+export function createAttrition(input, actor = 'system') {
+  const row = {
+    id: `atr_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`,
+    person: input.person !== undefined ? input.person : "Ali",
+    reason: input.reason !== undefined ? input.reason : "Relocation",
+    status: input.status || 'notice',
+    at: new Date().toISOString(),
+    createdBy: actor,
+  };
+  prependItem('attrition', row, 300);
+  appendAudit({
+    actor,
+    action: 'attrition.create',
+    detail: String(row.title || row.name || row.guestName || row.label || row.code || row.zone || row.sku || row.metric || row.id),
+    meta: { id: row.id },
+  });
+  return row;
+}
+export function updateAttrition(id, patch, actor = 'system') {
+  const list = ensure();
+  const idx = list.findIndex((x) => x.id === id);
+  if (idx < 0) return null;
+  list[idx] = { ...list[idx], ...patch, id, updatedAt: new Date().toISOString() };
+  writeCollection('attrition', list);
+  appendAudit({ actor, action: 'attrition.update', detail: `${id} → ${list[idx].status || 'ok'}`, meta: { id } });
+  return list[idx];
+}
+export function attritionSummary() {
+  const list = listAttrition();
+  return { total: list.length, notice: list.filter((x) => x.status === 'notice').length,
+    exit: list.filter((x) => x.status === 'exit').length,
+    alumni: list.filter((x) => x.status === 'alumni').length, attrition: list };
+}

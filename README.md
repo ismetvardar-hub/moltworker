@@ -871,6 +871,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **494** | Estate Scan |
 | **495** | Citadel checkpoint (`/api/citadel`) |
 
+### Talent OS · Forge (AŞAMA 496–510)
+
+| Aşama | Özellik |
+|-------|---------|
+| **496** | Talent Desk |
+| **497** | Shift Bid |
+| **498** | Skill Matrix |
+| **499** | Cert Track |
+| **500** | Training Hub |
+| **501** | Mentorship |
+| **502** | Succession |
+| **503** | Payroll Run |
+| **504** | Perform Note |
+| **505** | Review Cycle |
+| **506** | Headcount |
+| **507** | Attrition |
+| **508** | Culture Pulse |
+| **509** | Shift Trade |
+| **510** | Forge checkpoint (`/api/forge`) |
+
+### Safety OS · Aegis (AŞAMA 511–525)
+
+| Aşama | Özellik |
+|-------|---------|
+| **511** | Safety Log |
+| **512** | Incident Log |
+| **513** | Hazard Note |
+| **514** | Evac Route |
+| **515** | Drill Run |
+| **516** | Aid Kit |
+| **517** | Hazmat Bay |
+| **518** | PPE Kit |
+| **519** | Lockout Tag |
+| **520** | Permit Work |
+| **521** | Compliance Row |
+| **522** | Audit Trail+ |
+| **523** | CCTV Review |
+| **524** | Guest Safety |
+| **525** | Aegis checkpoint (`/api/aegis`) |
+
+### Intelligence OS · Oracle (AŞAMA 526–540)
+
+| Aşama | Özellik |
+|-------|---------|
+| **526** | Data Lake |
+| **527** | Feature Flag |
+| **528** | Model Card |
+| **529** | Prompt Lab |
+| **530** | Eval Bench |
+| **531** | Dataset Cat |
+| **532** | Lineage |
+| **533** | Vector Store |
+| **534** | Insight Board |
+| **535** | Anomaly |
+| **536** | Demand Cast |
+| **537** | A/B Test |
+| **538** | Scorecard |
+| **539** | Decid Log |
+| **540** | Oracle checkpoint (`/api/oracle`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
