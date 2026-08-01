@@ -53,6 +53,9 @@ const IMPORTANT = new Set([
   'coldchain.alert',
   'handover.create',
   'cash.out',
+  'assets.create',
+  'energy.log',
+  'training.attempt',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

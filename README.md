@@ -279,6 +279,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **44** | Vardiya teslim notları (`/api/handover`) |
 | **45** | Kasa / till (`/api/cash`) |
 
+### Varlık · Enerji · Eğitim (AŞAMA 46–48)
+
+| Aşama | Özellik |
+|-------|---------|
+| **46** | Fiziksel varlık envanteri (`/api/assets`) |
+| **47** | Enerji sayaç okumaları (`/api/energy`) |
+| **48** | SOCRATES eğitim quiz (`/api/training`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

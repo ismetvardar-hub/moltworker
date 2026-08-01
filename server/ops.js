@@ -59,6 +59,11 @@ const BACKUP_COLLECTIONS = [
   'handover-notes',
   'cash-drawers',
   'cash-entries',
+  'assets',
+  'energy-meters',
+  'energy-readings',
+  'training-quizzes',
+  'training-attempts',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

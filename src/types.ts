@@ -40,6 +40,9 @@ export type PageId =
   | 'coldchain'
   | 'handover'
   | 'cash'
+  | 'assets'
+  | 'energy'
+  | 'training'
   | 'docs'
   | 'webhooks'
   | 'settings';

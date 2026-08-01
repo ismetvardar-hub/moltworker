@@ -186,6 +186,25 @@ import {
 } from './coldchain.js';
 import { createHandover, handoverSummary, listHandover } from './handover.js';
 import { cashSummary, postCash } from './cash.js';
+import {
+  assetsSummary,
+  createAsset,
+  listAssets,
+  updateAsset,
+} from './assets.js';
+import {
+  energySummary,
+  listEnergyReadings,
+  listMeters,
+  logEnergyReading,
+} from './energy.js';
+import {
+  getQuiz,
+  listAttempts,
+  listQuizzes,
+  submitAttempt,
+  trainingSummary,
+} from './training.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -212,6 +231,9 @@ listI18nNotes();
 listColdAssets();
 listHandover();
 cashSummary();
+listAssets();
+listMeters();
+listQuizzes();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1872,6 +1894,109 @@ export function createPlatformMiddleware() {
               return;
             }
             sendJson(res, 200, result);
+          })();
+          return;
+        }
+
+        // ── AŞAMA 46: Varlıklar ───────────────────────────────────────
+        if (path === '/api/assets' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...assetsSummary(),
+            assets: listAssets({
+              venueId: url.searchParams.get('venueId') || undefined,
+              status: url.searchParams.get('status') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/assets' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { asset: createAsset(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/assets/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const asset = updateAsset(id, await readBody(req), user.username);
+            if (!asset) {
+              sendJson(res, 404, { error: 'Varlık bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { asset });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 47: Enerji ──────────────────────────────────────────
+        if (path === '/api/energy' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...energySummary(),
+            meters: listMeters(),
+            readings: listEnergyReadings(40),
+          });
+          return;
+        }
+        if (path === '/api/energy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const reading = logEnergyReading(await readBody(req), user.username);
+            if (!reading) {
+              sendJson(res, 400, { error: 'Geçersiz sayaç' });
+              return;
+            }
+            sendJson(res, 200, { reading });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 48: Eğitim quiz ─────────────────────────────────────
+        if (path === '/api/training' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, trainingSummary());
+          return;
+        }
+        if (path.startsWith('/api/training/') && path.endsWith('/quiz') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const quiz = getQuiz(id);
+          if (!quiz) {
+            sendJson(res, 404, { error: 'Quiz bulunamadı' });
+            return;
+          }
+          // cevapları gizle
+          sendJson(res, 200, {
+            quiz: {
+              id: quiz.id,
+              title: quiz.title,
+              questions: (quiz.questions || []).map((q) => ({
+                id: q.id,
+                prompt: q.prompt,
+                options: q.options,
+              })),
+            },
+          });
+          return;
+        }
+        if (path === '/api/training/attempt' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            const attempt = submitAttempt(body, user.username);
+            if (!attempt) {
+              sendJson(res, 404, { error: 'Quiz bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { attempt, recent: listAttempts(10) });
           })();
           return;
         }

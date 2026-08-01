@@ -75,6 +75,9 @@ export const ROLE_PAGES = {
     'coldchain',
     'handover',
     'cash',
+    'assets',
+    'energy',
+    'training',
     'docs',
     'webhooks',
     'settings',
@@ -101,6 +104,9 @@ export const ROLE_PAGES = {
     'menu',
     'coldchain',
     'handover',
+    'assets',
+    'energy',
+    'training',
     'docs',
   ],
   crew: [
@@ -123,6 +129,7 @@ export const ROLE_PAGES = {
     'brief',
     'handover',
     'campaigns',
+    'training',
   ],
 };
 

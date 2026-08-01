@@ -45,6 +45,9 @@ import {
   Thermometer,
   NotebookPen,
   Wallet,
+  Boxes,
+  Zap,
+  GraduationCap,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -321,6 +324,24 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Kasa',
     description: 'Till hareketleri',
     icon: Wallet,
+  },
+  {
+    id: 'assets',
+    label: 'Varlıklar',
+    description: 'Ekipman envanteri',
+    icon: Boxes,
+  },
+  {
+    id: 'energy',
+    label: 'Enerji',
+    description: 'Sayaç okumaları',
+    icon: Zap,
+  },
+  {
+    id: 'training',
+    label: 'Eğitim',
+    description: 'SOCRATES quiz',
+    icon: GraduationCap,
   },
   {
     id: 'audit',

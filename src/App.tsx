@@ -44,6 +44,9 @@ import I18nPage from './pages/I18nPage';
 import ColdchainPage from './pages/ColdchainPage';
 import HandoverPage from './pages/HandoverPage';
 import CashPage from './pages/CashPage';
+import AssetsPage from './pages/AssetsPage';
+import EnergyPage from './pages/EnergyPage';
+import TrainingPage from './pages/TrainingPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -96,6 +99,9 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   coldchain: ColdchainPage,
   handover: HandoverPage,
   cash: CashPage,
+  assets: AssetsPage,
+  energy: EnergyPage,
+  training: TrainingPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,
