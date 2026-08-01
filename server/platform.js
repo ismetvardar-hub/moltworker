@@ -6730,7 +6730,18 @@ import {
   scoreLifePlanAdherence,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
-import { createMarketListing, marketCheckout, marketOsOverview, reconcileMarketChannels, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
+import {
+  createMarketListing,
+  createMarketPurchaseOrder,
+  marketCheckout,
+  marketOsOverview,
+  receiveMarketPurchaseOrder,
+  reconcileMarketChannels,
+  restockMarketListing,
+  returnMarketRental,
+  runMarketLowStockSweep,
+  syncMarketChannel,
+} from './marketos.js';
 import {
   generateMallRentRun,
   mallDayRollup,
@@ -36627,6 +36638,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, reconcileMarketChannels(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/marketos/low-stock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMarketLowStockSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/po' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createMarketPurchaseOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/po/receive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, receiveMarketPurchaseOrder(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/greenpulse/batch' && req.method === 'POST') {

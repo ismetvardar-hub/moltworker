@@ -82,7 +82,46 @@ export default function MarketosPage() {
               >
                 Kanal reconcile
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runMarketLowStockSweep({ force_all: true, limit: 3 }).then((r: any) => {
+                    ping(`Low stock · ${r.sweep?.pos ?? 0} PO`)
+                    return refresh()
+                  })
+                }
+              >
+                Low-stock sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.createMarketPurchaseOrder({ listing_id: 'ml_1', qty: 4 }).then((r: any) => {
+                    ping(r.ok ? `PO ${r.po?.sku} ×${r.po?.qty}` : r.error || 'PO yok')
+                    return refresh()
+                  })
+                }
+              >
+                PO aç
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.receiveMarketPurchaseOrder({}).then((r: any) => {
+                    ping(r.ok ? `PO teslim · stok ${r.listing?.stock}` : r.error || 'Teslim yok')
+                    return refresh()
+                  })
+                }
+              >
+                PO teslim
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Low stock {data.summary?.low_stock ?? 0} · açık PO {data.summary?.open_pos ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="İlanlar">
             <ul className="space-y-2 text-sm">

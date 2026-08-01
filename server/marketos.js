@@ -6,6 +6,7 @@ import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
 import { createTybridge, tybridgeSummary } from './tybridge.js';
 import { createDolaplist, dolaplistSummary } from './dolaplist.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -15,10 +16,10 @@ function ensureListings() {
   let list = readCollection('market-listings', null);
   if (!Array.isArray(list) || !list.length) {
     list = [
-      { id: 'ml_1', mode: 'buy', title: 'Trail kask Pro', sku: 'HELM-PRO', price_try: 4200, seller: 'Daze Hub', status: 'live', channels: [] },
-      { id: 'ml_2', mode: 'rent', title: 'SUP board günlüğü', sku: 'SUP-01', price_try: 900, seller: 'Park Rent', status: 'live', deposit_try: 2000, channels: [] },
-      { id: 'ml_3', mode: 'used', title: 'MTB ayakkabı 42', sku: 'USED-SH-42', price_try: 1800, seller: 'guest_can', status: 'live', serial: 'HK-SH-42', channels: [] },
-      { id: 'ml_4', mode: 'rent', title: 'Tırmanış ipi haftalık', sku: 'ROPE-W', price_try: 650, seller: 'Park Rent', status: 'hold', deposit_try: 1500, channels: [] },
+      { id: 'ml_1', mode: 'buy', title: 'Trail kask Pro', sku: 'HELM-PRO', price_try: 4200, seller: 'Daze Hub', status: 'live', stock: 2, reorder_at: 3, channels: [] },
+      { id: 'ml_2', mode: 'rent', title: 'SUP board günlüğü', sku: 'SUP-01', price_try: 900, seller: 'Park Rent', status: 'live', deposit_try: 2000, stock: 5, reorder_at: 2, channels: [] },
+      { id: 'ml_3', mode: 'used', title: 'MTB ayakkabı 42', sku: 'USED-SH-42', price_try: 1800, seller: 'guest_can', status: 'live', serial: 'HK-SH-42', stock: 1, reorder_at: 1, channels: [] },
+      { id: 'ml_4', mode: 'rent', title: 'Tırmanış ipi haftalık', sku: 'ROPE-W', price_try: 650, seller: 'Park Rent', status: 'hold', deposit_try: 1500, stock: 0, reorder_at: 2, channels: [] },
     ];
     writeCollection('market-listings', list);
   }
@@ -29,10 +30,17 @@ export function marketOsOverview() {
   const listings = ensureListings();
   const ty = tybridgeSummary();
   const dolap = dolaplistSummary();
+  const pos = readCollection('market-purchase-orders', []) || [];
+  const poList = Array.isArray(pos) ? pos : [];
+  const openPo = poList.filter((p) => p.status === 'open' || p.status === 'ordered');
+  const low = listings.filter(
+    (l) => (Number(l.stock) || 0) <= (Number(l.reorder_at) || 0) || l.status === 'hold',
+  );
   return {
     title: 'Kampüs Pazaryeri',
     tagline: 'Dene → Al · Kirala · 2. el sat · kanala it',
     listings,
+    purchase_orders: poList.slice(0, 30),
     channels: {
       trendyol: { queued: ty.queued, pushed: ty.pushed, synced: ty.synced, error: ty.error, total: ty.total },
       dolap: {
@@ -47,6 +55,8 @@ export function marketOsOverview() {
       rent: listings.filter((l) => l.mode === 'rent' && l.status === 'live').length,
       used: listings.filter((l) => l.mode === 'used' && l.status === 'live').length,
       channelled: listings.filter((l) => (l.channels || []).length).length,
+      low_stock: low.length,
+      open_pos: openPo.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -213,4 +223,126 @@ export function reconcileMarketChannels(input = {}, actor = 'system') {
     meta: { id: run.id },
   });
   return { ok: true, run, synced, overview: marketOsOverview() };
+}
+
+/** Düşük stok taraması → PO + MINT/HERMES */
+export function runMarketLowStockSweep(input = {}, actor = 'system') {
+  const list = ensureListings();
+  const flagged = [];
+  for (const item of list) {
+    const stock = Number(item.stock);
+    const reorder = Number(item.reorder_at);
+    const low =
+      (Number.isFinite(stock) && Number.isFinite(reorder) && stock <= reorder) ||
+      item.status === 'hold' ||
+      stock === 0;
+    if (!low && !input.force_all) continue;
+    flagged.push(item);
+  }
+  const created = [];
+  for (const item of flagged.slice(0, Number(input.limit) || 20)) {
+    const qty = Number(input.qty) || Math.max(2, (Number(item.reorder_at) || 1) * 2 - (Number(item.stock) || 0));
+    const po = createMarketPurchaseOrder(
+      {
+        listing_id: item.id,
+        qty,
+        auto: true,
+      },
+      actor,
+    );
+    if (po.ok) created.push(po.po);
+  }
+  const sweep = {
+    id: rid('mls'),
+    flagged: flagged.length,
+    pos: created.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('market-low-stock-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'market.low_stock',
+    detail: `${flagged.length} SKU · ${created.length} PO`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, flagged, created, overview: marketOsOverview() };
+}
+
+export function createMarketPurchaseOrder(input = {}, actor = 'system') {
+  const list = ensureListings();
+  const item =
+    list.find((l) => l.id === input.listing_id || l.sku === input.listing_id) ||
+    list.find((l) => (Number(l.stock) || 0) <= (Number(l.reorder_at) || 0)) ||
+    list[0];
+  if (!item) return { ok: false, error: 'Listing yok' };
+  const qty = Math.max(1, Number(input.qty) || 4);
+  const po = {
+    id: rid('mpo'),
+    listing_id: item.id,
+    sku: item.sku,
+    title: item.title,
+    qty,
+    unit_cost_try: Number(input.unit_cost_try) || Math.round((Number(item.price_try) || 0) * 0.55),
+    status: 'open',
+    vendor: input.vendor || item.seller || 'Kampüs Tedarik',
+    auto: !!input.auto,
+    at: new Date().toISOString(),
+    actor,
+  };
+  po.total_try = po.qty * po.unit_cost_try;
+  prependItem('market-purchase-orders', po, 300);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `market PO · ${po.sku} ×${po.qty} · ${po.total_try} TRY`,
+      priority: (Number(item.stock) || 0) === 0 ? 'high' : 'normal',
+      payload: { po_id: po.id, listing_id: item.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'market.po',
+    detail: `${po.sku} ×${po.qty}`,
+    meta: { id: po.id },
+  });
+  return { ok: true, po, overview: marketOsOverview() };
+}
+
+/** PO teslim → stok artır + listing live */
+export function receiveMarketPurchaseOrder(input = {}, actor = 'system') {
+  const pos = readCollection('market-purchase-orders', []) || [];
+  if (!Array.isArray(pos) || !pos.length) return { ok: false, error: 'PO yok' };
+  let idx = pos.findIndex((p) => p.id === input.po_id && (p.status === 'open' || p.status === 'ordered'));
+  if (idx < 0) idx = pos.findIndex((p) => p.status === 'open' || p.status === 'ordered');
+  if (idx < 0) return { ok: false, error: 'Açık PO yok' };
+  const po = pos[idx];
+  const qty = Number(input.qty) || Number(po.qty) || 1;
+  pos[idx] = {
+    ...po,
+    status: 'received',
+    received_qty: qty,
+    received_at: new Date().toISOString(),
+    received_by: actor,
+  };
+  writeCollection('market-purchase-orders', pos);
+  const list = ensureListings();
+  const lidx = list.findIndex((l) => l.id === po.listing_id);
+  if (lidx >= 0) {
+    list[lidx] = {
+      ...list[lidx],
+      stock: (Number(list[lidx].stock) || 0) + qty,
+      status: 'live',
+      restocked_at: new Date().toISOString(),
+    };
+    writeCollection('market-listings', list);
+  }
+  appendAudit({
+    actor,
+    action: 'market.po_receive',
+    detail: `${po.sku} +${qty}`,
+    meta: { id: po.id },
+  });
+  return { ok: true, po: pos[idx], listing: lidx >= 0 ? list[lidx] : null, overview: marketOsOverview() };
 }

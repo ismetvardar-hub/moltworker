@@ -369,6 +369,21 @@ try {
   });
   assert(recon.res.ok, 'market reconcile');
 
+  const low = await req('/api/marketos/low-stock', {
+    method: 'POST',
+    token,
+    body: { force_all: true, limit: 2 },
+  });
+  assert(low.res.ok && low.data.ok !== false, 'market low stock');
+  const po = await req('/api/marketos/po', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_1', qty: 3 },
+  });
+  assert(po.res.ok && po.data.ok !== false, 'market po');
+  const poRecv = await req('/api/marketos/po/receive', { method: 'POST', token, body: {} });
+  assert(poRecv.res.ok && poRecv.data.ok !== false, 'market po receive');
+
   const gbatch = await req('/api/greenpulse/batch', { method: 'POST', token, body: {} });
   assert(gbatch.res.ok && gbatch.data.batch, 'green batch');
 

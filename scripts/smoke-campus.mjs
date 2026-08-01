@@ -121,7 +121,14 @@ import {
   refundCultureSale,
   settleCultureEvent,
 } from '../server/culturescene.js';
-import { returnMarketRental, restockMarketListing, reconcileMarketChannels } from '../server/marketos.js';
+import {
+  returnMarketRental,
+  restockMarketListing,
+  reconcileMarketChannels,
+  runMarketLowStockSweep,
+  createMarketPurchaseOrder,
+  receiveMarketPurchaseOrder,
+} from '../server/marketos.js';
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
@@ -261,6 +268,9 @@ else {
 const soldish = marketOsOverview().listings.find((l) => l.status !== 'live') || marketOsOverview().listings[0];
 if (soldish) restockMarketListing({ listing_id: soldish.id }, 'smoke');
 assert(reconcileMarketChannels({ limit: 2, channel: 'tybridge' }, 'smoke').ok, 'market reconcile');
+assert(runMarketLowStockSweep({ force_all: true, limit: 2 }, 'smoke').ok, 'market low stock');
+assert(createMarketPurchaseOrder({ listing_id: 'ml_1', qty: 3 }, 'smoke').ok, 'market po');
+assert(receiveMarketPurchaseOrder({}, 'smoke').ok, 'market po receive');
 assert(batchRecordGreenMeters({}, 'smoke').ok, 'green batch');
 
 const stream = startCultureStream({ event_id: 'ce_1' }, 'smoke');
@@ -279,15 +289,19 @@ assert(health.score >= 0, 'campus health');
 
 const sport = sportBridgeOverview();
 assert(sport.links?.length >= 1, 'sport links');
+advanceReturnToPlay({ athlete_id: 'ath_1', stage: 'cleared', force: true }, 'smoke');
 setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
 signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
-assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok, 'sport gate allow');
+issueAthleteLicense({ athlete_id: 'ath_1' }, 'smoke');
+const gateOk = gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke');
+assert(gateOk.ok, 'sport gate allow');
 syncSlotToSession({ extreme_user: 'guest_can' }, 'smoke');
 const elig = runSportEligibilitySweep({}, 'smoke');
 assert(elig.ok, 'sport eligibility');
 reportAthleteInjury({ athlete_id: 'ath_1', body_area: 'bilek', severity: 'moderate' }, 'smoke');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block injury');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can', force: true }, 'smoke').ok, 'sport gate force');
+setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
 assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 
 const brief = campusBriefOverview('smoke');

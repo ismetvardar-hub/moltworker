@@ -192,8 +192,30 @@ export function setAthleteClearance(input = {}, actor = 'system') {
     clearance_note: input.note || '',
     cleared_at: new Date().toISOString(),
     cleared_by: actor,
+    ...(status === 'cleared' &&
+    (athletes[idx].status === 'injured' || athletes[idx].status === 'hold')
+      ? { status: 'active', rtp_stage: 'cleared', injury_id: null }
+      : {}),
   };
   writeCollection('club-athletes', athletes);
+  if (status === 'cleared') {
+    const injuries = readCollection('athlete-injuries', []) || [];
+    if (Array.isArray(injuries)) {
+      let changed = false;
+      for (let i = 0; i < injuries.length; i++) {
+        if (injuries[i].athlete_id === athletes[idx].id && injuries[i].status === 'open') {
+          injuries[i] = {
+            ...injuries[i],
+            status: 'closed',
+            rtp_stage: 'cleared',
+            updated_at: new Date().toISOString(),
+          };
+          changed = true;
+        }
+      }
+      if (changed) writeCollection('athlete-injuries', injuries);
+    }
+  }
   const row = {
     id: rid('aclr'),
     athlete_id: athletes[idx].id,
