@@ -6820,7 +6820,15 @@ import {
   runGreenPulseAutomations,
   runWaterLeakTriage,
 } from './greenpulse.js';
-import { ackCampusBriefAction, campusBriefOverview, campusHealthCheck, runCampusAutomations, syncCampusBriefActions } from './campusbrief.js';
+import {
+  ackCampusBriefAction,
+  assignCampusBriefAction,
+  campusBriefOverview,
+  campusHealthCheck,
+  publishCampusBriefDigest,
+  runCampusAutomations,
+  syncCampusBriefActions,
+} from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent, sweepFleetPresence } from './agentfleet.js';
 
 
@@ -36569,6 +36577,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, ackCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/campusbrief/actions/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/publish' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishCampusBriefDigest(user.username)); })();
           return;
         }
 

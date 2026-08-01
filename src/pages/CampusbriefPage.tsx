@@ -92,6 +92,30 @@ export default function CampusbriefPage() {
               >
                 Aksiyon kayıt sync
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.assignCampusBriefAction({ owner: 'LİKYA-1' }).then((r: any) => {
+                    ping(r.ok ? `Atandı · ${r.action?.owner}` : r.error || 'Atama yok')
+                    return refresh()
+                  })
+                }
+              >
+                Aksiyon ata
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.publishCampusBriefDigest().then((r: any) => {
+                    ping(`Brif yayın · skor ${r.digest?.campus_score ?? '—'}`)
+                    return refresh()
+                  })
+                }
+              >
+                CEO brif yayınla
+              </button>
             </div>
             {(data.register || []).length > 0 && (
               <ul className="mt-3 space-y-1 text-xs text-slate-400">
@@ -99,23 +123,44 @@ export default function CampusbriefPage() {
                   <li key={r.id} className="flex items-center justify-between gap-2">
                     <span>
                       [{r.level}] {r.text}
+                      {r.owner ? ` · ${r.owner}` : ''}
                     </span>
-                    <button
-                      type="button"
-                      className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-lykia-200"
-                      onClick={() =>
-                        void api.ackCampusBriefAction({ id: r.id }).then(() => {
-                          ping('Ack')
-                          return refresh()
-                        })
-                      }
-                    >
-                      Ack
-                    </button>
+                    <span className="flex gap-1">
+                      {r.status !== 'assigned' && (
+                        <button
+                          type="button"
+                          className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-sky-200"
+                          onClick={() =>
+                            void api.assignCampusBriefAction({ id: r.id, owner: 'LİKYA-1' }).then(() => {
+                              ping('Atandı')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Ata
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px] text-lykia-200"
+                        onClick={() =>
+                          void api.ackCampusBriefAction({ id: r.id }).then(() => {
+                            ping('Ack')
+                            return refresh()
+                          })
+                        }
+                      >
+                        Ack
+                      </button>
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
+            <p className="mt-2 text-xs text-slate-500">
+              Açık {data.summary?.register_open ?? 0} · atanmış {data.summary?.register_assigned ?? 0} · digest{' '}
+              {data.summary?.digests ?? 0}
+            </p>
             <p className="mt-2 text-[11px] text-slate-500">{data.ethos}</p>
           </PanelCard>
           <PanelCard title="Nabız panosu">

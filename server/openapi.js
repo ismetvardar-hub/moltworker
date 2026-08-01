@@ -1268,6 +1268,8 @@ export function buildOpenApi() {
       '/api/culture/stream/end': { post: { summary: 'Yayın bitir', tags: ['culturescene'] } },
       '/api/culture/stage': { post: { summary: 'Sahne ready/fitout', tags: ['culturescene'] } },
       '/api/campusbrief/actions/ack': { post: { summary: 'Brif aksiyon ack', tags: ['campusbrief'] } },
+      '/api/campusbrief/actions/assign': { post: { summary: 'Brif aksiyon ata', tags: ['campusbrief'] } },
+      '/api/campusbrief/publish': { post: { summary: 'CEO brif digest yayınla', tags: ['campusbrief'] } },
       '/api/athleteos/license': { post: { summary: 'Sporcu lisans ver/yenile', tags: ['athleteos'] } },
       '/api/athleteos/clearance': { post: { summary: 'Tıbbi clearance', tags: ['athleteos'] } },
       '/api/athleteos/injury': { post: { summary: 'Sakatlık bildir', tags: ['athleteos'] } },

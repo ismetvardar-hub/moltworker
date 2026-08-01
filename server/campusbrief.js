@@ -2,7 +2,7 @@
  * CEO sabah brifi — tüm kampüs nabızları + aksiyon listesi.
  */
 import { appendAudit } from './audit.js';
-import { readCollection, writeCollection } from './store.js';
+import { prependItem, readCollection, writeCollection } from './store.js';
 import { campusCoreOverview } from './campuscore.js';
 import { stayRingOverview } from './stayring.js';
 import { athleteOsOverview } from './athleteos.js';
@@ -187,7 +187,10 @@ export function campusBriefOverview(actor = 'system') {
   }
 
   const register = readCollection('campus-brief-actions', []) || [];
-  const openRegister = (Array.isArray(register) ? register : []).filter((a) => a.status === 'open');
+  const openRegister = (Array.isArray(register) ? register : []).filter(
+    (a) => a.status === 'open' || a.status === 'assigned',
+  );
+  const digests = readCollection('campus-brief-digests', []) || [];
 
   return {
     title: 'CEO Kampüs Brifi',
@@ -195,6 +198,7 @@ export function campusBriefOverview(actor = 'system') {
     headline: `${campus.title || 'LİKYA Kampüs'} — ${new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}`,
     actions,
     register: openRegister.slice(0, 30),
+    digests: (Array.isArray(digests) ? digests : []).slice(0, 10),
     pulses: {
       campus: campus.summary,
       stay: stay.summary,
@@ -214,6 +218,8 @@ export function campusBriefOverview(actor = 'system') {
       derived_actions: actions.length,
       register_open: openRegister.length,
       register_acked: (Array.isArray(register) ? register : []).filter((a) => a.status === 'acked').length,
+      register_assigned: (Array.isArray(register) ? register : []).filter((a) => a.status === 'assigned').length,
+      digests: Array.isArray(digests) ? digests.length : 0,
     },
     generatedAt: new Date().toISOString(),
     actor,
@@ -277,4 +283,82 @@ export function ackCampusBriefAction(input = {}, actor = 'system') {
     meta: { id: list[idx].id },
   });
   return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
+}
+
+/** Brif aksiyonunu sahibe ata */
+export function assignCampusBriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kayıt yok — önce sync' };
+  let idx = list.findIndex((a) => a.id === input.id && (a.status === 'open' || a.status === 'assigned'));
+  if (idx < 0) idx = list.findIndex((a) => a.status === 'open' || a.status === 'assigned');
+  if (idx < 0) return { ok: false, error: 'Atanacak aksiyon yok' };
+  const owner = input.owner || input.agent || 'LİKYA-1';
+  list[idx] = {
+    ...list[idx],
+    status: 'assigned',
+    owner,
+    assigned_at: new Date().toISOString(),
+    assigned_by: actor,
+    note: input.note || list[idx].note || '',
+  };
+  writeCollection('campus-brief-actions', list);
+  enqueueAgentJob(
+    {
+      agent: owner,
+      title: `brif aksiyon · ${list[idx].text}`,
+      priority: list[idx].level === 'alert' ? 'high' : 'normal',
+      payload: { action_id: list[idx].id, href: list[idx].href },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campusbrief.assign',
+    detail: `${list[idx].text} → ${owner}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, action: list[idx], overview: campusBriefOverview(actor) };
+}
+
+/** Günlük CEO brif snapshot yayınla → LİKYA-1 */
+export function publishCampusBriefDigest(actor = 'system') {
+  syncCampusBriefActions(actor);
+  const brief = campusBriefOverview(actor);
+  const health = campusHealthCheck();
+  const digest = {
+    id: `cbd_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`,
+    date: new Date().toISOString().slice(0, 10),
+    headline: brief.headline,
+    actions_n: brief.actions?.length || 0,
+    register_open: brief.summary?.register_open || 0,
+    health: health.status || health.level || null,
+    campus_score: health.score ?? health.campus_score ?? null,
+    top_actions: (brief.actions || []).slice(0, 8),
+    pulses: {
+      extreme_open: brief.pulses?.extreme?.open_slots,
+      stay_occ: brief.pulses?.stay?.occupancy_pct,
+      green_score: brief.pulses?.green?.score,
+      queue: brief.pulses?.queue?.queued,
+      mall_gap: brief.pulses?.mall?.fnb_gap_total,
+    },
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-brief-digests', digest, 90);
+  enqueueAgentJob(
+    {
+      agent: 'LİKYA-1',
+      title: `CEO brif · ${digest.date} · ${digest.actions_n} aksiyon · skor ${digest.campus_score ?? '—'}`,
+      priority: (brief.actions || []).some((a) => a.level === 'alert') ? 'high' : 'normal',
+      payload: { digest_id: digest.id, date: digest.date },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campusbrief.publish',
+    detail: digest.headline,
+    meta: { id: digest.id },
+  });
+  return { ok: true, digest, overview: campusBriefOverview(actor) };
 }

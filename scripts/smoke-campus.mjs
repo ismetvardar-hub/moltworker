@@ -76,6 +76,8 @@ import {
   runCampusAutomations,
   syncCampusBriefActions,
   ackCampusBriefAction,
+  assignCampusBriefAction,
+  publishCampusBriefDigest,
 } from '../server/campusbrief.js';
 import {
   extremeSlotWeatherCheck,
@@ -319,8 +321,13 @@ runCampusAutomations('smoke');
 const synced = syncCampusBriefActions('smoke');
 assert(synced.ok, 'brief actions sync');
 if ((synced.overview?.register || []).length) {
+  assert(
+    assignCampusBriefAction({ id: synced.overview.register[0].id, owner: 'LİKYA-1' }, 'smoke').ok,
+    'brief assign',
+  );
   ackCampusBriefAction({ id: synced.overview.register[0].id }, 'smoke');
 }
+assert(publishCampusBriefDigest('smoke').ok, 'brief publish');
 const sla = runAgentQueueSlaSweep({ force: true }, 'smoke');
 assert(sla.ok, 'agent sla sweep');
 assert(rebalanceAgentQueue({}, 'smoke').ok, 'agent rebalance');

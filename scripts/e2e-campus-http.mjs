@@ -477,6 +477,12 @@ try {
   assert(syncAct.res.ok, 'brief actions sync');
   const openAct = (syncAct.data.overview?.register || [])[0];
   if (openAct?.id) {
+    const assign = await req('/api/campusbrief/actions/assign', {
+      method: 'POST',
+      token,
+      body: { id: openAct.id, owner: 'LİKYA-1' },
+    });
+    assert(assign.res.ok && assign.data.ok !== false, 'brief assign');
     const ack = await req('/api/campusbrief/actions/ack', {
       method: 'POST',
       token,
@@ -484,6 +490,8 @@ try {
     });
     assert(ack.res.ok, 'brief ack');
   }
+  const pub = await req('/api/campusbrief/publish', { method: 'POST', token, body: {} });
+  assert(pub.res.ok && pub.data.ok !== false, 'brief publish');
 
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');

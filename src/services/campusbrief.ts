@@ -36,3 +36,23 @@ export async function ackCampusBriefAction(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function assignCampusBriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function publishCampusBriefDigest() {
+  return parse(
+    await fetch('/api/campusbrief/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
+}
