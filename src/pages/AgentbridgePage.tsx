@@ -35,7 +35,29 @@ export default function AgentbridgePage() {
                 </li>
               ))}
             </ul>
-            <button type="button" className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.agentBridgePing({ agent: 'DAZE-HUB', note: 'sabah brifing' }).then(() => ping('Ajan ping'))}>Komuta ping</button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.agentBridgePing({ agent: 'DAZE-HUB', note: 'sabah brifing' }).then(() => ping('Ajan ping'))
+                }
+              >
+                Komuta ping
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.agentBridgeBroadcast({ title: 'CEO köprü broadcast' }).then((r: any) => {
+                    ping(`Broadcast ${r.broadcast?.targets?.length ?? 0} ajan`)
+                    return refresh()
+                  })
+                }
+              >
+                Broadcast
+              </button>
+            </div>
           </PanelCard>
           <PanelCard title="Kampüs nabızları">
             <pre className="overflow-auto rounded-lg bg-obsidian-950 p-3 text-[11px] text-slate-400">{JSON.stringify(data.pulses, null, 2)}</pre>

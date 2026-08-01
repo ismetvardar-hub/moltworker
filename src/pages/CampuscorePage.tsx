@@ -32,27 +32,75 @@ export default function CampuscorePage() {
               <div><dt className="text-xs text-slate-500">Koruma</dt><dd>{data.summary?.protected}</dd></div>
             </dl>
             <p className="mt-2 text-xs text-slate-500">{data.ethos}</p>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
-              onClick={() =>
-                void api
-                  .addCampusIncident({ title: 'Saha turu notu', zone_id: 'z_forest', severity: 'info' })
-                  .then(() => {
-                    ping('Saha notu kaydedildi')
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api
+                    .addCampusIncident({ title: 'Saha turu notu', zone_id: 'z_forest', severity: 'info' })
+                    .then(() => {
+                      ping('Saha notu kaydedildi')
+                      return refresh()
+                    })
+                }
+              >
+                Saha notu ekle
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.resolveCampusIncident({}).then(() => {
+                    ping('Incident resolved')
                     return refresh()
                   })
-              }
-            >
-              Saha notu ekle
-            </button>
+                }
+              >
+                Incident kapat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.campusCapacityRollup().then((r: any) => {
+                    ping(`Kapasite stay %${r.rollup?.stay_occ_pct}`)
+                    return refresh()
+                  })
+                }
+              >
+                Kapasite rollup
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">Açık incident {data.summary?.open_incidents ?? 0}</p>
           </PanelCard>
           <PanelCard title="Zonlar">
             <ul className="space-y-2 text-sm">
-              {(data.zones||[]).map((z: any) => (
-                <li key={z.id} className="flex justify-between gap-2 rounded-lg border border-obsidian-700 px-3 py-2">
-                  <span className="text-slate-200">{z.name}<span className="ml-2 text-xs text-slate-500">{z.hectares} ha · {z.kind}</span></span>
-                  <span className="text-xs text-lykia-300">{z.status}</span>
+              {(data.zones || []).map((z: any) => (
+                <li key={z.id} className="flex items-center justify-between gap-2 rounded-lg border border-obsidian-700 px-3 py-2">
+                  <span className="text-slate-200">
+                    {z.name}
+                    <span className="ml-2 text-xs text-slate-500">
+                      {z.hectares} ha · {z.kind}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-xs text-lykia-300">{z.status}</span>
+                    {z.status !== 'protected' && z.status !== 'active' && (
+                      <button
+                        type="button"
+                        className="rounded bg-obsidian-800 px-2 py-0.5 text-[10px]"
+                        onClick={() =>
+                          void api.transitionCampusZone({ zone_id: z.id }).then(() => {
+                            ping(`${z.name} geçiş`)
+                            return refresh()
+                          })
+                        }
+                      >
+                        İlerlet
+                      </button>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>

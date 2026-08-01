@@ -197,6 +197,23 @@ try {
   });
   assert(settle.res.ok && settle.data.ok !== false, 'mall fnb settle');
 
+  const ztr = await req('/api/campus/zone-transition', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_caravan' },
+  });
+  assert(ztr.res.ok, 'zone transition');
+  await req('/api/campus/incident', { method: 'POST', token, body: { title: 'e2e', zone_id: 'z_sport' } });
+  await req('/api/campus/incident/resolve', { method: 'POST', token, body: {} });
+  const cap = await req('/api/campus/capacity', { method: 'POST', token, body: {} });
+  assert(cap.res.ok && cap.data.rollup, 'campus capacity');
+  const bc = await req('/api/agentbridge/broadcast', {
+    method: 'POST',
+    token,
+    body: { title: 'e2e broadcast' },
+  });
+  assert(bc.res.ok && bc.data.ok !== false, 'bridge broadcast');
+
   const sla = await req('/api/agentqueue/sla-sweep', {
     method: 'POST',
     token,

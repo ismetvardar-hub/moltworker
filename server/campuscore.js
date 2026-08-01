@@ -32,16 +32,22 @@ export function campusCoreOverview() {
   const zones = ensureZones();
   const byKind = {};
   for (const z of zones) byKind[z.kind] = (byKind[z.kind] || 0) + 1;
+  const incidents = readCollection('campus-incidents', []) || [];
+  const openInc = (Array.isArray(incidents) ? incidents : []).filter((i) => (i.status || 'open') === 'open');
+  const caps = readCollection('campus-capacity-rollups', []) || [];
   return {
     campus_id: CAMPUS_ID,
     title: 'LİKYA Orman Kampüsü',
     ethos: 'Sporla beslenen destinasyon — orman önce, ciro sonra.',
     zones,
+    incidents: (Array.isArray(incidents) ? incidents : []).slice(0, 20),
+    capacity: Array.isArray(caps) && caps[0] ? caps[0] : null,
     summary: {
       total_ha: zones.reduce((s, z) => s + (Number(z.hectares) || 0), 0),
       active: zones.filter((z) => z.status === 'active').length,
       build: zones.filter((z) => z.status === 'build').length,
       protected: zones.filter((z) => z.status === 'protected').length,
+      open_incidents: openInc.length,
       byKind,
     },
     generatedAt: new Date().toISOString(),
@@ -65,10 +71,100 @@ export function addCampusIncident(input = {}, actor = 'system') {
     zone_id: input.zone_id || 'z_sport',
     title: input.title || 'Saha notu',
     severity: input.severity || 'info',
+    status: 'open',
     at: new Date().toISOString(),
     actor,
   };
   prependItem('campus-incidents', row, 200);
   appendAudit({ actor, action: 'campus.incident', detail: row.title, meta: { id: row.id } });
   return row;
+}
+
+/** Zon kapasite / durum geçişi (planned→build→active) */
+export function transitionCampusZone(input = {}, actor = 'system') {
+  const list = ensureZones();
+  const idx = list.findIndex((z) => z.id === input.zone_id || z.name === input.zone_id);
+  if (idx < 0) return { ok: false, error: 'Zon yok' };
+  const z = list[idx];
+  const order = ['planned', 'build', 'active', 'protected'];
+  let status = input.status;
+  if (!status) {
+    const i = order.indexOf(z.status);
+    status = order[Math.min(order.length - 1, i + 1)] || 'active';
+    if (z.status === 'protected') status = 'protected';
+  }
+  if (z.kind === 'green' && status === 'active' && !input.force) {
+    status = 'protected';
+  }
+  list[idx] = {
+    ...z,
+    status,
+    hectares: input.hectares != null ? Number(input.hectares) : z.hectares,
+    notes: input.notes || z.notes,
+    updatedAt: new Date().toISOString(),
+  };
+  writeCollection('campus-zones', list);
+  appendAudit({
+    actor,
+    action: 'campus.zone_transition',
+    detail: `${list[idx].id} → ${status}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, zone: list[idx], overview: campusCoreOverview() };
+}
+
+export function resolveCampusIncident(input = {}, actor = 'system') {
+  const list = readCollection('campus-incidents', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Incident yok' };
+  let idx = list.findIndex((r) => r.id === input.id);
+  if (idx < 0) idx = list.findIndex((r) => (r.status || 'open') === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık incident yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'resolved',
+    resolution: input.resolution || 'kapatıldı',
+    resolved_at: new Date().toISOString(),
+    resolved_by: actor,
+  };
+  writeCollection('campus-incidents', list);
+  appendAudit({
+    actor,
+    action: 'campus.incident_resolve',
+    detail: list[idx].title,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, incident: list[idx], overview: campusCoreOverview() };
+}
+
+/** Kampüs kapasite rollup — zon ha × doluluk tahmini */
+export function campusCapacityRollup(actor = 'system') {
+  const zones = ensureZones();
+  const stay = (() => {
+    try {
+      return readCollection('stay-units', []) || [];
+    } catch {
+      return [];
+    }
+  })();
+  const stayUnits = Array.isArray(stay) ? stay : [];
+  const occupied = stayUnits.filter((u) => u.status === 'occupied' || u.status === 'wintering').length;
+  const rollup = {
+    id: `ccr_${Date.now().toString(36)}`,
+    total_ha: zones.reduce((s, z) => s + (Number(z.hectares) || 0), 0),
+    active_zones: zones.filter((z) => z.status === 'active').length,
+    protected_ha: zones.filter((z) => z.status === 'protected').reduce((s, z) => s + (Number(z.hectares) || 0), 0),
+    stay_units: stayUnits.length,
+    stay_occupied: occupied,
+    stay_occ_pct: stayUnits.length ? Math.round((occupied / stayUnits.length) * 100) : 0,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-capacity-rollups', rollup, 90);
+  appendAudit({
+    actor,
+    action: 'campus.capacity',
+    detail: `${rollup.total_ha}ha · stay %${rollup.stay_occ_pct}`,
+    meta: { id: rollup.id },
+  });
+  return { ok: true, rollup, overview: campusCoreOverview() };
 }

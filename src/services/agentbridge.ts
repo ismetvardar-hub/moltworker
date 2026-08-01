@@ -12,3 +12,13 @@ export async function agentBridgePing(body: Record<string, unknown> = {}) {
   return parse(await fetch('/api/agentbridge/ping', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
 }
 
+export async function agentBridgeBroadcast(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+

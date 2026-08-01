@@ -6684,7 +6684,7 @@ import {
   signExtremeWaiver,
   updateExtremeGear,
 } from './extremepark.js';
-import { addCampusIncident, campusCoreOverview, updateCampusZone } from './campuscore.js';
+import { addCampusIncident, campusCapacityRollup, campusCoreOverview, resolveCampusIncident, transitionCampusZone, updateCampusZone } from './campuscore.js';
 import {
   checkoutStay,
   completeStayHk,
@@ -6710,7 +6710,7 @@ import {
 import { createMarketListing, marketCheckout, marketOsOverview, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
 import { mallDayRollup, openMallOverview, recordMallSale, settleMallTenantFnb, updateMallTenant } from './openmall.js';
 import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote } from './familycamp.js';
-import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
+import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import {
   confirmCultureTicket,
   createCultureEvent,
@@ -35967,6 +35967,25 @@ export function createPlatformMiddleware() {
           void (async () => { sendJson(res, 200, { item: addCampusIncident(await readBody(req), user.username) }); })();
           return;
         }
+
+        if (path === '/api/campus/zone-transition' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, transitionCampusZone(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/incident/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveCampusIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/capacity' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, campusCapacityRollup(user.username));
+          return;
+        }
         if (path === '/api/stayring' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, stayRingOverview());
@@ -36119,6 +36138,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, agentBridgePing(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/agentbridge/broadcast' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, agentBridgeBroadcast(await readBody(req), user.username)); })();
           return;
         }
 

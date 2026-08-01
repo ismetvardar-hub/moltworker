@@ -3,7 +3,15 @@
  * Kampüs stack + wave-2 smoke test.
  * Kullanım: node scripts/smoke-campus.mjs
  */
-import { campusCoreOverview, updateCampusZone, addCampusIncident } from '../server/campuscore.js';
+import {
+  campusCoreOverview,
+  updateCampusZone,
+  addCampusIncident,
+  transitionCampusZone,
+  resolveCampusIncident,
+  campusCapacityRollup,
+} from '../server/campuscore.js';
+import { agentBridgeBroadcast } from '../server/agentbridge.js';
 import {
   stayRingOverview,
   createStayBooking,
@@ -76,6 +84,10 @@ const campus = campusCoreOverview();
 assert(campus.zones?.length >= 8, 'campus zones');
 updateCampusZone(campus.zones[0].id, { notes: 'smoke' }, 'smoke');
 addCampusIncident({ title: 'smoke incident', zone_id: 'z_sport' }, 'smoke');
+transitionCampusZone({ zone_id: 'z_culture' }, 'smoke');
+resolveCampusIncident({}, 'smoke');
+assert(campusCapacityRollup('smoke').ok, 'campus capacity');
+assert(agentBridgeBroadcast({ title: 'smoke broadcast' }, 'smoke').ok, 'bridge broadcast');
 
 const stay = stayRingOverview();
 assert(stay.units?.length >= 4, 'stay units');

@@ -14,7 +14,9 @@ import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview } from './agentqueue.js';
 import { greenPulseOverview } from './greenpulse.js';
-import { agentFleetOverview, pingFleetAgent } from './agentfleet.js';
+import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
+import { enqueueAgentJob } from './agentqueue.js';
+import { prependItem } from './store.js';
 
 export function agentBridgeOverview() {
   const campus = campusCoreOverview();
@@ -92,4 +94,40 @@ export function agentBridgePing(input = {}, actor = 'system') {
     meta: { agent },
   });
   return { ok: true, agent, overview: agentBridgeOverview() };
+}
+
+/** Köprüden çoklu ajan broadcast — fleet dispatch + kuyruk seed */
+export function agentBridgeBroadcast(input = {}, actor = 'system') {
+  const title = input.title || 'Köprü broadcast — kampüs nabız';
+  const dispatched = dispatchFleetDirective({ title, note: input.note || '' }, actor);
+  const targets = dispatched.targets || ['DAZE-HUB', 'ETHOS', 'NEXUS'];
+  const jobs = [];
+  for (const agent of targets.slice(0, 8)) {
+    const r = enqueueAgentJob(
+      {
+        agent,
+        title: `${title} · ${agent}`,
+        priority: input.priority || 'high',
+        payload: { broadcast: true, from: 'agentbridge' },
+      },
+      actor,
+    );
+    jobs.push(r.job?.id);
+  }
+  const row = {
+    id: `abb_${Date.now().toString(36)}`,
+    title,
+    targets,
+    jobs,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('agent-broadcasts', row, 100);
+  appendAudit({
+    actor,
+    action: 'agent.broadcast',
+    detail: `${title} · ${targets.length} hedef`,
+    meta: { id: row.id },
+  });
+  return { ok: true, broadcast: row, dispatch: dispatched, overview: agentBridgeOverview() };
 }

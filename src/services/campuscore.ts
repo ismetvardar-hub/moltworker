@@ -17,3 +17,33 @@ export async function addCampusIncident(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function transitionCampusZone(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/zone-transition', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function resolveCampusIncident(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/incident/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function campusCapacityRollup() {
+  return parse(
+    await fetch('/api/campus/capacity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: '{}',
+    }),
+  )
+}
