@@ -83,6 +83,7 @@ try {
     '/api/openmall',
     '/api/sportbridge',
     '/api/agentqueue',
+    '/api/cognisphere',
     '/api/health',
   ];
   for (const p of paths) {
@@ -586,6 +587,29 @@ try {
     body: { reason: 'e2e close' },
   });
   assert(shiftClose.res.ok && shiftClose.data.ok !== false, 'fleet shift close');
+
+  const cogSweep = await req('/api/cognisphere/sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(cogSweep.res.ok && cogSweep.data.ok !== false, 'cognisphere sweep');
+  const cogHalt = await req('/api/cognisphere/cost/halt', {
+    method: 'POST',
+    token,
+    body: { service: 'Ollama' },
+  });
+  assert(cogHalt.res.ok && cogHalt.data.ok !== false, 'cognisphere cost halt');
+  const cogDrift = await req('/api/cognisphere/drift/clear', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(cogDrift.res.ok && cogDrift.data.ok !== false, 'cognisphere drift clear');
+  const cogMit = await req('/api/cognisphere/mitigate', { method: 'POST', token, body: {} });
+  assert(cogMit.res.ok && cogMit.data.ok !== false, 'cognisphere mitigate');
+  const cogAck = await req('/api/cognisphere/flag/ack', { method: 'POST', token, body: {} });
+  assert(cogAck.res.ok && cogAck.data.ok !== false, 'cognisphere flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

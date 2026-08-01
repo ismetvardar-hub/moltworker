@@ -1654,7 +1654,14 @@ import {
   driftmonitorSummary,
   updateDriftmonitor,
 } from './driftmonitor.js';
-import { buildCognisphere } from './cognisphere.js';
+import {
+  ackCognisphereFlag,
+  buildCognisphere,
+  clearCognisphereDrift,
+  haltCognisphereCost,
+  mitigateCognisphereRisk,
+  runCognisphereSweep,
+} from './cognisphere.js';
 import {
   createPosbridge,
   listPosbridge,
@@ -15072,6 +15079,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/cognisphere' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildCognisphere());
+          return;
+        }
+        if (path === '/api/cognisphere/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCognisphereSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cognisphere/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCognisphereFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cognisphere/cost/halt' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, haltCognisphereCost(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cognisphere/drift/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearCognisphereDrift(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cognisphere/mitigate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, mitigateCognisphereRisk(await readBody(req), user.username)); })();
           return;
         }
 

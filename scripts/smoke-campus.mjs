@@ -232,6 +232,14 @@ import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
 import { buildReadiness } from '../server/readiness.js';
+import {
+  buildCognisphere,
+  runCognisphereSweep,
+  ackCognisphereFlag,
+  haltCognisphereCost,
+  clearCognisphereDrift,
+  mitigateCognisphereRisk,
+} from '../server/cognisphere.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -634,6 +642,13 @@ assert(bridge.pulses?.fleet?.total === 28, 'bridge fleet pulse');
 assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue && bridge.pulses?.green, 'bridge pulses');
 const ping = agentBridgePing({ agent: 'DAZE-HUB', note: 'smoke' }, 'smoke');
 assert(ping.ok, 'agent ping');
+
+assert(buildCognisphere().title, 'cognisphere overview');
+assert(runCognisphereSweep({ force: true }, 'smoke').ok, 'cognisphere sweep');
+assert(haltCognisphereCost({ service: 'Ollama', reason: 'smoke' }, 'smoke').ok, 'cognisphere cost halt');
+assert(clearCognisphereDrift({ force: true }, 'smoke').ok, 'cognisphere drift clear');
+assert(mitigateCognisphereRisk({}, 'smoke').ok, 'cognisphere mitigate');
+assert(ackCognisphereFlag({}, 'smoke').ok, 'cognisphere flag ack');
 
 console.log(
   JSON.stringify(
