@@ -665,7 +665,14 @@ import {
   dawnserviceSummary,
   updateDawnservice,
 } from './dawnservice.js';
-import { buildOrbit } from './orbit.js';
+import {
+  ackOrbitFlag,
+  buildOrbit,
+  cleanOrbitRooms,
+  encodeOrbitKeys,
+  retryOrbitGuestapp,
+  runOrbitSweep,
+} from './orbit.js';
 import {
   createRosters,
   listRosters,
@@ -1352,7 +1359,14 @@ import {
   yieldruleSummary,
   updateYieldrule,
 } from './yieldrule.js';
-import { buildLedger } from './ledger.js';
+import {
+  ackLedgerFlag,
+  buildLedger,
+  clearLedgerChannel,
+  collectLedgerAr,
+  resolveLedgerChargeback,
+  runLedgerSweep,
+} from './ledger.js';
 import {
   createOnboarding,
   listOnboarding,
@@ -2662,7 +2676,14 @@ import {
   wellnesskitSummary,
   updateWellnesskit,
 } from './wellnesskit.js';
-import { buildSanctum } from './sanctum.js';
+import {
+  ackSanctumFlag,
+  buildSanctum,
+  clearSanctumBio,
+  clearSanctumSpa,
+  completeSanctumSession,
+  runSanctumSweep,
+} from './sanctum.js';
 import {
   createAssetmap,
   listAssetmap,
@@ -3880,7 +3901,14 @@ import {
   reefwatchSummary,
   updateReefwatch,
 } from './reefwatch.js';
-import { buildVerdant } from './verdant.js';
+import {
+  ackVerdantFlag,
+  buildVerdant,
+  clearVerdantWater,
+  closeVerdantEsg,
+  fixVerdantEv,
+  runVerdantSweep,
+} from './verdant.js';
 import {
   createAccessgate,
   listAccessgate,
@@ -11016,6 +11044,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildOrbit());
           return;
         }
+        if (path === '/api/orbit/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOrbitSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/orbit/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOrbitFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/orbit/room/clean' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cleanOrbitRooms(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/orbit/key/encode' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, encodeOrbitKeys(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/orbit/guestapp/retry' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, retryOrbitGuestapp(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 136–150 ──
 
@@ -13900,6 +13958,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/ledger' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildLedger());
+          return;
+        }
+        if (path === '/api/ledger/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLedgerSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ledger/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLedgerFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ledger/ar/collect' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, collectLedgerAr(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ledger/chargeback/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveLedgerChargeback(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ledger/channel/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearLedgerChannel(await readBody(req), user.username)); })();
           return;
         }
 
@@ -19407,6 +19495,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildSanctum());
           return;
         }
+        if (path === '/api/sanctum/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSanctumSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sanctum/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSanctumFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sanctum/spa/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSanctumSpa(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sanctum/bio/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSanctumBio(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sanctum/session/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeSanctumSession(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Estate Ops · Citadel (AŞAMA 481–495) ──
 
@@ -24523,6 +24641,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/verdant' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildVerdant());
+          return;
+        }
+        if (path === '/api/verdant/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVerdantSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/verdant/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVerdantFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/verdant/water/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearVerdantWater(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/verdant/esg/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeVerdantEsg(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/verdant/ev/fix' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fixVerdantEv(await readBody(req), user.username)); })();
           return;
         }
 

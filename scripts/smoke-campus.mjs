@@ -354,6 +354,38 @@ import {
   renewApexLicenses,
   approveApexOvertime,
 } from '../server/apex.js';
+import {
+  buildVerdant,
+  runVerdantSweep,
+  ackVerdantFlag,
+  clearVerdantWater,
+  closeVerdantEsg,
+  fixVerdantEv,
+} from '../server/verdant.js';
+import {
+  buildSanctum,
+  runSanctumSweep,
+  ackSanctumFlag,
+  clearSanctumSpa,
+  clearSanctumBio,
+  completeSanctumSession,
+} from '../server/sanctum.js';
+import {
+  buildLedger,
+  runLedgerSweep,
+  ackLedgerFlag,
+  collectLedgerAr,
+  resolveLedgerChargeback,
+  clearLedgerChannel,
+} from '../server/ledger.js';
+import {
+  buildOrbit,
+  runOrbitSweep,
+  ackOrbitFlag,
+  cleanOrbitRooms,
+  encodeOrbitKeys,
+  retryOrbitGuestapp,
+} from '../server/orbit.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -862,6 +894,35 @@ assert(clearApexInvoices({}, 'smoke').ok, 'apex invoice clear');
 assert(renewApexLicenses({}, 'smoke').ok, 'apex license renew');
 assert(approveApexOvertime({}, 'smoke').ok, 'apex overtime approve');
 assert(ackApexFlag({}, 'smoke').ok, 'apex flag ack');
+
+
+assert(buildSanctum().title, 'sanctum overview');
+assert(runSanctumSweep({ force: true }, 'smoke').ok, 'sanctum sweep');
+assert(clearSanctumSpa({}, 'smoke').ok, 'sanctum spa clear');
+assert(clearSanctumBio({}, 'smoke').ok, 'sanctum bio clear');
+assert(completeSanctumSession({}, 'smoke').ok, 'sanctum session complete');
+assert(ackSanctumFlag({}, 'smoke').ok, 'sanctum flag ack');
+
+assert(buildLedger().title, 'ledger overview');
+assert(runLedgerSweep({ force: true }, 'smoke').ok, 'ledger sweep');
+assert(collectLedgerAr({}, 'smoke').ok, 'ledger ar collect');
+assert(resolveLedgerChargeback({}, 'smoke').ok, 'ledger chargeback resolve');
+assert(clearLedgerChannel({}, 'smoke').ok, 'ledger channel clear');
+assert(ackLedgerFlag({}, 'smoke').ok, 'ledger flag ack');
+
+assert(buildOrbit().title, 'orbit overview');
+assert(runOrbitSweep({ force: true }, 'smoke').ok, 'orbit sweep');
+assert(cleanOrbitRooms({}, 'smoke').ok, 'orbit room clean');
+assert(encodeOrbitKeys({}, 'smoke').ok, 'orbit key encode');
+assert(retryOrbitGuestapp({}, 'smoke').ok, 'orbit guestapp retry');
+assert(ackOrbitFlag({}, 'smoke').ok, 'orbit flag ack');
+
+assert(buildVerdant().title, 'verdant overview');
+assert(runVerdantSweep({ force: true }, 'smoke').ok, 'verdant sweep');
+assert(clearVerdantWater({}, 'smoke').ok, 'verdant water clear');
+assert(closeVerdantEsg({}, 'smoke').ok, 'verdant esg close');
+assert(fixVerdantEv({}, 'smoke').ok, 'verdant ev fix');
+assert(ackVerdantFlag({}, 'smoke').ok, 'verdant flag ack');
 
 console.log(
   JSON.stringify(

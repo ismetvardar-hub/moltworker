@@ -97,6 +97,10 @@ try {
     '/api/peoplehub',
     '/api/bastion',
     '/api/apex',
+    '/api/sanctum',
+    '/api/ledger',
+    '/api/orbit',
+    '/api/verdant',
     '/api/health',
   ];
   for (const p of paths) {
@@ -269,6 +273,7 @@ try {
     token,
     body: { athlete_id: 'ath_1', stage: 'cleared', force: true },
   });
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,
@@ -795,6 +800,51 @@ try {
   assert(apOt.res.ok && apOt.data.ok !== false, 'apex overtime approve');
   const apAck = await req('/api/apex/flag/ack', { method: 'POST', token, body: {} });
   assert(apAck.res.ok && apAck.data.ok !== false, 'apex flag ack');
+
+
+  const snSweep = await req('/api/sanctum/sweep', { method: 'POST', token, body: { force: true } });
+  assert(snSweep.res.ok && snSweep.data.ok !== false, 'sanctum sweep');
+  const snSpa = await req('/api/sanctum/spa/clear', { method: 'POST', token, body: {} });
+  assert(snSpa.res.ok && snSpa.data.ok !== false, 'sanctum spa clear');
+  const snBio = await req('/api/sanctum/bio/clear', { method: 'POST', token, body: {} });
+  assert(snBio.res.ok && snBio.data.ok !== false, 'sanctum bio clear');
+  const snSes = await req('/api/sanctum/session/complete', { method: 'POST', token, body: {} });
+  assert(snSes.res.ok && snSes.data.ok !== false, 'sanctum session complete');
+  const snAck = await req('/api/sanctum/flag/ack', { method: 'POST', token, body: {} });
+  assert(snAck.res.ok && snAck.data.ok !== false, 'sanctum flag ack');
+
+  const ldSweep = await req('/api/ledger/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ldSweep.res.ok && ldSweep.data.ok !== false, 'ledger sweep');
+  const ldAr = await req('/api/ledger/ar/collect', { method: 'POST', token, body: {} });
+  assert(ldAr.res.ok && ldAr.data.ok !== false, 'ledger ar collect');
+  const ldCb = await req('/api/ledger/chargeback/resolve', { method: 'POST', token, body: {} });
+  assert(ldCb.res.ok && ldCb.data.ok !== false, 'ledger chargeback resolve');
+  const ldCh = await req('/api/ledger/channel/clear', { method: 'POST', token, body: {} });
+  assert(ldCh.res.ok && ldCh.data.ok !== false, 'ledger channel clear');
+  const ldAck = await req('/api/ledger/flag/ack', { method: 'POST', token, body: {} });
+  assert(ldAck.res.ok && ldAck.data.ok !== false, 'ledger flag ack');
+
+  const orbSweep = await req('/api/orbit/sweep', { method: 'POST', token, body: { force: true } });
+  assert(orbSweep.res.ok && orbSweep.data.ok !== false, 'orbit sweep');
+  const orbRm = await req('/api/orbit/room/clean', { method: 'POST', token, body: {} });
+  assert(orbRm.res.ok && orbRm.data.ok !== false, 'orbit room clean');
+  const orbKey = await req('/api/orbit/key/encode', { method: 'POST', token, body: {} });
+  assert(orbKey.res.ok && orbKey.data.ok !== false, 'orbit key encode');
+  const orbApp = await req('/api/orbit/guestapp/retry', { method: 'POST', token, body: {} });
+  assert(orbApp.res.ok && orbApp.data.ok !== false, 'orbit guestapp retry');
+  const orbAck = await req('/api/orbit/flag/ack', { method: 'POST', token, body: {} });
+  assert(orbAck.res.ok && orbAck.data.ok !== false, 'orbit flag ack');
+
+  const vdSweep = await req('/api/verdant/sweep', { method: 'POST', token, body: { force: true } });
+  assert(vdSweep.res.ok && vdSweep.data.ok !== false, 'verdant sweep');
+  const vdWat = await req('/api/verdant/water/clear', { method: 'POST', token, body: {} });
+  assert(vdWat.res.ok && vdWat.data.ok !== false, 'verdant water clear');
+  const vdEsg = await req('/api/verdant/esg/close', { method: 'POST', token, body: {} });
+  assert(vdEsg.res.ok && vdEsg.data.ok !== false, 'verdant esg close');
+  const vdEv = await req('/api/verdant/ev/fix', { method: 'POST', token, body: {} });
+  assert(vdEv.res.ok && vdEv.data.ok !== false, 'verdant ev fix');
+  const vdAck = await req('/api/verdant/flag/ack', { method: 'POST', token, body: {} });
+  assert(vdAck.res.ok && vdAck.data.ok !== false, 'verdant flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
