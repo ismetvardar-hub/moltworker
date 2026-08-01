@@ -28,6 +28,8 @@ const IMPORTANT = new Set([
   'brands.delete',
   'guests.create',
   'guests.sync',
+  'playbooks.create',
+  'webhooks.create',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

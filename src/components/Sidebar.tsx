@@ -20,6 +20,7 @@ import {
   Ticket,
   UserRound,
   Users,
+  Webhook,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -34,6 +35,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'ops',
   'metrics',
   'reports',
+  'webhooks',
 ]);
 
 interface SidebarProps {
@@ -156,6 +158,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Gözlemlenebilirlik',
     description: 'Metrikler & hata panosu',
     icon: BarChart3,
+  },
+  {
+    id: 'webhooks',
+    label: 'Webhooks',
+    description: 'Outbound olay POST',
+    icon: Webhook,
   },
   {
     id: 'settings',

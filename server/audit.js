@@ -39,6 +39,20 @@ export function appendAudit({ actor, action, detail, meta }) {
       level: ntf.level,
     });
   }
+  // AŞAMA 21 — seçili olayları webhook'a yayınla (webhooks.* hariç döngü kırılır)
+  const HOOKABLE = new Set([
+    'pass.admit',
+    'pass.deny',
+    'archive.save',
+    'jobs.failed',
+    'guests.create',
+    'settings.update',
+  ]);
+  if (HOOKABLE.has(action)) {
+    void import('./webhooks.js')
+      .then(({ dispatchWebhooks }) => dispatchWebhooks(action, entry))
+      .catch(() => undefined);
+  }
   return entry;
 }
 

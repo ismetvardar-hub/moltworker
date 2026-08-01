@@ -52,6 +52,7 @@ export const ROLE_PAGES = {
     'ops',
     'metrics',
     'field',
+    'webhooks',
     'settings',
   ],
   kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications', 'field', 'guests'],

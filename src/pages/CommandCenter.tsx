@@ -54,6 +54,8 @@ import {
   type Job,
 } from '../services/jobs';
 import LiveFeed from '../components/LiveFeed';
+import { fetchPlaybooks, type Playbook } from '../services/playbooks';
+import { getStoredUser } from '../services/auth';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -215,6 +217,7 @@ export default function CommandCenter() {
   const [streaming, setStreaming] = useState(false);
   const [archive, setArchive] = useState<ArchiveEntry[]>([]);
   const [readyJobs, setReadyJobs] = useState<Job[]>([]);
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const issueRef = useRef<(text?: string) => Promise<void>>(async () => undefined);
@@ -226,6 +229,8 @@ export default function CommandCenter() {
       sessionStorage.removeItem('likya-pending-directive');
       setDraft(pending);
     }
+    const brandId = getStoredUser()?.activeBrandId;
+    void fetchPlaybooks(brandId).then(setPlaybooks);
   }, []);
 
   useEffect(() => {
@@ -610,6 +615,28 @@ export default function CommandCenter() {
               label={aiOnline ? 'Canlı AI' : aiOnline === null ? 'Kontrol ediliyor' : 'Simülasyon'}
             />
           </div>
+
+          {playbooks.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Playbook&apos;lar
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {playbooks.map((pb) => (
+                  <button
+                    key={pb.id}
+                    type="button"
+                    disabled={streaming}
+                    onClick={() => setDraft(pb.prompt)}
+                    title={pb.prompt}
+                    className="rounded-lg border border-obsidian-700 bg-obsidian-950 px-2.5 py-1 text-[11px] font-semibold text-slate-300 transition hover:border-lykia-500/40 hover:text-lykia-300 disabled:opacity-40"
+                  >
+                    {pb.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <textarea
             value={draft}

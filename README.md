@@ -212,6 +212,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **17** | Misafir CRM (`/api/guests`) — pass + WA + geçiş zaman çizelgesi |
 | **18** | PWA — `manifest.webmanifest` + shell service worker |
 
+### Güvenlik · Playbook · Webhook (AŞAMA 19–21)
+
+| Aşama | Özellik |
+|-------|---------|
+| **19** | API rate limit + güvenlik başlıkları (`X-RateLimit-*`, CSP) |
+| **20** | Komuta playbook şablonları (`/api/playbooks`) |
+| **21** | Outbound webhooks (`/api/webhooks`) + delivery log |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

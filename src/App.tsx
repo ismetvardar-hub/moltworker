@@ -20,6 +20,7 @@ import FieldPage from './pages/FieldPage';
 import MetricsPage from './pages/MetricsPage';
 import BrandsPage from './pages/BrandsPage';
 import GuestsPage from './pages/GuestsPage';
+import WebhooksPage from './pages/WebhooksPage';
 import {
   fetchMe,
   getStoredUser,
@@ -48,6 +49,7 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   ops: OpsPage,
   metrics: MetricsPage,
   field: FieldPage,
+  webhooks: WebhooksPage,
   settings: SettingsPage,
 };
 

@@ -17,6 +17,7 @@ export type PageId =
   | 'ops'
   | 'metrics'
   | 'field'
+  | 'webhooks'
   | 'settings';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';

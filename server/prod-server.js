@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createPlatformMiddleware } from './platform.js';
 import { createIntegrationsMiddleware } from './integrations.js';
 import { createSearchMiddleware } from './search-proxy.js';
+import { createRateLimitMiddleware } from './rateLimit.js';
 import { applySettingsToEnv } from './settings.js';
 import { startJobTicker } from './jobs.js';
 
@@ -23,6 +24,7 @@ applySettingsToEnv();
 startJobTicker(5000);
 
 const chain = [
+  createRateLimitMiddleware(),
   createSearchMiddleware(),
   createIntegrationsMiddleware(),
   createPlatformMiddleware(),

@@ -74,6 +74,13 @@ import {
   syncGuestsFromSources,
   upsertGuest,
 } from './guests.js';
+import { createPlaybook, listPlaybooks, removePlaybook } from './playbooks.js';
+import {
+  createWebhook,
+  listDeliveries,
+  listWebhooks,
+  removeWebhook,
+} from './webhooks.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -82,6 +89,7 @@ listVenues();
 listHolders();
 listBrands();
 listGuests();
+listPlaybooks();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -829,6 +837,78 @@ export function createPlatformMiddleware() {
             return;
           }
           sendJson(res, 200, { guest });
+          return;
+        }
+
+        // ── AŞAMA 20: Playbooks ───────────────────────────────────────
+        if (path === '/api/playbooks' && req.method === 'GET') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          const brandId = url.searchParams.get('brandId') || user.activeBrandId || undefined;
+          sendJson(res, 200, { playbooks: listPlaybooks(brandId) });
+          return;
+        }
+        if (path === '/api/playbooks' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            if (!body.prompt) {
+              sendJson(res, 400, { error: 'prompt zorunlu' });
+              return;
+            }
+            sendJson(res, 200, { playbook: createPlaybook(body, user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/playbooks/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const pb = removePlaybook(id, user.username);
+          if (!pb) {
+            sendJson(res, 404, { error: 'Playbook bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, playbook: pb });
+          return;
+        }
+
+        // ── AŞAMA 21: Webhooks ────────────────────────────────────────
+        if (path === '/api/webhooks' && req.method === 'GET') {
+          if (!requireCeo(req, res)) return;
+          sendJson(res, 200, {
+            webhooks: listWebhooks(),
+            deliveries: listDeliveries(30),
+          });
+          return;
+        }
+        if (path === '/api/webhooks' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              sendJson(res, 200, { webhook: createWebhook(body, user.username) });
+            } catch (err) {
+              sendJson(res, 400, {
+                error: err instanceof Error ? err.message : 'Webhook oluşturulamadı',
+              });
+            }
+          })();
+          return;
+        }
+        if (path.startsWith('/api/webhooks/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const hook = removeWebhook(id, user.username);
+          if (!hook) {
+            sendJson(res, 404, { error: 'Webhook bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, webhook: hook });
           return;
         }
 

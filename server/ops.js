@@ -28,6 +28,9 @@ const BACKUP_COLLECTIONS = [
   'access-events',
   'brands',
   'guests',
+  'playbooks',
+  'webhooks',
+  'webhook-deliveries',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];
