@@ -531,6 +531,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **239** | Pet stay |
 | **240** | Meridian checkpoint (`/api/meridian`) |
 
+### Finans · Ledger (AŞAMA 241–255)
+
+| Aşama | Özellik |
+|-------|---------|
+| **241** | AR fatura |
+| **242** | AP ödeme |
+| **243** | Banka mutabakat |
+| **244** | Döviz kur |
+| **245** | Tip out |
+| **246** | Depozito |
+| **247** | İade |
+| **248** | Chargeback |
+| **249** | Hediye kullanım |
+| **250** | Üyelik fatura |
+| **251** | Rate plan |
+| **252** | Channel manager |
+| **253** | Overbooking |
+| **254** | Yield kural |
+| **255** | Ledger checkpoint (`/api/ledger`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

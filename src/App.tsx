@@ -239,6 +239,21 @@ import ShoeshinePage from './pages/ShoeshinePage';
 import BabycotPage from './pages/BabycotPage';
 import PetstayPage from './pages/PetstayPage';
 import MeridianPage from './pages/MeridianPage';
+import ArbillPage from './pages/ArbillPage';
+import ApbillPage from './pages/ApbillPage';
+import BankrecPage from './pages/BankrecPage';
+import FxratesPage from './pages/FxratesPage';
+import TipoutPage from './pages/TipoutPage';
+import DepositPage from './pages/DepositPage';
+import RefundsPage from './pages/RefundsPage';
+import ChargebackPage from './pages/ChargebackPage';
+import GiftredPage from './pages/GiftredPage';
+import MemberbillPage from './pages/MemberbillPage';
+import RateplanPage from './pages/RateplanPage';
+import ChannelmgrPage from './pages/ChannelmgrPage';
+import OverbookPage from './pages/OverbookPage';
+import YieldrulePage from './pages/YieldrulePage';
+import LedgerPage from './pages/LedgerPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -447,6 +462,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   babycot: BabycotPage,
   petstay: PetstayPage,
   meridian: MeridianPage,
+  arbill: ArbillPage,
+  apbill: ApbillPage,
+  bankrec: BankrecPage,
+  fxrates: FxratesPage,
+  tipout: TipoutPage,
+  deposit: DepositPage,
+  refunds: RefundsPage,
+  chargeback: ChargebackPage,
+  giftred: GiftredPage,
+  memberbill: MemberbillPage,
+  rateplan: RateplanPage,
+  channelmgr: ChannelmgrPage,
+  overbook: OverbookPage,
+  yieldrule: YieldrulePage,
+  ledger: LedgerPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

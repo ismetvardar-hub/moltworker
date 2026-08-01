@@ -179,6 +179,15 @@ import {
   Footprints,
   PawPrint,
   Compass,
+  ReceiptText,
+  WalletCards,
+  BadgeDollarSign,
+  PiggyBank,
+  TrendingDown,
+  Percent,
+  Globe,
+  Layers,
+  BookMarked,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -214,6 +223,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'sentinel',
   'horizon',
   'meridian',
+  'ledger',
 ]);
 
 interface SidebarProps {
@@ -649,6 +659,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'shoeshine', label: 'Ayakkabı Boya', description: 'Shoe shine servisi.', icon: Footprints },
   { id: 'babycot', label: 'Bebek Karyola', description: 'Baby cot / beşik talepleri.', icon: Baby },
   { id: 'petstay', label: 'Pet Stay', description: 'Evcil hayvan konak kayıt.', icon: PawPrint },
+  { id: 'arbill', label: 'AR Fatura', description: 'Alacak yaşlandırma satırları.', icon: ReceiptText },
+  { id: 'apbill', label: 'AP Ödeme', description: 'Borç ödeme kuyruğu.', icon: WalletCards },
+  { id: 'bankrec', label: 'Banka Mutabakat', description: 'Hesap mutabakat satırları.', icon: Landmark },
+  { id: 'fxrates', label: 'Döviz Kur', description: 'Günlük FX kurları.', icon: BadgeDollarSign },
+  { id: 'tipout', label: 'Tip Out', description: 'Bahşiş dağıtım satırları.', icon: Coins },
+  { id: 'deposit', label: 'Depozito', description: 'Misafir depozito kayıtları.', icon: PiggyBank },
+  { id: 'refunds', label: 'İade', description: 'Ödeme iade kuyruğu.', icon: TrendingDown },
+  { id: 'chargeback', label: 'Chargeback', description: 'Kart chargeback dosyaları.', icon: Scale },
+  { id: 'giftred', label: 'Hediye Kullanım', description: 'Gift card redeem log.', icon: Gift },
+  { id: 'memberbill', label: 'Üyelik Fatura', description: 'Pass üyelik faturaları.', icon: CreditCard },
+  { id: 'rateplan', label: 'Rate Plan', description: 'Oda/pass rate planları.', icon: Percent },
+  { id: 'channelmgr', label: 'Channel Manager', description: 'OTA kanal eşlemeleri.', icon: Globe },
+  { id: 'overbook', label: 'Overbooking', description: 'Overbooking karar kayıtları.', icon: Layers },
+  { id: 'yieldrule', label: 'Yield Kural', description: 'Dinamik fiyat kuralları.', icon: TrendingUp },
+  { id: 'ledger', label: 'Ledger', description: 'AŞAMA 255 finans özeti.', icon: BookMarked },
   { id: 'meridian', label: 'Meridian', description: 'AŞAMA 240 oda servis özeti.', icon: Compass },
   { id: 'horizon', label: 'Horizon', description: 'AŞAMA 225 F&B/gelir özeti.', icon: Sunrise },
   { id: 'sentinel', label: 'Sentinel', description: 'AŞAMA 210 güvenlik özeti.', icon: ShieldAlert },
