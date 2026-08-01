@@ -53,7 +53,10 @@ import {
   reserveExtremeSlot,
   returnExtremeGear,
   signExtremeWaiver,
+  joinExtremeWaitlist,
+  promoteExtremeWaitlist,
 } from '../server/extremepark.js';
+import { sweepFleetPresence } from '../server/agentfleet.js';
 import { runSportEligibilitySweep } from '../server/sportbridge.js';
 import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
@@ -222,12 +225,15 @@ if (!reserved.ok) reserved = reserveExtremeSlot({ user_id: 'guest_can' }, 'smoke
 assert(reserved.ok, 'slot reserve');
 const gearRet = returnExtremeGear({ gear_id: 'xg_1' }, 'smoke');
 assert(gearRet.ok, 'gear return');
+assert(joinExtremeWaitlist({ user_id: 'guest_can', slot_id: 'xs_2' }, 'smoke').ok, 'waitlist join');
+promoteExtremeWaitlist({}, 'smoke');
 const greenAuto = runGreenPulseAutomations({}, 'smoke');
 assert(greenAuto.ok && Array.isArray(greenAuto.actions), 'green automations');
 
 const fleet = agentFleetOverview();
 assert(fleet.summary?.total === 28, '28 core agents');
 pingFleetAgent({ agent: 'ETHOS', note: 'smoke' }, 'smoke');
+assert(sweepFleetPresence({ campus_only: true }, 'smoke').ok, 'presence sweep');
 const dispatched = dispatchFleetDirective({ title: 'Hava iptal ve ESG alert brifing' }, 'smoke');
 assert(dispatched.targets?.includes('REMINDER-AI') || dispatched.targets?.includes('GAIA-ESG'), 'fleet dispatch');
 

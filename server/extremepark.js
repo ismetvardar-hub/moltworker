@@ -271,6 +271,7 @@ export function extremeOverview() {
   const waivers = ensureWaivers();
   const weather = buildWeatherBrief('venue_antalya_extreme');
   const notices = ensureNotices();
+  const waitlist = ensureWaitlist().filter((w) => w.status === 'waiting');
   return {
     club_id: CLUB_ID,
     title: 'Antalya Extreme Spor · Yaşam & Deneyim Parkı',
@@ -280,6 +281,7 @@ export function extremeOverview() {
     slots,
     members,
     gear,
+    waitlist: waitlist.slice(0, 30),
     waivers_total: waivers.length,
     notices: notices.slice(0, 20),
     agents: {
@@ -295,6 +297,7 @@ export function extremeOverview() {
       gear_out: gear.filter((g) => g.status === 'out').length,
       gear_service: gear.filter((g) => g.status === 'service').length,
       waiver_pending: members.filter((m) => !m.user_profile?.waiver_signed).length,
+      waitlist: waitlist.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -541,6 +544,11 @@ export function extremeparkSummary() {
     extremepark: o.slots,
     overview: o,
   };
+}
+
+function ensureWaitlist() {
+  const list = readCollection('extreme-waitlist', null);
+  return Array.isArray(list) ? list : [];
 }
 
 /** Hava hold — iptal değil; yeniden değerlendirme penceresi */
@@ -809,4 +817,69 @@ export function returnExtremeGear(input = {}, actor = 'system') {
     meta: { id: item.id },
   });
   return { ok: true, gear: gear[idx], overview: extremeOverview() };
+}
+
+/** Slot dolu / hold → bekleme listesi */
+export function joinExtremeWaitlist(input = {}, actor = 'system') {
+  const slots = ensureSlots();
+  const slot =
+    slots.find((s) => s.id === input.slot_id) ||
+    slots.find((s) => s.status === 'full' || s.status === 'weather_hold') ||
+    slots[0];
+  if (!slot) return { ok: false, error: 'Slot yok' };
+  const userId = input.user_id || 'guest_ela';
+  const list = ensureWaitlist();
+  if (list.some((w) => w.user_id === userId && w.slot_id === slot.id && w.status === 'waiting')) {
+    return { ok: false, error: 'Zaten waitlistte' };
+  }
+  const row = {
+    id: rid('xw'),
+    slot_id: slot.id,
+    branch: slot.branch,
+    slot_start: slot.slot_start,
+    user_id: userId,
+    status: 'waiting',
+    at: new Date().toISOString(),
+    actor,
+  };
+  list.unshift(row);
+  writeCollection('extreme-waitlist', list.slice(0, 300));
+  enqueueAgentJob(
+    {
+      agent: 'REMINDER-AI',
+      title: `waitlist · ${userId} · ${slot.branch} ${slot.slot_start}`,
+      priority: 'normal',
+      payload: { waitlist_id: row.id, slot_id: slot.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.waitlist_join',
+    detail: `${userId} · ${slot.branch}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, entry: row, overview: extremeOverview() };
+}
+
+/** Waitlistten ilk kişiyi rezervasyona yükselt */
+export function promoteExtremeWaitlist(input = {}, actor = 'system') {
+  const list = ensureWaitlist();
+  let idx = list.findIndex((w) => w.id === input.waitlist_id && w.status === 'waiting');
+  if (idx < 0) idx = list.findIndex((w) => w.status === 'waiting');
+  if (idx < 0) return { ok: false, error: 'Waitlist boş' };
+  const entry = list[idx];
+  list[idx] = { ...entry, status: 'promoted', promoted_at: new Date().toISOString() };
+  writeCollection('extreme-waitlist', list);
+  const reserved = reserveExtremeSlot(
+    { user_id: entry.user_id, slot_id: input.slot_id || entry.slot_id },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.waitlist_promote',
+    detail: `${entry.user_id} · ${entry.slot_id}`,
+    meta: { id: entry.id, reserved: !!reserved.ok },
+  });
+  return { ok: true, entry: list[idx], reservation: reserved, overview: extremeOverview() };
 }

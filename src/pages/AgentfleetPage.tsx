@@ -70,6 +70,18 @@ export default function AgentfleetPage() {
               />
               <button
                 type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.sweepFleetPresence({ campus_only: true }).then((r: any) => {
+                    ping(`Presence ${r.updated} ajan`)
+                    return refresh()
+                  })
+                }
+              >
+                Kampüs presence sweep
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
                   void api.dispatchFleetDirective({ title: directive }).then((r: any) => {

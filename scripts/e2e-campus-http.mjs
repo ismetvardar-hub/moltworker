@@ -178,6 +178,21 @@ try {
   });
   assert(gear.res.ok, 'gear return');
 
+  const wl = await req('/api/extreme/waitlist', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_can', slot_id: 'xs_2' },
+  });
+  assert(wl.res.ok, 'waitlist');
+  await req('/api/extreme/waitlist/promote', { method: 'POST', token, body: {} });
+
+  const presence = await req('/api/agentfleet/presence-sweep', {
+    method: 'POST',
+    token,
+    body: { campus_only: true },
+  });
+  assert(presence.res.ok && presence.data.updated >= 1, 'presence sweep');
+
   const elig = await req('/api/sportbridge/eligibility', { method: 'POST', token, body: {} });
   assert(elig.res.ok, 'sport eligibility');
 

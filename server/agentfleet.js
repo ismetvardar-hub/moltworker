@@ -192,3 +192,38 @@ export function dispatchFleetDirective(input = {}, actor = 'system') {
     overview: agentFleetOverview(),
   };
 }
+
+/** Kampüs ajanlarına toplu presence nabız */
+export function sweepFleetPresence(input = {}, actor = 'system') {
+  const campusOnly = input.campus_only !== false;
+  const targets = FLEET.filter((a) => (campusOnly ? a.campus : true));
+  const presence = ensurePresence();
+  const now = new Date().toISOString();
+  let updated = 0;
+  for (const a of targets) {
+    const idx = presence.findIndex((p) => p.code === a.code);
+    const row = {
+      code: a.code,
+      status: 'online',
+      last_ping: now,
+      note: input.note || 'fleet sweep',
+      actor,
+    };
+    if (idx >= 0) presence[idx] = { ...presence[idx], ...row };
+    else presence.push(row);
+    updated++;
+  }
+  writeCollection('agent-presence', presence);
+  prependItem(
+    'agent-pings',
+    { id: rid('aps'), kind: 'sweep', n: updated, campus_only: campusOnly, at: now, actor },
+    200,
+  );
+  appendAudit({
+    actor,
+    action: 'fleet.presence_sweep',
+    detail: `${updated} ajan · campus_only=${campusOnly}`,
+    meta: { n: updated },
+  });
+  return { ok: true, updated, overview: agentFleetOverview() };
+}

@@ -25,3 +25,13 @@ export async function dispatchFleetDirective(body: Record<string, unknown> = {})
     }),
   )
 }
+
+export async function sweepFleetPresence(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/presence-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

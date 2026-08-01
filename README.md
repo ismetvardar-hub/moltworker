@@ -1853,6 +1853,8 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | campus map | `/campus` UI | Canlı nabız + hızlı ops (oto/SLA/ESG/broadcast) |
 | family++ | `/api/familycamp/transfer` | Emanet → program transfer |
 | ops UI | OpsPage | Kampüs health skoru şeridi |
+| extreme++ | `/api/extreme/waitlist` · `/promote` | Slot bekleme listesi |
+| fleet+ | `/api/agentfleet/presence-sweep` | Kampüs ajan presence nabız |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

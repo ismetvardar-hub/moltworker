@@ -6679,6 +6679,8 @@ import {
   extremeSlotWeatherCheck,
   extremeUserSpec,
   extremeWalletSpend,
+  joinExtremeWaitlist,
+  promoteExtremeWaitlist,
   reserveExtremeSlot,
   returnExtremeGear,
   signExtremeWaiver,
@@ -6727,7 +6729,7 @@ import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportB
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
 import { ackCampusBriefAction, campusBriefOverview, campusHealthCheck, runCampusAutomations, syncCampusBriefActions } from './campusbrief.js';
-import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
+import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent, sweepFleetPresence } from './agentfleet.js';
 
 
 
@@ -36508,6 +36510,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, returnExtremeGear(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/extreme/waitlist' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, joinExtremeWaitlist(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/waitlist/promote' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, promoteExtremeWaitlist(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/presence-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, sweepFleetPresence(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge/eligibility' && req.method === 'POST') {

@@ -8,7 +8,9 @@ import {
   extremeWalletSpend,
   fetchExtremeOverview,
   fetchExtremeUserSpec,
+  joinExtremeWaitlist,
   patchExtremeGear,
+  promoteExtremeWaitlist,
   reserveExtremeSlot,
   returnExtremeGear,
   runExtremeWeatherCheck,
@@ -302,18 +304,46 @@ export default function ExtremeParkPage() {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="mt-2 rounded-md bg-obsidian-800 px-2 py-1 text-xs text-slate-300"
-                onClick={() =>
-                  void cancelExtremeReservation({ user_id: userId }).then(() => {
-                    ping('Rezervasyon iptal')
-                    return refresh()
-                  })
-                }
-              >
-                Aktif rezervasyonu iptal
-              </button>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-md bg-obsidian-800 px-2 py-1 text-xs text-slate-300"
+                  onClick={() =>
+                    void cancelExtremeReservation({ user_id: userId }).then(() => {
+                      ping('Rezervasyon iptal')
+                      return refresh()
+                    })
+                  }
+                >
+                  Aktif rezervasyonu iptal
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-obsidian-800 px-2 py-1 text-xs text-slate-300"
+                  onClick={() =>
+                    void joinExtremeWaitlist({ user_id: userId }).then((r: any) => {
+                      if (!r.ok) throw new Error(r.error || 'Waitlist')
+                      ping('Waitlist')
+                      return refresh()
+                    }).catch((e: Error) => setError(e.message))
+                  }
+                >
+                  Waitlist
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-lykia-500/80 px-2 py-1 text-xs text-obsidian-950"
+                  onClick={() =>
+                    void promoteExtremeWaitlist({}).then((r: any) => {
+                      ping(r.reservation?.ok ? 'Waitlist → rezervasyon' : 'Promote denendi')
+                      return refresh()
+                    })
+                  }
+                >
+                  Waitlist promote
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Waitlist: {summary?.waitlist ?? 0}</p>
             </PanelCard>
           </div>
 
