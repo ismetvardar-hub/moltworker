@@ -60,9 +60,14 @@ export function bookFamilyProgram(input = {}, actor = 'system') {
   if (p.booked >= p.seats) {
     // doluysa açık kontenjanlı programa düş
     const alt = programs.findIndex((x) => (x.booked || 0) < (x.seats || 0));
-    if (alt < 0) return { ok: false, error: 'Kontenjan dolu' };
-    idx = alt;
-    p = programs[idx];
+    if (alt < 0) {
+      // hepsi doluysa kontenjan genişlet (demo ops)
+      p = { ...p, seats: (Number(p.seats) || 0) + 8 };
+      programs[idx] = p;
+    } else {
+      idx = alt;
+      p = programs[idx];
+    }
   }
   p = refreshProgramStatus({ ...p, booked: (Number(p.booked) || 0) + 1 });
   programs[idx] = p;
