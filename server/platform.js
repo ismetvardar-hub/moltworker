@@ -6728,7 +6728,17 @@ import {
   settleMallTenantFnb,
   updateMallTenant,
 } from './openmall.js';
-import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote, transferFamilyChild } from './familycamp.js';
+import {
+  authorizedFamilyCheckout,
+  bookFamilyProgram,
+  familyCampOverview,
+  familyCheckIn,
+  familyCheckOut,
+  familyEmergencyNote,
+  issueFamilyPickupCode,
+  runFamilySafetySweep,
+  transferFamilyChild,
+} from './familycamp.js';
 import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import {
   confirmCultureTicket,
@@ -36476,6 +36486,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, transferFamilyChild(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/familycamp/pickup-code' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, issueFamilyPickupCode(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/authorized-checkout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, authorizedFamilyCheckout(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/safety-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFamilySafetySweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/culture/confirm' && req.method === 'POST') {

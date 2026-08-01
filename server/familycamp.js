@@ -38,18 +38,25 @@ export function familyCampOverview() {
   const checkins = ensureCheckins();
   const notes = readCollection('family-notes', []) || [];
   const transfers = readCollection('family-transfers', []) || [];
+  const pickups = readCollection('family-pickup-codes', []) || [];
+  const custody = readCollection('family-custody-ledger', []) || [];
+  const activeCodes = (Array.isArray(pickups) ? pickups : []).filter((p) => p.status === 'active');
   return {
     title: 'Aile & Çocuk',
     programs,
     checkins: checkins.slice(0, 20),
     notes: (Array.isArray(notes) ? notes : []).slice(0, 15),
     transfers: (Array.isArray(transfers) ? transfers : []).slice(0, 15),
+    pickup_codes: activeCodes.slice(0, 20),
+    custody_ledger: (Array.isArray(custody) ? custody : []).slice(0, 20),
     summary: {
       open: programs.filter((p) => p.status === 'open').length,
       full: programs.filter((p) => p.status === 'full').length,
       in_care: checkins.filter((c) => c.status === 'in_care').length,
       seats_left: programs.reduce((s, p) => s + Math.max(0, (p.seats || 0) - (p.booked || 0)), 0),
       transfers: Array.isArray(transfers) ? transfers.length : 0,
+      pickup_codes_active: activeCodes.length,
+      custody_events: Array.isArray(custody) ? custody.length : 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -194,4 +201,160 @@ export function familyEmergencyNote(input = {}, actor = 'system') {
   );
   appendAudit({ actor, action: 'family.emergency', detail: row.note, meta: { id: row.id } });
   return { ok: true, note: row, overview: familyCampOverview() };
+}
+
+/** Yetkili teslim kodu — kısa ömürlü */
+export function issueFamilyPickupCode(input = {}, actor = 'system') {
+  const checkins = ensureCheckins();
+  let idx = checkins.findIndex((c) => c.id === input.checkin_id && c.status === 'in_care');
+  if (idx < 0) idx = checkins.findIndex((c) => c.child_name === input.child_name && c.status === 'in_care');
+  if (idx < 0) idx = checkins.findIndex((c) => c.status === 'in_care');
+  if (idx < 0) return { ok: false, error: 'Açık emanet yok' };
+  const checkin = checkins[idx];
+  const minutes = Number(input.minutes) || 45;
+  const code = String(input.code || Math.floor(100000 + Math.random() * 900000));
+  const row = {
+    id: rid('fpc'),
+    checkin_id: checkin.id,
+    child_name: checkin.child_name,
+    code,
+    authorized_name: input.authorized_name || checkin.guardian || 'Veli',
+    relation: input.relation || 'guardian',
+    status: 'active',
+    expires_at: new Date(Date.now() + minutes * 60_000).toISOString(),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-pickup-codes', row, 300);
+  checkins[idx] = { ...checkin, pickup_code_id: row.id, authorized_pickup: row.authorized_name };
+  writeCollection('family-checkins', checkins);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `pickup kod · ${row.child_name} · ${row.authorized_name}`,
+      priority: 'normal',
+      payload: { pickup_id: row.id, checkin_id: checkin.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'family.pickup_code',
+    detail: `${row.child_name} · ${row.authorized_name}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, pickup: row, overview: familyCampOverview() };
+}
+
+/** Kod / yetkili isim ile güvenli teslim */
+export function authorizedFamilyCheckout(input = {}, actor = 'system') {
+  const codes = readCollection('family-pickup-codes', []) || [];
+  const codeList = Array.isArray(codes) ? codes : [];
+  let pidx = codeList.findIndex(
+    (p) =>
+      p.status === 'active' &&
+      (p.code === String(input.code || '') || p.id === input.pickup_id || p.id === input.id),
+  );
+  if (pidx < 0 && input.authorized_name) {
+    pidx = codeList.findIndex(
+      (p) =>
+        p.status === 'active' &&
+        String(p.authorized_name).toLowerCase() === String(input.authorized_name).toLowerCase(),
+    );
+  }
+  if (pidx < 0) return { ok: false, error: 'Geçerli pickup kodu yok' };
+  const pickup = codeList[pidx];
+  if (pickup.expires_at && new Date(pickup.expires_at).getTime() < Date.now() && !input.force) {
+    codeList[pidx] = { ...pickup, status: 'expired' };
+    writeCollection('family-pickup-codes', codeList);
+    return { ok: false, error: 'Pickup kodu süresi doldu' };
+  }
+  const checkins = ensureCheckins();
+  const cidx = checkins.findIndex((c) => c.id === pickup.checkin_id && c.status === 'in_care');
+  if (cidx < 0) return { ok: false, error: 'Emanet zaten teslim edilmiş' };
+  const presented = input.authorized_name || pickup.authorized_name;
+  checkins[cidx] = {
+    ...checkins[cidx],
+    status: 'returned',
+    out_at: new Date().toISOString(),
+    returned_to: presented,
+    checkout_mode: 'authorized',
+  };
+  writeCollection('family-checkins', checkins);
+  codeList[pidx] = { ...pickup, status: 'used', used_at: new Date().toISOString(), used_by: presented };
+  writeCollection('family-pickup-codes', codeList);
+  const ledger = {
+    id: rid('fcl'),
+    checkin_id: checkins[cidx].id,
+    child_name: checkins[cidx].child_name,
+    authorized_name: presented,
+    pickup_id: pickup.id,
+    code: pickup.code,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-custody-ledger', ledger, 400);
+  appendAudit({
+    actor,
+    action: 'family.authorized_checkout',
+    detail: `${ledger.child_name} → ${presented}`,
+    meta: { id: ledger.id },
+  });
+  return { ok: true, checkin: checkins[cidx], pickup: codeList[pidx], ledger, overview: familyCampOverview() };
+}
+
+/** Alerji / acil / bayat emanet taraması */
+export function runFamilySafetySweep(input = {}, actor = 'system') {
+  const checkins = ensureCheckins();
+  const notes = readCollection('family-notes', []) || [];
+  const noteList = Array.isArray(notes) ? notes : [];
+  const hours = Number(input.stale_hours) || 6;
+  const cutoff = Date.now() - hours * 3600_000;
+  const flags = [];
+  for (const c of checkins.filter((x) => x.status === 'in_care')) {
+    if (c.allergy) {
+      flags.push({ kind: 'allergy', checkin_id: c.id, child_name: c.child_name, detail: c.allergy });
+    }
+    if (c.at && new Date(c.at).getTime() < cutoff) {
+      flags.push({ kind: 'stale_in_care', checkin_id: c.id, child_name: c.child_name, detail: c.at });
+    }
+    const related = noteList.filter(
+      (n) => n.child_name === c.child_name && (n.severity === 'high' || n.severity === 'critical'),
+    );
+    for (const n of related.slice(0, 2)) {
+      flags.push({ kind: 'emergency_note', checkin_id: c.id, child_name: c.child_name, detail: n.note });
+    }
+  }
+  const jobs = [];
+  for (const f of flags.slice(0, 12)) {
+    const job = enqueueAgentJob(
+      {
+        agent: 'DAZE-CREW',
+        title: `family safety · ${f.kind} · ${f.child_name}`,
+        priority: f.kind === 'allergy' || f.kind === 'emergency_note' ? 'high' : 'normal',
+        payload: f,
+      },
+      actor,
+    );
+    jobs.push(job?.id || f.checkin_id);
+  }
+  const sweep = {
+    id: rid('fss'),
+    flags: flags.length,
+    by_kind: flags.reduce((acc, f) => {
+      acc[f.kind] = (acc[f.kind] || 0) + 1;
+      return acc;
+    }, {}),
+    jobs: jobs.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-safety-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'family.safety_sweep',
+    detail: `${sweep.flags} bayrak`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, flags, overview: familyCampOverview() };
 }

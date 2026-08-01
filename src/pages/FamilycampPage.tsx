@@ -124,8 +124,54 @@ export default function FamilycampPage() {
               >
                 Programa transfer
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .issueFamilyPickupCode({ child_name: 'Ada', authorized_name: 'Anne' })
+                    .then((r: any) => {
+                      ping(r.ok ? `Kod ${r.pickup?.code}` : r.error || 'Kod yok')
+                      return refresh()
+                    })
+                }
+              >
+                Pickup kod
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api
+                    .authorizedFamilyCheckout({
+                      code: data.pickup_codes?.[0]?.code,
+                      authorized_name: data.pickup_codes?.[0]?.authorized_name || 'Anne',
+                    })
+                    .then((r: any) => {
+                      ping(r.ok ? `Yetkili teslim · ${r.ledger?.child_name}` : r.error || 'Teslim yok')
+                      return refresh()
+                    })
+                }
+              >
+                Yetkili teslim
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runFamilySafetySweep({ stale_hours: 1 }).then((r: any) => {
+                    ping(`Güvenlik · ${r.sweep?.flags ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Güvenlik sweep
+              </button>
             </div>
-            <p className="mt-2 text-xs text-slate-500">Transfer kaydı: {data.summary?.transfers ?? 0}</p>
+            <p className="mt-2 text-xs text-slate-500">
+              Transfer: {data.summary?.transfers ?? 0} · aktif kod: {data.summary?.pickup_codes_active ?? 0} ·
+              custody: {data.summary?.custody_events ?? 0}
+            </p>
           </PanelCard>
         </div>
       )}

@@ -92,6 +92,9 @@ import {
   bookFamilyProgram,
   familyEmergencyNote,
   transferFamilyChild,
+  issueFamilyPickupCode,
+  authorizedFamilyCheckout,
+  runFamilySafetySweep,
 } from '../server/familycamp.js';
 import {
   confirmCultureTicket,
@@ -194,9 +197,17 @@ recordMallSale({ tenant_id: 'mt_4', amount_try: 120 }, 'smoke');
 const family = familyCampOverview();
 assert(family.programs?.length >= 2, 'family camp');
 bookFamilyProgram({ program_id: 'fp_1', child_name: 'Smoke Book' }, 'smoke');
-familyCheckIn({ child_name: 'Smoke Kid', program_id: 'fp_3', guardian: 'Parent' }, 'smoke');
+familyCheckIn({ child_name: 'Smoke Kid', program_id: 'fp_3', guardian: 'Parent', allergy: 'fındık' }, 'smoke');
 familyEmergencyNote({ child_name: 'Smoke Kid', note: 'smoke allergy' }, 'smoke');
 assert(transferFamilyChild({ child_name: 'Smoke Kid', to_program_id: 'fp_1' }, 'smoke').ok, 'family transfer');
+const pickup = issueFamilyPickupCode({ child_name: 'Smoke Kid', authorized_name: 'Parent' }, 'smoke');
+assert(pickup.ok && pickup.pickup?.code, 'family pickup code');
+assert(
+  authorizedFamilyCheckout({ code: pickup.pickup.code, authorized_name: 'Parent' }, 'smoke').ok,
+  'family authorized checkout',
+);
+familyCheckIn({ child_name: 'Safety Kid', program_id: 'fp_3', guardian: 'Veli', allergy: 'gluten' }, 'smoke');
+assert(runFamilySafetySweep({ stale_hours: 0 }, 'smoke').ok, 'family safety sweep');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');

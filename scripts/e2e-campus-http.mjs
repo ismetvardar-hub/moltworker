@@ -103,6 +103,30 @@ try {
   });
   assert(xfer.res.ok && xfer.data.ok !== false, 'family transfer');
 
+  const pickup = await req('/api/familycamp/pickup-code', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E', authorized_name: 'e2e' },
+  });
+  assert(pickup.res.ok && pickup.data.ok !== false, 'family pickup code');
+  const authOut = await req('/api/familycamp/authorized-checkout', {
+    method: 'POST',
+    token,
+    body: { code: pickup.data.pickup?.code, authorized_name: 'e2e' },
+  });
+  assert(authOut.res.ok && authOut.data.ok !== false, 'family authorized checkout');
+  await req('/api/familycamp/checkin', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E-Safe', program_id: 'fp_3', guardian: 'e2e', allergy: 'fındık' },
+  });
+  const safety = await req('/api/familycamp/safety-sweep', {
+    method: 'POST',
+    token,
+    body: { stale_hours: 0 },
+  });
+  assert(safety.res.ok && safety.data.ok !== false, 'family safety sweep');
+
   const hold = await req('/api/culture/hold', {
     method: 'POST',
     token,

@@ -53,3 +53,33 @@ export async function transferFamilyChild(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function issueFamilyPickupCode(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/pickup-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function authorizedFamilyCheckout(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/authorized-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runFamilySafetySweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/safety-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
