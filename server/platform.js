@@ -6736,11 +6736,14 @@ import {
 } from './stayring.js';
 import {
   advanceReturnToPlay,
+  assignAthleteCoach,
   athleteOsOverview,
   athleteReadinessRollup,
   clearAthleteForCompetition,
+  clearAthleteMedicalHold,
   issueAthleteLicense,
   logAthleteSession,
+  placeAthleteMedicalHold,
   registerAthleteCompetition,
   reportAthleteInjury,
   runAthleteCompetitionClearanceSweep,
@@ -36311,6 +36314,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runAthleteCompetitionClearanceSweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/athleteos/coach' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignAthleteCoach(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/medical-hold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, placeAthleteMedicalHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/medical-hold/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearAthleteMedicalHold(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/athleteos/readiness' && req.method === 'GET') {

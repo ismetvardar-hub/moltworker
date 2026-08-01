@@ -74,6 +74,8 @@ export function athleteOsOverview() {
       competitions_open: compList.filter((c) => c.status === 'open' || c.status === 'registered').length,
       competition_cleared: clearList.filter((c) => c.status === 'cleared').length,
       competition_blocked: clearList.filter((c) => c.status === 'blocked').length,
+      medical_holds: (readCollection('athlete-medical-holds', []) || []).filter((h) => h.status === 'active').length,
+      coached: athletes.filter((a) => a.coach_id || a.coach_name).length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -583,4 +585,140 @@ export function runAthleteCompetitionClearanceSweep(input = {}, actor = 'system'
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, results, overview: athleteOsOverview() };
+}
+
+/** Antrenör ata */
+export function assignAthleteCoach(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  let idx = athletes.findIndex((a) => a.id === input.athlete_id || a.name === input.athlete_id);
+  if (idx < 0) idx = 0;
+  if (idx < 0 || !athletes[idx]) return { ok: false, error: 'Sporcu yok' };
+  const coachName = String(input.coach_name || input.coach || 'Coach Mira').slice(0, 80);
+  const coachId = input.coach_id || `coach_${coachName.toLowerCase().replace(/\s+/g, '_')}`;
+  athletes[idx] = {
+    ...athletes[idx],
+    coach_id: coachId,
+    coach_name: coachName,
+    coached_at: new Date().toISOString(),
+    coached_by: actor,
+  };
+  writeCollection('club-athletes', athletes);
+  const assignment = {
+    id: rid('aco'),
+    athlete_id: athletes[idx].id,
+    athlete_name: athletes[idx].name,
+    coach_id: coachId,
+    coach_name: coachName,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-coach-assignments', assignment, 200);
+  enqueueAgentJob(
+    {
+      agent: 'SPORT-BRIDGE',
+      title: `coach assign · ${athletes[idx].name} → ${coachName}`,
+      priority: 'normal',
+      payload: { assignment_id: assignment.id, athlete_id: athletes[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.coach_assign',
+    detail: `${athletes[idx].name} → ${coachName}`,
+    meta: { id: assignment.id },
+  });
+  return { ok: true, athlete: athletes[idx], assignment, overview: athleteOsOverview() };
+}
+
+/** Medikal hold — clearance blok */
+export function placeAthleteMedicalHold(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  let idx = athletes.findIndex((a) => a.id === input.athlete_id || a.name === input.athlete_id);
+  if (idx < 0) idx = 0;
+  if (!athletes[idx]) return { ok: false, error: 'Sporcu yok' };
+  const days = Math.max(1, Number(input.days) || 7);
+  const hold = {
+    id: rid('amh'),
+    athlete_id: athletes[idx].id,
+    athlete_name: athletes[idx].name,
+    reason: String(input.reason || 'medical_review').slice(0, 240),
+    status: 'active',
+    until: new Date(Date.now() + days * 86400_000).toISOString(),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-medical-holds', hold, 200);
+  athletes[idx] = {
+    ...athletes[idx],
+    status: 'hold',
+    medical_clearance: 'hold',
+    medical_hold_id: hold.id,
+    medical_hold_until: hold.until,
+  };
+  writeCollection('club-athletes', athletes);
+  enqueueAgentJob(
+    {
+      agent: 'SPORT-BRIDGE',
+      title: `medical hold · ${athletes[idx].name} · ${days}g`,
+      priority: 'high',
+      payload: { hold_id: hold.id, athlete_id: athletes[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'athlete.medical_hold',
+    detail: `${athletes[idx].name} · ${hold.reason}`,
+    meta: { id: hold.id },
+  });
+  return { ok: true, hold, athlete: athletes[idx], overview: athleteOsOverview() };
+}
+
+/** Medikal hold kaldır */
+export function clearAthleteMedicalHold(input = {}, actor = 'system') {
+  const holds = readCollection('athlete-medical-holds', []) || [];
+  if (!Array.isArray(holds) || !holds.length) return { ok: false, error: 'Hold yok' };
+  let idx = holds.findIndex((h) => h.id === input.id && h.status === 'active');
+  if (idx < 0) {
+    idx = holds.findIndex(
+      (h) => h.status === 'active' && (!input.athlete_id || h.athlete_id === input.athlete_id),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Aktif hold yok' };
+  holds[idx] = {
+    ...holds[idx],
+    status: 'cleared',
+    cleared_at: new Date().toISOString(),
+    cleared_by: actor,
+    note: String(input.note || 'cleared').slice(0, 240),
+  };
+  writeCollection('athlete-medical-holds', holds);
+  const athletes = ensureAthletes();
+  const aidx = athletes.findIndex((a) => a.id === holds[idx].athlete_id);
+  if (aidx >= 0) {
+    athletes[aidx] = {
+      ...athletes[aidx],
+      status: athletes[aidx].status === 'hold' ? 'active' : athletes[aidx].status,
+      medical_clearance: input.clearance || 'cleared',
+      medical_hold_id: null,
+      medical_hold_until: null,
+    };
+    writeCollection('club-athletes', athletes);
+  }
+  const clearout = {
+    id: rid('amhc'),
+    hold_id: holds[idx].id,
+    athlete_id: holds[idx].athlete_id,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('athlete-medical-hold-clears', clearout, 120);
+  appendAudit({
+    actor,
+    action: 'athlete.medical_hold_clear',
+    detail: holds[idx].athlete_name,
+    meta: { id: clearout.id },
+  });
+  return { ok: true, hold: holds[idx], clearout, overview: athleteOsOverview() };
 }

@@ -63,6 +63,9 @@ import {
   registerAthleteCompetition,
   clearAthleteForCompetition,
   runAthleteCompetitionClearanceSweep,
+  assignAthleteCoach,
+  placeAthleteMedicalHold,
+  clearAthleteMedicalHold,
 } from '../server/athleteos.js';
 import {
   lifeCoachOverview,
@@ -292,6 +295,9 @@ issueAthleteLicense({ athlete_id: 'ath_1' }, 'smoke');
 setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
 assert(registerAthleteCompetition({ athlete_id: 'ath_1', title: 'Smoke Cup' }, 'smoke').ok, 'athlete competition');
 assert(clearAthleteForCompetition({ athlete_id: 'ath_1' }, 'smoke').ok, 'athlete competition clear');
+assert(assignAthleteCoach({ athlete_id: 'ath_3', coach_name: 'Smoke Coach' }, 'smoke').ok, 'athlete coach');
+assert(placeAthleteMedicalHold({ athlete_id: 'ath_3', days: 3, reason: 'smoke' }, 'smoke').ok, 'athlete medical hold');
+assert(clearAthleteMedicalHold({ athlete_id: 'ath_3' }, 'smoke').ok, 'athlete medical hold clear');
 assert(runAthleteCompetitionClearanceSweep({ force: true }, 'smoke').ok, 'athlete competition sweep');
 
 const life = lifeCoachOverview();

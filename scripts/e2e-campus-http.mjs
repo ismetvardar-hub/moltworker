@@ -286,6 +286,24 @@ try {
     body: { force: true },
   });
   assert(compSweep.res.ok && compSweep.data.ok !== false, 'athlete competition sweep');
+  const coach = await req('/api/athleteos/coach', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_3', coach_name: 'E2E Coach' },
+  });
+  assert(coach.res.ok && coach.data.ok !== false, 'athlete coach');
+  const medHold = await req('/api/athleteos/medical-hold', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_3', days: 2, reason: 'e2e' },
+  });
+  assert(medHold.res.ok && medHold.data.ok !== false, 'athlete medical hold');
+  const medClear = await req('/api/athleteos/medical-hold/clear', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_3' },
+  });
+  assert(medClear.res.ok && medClear.data.ok !== false, 'athlete medical hold clear');
 
   const checkin = await req('/api/lifecoach/checkin', {
     method: 'POST',

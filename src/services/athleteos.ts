@@ -106,3 +106,33 @@ export async function runAthleteCompetitionClearanceSweep(body: Record<string, u
     }),
   )
 }
+
+export async function assignAthleteCoach(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/coach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function placeAthleteMedicalHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/medical-hold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearAthleteMedicalHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/medical-hold/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -197,11 +197,48 @@ export default function AthleteosPage() {
               >
                 Yarışma sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.assignAthleteCoach({ athlete_id: 'ath_3', coach_name: 'Coach Mira' }).then((r: any) => {
+                    ping(r.ok ? `Coach · ${r.assignment?.coach_name}` : r.error || 'Coach yok')
+                    return refresh()
+                  })
+                }
+              >
+                Antrenör ata
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.placeAthleteMedicalHold({ athlete_id: 'ath_3', days: 3 }).then((r: any) => {
+                    ping(r.ok ? `Med hold · ${r.hold?.reason}` : r.error || 'Hold yok')
+                    return refresh()
+                  })
+                }
+              >
+                Medikal hold
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.clearAthleteMedicalHold({ athlete_id: 'ath_3' }).then((r: any) => {
+                    ping(r.ok ? 'Med hold kalktı' : r.error || 'Clear yok')
+                    return refresh()
+                  })
+                }
+              >
+                Hold kaldır
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Clearance {data.summary?.cleared ?? 0} · gap {data.summary?.clearance_gap ?? 0} · sakat{' '}
               {data.summary?.injured ?? 0} · açık injury {data.summary?.open_injuries ?? 0} · yarışma{' '}
-              {data.summary?.competitions_open ?? 0} · OK {data.summary?.competition_cleared ?? 0}
+              {data.summary?.competitions_open ?? 0} · OK {data.summary?.competition_cleared ?? 0} · med hold{' '}
+              {data.summary?.medical_holds ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Haftalık planlar">
