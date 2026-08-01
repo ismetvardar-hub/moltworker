@@ -1,21 +1,35 @@
 import { useEffect, useState } from 'react'
 import { CAMPUS_DOMAINS, CORE_NAV_IDS } from '../nav/campusDomains'
 import PanelCard from '../components/PanelCard'
-import { fetchCampusBrief } from '../services/campusbrief'
+import { fetchCampusBrief, runCampusAutomations, syncCampusBriefActions } from '../services/campusbrief'
+import { campusCapacityRollup } from '../services/campuscore'
+import { runAgentQueueSlaSweep } from '../services/agentqueue'
+import { runGreenPulseAutomations } from '../services/greenpulse'
+import { agentBridgeBroadcast } from '../services/agentbridge'
 
 /**
- * Kampüs haritası — vizyon domain hub’ları + canlı nabız.
+ * Kampüs haritası — vizyon domain hub’ları + canlı nabız + hızlı ops.
  */
 export default function CampusMapPage() {
   const [brief, setBrief] = useState<any>(null)
+  const [flash, setFlash] = useState<string | null>(null)
+  async function refresh() {
+    try {
+      setBrief(await fetchCampusBrief())
+    } catch {
+      setBrief(null)
+    }
+  }
   useEffect(() => {
-    void fetchCampusBrief()
-      .then(setBrief)
-      .catch(() => setBrief(null))
+    void refresh()
   }, [])
 
   function go(pageId: string) {
     window.location.hash = `/${pageId}`
+  }
+  function ping(m: string) {
+    setFlash(m)
+    window.setTimeout(() => setFlash(null), 2800)
   }
 
   const p = brief?.pulses || {}
@@ -31,9 +45,15 @@ export default function CampusMapPage() {
         </p>
       </header>
 
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
       {brief && (
         <PanelCard title="Canlı nabız">
-          <dl className="grid grid-cols-2 gap-2 text-sm text-slate-300 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-2 text-sm text-slate-300 sm:grid-cols-4 lg:grid-cols-6">
             <div>
               <dt className="text-xs text-slate-500">ESG</dt>
               <dd className="text-lykia-200">{p.green?.score ?? '—'}</dd>
@@ -50,6 +70,14 @@ export default function CampusMapPage() {
               <dt className="text-xs text-slate-500">Ajan kuyruk</dt>
               <dd>{p.queue?.queued ?? '—'}</dd>
             </div>
+            <div>
+              <dt className="text-xs text-slate-500">Life flag</dt>
+              <dd>{p.life?.flags ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Brif aksiyon</dt>
+              <dd>{brief.actions?.length ?? '—'}</dd>
+            </div>
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -65,6 +93,85 @@ export default function CampusMapPage() {
               onClick={() => go('agentfleet')}
             >
               Ajan Filosu
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() => go('readiness')}
+            >
+              Hazırlık
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void runCampusAutomations().then((r: any) => {
+                  ping(`Otomasyon ${r.actions?.length ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              Çapraz oto
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void syncCampusBriefActions().then((r: any) => {
+                  ping(`Kayıt +${r.created?.length ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              Brif sync
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs text-amber-100"
+              onClick={() =>
+                void runAgentQueueSlaSweep({ force: true }).then((r: any) => {
+                  ping(`SLA esc ${r.escalated?.length ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              SLA sweep
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void runGreenPulseAutomations({}).then((r: any) => {
+                  ping(`ESG ${r.actions?.length ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              ESG playbook
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void campusCapacityRollup().then((r: any) => {
+                  ping(`Kapasite %${r.rollup?.stay_occ_pct}`)
+                  return refresh()
+                })
+              }
+            >
+              Kapasite
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-obsidian-800 px-3 py-1.5 text-xs"
+              onClick={() =>
+                void agentBridgeBroadcast({ title: 'Harita broadcast' }).then((r: any) => {
+                  ping(`Broadcast ${r.broadcast?.targets?.length ?? 0}`)
+                  return refresh()
+                })
+              }
+            >
+              Broadcast
             </button>
           </div>
         </PanelCard>

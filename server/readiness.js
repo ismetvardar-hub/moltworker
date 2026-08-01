@@ -11,6 +11,9 @@ import { complaintsSummary } from './complaints.js';
 import { seatingSummary } from './seating.js';
 import { waitlistSummary } from './waitlist.js';
 import { wasteSummary } from './waste.js';
+import { campusHealthCheck } from './campusbrief.js';
+import { agentQueueOverview } from './agentqueue.js';
+import { greenPulseOverview } from './greenpulse.js';
 
 function clamp(n) {
   return Math.max(0, Math.min(100, Math.round(n)));
@@ -87,6 +90,35 @@ export function buildReadiness() {
     },
   ];
 
+  const campus = campusHealthCheck();
+  const queue = agentQueueOverview();
+  const green = greenPulseOverview();
+  dimensions.push(
+    {
+      id: 'campus',
+      label: 'Kampüs',
+      score: clamp(campus.score ?? 70),
+      detail: `${campus.status} · ${campus.alerts || 0} alert · ${campus.warns || 0} warn`,
+    },
+    {
+      id: 'agents',
+      label: 'Ajan kuyruk',
+      score: clamp(
+        100 -
+          (queue.summary?.queued || 0) * 3 -
+          (queue.summary?.sla_breach || 0) * 8 -
+          (queue.summary?.failed || 0) * 10,
+      ),
+      detail: `${queue.summary?.queued || 0} kuyruk · ${queue.summary?.sla_breach || 0} SLA`,
+    },
+    {
+      id: 'esg',
+      label: 'ESG',
+      score: clamp(green.summary?.score ?? 50),
+      detail: `${green.summary?.alerts || 0} alert · orman ${green.summary?.forest_ha || 0} ha`,
+    },
+  );
+
   const overall = clamp(
     dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length,
   );
@@ -102,6 +134,7 @@ export function buildReadiness() {
     grade,
     generatedAt: new Date().toISOString(),
     dimensions,
+    campus,
     signals: {
       lowStock: inv.lowStock,
       openIncidents: inc.open,
@@ -109,6 +142,10 @@ export function buildReadiness() {
       openComplaints: cmp.open,
       todayWasteCost: wst.todayCost,
       waitingGuests: wl.waiting,
+      campusScore: campus.score,
+      campusStatus: campus.status,
+      queueQueued: queue.summary?.queued,
+      esgScore: green.summary?.score,
     },
   };
 }
