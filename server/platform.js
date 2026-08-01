@@ -6717,6 +6717,7 @@ import {
   upsertAthletePlan,
 } from './athleteos.js';
 import {
+  completeLifeFollowUp,
   createLifePlan,
   ingestWearable,
   ingestWearableWebhook,
@@ -6725,6 +6726,8 @@ import {
   lifeWeeklyDigest,
   processLifeFlags,
   registerLifeDevice,
+  scheduleLifeFollowUps,
+  scoreLifePlanAdherence,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
 import { createMarketListing, marketCheckout, marketOsOverview, reconcileMarketChannels, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
@@ -36126,6 +36129,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, lifeWeeklyDigest(user.username));
+          return;
+        }
+
+        if (path === '/api/lifecoach/followups/schedule' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, scheduleLifeFollowUps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lifecoach/followups/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeLifeFollowUp(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lifecoach/adherence' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, scoreLifePlanAdherence(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/stayring/hk-complete' && req.method === 'POST') {

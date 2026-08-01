@@ -161,8 +161,47 @@ export default function LifecoachPage() {
               >
                 Haftalık digest
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.scheduleLifeFollowUps({}).then((r: any) => {
+                    ping(`Follow-up · ${r.created?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Follow-up planla
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.completeLifeFollowUp({}).then((r: any) => {
+                    ping(r.ok ? `FU tamam · ${r.followup?.client_name}` : r.error || 'FU yok')
+                    return refresh()
+                  })
+                }
+              >
+                Follow-up tamamla
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.scoreLifePlanAdherence({}).then((r: any) => {
+                    ping(`Adherence ort ${r.report?.avg_score ?? '—'}`)
+                    return refresh()
+                  })
+                }
+              >
+                Adherence hesapla
+              </button>
             </div>
-            <p className="mt-2 text-xs text-slate-500">Check-in: {data.summary?.checkins ?? 0}</p>
+            <p className="mt-2 text-xs text-slate-500">
+              Check-in: {data.summary?.checkins ?? 0} · açık FU: {data.summary?.followups_open ?? 0} ·
+              adherence: {data.summary?.adherence_avg ?? '—'}
+            </p>
             <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-obsidian-950 p-2 text-[10px] text-slate-500">
               {JSON.stringify(data.webhooks?.slice?.(0, 5) || [], null, 2)}
             </pre>

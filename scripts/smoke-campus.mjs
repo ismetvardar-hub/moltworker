@@ -44,6 +44,9 @@ import {
   processLifeFlags,
   lifeCoachCheckIn,
   lifeWeeklyDigest,
+  scheduleLifeFollowUps,
+  completeLifeFollowUp,
+  scoreLifePlanAdherence,
 } from '../server/lifecoach.js';
 import {
   agentQueueOverview,
@@ -181,6 +184,9 @@ registerLifeDevice({ provider: 'fitbit', client_id: 'lc_1', label: 'Smoke Fitbit
 const checkin = lifeCoachCheckIn({ client_id: 'lc_2', mood: 5, sleep_h: 6 }, 'smoke');
 assert(checkin.ok && checkin.checkin, 'life checkin');
 assert(lifeWeeklyDigest('smoke').ok, 'life digest');
+assert(scheduleLifeFollowUps({}, 'smoke').ok, 'life followups');
+assert(completeLifeFollowUp({}, 'smoke').ok, 'life followup complete');
+assert(scoreLifePlanAdherence({}, 'smoke').ok, 'life adherence');
 
 const queue = agentQueueOverview();
 assert(queue.jobs?.length >= 1, 'agent queue');

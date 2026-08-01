@@ -159,6 +159,10 @@ export function lifeCoachOverview() {
   for (const m of metrics) {
     if (!latestByClient[m.client_id]) latestByClient[m.client_id] = m;
   }
+  const followups = readCollection('life-followups', []) || [];
+  const fuList = Array.isArray(followups) ? followups : [];
+  const openFu = fuList.filter((f) => f.status === 'open' || f.status === 'scheduled');
+  const adherence = readCollection('life-adherence', []) || [];
   return {
     title: 'Sağlıklı Yaşam Destek',
     clients,
@@ -168,6 +172,8 @@ export function lifeCoachOverview() {
     flags,
     latestByClient,
     webhooks: (Array.isArray(hooks) ? hooks : []).slice(0, 20),
+    followups: fuList.slice(0, 30),
+    adherence: (Array.isArray(adherence) ? adherence : []).slice(0, 15),
     pillars: ['Fiziksel', 'Mental', 'Temel (uyku/beslenme/toparlanma)'],
     webhook: lifeWebhookSecretHint(),
     summary: {
@@ -177,6 +183,9 @@ export function lifeCoachOverview() {
       devices: devices.filter((d) => d.status === 'linked').length,
       webhook_events: Array.isArray(hooks) ? hooks.length : 0,
       checkins: Array.isArray(checkins) ? checkins.length : 0,
+      followups_open: openFu.length,
+      adherence_avg:
+        Array.isArray(adherence) && adherence[0]?.avg_score != null ? adherence[0].avg_score : null,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -464,4 +473,167 @@ export function lifeWeeklyDigest(actor = 'system') {
     meta: { id: digest.id },
   });
   return { ok: true, digest, overview: lifeCoachOverview() };
+}
+
+/** Digest / flag bazlı uzman follow-up planı */
+export function scheduleLifeFollowUps(input = {}, actor = 'system') {
+  const clients = ensureClients();
+  const digests = readCollection('life-digests', []) || [];
+  const latest = Array.isArray(digests) && digests[0] ? digests[0] : null;
+  const overview = lifeCoachOverview();
+  const targets = [];
+  if (latest?.clients) {
+    for (const row of latest.clients) {
+      if (row.flag || input.include_all) targets.push(row);
+    }
+  }
+  for (const f of overview.flags || []) {
+    if (!targets.some((t) => t.client_id === f.client_id)) {
+      targets.push({ client_id: f.client_id, recovery: f.recovery, mood: f.mood, flag: true });
+    }
+  }
+  if (input.client_id) {
+    const c = clients.find((x) => x.id === input.client_id);
+    if (c && !targets.some((t) => t.client_id === c.id)) {
+      targets.push({ client_id: c.id, name: c.name, flag: true });
+    }
+  }
+  if (!targets.length && clients[0]) {
+    targets.push({ client_id: clients[0].id, name: clients[0].name, flag: true });
+  }
+  const created = [];
+  const days = Number(input.due_days) || 3;
+  for (const t of targets.slice(0, Number(input.limit) || 12)) {
+    const client = clients.find((c) => c.id === t.client_id);
+    const priority =
+      (t.recovery != null && t.recovery < 45) || (t.mood != null && t.mood < 5) ? 'high' : 'normal';
+    const row = {
+      id: rid('lfu'),
+      client_id: t.client_id,
+      client_name: client?.name || t.name || t.client_id,
+      specialist: input.specialist || client?.specialist || 'LIFE-COACH-AI',
+      channel: input.channel || 'tele',
+      priority,
+      status: 'scheduled',
+      due_at: new Date(Date.now() + days * 864e5).toISOString(),
+      reason: t.flag ? 'digest/flag' : 'routine',
+      digest_id: latest?.id || null,
+      at: new Date().toISOString(),
+      actor,
+    };
+    prependItem('life-followups', row, 400);
+    created.push(row);
+    enqueueAgentJob(
+      {
+        agent: 'LIFE-COACH-AI',
+        title: `follow-up · ${row.client_name} · ${row.channel}`,
+        priority,
+        payload: { followup_id: row.id, client_id: row.client_id },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'life.followups_schedule',
+    detail: `${created.length} randevu`,
+    meta: { n: created.length },
+  });
+  return { ok: true, created, overview: lifeCoachOverview() };
+}
+
+export function completeLifeFollowUp(input = {}, actor = 'system') {
+  const list = readCollection('life-followups', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Follow-up yok' };
+  let idx = list.findIndex(
+    (f) => f.id === input.id && (f.status === 'scheduled' || f.status === 'open'),
+  );
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'scheduled' || f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık follow-up yok' };
+  const outcome = input.outcome || 'completed';
+  list[idx] = {
+    ...list[idx],
+    status: 'done',
+    outcome,
+    note: input.note || '',
+    done_at: new Date().toISOString(),
+    done_by: actor,
+  };
+  writeCollection('life-followups', list);
+  let checkin = null;
+  if (input.write_checkin !== false) {
+    checkin = lifeCoachCheckIn(
+      {
+        client_id: list[idx].client_id,
+        specialist: list[idx].specialist,
+        mood: input.mood || 7,
+        sleep_h: input.sleep_h || 7.5,
+        note: input.note || `Follow-up ${outcome}`,
+        channel: list[idx].channel,
+        write_plan: false,
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'life.followup_done',
+    detail: list[idx].client_name,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, followup: list[idx], checkin: checkin?.checkin || null, overview: lifeCoachOverview() };
+}
+
+/** Aktif plan × check-in/metrik adherence skoru */
+export function scoreLifePlanAdherence(input = {}, actor = 'system') {
+  const plans = readCollection('life-plans', []) || [];
+  const active = (Array.isArray(plans) ? plans : []).filter((p) => p.status === 'active');
+  const checkins = readCollection('life-checkins', []) || [];
+  const metrics = ensureMetrics();
+  const days = Number(input.days) || 7;
+  const cutoff = Date.now() - days * 864e5;
+  const rows = [];
+  for (const plan of active) {
+    if (input.client_id && plan.client_id !== input.client_id) continue;
+    const recentCi = (Array.isArray(checkins) ? checkins : []).filter(
+      (c) => c.client_id === plan.client_id && c.at && new Date(c.at).getTime() >= cutoff,
+    );
+    const recentM = metrics.filter(
+      (m) => m.client_id === plan.client_id && m.at && new Date(m.at).getTime() >= cutoff,
+    );
+    const avgRecovery = recentM.length
+      ? recentM.reduce((s, m) => s + (Number(m.recovery) || 0), 0) / recentM.length
+      : recentCi.length
+        ? recentCi.reduce((s, c) => s + (Number(c.recovery) || 0), 0) / recentCi.length
+        : null;
+    const checkinScore = Math.min(100, recentCi.length * 25);
+    const recoveryScore = avgRecovery != null ? Math.round(avgRecovery) : 50;
+    const score = Math.round(checkinScore * 0.45 + recoveryScore * 0.55);
+    rows.push({
+      plan_id: plan.id,
+      client_id: plan.client_id,
+      checkins: recentCi.length,
+      metrics: recentM.length,
+      avg_recovery: avgRecovery != null ? Math.round(avgRecovery) : null,
+      score,
+      band: score >= 75 ? 'strong' : score >= 55 ? 'ok' : 'weak',
+    });
+  }
+  const avg = rows.length ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length) : null;
+  const report = {
+    id: rid('lad'),
+    days,
+    rows,
+    avg_score: avg,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('life-adherence', report, 80);
+  appendAudit({
+    actor,
+    action: 'life.adherence',
+    detail: `${rows.length} plan · ort ${avg}`,
+    meta: { id: report.id },
+  });
+  return { ok: true, report, overview: lifeCoachOverview() };
 }

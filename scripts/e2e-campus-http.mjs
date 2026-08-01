@@ -186,6 +186,14 @@ try {
   });
   assert(checkin.res.ok && checkin.data.ok !== false, 'life checkin');
   const dig = await req('/api/lifecoach/digest', { method: 'POST', token, body: {} });
+  assert(dig.res.ok && dig.data.ok !== false, 'life digest');
+  const fu = await req('/api/lifecoach/followups/schedule', { method: 'POST', token, body: {} });
+  assert(fu.res.ok && fu.data.ok !== false, 'life followups');
+  const fuDone = await req('/api/lifecoach/followups/complete', { method: 'POST', token, body: {} });
+  assert(fuDone.res.ok && fuDone.data.ok !== false, 'life followup complete');
+  const adh = await req('/api/lifecoach/adherence', { method: 'POST', token, body: {} });
+  assert(adh.res.ok && adh.data.ok !== false, 'life adherence');
+  // keep dig assertion below if present — noop marker
   assert(dig.res.ok && dig.data.digest, 'life digest');
 
   const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });

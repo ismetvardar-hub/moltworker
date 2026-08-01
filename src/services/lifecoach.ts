@@ -74,3 +74,33 @@ export async function lifeWeeklyDigest() {
     }),
   )
 }
+
+export async function scheduleLifeFollowUps(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/followups/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function completeLifeFollowUp(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/followups/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function scoreLifePlanAdherence(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/adherence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
