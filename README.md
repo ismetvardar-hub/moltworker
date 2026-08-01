@@ -431,6 +431,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **164** | Edge cache |
 | **165** | Pyramid checkpoint (`/api/pyramid`) |
 
+### Tesis altyapı · Signal Hub (AŞAMA 166–180)
+
+| Aşama | Özellik |
+|-------|---------|
+| **166** | Dijital tabela |
+| **167** | Wayfinding |
+| **168** | Beacon harita |
+| **169** | IoT kapı |
+| **170** | Güç ops |
+| **171** | Su ops |
+| **172** | Yeşil ops |
+| **173** | Haşere kontrol |
+| **174** | Kimyasal log |
+| **175** | Havuz ops |
+| **176** | Sauna |
+| **177** | Steam |
+| **178** | Buz banyo |
+| **179** | Recovery slot |
+| **180** | Signal Hub checkpoint (`/api/signalhub`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

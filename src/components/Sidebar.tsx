@@ -153,6 +153,9 @@ import {
   BellRing,
   CloudFog,
   Pyramid,
+  FlaskConical,
+  Snowflake,
+  SatelliteDish,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -183,6 +186,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'orbit',
   'apex',
   'pyramid',
+  'signalhub',
 ]);
 
 interface SidebarProps {
@@ -548,6 +552,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'smsqueue', label: 'SMS Kuyruk', description: 'SMS gönderim kuyruğu.', icon: MessageCircle },
   { id: 'alertrules', label: 'Alert Kuralları', description: 'Bildirim kural tanımı.', icon: BellRing },
   { id: 'edgecache', label: 'Edge Cache', description: 'CDN / edge cache durum.', icon: CloudFog },
+  { id: 'signage', label: 'Dijital Tabela', description: 'Ekran içerik kuyruğu.', icon: MonitorPlay },
+  { id: 'wayfind', label: 'Wayfinding', description: 'Yönlendirme noktaları.', icon: MapPinned },
+  { id: 'beaconmap', label: 'Beacon Harita', description: 'BLE beacon yerleşimi.', icon: Radio },
+  { id: 'iotgates', label: 'IoT Kapı', description: 'Kapı sensör log.', icon: DoorOpen },
+  { id: 'powerops', label: 'Güç Ops', description: 'Jeneratör / UPS durumu.', icon: Zap },
+  { id: 'waterops', label: 'Su Ops', description: 'Su tank / sayaç.', icon: GlassWater },
+  { id: 'greenops', label: 'Yeşil Ops', description: 'Yeşil alan bakım.', icon: Leaf },
+  { id: 'pestctrl', label: 'Haşere', description: 'Haşere kontrol turları.', icon: Bug },
+  { id: 'chemlog', label: 'Kimyasal Log', description: 'Havuz kimyasal dozaj.', icon: FlaskConical },
+  { id: 'poolops', label: 'Havuz Ops', description: 'Havuz parametreleri.', icon: Waves },
+  { id: 'saunaops', label: 'Sauna', description: 'Sauna oturum / ısı.', icon: Flame },
+  { id: 'steamops', label: 'Steam', description: 'Buhar odası durumu.', icon: CloudFog },
+  { id: 'icebath', label: 'Buz Banyo', description: 'Ice bath rezervasyon.', icon: Snowflake },
+  { id: 'recovslots', label: 'Recovery Slot', description: 'Spor recovery randevu.', icon: HeartPulse },
+  { id: 'signalhub', label: 'Signal Hub', description: 'AŞAMA 180 altyapı özeti.', icon: SatelliteDish },
   { id: 'pyramid', label: 'Pyramid', description: 'AŞAMA 165 platform özeti.', icon: Pyramid },
   { id: 'apex', label: 'Apex', description: 'AŞAMA 150 zirve özeti.', icon: MountainSnow },
   { id: 'orbit', label: 'Orbit', description: 'AŞAMA 135 günlük yörünge.', icon: Orbit },

@@ -164,6 +164,21 @@ import SmsqueuePage from './pages/SmsqueuePage';
 import AlertrulesPage from './pages/AlertrulesPage';
 import EdgecachePage from './pages/EdgecachePage';
 import PyramidPage from './pages/PyramidPage';
+import SignagePage from './pages/SignagePage';
+import WayfindPage from './pages/WayfindPage';
+import BeaconmapPage from './pages/BeaconmapPage';
+import IotgatesPage from './pages/IotgatesPage';
+import PoweropsPage from './pages/PoweropsPage';
+import WateropsPage from './pages/WateropsPage';
+import GreenopsPage from './pages/GreenopsPage';
+import PestctrlPage from './pages/PestctrlPage';
+import ChemlogPage from './pages/ChemlogPage';
+import PoolopsPage from './pages/PoolopsPage';
+import SaunaopsPage from './pages/SaunaopsPage';
+import SteamopsPage from './pages/SteamopsPage';
+import IcebathPage from './pages/IcebathPage';
+import RecovslotsPage from './pages/RecovslotsPage';
+import SignalhubPage from './pages/SignalhubPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -297,6 +312,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   alertrules: AlertrulesPage,
   edgecache: EdgecachePage,
   pyramid: PyramidPage,
+  signage: SignagePage,
+  wayfind: WayfindPage,
+  beaconmap: BeaconmapPage,
+  iotgates: IotgatesPage,
+  powerops: PoweropsPage,
+  waterops: WateropsPage,
+  greenops: GreenopsPage,
+  pestctrl: PestctrlPage,
+  chemlog: ChemlogPage,
+  poolops: PoolopsPage,
+  saunaops: SaunaopsPage,
+  steamops: SteamopsPage,
+  icebath: IcebathPage,
+  recovslots: RecovslotsPage,
+  signalhub: SignalhubPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
