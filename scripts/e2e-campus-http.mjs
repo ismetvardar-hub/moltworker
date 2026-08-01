@@ -156,6 +156,21 @@ try {
   assert(greq.res.ok && greq.data.ok !== false, 'stay guest request');
   await req('/api/stayring/request/complete', { method: 'POST', token, body: {} });
 
+  const folioCharge = await req('/api/stayring/folio/charge', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2', kind: 'amenity', amount_try: 250 },
+  });
+  assert(folioCharge.res.ok && folioCharge.data.ok !== false, 'folio charge');
+  const folioAuto = await req('/api/stayring/folio/auto', { method: 'POST', token, body: {} });
+  assert(folioAuto.res.ok && folioAuto.data.ok !== false, 'folio auto');
+  const folioSettle = await req('/api/stayring/folio/settle', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2' },
+  });
+  assert(folioSettle.res.ok && folioSettle.data.ok !== false, 'folio settle');
+
   const hk = await req('/api/stayring/hk-complete', {
     method: 'POST',
     token,
@@ -265,6 +280,25 @@ try {
     body: { tenant_id: 'mt_4' },
   });
   assert(settle.res.ok && settle.data.ok !== false, 'mall fnb settle');
+
+  const rentRun = await req('/api/openmall/rent-run', {
+    method: 'POST',
+    token,
+    body: { period: '2026-08', force: true, due_days: -3 },
+  });
+  assert(rentRun.res.ok && rentRun.data.ok !== false, 'mall rent run');
+  const invPay = await req('/api/openmall/invoice/pay', {
+    method: 'POST',
+    token,
+    body: { invoice_id: rentRun.data.created?.[0]?.id, amount_try: 1000 },
+  });
+  assert(invPay.res.ok && invPay.data.ok !== false, 'mall invoice pay');
+  const dunning = await req('/api/openmall/dunning', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(dunning.res.ok && dunning.data.ok !== false, 'mall dunning');
 
   const ztr = await req('/api/campus/zone-transition', {
     method: 'POST',

@@ -50,6 +50,10 @@ export function stayRingOverview() {
   const lastRollup = Array.isArray(rollups) && rollups[0] ? rollups[0] : null;
   const guestReqs = readCollection('stay-guest-requests', []) || [];
   const openReqs = (Array.isArray(guestReqs) ? guestReqs : []).filter((r) => r.status === 'open');
+  const folioCharges = readCollection('stay-folio-charges', []) || [];
+  const folioList = Array.isArray(folioCharges) ? folioCharges : [];
+  const folio = folioBalance(folioList);
+  const settlements = readCollection('stay-folio-settlements', []) || [];
   return {
     title: 'Konaklama Halkası',
     units,
@@ -58,6 +62,8 @@ export function stayRingOverview() {
     hk: hk.slice(0, 20),
     guest_requests: (Array.isArray(guestReqs) ? guestReqs : []).slice(0, 20),
     night_rollups: (Array.isArray(rollups) ? rollups : []).slice(0, 10),
+    folio_charges: folioList.slice(0, 30),
+    folio_settlements: (Array.isArray(settlements) ? settlements : []).slice(0, 15),
     summary: {
       free: units.filter((u) => u.status === 'free').length,
       occupied: units.filter((u) => u.status === 'occupied').length,
@@ -66,6 +72,8 @@ export function stayRingOverview() {
       hk_dirty: units.filter((u) => u.hk === 'dirty' || u.hk === 'inspect').length,
       keys_active: keys.filter((k) => k.status === 'active').length,
       guest_requests_open: openReqs.length,
+      folio_open: folio.open_count,
+      folio_balance_try: folio.balance_try,
       occupancy_pct: lastRollup?.occupancy_pct ?? null,
       revpar_try: lastRollup?.revpar_try ?? null,
       byType: {
@@ -317,6 +325,154 @@ export function completeStayGuestRequest(input = {}, actor = 'system') {
     meta: { id: list[idx].id },
   });
   return { ok: true, request: list[idx], overview: stayRingOverview() };
+}
+
+function folioBalance(charges = []) {
+  const open = charges.filter((c) => c.status === 'open');
+  const total = open.reduce((s, c) => s + (Number(c.amount_try) || 0), 0);
+  return { open_count: open.length, balance_try: total, open };
+}
+
+/** Folio satırı — gece / amenity / hasar / late checkout */
+export function postStayFolioCharge(input = {}, actor = 'system') {
+  const units = ensureUnits();
+  const bookings = ensureBookings();
+  const booking =
+    bookings.find((b) => b.id === input.booking_id) ||
+    bookings.find((b) => b.status === 'confirmed' || b.status === 'checked_in') ||
+    null;
+  const unit =
+    units.find((u) => u.id === input.unit_id || u.code === input.unit_id) ||
+    units.find((u) => u.id === booking?.unit_id) ||
+    units.find((u) => u.status === 'occupied') ||
+    units[0];
+  if (!unit) return { ok: false, error: 'Ünite yok' };
+  const kind = input.kind || 'lodging';
+  let amount = Number(input.amount_try);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    if (kind === 'lodging') amount = Number(unit.rate_try) || 0;
+    else if (kind === 'amenity') amount = Number(input.amount_try) || 250;
+    else if (kind === 'late_checkout') amount = Math.round((Number(unit.rate_try) || 0) * 0.3);
+    else if (kind === 'damage' || kind === 'keyless') amount = Number(input.amount_try) || 1500;
+    else amount = 500;
+  }
+  if (amount <= 0) return { ok: false, error: 'Geçersiz tutar' };
+  const charge = {
+    id: rid('sfc'),
+    unit_id: unit.id,
+    unit_code: unit.code,
+    booking_id: booking?.id || input.booking_id || null,
+    guest: input.guest || booking?.guest || unit.guest || 'misafir',
+    kind,
+    amount_try: amount,
+    note: input.note || kind,
+    status: 'open',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-folio-charges', charge, 500);
+  appendAudit({
+    actor,
+    action: 'stay.folio_charge',
+    detail: `${unit.code} · ${kind} · ${amount} TRY`,
+    meta: { id: charge.id },
+  });
+  return { ok: true, charge, overview: stayRingOverview() };
+}
+
+/** Aktif occupancy için otomatik lodging folio */
+export function autoPostStayFolio(input = {}, actor = 'system') {
+  const units = ensureUnits();
+  const bookings = ensureBookings();
+  const posted = [];
+  const targets = units.filter((u) => u.status === 'occupied' || u.status === 'wintering');
+  for (const unit of targets) {
+    if (input.unit_id && unit.id !== input.unit_id && unit.code !== input.unit_id) continue;
+    const booking = bookings.find(
+      (b) => b.unit_id === unit.id && (b.status === 'confirmed' || b.status === 'checked_in'),
+    );
+    const nights = Number(input.nights) || Number(booking?.nights) || 1;
+    const amount = (Number(unit.rate_try) || 0) * nights;
+    const res = postStayFolioCharge(
+      {
+        unit_id: unit.id,
+        booking_id: booking?.id,
+        kind: 'lodging',
+        amount_try: amount,
+        note: `${nights} gece · otomatik`,
+        guest: booking?.guest,
+      },
+      actor,
+    );
+    if (res.ok) posted.push(res.charge);
+  }
+  if (!posted.length) return { ok: false, error: 'Yazılacak dolu ünite yok' };
+  appendAudit({
+    actor,
+    action: 'stay.folio_auto',
+    detail: `${posted.length} satır`,
+    meta: { n: posted.length },
+  });
+  return { ok: true, posted, overview: stayRingOverview() };
+}
+
+/** Açık folio tahsilatı */
+export function settleStayFolio(input = {}, actor = 'system') {
+  const charges = readCollection('stay-folio-charges', []) || [];
+  if (!Array.isArray(charges) || !charges.length) return { ok: false, error: 'Folio yok' };
+  const unitId = input.unit_id;
+  const bookingId = input.booking_id;
+  const openIdx = [];
+  for (let i = 0; i < charges.length; i++) {
+    const c = charges[i];
+    if (c.status !== 'open') continue;
+    if (unitId && c.unit_id !== unitId && c.unit_code !== unitId) continue;
+    if (bookingId && c.booking_id !== bookingId) continue;
+    if (input.charge_id && c.id !== input.charge_id) continue;
+    openIdx.push(i);
+  }
+  if (!openIdx.length) return { ok: false, error: 'Açık folio yok' };
+  let total = 0;
+  const settled = [];
+  for (const i of openIdx) {
+    total += Number(charges[i].amount_try) || 0;
+    charges[i] = {
+      ...charges[i],
+      status: 'paid',
+      paid_at: new Date().toISOString(),
+      paid_by: actor,
+      method: input.method || 'card',
+    };
+    settled.push(charges[i]);
+  }
+  writeCollection('stay-folio-charges', charges);
+  const settlement = {
+    id: rid('sfs'),
+    unit_id: settled[0]?.unit_id,
+    booking_id: bookingId || settled[0]?.booking_id || null,
+    charge_ids: settled.map((c) => c.id),
+    amount_try: total,
+    method: input.method || 'card',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-folio-settlements', settlement, 200);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `stay folio settle · ${settled[0]?.unit_code || 'unit'} · ${total} TRY`,
+      priority: 'normal',
+      payload: { settlement_id: settlement.id, amount_try: total },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'stay.folio_settle',
+    detail: `${settled.length} satır · ${total} TRY`,
+    meta: { id: settlement.id },
+  });
+  return { ok: true, settlement, settled, overview: stayRingOverview() };
 }
 
 /** Gece doluluk + gelir rollup */

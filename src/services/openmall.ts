@@ -37,3 +37,33 @@ export async function settleMallTenantFnb(body: Record<string, unknown> = {}) {
   )
 }
 
+export async function generateMallRentRun(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/rent-run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function payMallInvoice(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/invoice/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runMallDunningSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/dunning', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+

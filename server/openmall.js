@@ -4,6 +4,7 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -48,10 +49,17 @@ export function openMallOverview() {
   const today = new Date().toISOString().slice(0, 10);
   const todaySales = (Array.isArray(sales) ? sales : []).filter((s) => String(s.at || '').startsWith(today));
   const day_sales_try = todaySales.reduce((s, x) => s + (Number(x.amount_try) || 0), 0);
+  const invoices = readCollection('mall-invoices', []) || [];
+  const invList = Array.isArray(invoices) ? invoices : [];
+  const unpaid = invList.filter((i) => i.status === 'open' || i.status === 'partial');
+  const overdue = unpaid.filter((i) => i.due_date && i.due_date < today);
+  const payments = readCollection('mall-payments', []) || [];
   return {
     title: 'Açık AVM',
     tenants,
     day: { date: today, tickets: todaySales.length, sales_try: day_sales_try },
+    invoices: invList.slice(0, 40),
+    payments: (Array.isArray(payments) ? payments : []).slice(0, 20),
     summary: {
       active: tenants.filter((t) => t.status === 'active').length,
       fitout: tenants.filter((t) => t.status === 'fitout').length,
@@ -61,6 +69,12 @@ export function openMallOverview() {
       fnb_gap_total: fnbTargets.reduce((s, t) => s + t.fnb_gap_try, 0),
       day_sales_try,
       day_tickets: todaySales.length,
+      invoices_open: unpaid.length,
+      invoices_overdue: overdue.length,
+      invoices_balance_try: unpaid.reduce(
+        (s, i) => s + Math.max(0, (Number(i.total_try) || 0) - (Number(i.paid_try) || 0)),
+        0,
+      ),
     },
     generatedAt: new Date().toISOString(),
   };
@@ -165,4 +179,162 @@ export function settleMallTenantFnb(input = {}, actor = 'system') {
     meta: { id: settlement.id },
   });
   return { ok: true, settlement, tenant: after, overview: openMallOverview() };
+}
+
+/** Aylık kira + F&B gap + opsiyonel ciro payı faturası */
+export function generateMallRentRun(input = {}, actor = 'system') {
+  const period = input.period || new Date().toISOString().slice(0, 7);
+  const tenants = withFnb(ensureTenants()).filter((t) => t.status === 'active');
+  const sales = readCollection('mall-sales', []) || [];
+  const salesList = Array.isArray(sales) ? sales : [];
+  const existing = readCollection('mall-invoices', []) || [];
+  const invoices = Array.isArray(existing) ? [...existing] : [];
+  const created = [];
+  const due = new Date();
+  due.setDate(due.getDate() + (Number(input.due_days) || 10));
+  const dueDate = due.toISOString().slice(0, 10);
+
+  for (const t of tenants) {
+    if (input.tenant_id && t.id !== input.tenant_id) continue;
+    if (!input.force && invoices.some((i) => i.tenant_id === t.id && i.period === period && i.status !== 'void')) {
+      continue;
+    }
+    const periodSales = salesList
+      .filter((s) => s.tenant_id === t.id && String(s.at || '').startsWith(period))
+      .reduce((s, x) => s + (Number(x.amount_try) || 0), 0);
+    const lines = [
+      { code: 'rent', label: 'Kira', amount_try: Number(t.rent_try) || 0 },
+    ];
+    if (t.fnb_gap_try > 0) {
+      lines.push({ code: 'fnb_shortfall', label: 'F&B asgari fark', amount_try: t.fnb_gap_try });
+    }
+    const varPct = Number(input.variable_pct);
+    if (Number.isFinite(varPct) && varPct > 0 && periodSales > 0) {
+      lines.push({
+        code: 'variable',
+        label: `Ciro payı %${varPct}`,
+        amount_try: Math.round(periodSales * (varPct / 100)),
+      });
+    }
+    const total = lines.reduce((s, l) => s + (Number(l.amount_try) || 0), 0);
+    const invoice = {
+      id: rid('minv'),
+      tenant_id: t.id,
+      tenant_name: t.name,
+      unit: t.unit,
+      period,
+      lines,
+      total_try: total,
+      paid_try: 0,
+      status: 'open',
+      due_date: dueDate,
+      at: new Date().toISOString(),
+      actor,
+    };
+    invoices.unshift(invoice);
+    created.push(invoice);
+  }
+  writeCollection('mall-invoices', invoices.slice(0, 400));
+  if (!created.length) return { ok: false, error: 'Yeni fatura yok (dönem zaten üretildi?)' };
+  appendAudit({
+    actor,
+    action: 'mall.rent_run',
+    detail: `${period} · ${created.length} fatura · ${created.reduce((s, i) => s + i.total_try, 0)} TRY`,
+    meta: { period, n: created.length },
+  });
+  return { ok: true, period, created, overview: openMallOverview() };
+}
+
+/** Fatura tahsilatı — partial/paid */
+export function payMallInvoice(input = {}, actor = 'system') {
+  const invoices = readCollection('mall-invoices', []) || [];
+  if (!Array.isArray(invoices) || !invoices.length) return { ok: false, error: 'Fatura yok' };
+  let idx = invoices.findIndex((i) => i.id === input.invoice_id && (i.status === 'open' || i.status === 'partial'));
+  if (idx < 0) {
+    idx = invoices.findIndex(
+      (i) =>
+        (i.status === 'open' || i.status === 'partial') &&
+        (!input.tenant_id || i.tenant_id === input.tenant_id),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Açık fatura yok' };
+  const inv = invoices[idx];
+  const balance = Math.max(0, (Number(inv.total_try) || 0) - (Number(inv.paid_try) || 0));
+  let amount = Number(input.amount_try);
+  if (!Number.isFinite(amount) || amount <= 0) amount = balance;
+  amount = Math.min(amount, balance);
+  const paid = (Number(inv.paid_try) || 0) + amount;
+  const status = paid >= (Number(inv.total_try) || 0) ? 'paid' : 'partial';
+  invoices[idx] = {
+    ...inv,
+    paid_try: paid,
+    status,
+    last_payment_at: new Date().toISOString(),
+  };
+  writeCollection('mall-invoices', invoices);
+  const payment = {
+    id: rid('mpay'),
+    invoice_id: inv.id,
+    tenant_id: inv.tenant_id,
+    amount_try: amount,
+    method: input.method || 'transfer',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-payments', payment, 300);
+  appendAudit({
+    actor,
+    action: 'mall.invoice_pay',
+    detail: `${inv.tenant_name || inv.tenant_id} · ${amount} TRY → ${status}`,
+    meta: { id: payment.id, invoice_id: inv.id },
+  });
+  return { ok: true, payment, invoice: invoices[idx], overview: openMallOverview() };
+}
+
+/** Gecikmiş fatura dunning → MINT / HERMES-SALES */
+export function runMallDunningSweep(input = {}, actor = 'system') {
+  const today = new Date().toISOString().slice(0, 10);
+  const invoices = readCollection('mall-invoices', []) || [];
+  const unpaid = (Array.isArray(invoices) ? invoices : []).filter((i) => {
+    if (i.status !== 'open' && i.status !== 'partial') return false;
+    if (input.force) return true;
+    return i.due_date && i.due_date < today;
+  });
+  const jobs = [];
+  for (const inv of unpaid) {
+    const balance = Math.max(0, (Number(inv.total_try) || 0) - (Number(inv.paid_try) || 0));
+    const agent = balance >= 50000 ? 'MINT' : 'HERMES-SALES';
+    const job = enqueueAgentJob(
+      {
+        agent,
+        title: `mall dunning · ${inv.tenant_name || inv.tenant_id} · ${balance} TRY`,
+        priority: balance >= 50000 ? 'high' : 'normal',
+        payload: { invoice_id: inv.id, tenant_id: inv.tenant_id, balance_try: balance },
+      },
+      actor,
+    );
+    jobs.push({ invoice_id: inv.id, agent, job_id: job?.id || null, balance_try: balance });
+  }
+  const sweep = {
+    id: rid('mds'),
+    overdue: unpaid.length,
+    balance_try: unpaid.reduce(
+      (s, i) => s + Math.max(0, (Number(i.total_try) || 0) - (Number(i.paid_try) || 0)),
+      0,
+    ),
+    jobs: jobs.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-dunning-sweeps', sweep, 80);
+  if (unpaid.length && input.force_due) {
+    // demo: mark oldest open as overdue-friendly already via due_date
+  }
+  appendAudit({
+    actor,
+    action: 'mall.dunning',
+    detail: `${sweep.overdue} gecikmiş · ${sweep.balance_try} TRY`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, jobs, overview: openMallOverview() };
 }

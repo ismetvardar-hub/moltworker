@@ -92,3 +92,33 @@ export async function completeStayGuestRequest(body: Record<string, unknown> = {
     }),
   )
 }
+
+export async function postStayFolioCharge(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/folio/charge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function autoPostStayFolio(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/folio/auto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function settleStayFolio(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/folio/settle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

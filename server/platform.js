@@ -6690,6 +6690,7 @@ import {
 } from './extremepark.js';
 import { addCampusIncident, campusCapacityRollup, campusCoreOverview, resolveCampusIncident, transitionCampusZone, updateCampusZone } from './campuscore.js';
 import {
+  autoPostStayFolio,
   checkoutStay,
   completeStayGuestRequest,
   completeStayHk,
@@ -6697,7 +6698,9 @@ import {
   createStayGuestRequest,
   createStayHkTask,
   issueStayKeyless,
+  postStayFolioCharge,
   setStayWintering,
+  settleStayFolio,
   stayNightRollup,
   stayRingOverview,
   updateStayUnit,
@@ -6715,7 +6718,16 @@ import {
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
 import { createMarketListing, marketCheckout, marketOsOverview, reconcileMarketChannels, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
-import { mallDayRollup, openMallOverview, recordMallSale, settleMallTenantFnb, updateMallTenant } from './openmall.js';
+import {
+  generateMallRentRun,
+  mallDayRollup,
+  openMallOverview,
+  payMallInvoice,
+  recordMallSale,
+  runMallDunningSweep,
+  settleMallTenantFnb,
+  updateMallTenant,
+} from './openmall.js';
 import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote, transferFamilyChild } from './familycamp.js';
 import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import {
@@ -36089,6 +36101,25 @@ export function createPlatformMiddleware() {
           void (async () => { sendJson(res, 200, completeStayGuestRequest(await readBody(req), user.username)); })();
           return;
         }
+
+        if (path === '/api/stayring/folio/charge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, postStayFolioCharge(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/folio/auto' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, autoPostStayFolio(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/folio/settle' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, settleStayFolio(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/lifecoach' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, lifeCoachOverview());
@@ -36495,6 +36526,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, mallDayRollup(user.username));
+          return;
+        }
+
+        if (path === '/api/openmall/rent-run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, generateMallRentRun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/invoice/pay' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, payMallInvoice(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/dunning' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMallDunningSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campus/health' && req.method === 'GET') {

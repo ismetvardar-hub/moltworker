@@ -21,6 +21,9 @@ import {
   completeStayHk,
   stayNightRollup,
   createStayGuestRequest,
+  postStayFolioCharge,
+  autoPostStayFolio,
+  settleStayFolio,
   completeStayGuestRequest,
 } from '../server/stayring.js';
 import {
@@ -76,7 +79,13 @@ import {
   sweepFleetPresence,
 } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
-import { openMallOverview, recordMallSale } from '../server/openmall.js';
+import {
+  openMallOverview,
+  recordMallSale,
+  generateMallRentRun,
+  payMallInvoice,
+  runMallDunningSweep,
+} from '../server/openmall.js';
 import {
   familyCampOverview,
   familyCheckIn,
@@ -126,6 +135,9 @@ const night = stayNightRollup('smoke');
 assert(night.ok && night.rollup?.occupancy_pct != null, 'stay night rollup');
 assert(createStayGuestRequest({ kind: 'amenity' }, 'smoke').ok, 'stay guest request');
 completeStayGuestRequest({}, 'smoke');
+assert(postStayFolioCharge({ unit_id: 'su_2', kind: 'amenity', amount_try: 250 }, 'smoke').ok, 'folio charge');
+assert(autoPostStayFolio({}, 'smoke').ok, 'folio auto');
+assert(settleStayFolio({ unit_id: 'su_2' }, 'smoke').ok, 'folio settle');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');
@@ -197,6 +209,10 @@ confirmCultureTicket({ hold_id: held.hold?.id }, 'smoke');
 
 mallDayRollup('smoke');
 settleMallTenantFnb({ tenant_id: 'mt_2' }, 'smoke');
+const rentRun = generateMallRentRun({ period: '2026-08', force: true, due_days: -3 }, 'smoke');
+assert(rentRun.ok && rentRun.created?.length >= 1, 'mall rent run');
+assert(payMallInvoice({ invoice_id: rentRun.created[0].id, amount_try: 1000 }, 'smoke').ok, 'mall invoice pay');
+assert(runMallDunningSweep({ force: true }, 'smoke').ok, 'mall dunning');
 const rented = marketOsOverview().listings.find((l) => l.status === 'rented');
 if (rented) returnMarketRental({ listing_id: rented.id }, 'smoke');
 else {

@@ -86,7 +86,47 @@ export default function OpenmallPage() {
               >
                 Trail Kitchen F&B settle
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.generateMallRentRun({}).then((r: any) => {
+                    ping(r.ok ? `Kira run · ${r.created?.length ?? 0} fatura` : r.error || 'Kira run yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kira faturası üret
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.payMallInvoice({}).then((r: any) => {
+                    ping(r.ok ? `Tahsil · ${r.payment?.amount_try} TRY` : r.error || 'Fatura yok')
+                    return refresh()
+                  })
+                }
+              >
+                Fatura tahsil
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runMallDunningSweep({ force: true }).then((r: any) => {
+                    ping(`Dunning · ${r.sweep?.overdue ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Dunning sweep
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Açık fatura {data.summary?.invoices_open ?? 0} · gecikmiş {data.summary?.invoices_overdue ?? 0} · bakiye{' '}
+              {data.summary?.invoices_balance_try?.toLocaleString?.('tr-TR') ?? 0} TRY
+            </p>
           </PanelCard>
           <PanelCard title="Kiracılar">
             <ul className="space-y-2 text-sm">

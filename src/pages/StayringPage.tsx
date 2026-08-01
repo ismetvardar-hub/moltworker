@@ -182,9 +182,54 @@ export default function StayringPage() {
               >
                 İstek tamamla
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .postStayFolioCharge({
+                      unit_id: occupied?.id,
+                      kind: 'amenity',
+                      amount_try: 250,
+                      note: 'Mini bar',
+                    })
+                    .then((r: any) => {
+                      ping(r.ok ? `Folio +${r.charge?.amount_try} TRY` : r.error || 'Folio yok')
+                      return refresh()
+                    })
+                }
+              >
+                Folio yaz
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.autoPostStayFolio({}).then((r: any) => {
+                    ping(r.ok ? `Oto folio · ${r.posted?.length ?? 0}` : r.error || 'Oto folio yok')
+                    return refresh()
+                  })
+                }
+              >
+                Otomatik folio
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.settleStayFolio({ unit_id: occupied?.id }).then((r: any) => {
+                    ping(r.ok ? `Tahsil · ${r.settlement?.amount_try} TRY` : r.error || 'Açık folio yok')
+                    return refresh()
+                  })
+                }
+              >
+                Folio tahsil
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Açık misafir istek: {data.summary?.guest_requests_open ?? 0}
+              Açık misafir istek: {data.summary?.guest_requests_open ?? 0} · Folio açık{' '}
+              {data.summary?.folio_open ?? 0} · {data.summary?.folio_balance_try?.toLocaleString?.('tr-TR') ?? 0}{' '}
+              TRY
             </p>
             {(data.summary?.occupancy_pct != null || data.summary?.revpar_try != null) && (
               <p className="mt-2 text-xs text-slate-500">
