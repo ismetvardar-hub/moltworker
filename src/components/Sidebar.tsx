@@ -174,6 +174,8 @@ import {
   ScanFace,
   Briefcase,
   ScanLine,
+  Ban,
+  Split,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -207,6 +209,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'signalhub',
   'skyline',
   'sentinel',
+  'horizon',
 ]);
 
 interface SidebarProps {
@@ -614,6 +617,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'bagcheck', label: 'Çanta Kontrol', description: 'Güvenlik çanta kontrol.', icon: Briefcase },
   { id: 'metaldet', label: 'Metal Dedektör', description: 'Metal dedektör olayları.', icon: ScanLine },
   { id: 'watchlist', label: 'İzleme Listesi', description: 'Güvenlik izleme listesi.', icon: Eye },
+  { id: 'menuboard', label: 'Menü Board', description: 'Dijital menü panosu yayın.', icon: MonitorPlay },
+  { id: 'allergenalert', label: 'Alerjen Alarm', description: 'Mutfak alerjen uyarıları.', icon: ShieldAlert },
+  { id: 'tempprobe', label: 'Sıcaklık Probe', description: 'Gıda sıcaklık ölçüm.', icon: Thermometer },
+  { id: 'prepqueue', label: 'Prep Kuyruk', description: 'Hazırlık / mise en place.', icon: UtensilsCrossed },
+  { id: 'voidlog', label: 'Void Log', description: 'POS iptal / void kayıt.', icon: Ban },
+  { id: 'comps', label: 'Comp', description: 'İkram / comp onayları.', icon: Gift },
+  { id: 'splitbill', label: 'Hesap Böl', description: 'Split bill talepleri.', icon: Split },
+  { id: 'tabopen', label: 'Açık Tab', description: 'Açık hesap / tab listesi.', icon: Receipt },
+  { id: 'corkage', label: 'Corkage', description: 'Şişe açma ücreti kayıt.', icon: Wine },
+  { id: 'sommelier', label: 'Sommelier', description: 'Şarap öneri / pairing.', icon: GlassWater },
+  { id: 'chefnote', label: 'Şef Notu', description: 'Günlük şef brifi notları.', icon: NotebookPen },
+  { id: 'passticket', label: 'Pass Ticket', description: 'Pass desk hızlı bilet.', icon: Ticket },
+  { id: 'zoneheat', label: 'Zone Heat', description: 'Bölge ısı haritası satırı.', icon: Flame },
+  { id: 'revpulse', label: 'Rev Pulse', description: 'Anlık gelir nabız satırı.', icon: LineChart },
+  { id: 'horizon', label: 'Horizon', description: 'AŞAMA 225 F&B/gelir özeti.', icon: Sunrise },
   { id: 'sentinel', label: 'Sentinel', description: 'AŞAMA 210 güvenlik özeti.', icon: ShieldAlert },
   { id: 'skyline', label: 'Skyline', description: 'AŞAMA 195 leisure özeti.', icon: Castle },
   { id: 'signalhub', label: 'Signal Hub', description: 'AŞAMA 180 altyapı özeti.', icon: SatelliteDish },

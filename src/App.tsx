@@ -209,6 +209,21 @@ import BagcheckPage from './pages/BagcheckPage';
 import MetaldetPage from './pages/MetaldetPage';
 import WatchlistPage from './pages/WatchlistPage';
 import SentinelPage from './pages/SentinelPage';
+import MenuboardPage from './pages/MenuboardPage';
+import AllergenalertPage from './pages/AllergenalertPage';
+import TempprobePage from './pages/TempprobePage';
+import PrepqueuePage from './pages/PrepqueuePage';
+import VoidlogPage from './pages/VoidlogPage';
+import CompsPage from './pages/CompsPage';
+import SplitbillPage from './pages/SplitbillPage';
+import TabopenPage from './pages/TabopenPage';
+import CorkagePage from './pages/CorkagePage';
+import SommelierPage from './pages/SommelierPage';
+import ChefnotePage from './pages/ChefnotePage';
+import PassticketPage from './pages/PassticketPage';
+import ZoneheatPage from './pages/ZoneheatPage';
+import RevpulsePage from './pages/RevpulsePage';
+import HorizonPage from './pages/HorizonPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -387,6 +402,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   metaldet: MetaldetPage,
   watchlist: WatchlistPage,
   sentinel: SentinelPage,
+  menuboard: MenuboardPage,
+  allergenalert: AllergenalertPage,
+  tempprobe: TempprobePage,
+  prepqueue: PrepqueuePage,
+  voidlog: VoidlogPage,
+  comps: CompsPage,
+  splitbill: SplitbillPage,
+  tabopen: TabopenPage,
+  corkage: CorkagePage,
+  sommelier: SommelierPage,
+  chefnote: ChefnotePage,
+  passticket: PassticketPage,
+  zoneheat: ZoneheatPage,
+  revpulse: RevpulsePage,
+  horizon: HorizonPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

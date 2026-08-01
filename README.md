@@ -491,6 +491,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **209** | İzleme listesi |
 | **210** | Sentinel checkpoint (`/api/sentinel`) |
 
+### F&B · Horizon (AŞAMA 211–225)
+
+| Aşama | Özellik |
+|-------|---------|
+| **211** | Menü board |
+| **212** | Alerjen alarm |
+| **213** | Sıcaklık probe |
+| **214** | Prep kuyruk |
+| **215** | Void log |
+| **216** | Comp |
+| **217** | Split bill |
+| **218** | Açık tab |
+| **219** | Corkage |
+| **220** | Sommelier |
+| **221** | Şef notu |
+| **222** | Pass ticket |
+| **223** | Zone heat |
+| **224** | Rev pulse |
+| **225** | Horizon checkpoint (`/api/horizon`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
