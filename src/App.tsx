@@ -104,6 +104,21 @@ import FleetPage from './pages/FleetPage';
 import PayrollPage from './pages/PayrollPage';
 import FlashPage from './pages/FlashPage';
 import WarroomPage from './pages/WarroomPage';
+import UpsellPage from './pages/UpsellPage';
+import OtareviewsPage from './pages/OtareviewsPage';
+import GroupsPage from './pages/GroupsPage';
+import VipnotesPage from './pages/VipnotesPage';
+import PhotoshootPage from './pages/PhotoshootPage';
+import DivePage from './pages/DivePage';
+import BikerentPage from './pages/BikerentPage';
+import CinemaPage from './pages/CinemaPage';
+import RetailPage from './pages/RetailPage';
+import BakeryPage from './pages/BakeryPage';
+import BreakfastPage from './pages/BreakfastPage';
+import LateoutPage from './pages/LateoutPage';
+import AmenitiesPage from './pages/AmenitiesPage';
+import NightlogPage from './pages/NightlogPage';
+import NightlyPage from './pages/NightlyPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -177,6 +192,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   payroll: PayrollPage,
   flash: FlashPage,
   warroom: WarroomPage,
+  upsell: UpsellPage,
+  otareviews: OtareviewsPage,
+  groups: GroupsPage,
+  vipnotes: VipnotesPage,
+  photoshoot: PhotoshootPage,
+  dive: DivePage,
+  bikerent: BikerentPage,
+  cinema: CinemaPage,
+  retail: RetailPage,
+  bakery: BakeryPage,
+  breakfast: BreakfastPage,
+  lateout: LateoutPage,
+  amenities: AmenitiesPage,
+  nightlog: NightlogPage,
+  nightly: NightlyPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

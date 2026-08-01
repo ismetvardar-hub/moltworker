@@ -101,6 +101,17 @@ import {
   Shield,
   Banknote,
   Radar,
+  TrendingUp,
+  MessageSquareQuote,
+  UsersRound,
+  Crown,
+  Camera,
+  Waves,
+  ShoppingBag,
+  Croissant,
+  Coffee,
+  MoonStar,
+  Telescope,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -127,6 +138,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'digest',
   'boardpack',
   'warroom',
+  'nightly',
 ]);
 
 interface SidebarProps {
@@ -436,6 +448,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'fleet', label: 'Araç Filosu', description: 'Transfer/vale araç durumu.', icon: Car },
   { id: 'payroll', label: 'Bordro Özeti', description: 'Haftalık bordro satırları.', icon: Banknote },
   { id: 'flash', label: 'Flash Rapor', description: 'Günlük doluluk / gelir satırı.', icon: Zap },
+  { id: 'upsell', label: 'Upsell', description: 'Oda/deneyim yükseltme teklifleri.', icon: TrendingUp },
+  { id: 'otareviews', label: 'OTA Yorumlar', description: 'Booking/Tripadvisor yanıt kuyruğu.', icon: MessageSquareQuote },
+  { id: 'groups', label: 'Grup Rezervasyon', description: 'Grup / blok rezervasyon.', icon: UsersRound },
+  { id: 'vipnotes', label: 'VIP Notları', description: 'VIP tercih / dikkat notları.', icon: Crown },
+  { id: 'photoshoot', label: 'Fotoğraf Çekim', description: 'Profesyonel çekim randevuları.', icon: Camera },
+  { id: 'dive', label: 'Dalış', description: 'Scuba / snorkeling aktivite.', icon: Waves },
+  { id: 'bikerent', label: 'Bisiklet', description: 'Bisiklet kiralama.', icon: Bike },
+  { id: 'cinema', label: 'Açık Hava Sinema', description: 'Sahil sinema seansları.', icon: Clapperboard },
+  { id: 'retail', label: 'Butik', description: 'Butik / hediyelik satış.', icon: ShoppingBag },
+  { id: 'bakery', label: 'Pastane', description: 'Pastane / özel sipariş.', icon: Croissant },
+  { id: 'breakfast', label: 'Kahvaltı Slot', description: 'Kahvaltı rezervasyon slotları.', icon: Coffee },
+  { id: 'lateout', label: 'Late Checkout', description: 'Geç çıkış talepleri.', icon: MoonStar },
+  { id: 'amenities', label: 'Amenity', description: 'Oda amenity / ikram listesi.', icon: Gift },
+  { id: 'nightlog', label: 'Gece Log', description: 'Night audit operasyon satırları.', icon: ClipboardCheck },
+  { id: 'nightly', label: 'Night Audit', description: 'AŞAMA 120 gece kapanış.', icon: Telescope },
   { id: 'warroom', label: 'War Room', description: 'AŞAMA 105 komuta özeti.', icon: Radar },
   { id: 'boardpack', label: 'Board Pack', description: 'AŞAMA 90 yönetim paketi.', icon: BriefcaseBusiness },
   { id: 'digest', label: 'CEO Digest', description: 'AŞAMA 75 yönetici özeti.', icon: Newspaper },

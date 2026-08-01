@@ -351,6 +351,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **104** | Flash rapor |
 | **105** | War Room checkpoint (`/api/warroom`) |
 
+### Gelir deneyimi · Night Audit (AŞAMA 106–120)
+
+| Aşama | Özellik |
+|-------|---------|
+| **106** | Upsell teklifleri |
+| **107** | OTA yorum kuyruğu |
+| **108** | Grup rezervasyon |
+| **109** | VIP notları |
+| **110** | Fotoğraf çekim |
+| **111** | Dalış aktivite |
+| **112** | Bisiklet kiralama |
+| **113** | Açık hava sinema |
+| **114** | Butik satış |
+| **115** | Pastane sipariş |
+| **116** | Kahvaltı slot |
+| **117** | Late checkout |
+| **118** | Amenity ikram |
+| **119** | Gece log |
+| **120** | Night Audit checkpoint (`/api/nightly`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
