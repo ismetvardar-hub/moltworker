@@ -1177,6 +1177,8 @@ const BACKUP_COLLECTIONS = [
   'agent-jobs-archive',
   'campus-work-order-sweeps',
   'campus-work-orders',
+  'campus-work-order-escalations',
+  'campus-work-order-assignments',
   'market-low-stock-sweeps',
   'market-purchase-orders',
   'sport-gate-checks',

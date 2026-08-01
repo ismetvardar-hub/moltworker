@@ -491,6 +491,20 @@ try {
     body: { force: true },
   });
   assert(woSweep.res.ok && woSweep.data.ok !== false, 'campus WO sweep');
+  const woAssign = await req('/api/campus/work-order/assign', {
+    method: 'POST',
+    token,
+    body: { assignee: 'e2e-crew', agent: 'HEPHAESTUS' },
+  });
+  assert(woAssign.res.ok && woAssign.data.ok !== false, 'campus WO assign');
+  const woStart = await req('/api/campus/work-order/start', { method: 'POST', token, body: {} });
+  assert(woStart.res.ok && woStart.data.ok !== false, 'campus WO start');
+  const woEsc = await req('/api/campus/work-order/escalate', {
+    method: 'POST',
+    token,
+    body: { reason: 'e2e' },
+  });
+  assert(woEsc.res.ok && woEsc.data.ok !== false, 'campus WO escalate');
   const woDone = await req('/api/campus/work-order/complete', { method: 'POST', token, body: {} });
   assert(woDone.res.ok && woDone.data.ok !== false, 'campus WO complete');
   await req('/api/campus/incident/resolve', { method: 'POST', token, body: {} });

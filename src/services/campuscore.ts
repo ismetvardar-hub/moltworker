@@ -77,3 +77,33 @@ export async function runCampusWorkOrderSweep(body: Record<string, unknown> = {}
     }),
   )
 }
+
+export async function assignCampusWorkOrder(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function startCampusWorkOrder(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function escalateCampusWorkOrder(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/work-order/escalate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

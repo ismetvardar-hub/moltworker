@@ -6693,12 +6693,15 @@ import {
 } from './extremepark.js';
 import {
   addCampusIncident,
+  assignCampusWorkOrder,
   campusCapacityRollup,
   campusCoreOverview,
   completeCampusWorkOrder,
   createCampusWorkOrder,
+  escalateCampusWorkOrder,
   resolveCampusIncident,
   runCampusWorkOrderSweep,
+  startCampusWorkOrder,
   transitionCampusZone,
   updateCampusZone,
 } from './campuscore.js';
@@ -36124,6 +36127,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runCampusWorkOrderSweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/campus/work-order/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignCampusWorkOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/work-order/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, startCampusWorkOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/work-order/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateCampusWorkOrder(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/stayring' && req.method === 'GET') {

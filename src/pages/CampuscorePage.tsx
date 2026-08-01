@@ -99,6 +99,48 @@ export default function CampuscorePage() {
               </button>
               <button
                 type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api
+                    .assignCampusWorkOrder({ assignee: 'saha-ekip-1', agent: 'HEPHAESTUS' })
+                    .then((r: any) => {
+                      ping(r.ok ? `WO ata · ${r.work_order?.assignee}` : r.error || 'WO yok')
+                      return refresh()
+                    })
+                }
+              >
+                WO ata
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.startCampusWorkOrder({}).then((r: any) => {
+                    ping(r.ok ? 'WO başladı' : r.error || 'WO yok')
+                    return refresh()
+                  })
+                }
+              >
+                WO başlat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.escalateCampusWorkOrder({ reason: 'sla_risk' }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `WO escalate · ${r.escalation?.to_priority}`
+                        : r.error || 'WO yok',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                WO escalate
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
                 onClick={() =>
                   void api.completeCampusWorkOrder({}).then((r: any) => {
@@ -111,7 +153,9 @@ export default function CampuscorePage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Açık incident {data.summary?.open_incidents ?? 0} · açık WO {data.summary?.open_work_orders ?? 0}
+              Açık incident {data.summary?.open_incidents ?? 0} · açık WO{' '}
+              {data.summary?.open_work_orders ?? 0} · atanan {data.summary?.assigned_work_orders ?? 0}{' '}
+              · devam {data.summary?.in_progress_work_orders ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Zonlar">

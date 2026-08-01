@@ -13,6 +13,9 @@ import {
   createCampusWorkOrder,
   completeCampusWorkOrder,
   runCampusWorkOrderSweep,
+  assignCampusWorkOrder,
+  startCampusWorkOrder,
+  escalateCampusWorkOrder,
 } from '../server/campuscore.js';
 import {
   agentBridgeBroadcast,
@@ -171,6 +174,9 @@ resolveCampusIncident({}, 'smoke');
 assert(campusCapacityRollup('smoke').ok, 'campus capacity');
 assert(createCampusWorkOrder({ zone_id: 'z_sport', title: 'smoke WO' }, 'smoke').ok, 'campus WO');
 assert(runCampusWorkOrderSweep({ force: true }, 'smoke').ok, 'campus WO sweep');
+assert(assignCampusWorkOrder({ assignee: 'smoke-crew', agent: 'HEPHAESTUS' }, 'smoke').ok, 'campus WO assign');
+assert(startCampusWorkOrder({}, 'smoke').ok, 'campus WO start');
+assert(escalateCampusWorkOrder({ reason: 'smoke' }, 'smoke').ok, 'campus WO escalate');
 assert(completeCampusWorkOrder({}, 'smoke').ok, 'campus WO complete');
 assert(agentBridgeBroadcast({ title: 'smoke broadcast' }, 'smoke').ok, 'bridge broadcast');
 assert(openAgentBridgeChannel({ topic: 'smoke-ops' }, 'smoke').ok, 'bridge channel');

@@ -52,7 +52,11 @@ export function campusCoreOverview() {
   const caps = readCollection('campus-capacity-rollups', []) || [];
   const wos = readCollection('campus-work-orders', []) || [];
   const woList = Array.isArray(wos) ? wos : [];
-  const openWo = woList.filter((w) => w.status === 'open' || w.status === 'in_progress');
+  const openWo = woList.filter(
+    (w) => w.status === 'open' || w.status === 'assigned' || w.status === 'in_progress',
+  );
+  const assignments = readCollection('campus-work-order-assignments', []) || [];
+  const escalations = readCollection('campus-work-order-escalations', []) || [];
   return {
     campus_id: CAMPUS_ID,
     title: 'LİKYA Orman Kampüsü',
@@ -60,6 +64,8 @@ export function campusCoreOverview() {
     zones,
     incidents: (Array.isArray(incidents) ? incidents : []).slice(0, 20),
     work_orders: woList.slice(0, 30),
+    assignments: (Array.isArray(assignments) ? assignments : []).slice(0, 20),
+    escalations: (Array.isArray(escalations) ? escalations : []).slice(0, 12),
     capacity: Array.isArray(caps) && caps[0] ? caps[0] : null,
     summary: {
       total_ha: zones.reduce((s, z) => s + (Number(z.hectares) || 0), 0),
@@ -68,6 +74,9 @@ export function campusCoreOverview() {
       protected: zones.filter((z) => z.status === 'protected').length,
       open_incidents: openInc.length,
       open_work_orders: openWo.length,
+      assigned_work_orders: woList.filter((w) => w.status === 'assigned').length,
+      in_progress_work_orders: woList.filter((w) => w.status === 'in_progress').length,
+      escalated_work_orders: woList.filter((w) => w.escalated).length,
       byKind,
     },
     generatedAt: new Date().toISOString(),
@@ -201,10 +210,10 @@ export function createCampusWorkOrder(input = {}, actor = 'system') {
 export function completeCampusWorkOrder(input = {}, actor = 'system') {
   const list = readCollection('campus-work-orders', []) || [];
   if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İş emri yok' };
-  let idx = list.findIndex(
-    (w) => w.id === input.id && (w.status === 'open' || w.status === 'in_progress'),
-  );
-  if (idx < 0) idx = list.findIndex((w) => w.status === 'open' || w.status === 'in_progress');
+  const active = (w) =>
+    w.status === 'open' || w.status === 'assigned' || w.status === 'in_progress';
+  let idx = list.findIndex((w) => w.id === input.id && active(w));
+  if (idx < 0) idx = list.findIndex((w) => active(w));
   if (idx < 0) return { ok: false, error: 'Açık iş emri yok' };
   list[idx] = {
     ...list[idx],
@@ -226,6 +235,162 @@ export function completeCampusWorkOrder(input = {}, actor = 'system') {
   return { ok: true, work_order: list[idx], overview: campusCoreOverview() };
 }
 
+function findActiveWorkOrderIndex(list, input = {}) {
+  const active = (w) =>
+    w.status === 'open' || w.status === 'assigned' || w.status === 'in_progress';
+  let idx = list.findIndex((w) => w.id === input.id && active(w));
+  if (idx < 0) idx = list.findIndex((w) => active(w));
+  return idx;
+}
+
+/** İş emri ata — assignee + ajan, status → assigned */
+export function assignCampusWorkOrder(input = {}, actor = 'system') {
+  const list = readCollection('campus-work-orders', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İş emri yok' };
+  let idx = list.findIndex(
+    (w) => w.id === input.id && (w.status === 'open' || w.status === 'assigned'),
+  );
+  if (idx < 0) idx = list.findIndex((w) => w.status === 'open' || w.status === 'assigned');
+  if (idx < 0) return { ok: false, error: 'Atanabilir iş emri yok' };
+  const zones = ensureZones();
+  const zone = zones.find((z) => z.id === list[idx].zone_id);
+  const agent = input.agent || list[idx].agent || agentForZone(zone?.kind);
+  const assignee = input.assignee || input.crew || actor;
+  list[idx] = {
+    ...list[idx],
+    status: 'assigned',
+    assignee,
+    agent,
+    assigned_at: new Date().toISOString(),
+    assigned_by: actor,
+    note: input.note || list[idx].note || null,
+  };
+  writeCollection('campus-work-orders', list);
+  const assignment = {
+    id: rid('cwa'),
+    work_order_id: list[idx].id,
+    assignee,
+    agent,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-work-order-assignments', assignment, 200);
+  enqueueAgentJob(
+    {
+      agent,
+      title: `WO assign · ${list[idx].title} · ${assignee}`,
+      priority: list[idx].priority || 'normal',
+      payload: { work_order_id: list[idx].id, assignment_id: assignment.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campus.work_order_assign',
+    detail: `${list[idx].title} → ${assignee}`,
+    meta: { id: list[idx].id, assignment_id: assignment.id },
+  });
+  return { ok: true, work_order: list[idx], assignment, overview: campusCoreOverview() };
+}
+
+/** İş emri başlat — assigned/open → in_progress */
+export function startCampusWorkOrder(input = {}, actor = 'system') {
+  const list = readCollection('campus-work-orders', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İş emri yok' };
+  let idx = list.findIndex(
+    (w) =>
+      w.id === input.id &&
+      (w.status === 'assigned' || w.status === 'open' || w.status === 'in_progress'),
+  );
+  if (idx < 0) {
+    idx = list.findIndex((w) => w.status === 'assigned' || w.status === 'open');
+  }
+  if (idx < 0) return { ok: false, error: 'Başlatılacak iş emri yok' };
+  if (list[idx].status === 'in_progress') {
+    return { ok: true, work_order: list[idx], already: true, overview: campusCoreOverview() };
+  }
+  list[idx] = {
+    ...list[idx],
+    status: 'in_progress',
+    started_at: new Date().toISOString(),
+    started_by: actor,
+    assignee: list[idx].assignee || actor,
+  };
+  writeCollection('campus-work-orders', list);
+  enqueueAgentJob(
+    {
+      agent: list[idx].agent || 'HEPHAESTUS',
+      title: `WO start · ${list[idx].title}`,
+      priority: list[idx].priority || 'normal',
+      payload: { work_order_id: list[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campus.work_order_start',
+    detail: list[idx].title,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, work_order: list[idx], overview: campusCoreOverview() };
+}
+
+/** İş emri escalate — öncelik yükselt + ajan/köprü uyarısı */
+export function escalateCampusWorkOrder(input = {}, actor = 'system') {
+  const list = readCollection('campus-work-orders', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'İş emri yok' };
+  const idx = findActiveWorkOrderIndex(list, input);
+  if (idx < 0) return { ok: false, error: 'Escalatable iş emri yok' };
+  const prev = list[idx].priority || 'normal';
+  const next =
+    input.priority ||
+    (prev === 'critical' ? 'critical' : prev === 'high' ? 'critical' : 'high');
+  list[idx] = {
+    ...list[idx],
+    priority: next,
+    escalated: true,
+    escalated_at: new Date().toISOString(),
+    escalated_by: actor,
+    escalate_reason: input.reason || 'sla_risk',
+  };
+  writeCollection('campus-work-orders', list);
+  const esc = {
+    id: rid('cwe'),
+    work_order_id: list[idx].id,
+    from_priority: prev,
+    to_priority: next,
+    reason: list[idx].escalate_reason,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campus-work-order-escalations', esc, 120);
+  enqueueAgentJob(
+    {
+      agent: list[idx].agent || 'HEPHAESTUS',
+      title: `WO escalate · ${list[idx].title} · ${prev}→${next}`,
+      priority: next === 'critical' ? 'critical' : 'high',
+      payload: { work_order_id: list[idx].id, escalation_id: esc.id },
+    },
+    actor,
+  );
+  enqueueAgentJob(
+    {
+      agent: 'LİKYA-1',
+      title: `kampüs escalate · ${list[idx].zone_name || list[idx].zone_id}`,
+      priority: 'high',
+      payload: { work_order_id: list[idx].id, reason: esc.reason },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'campus.work_order_escalate',
+    detail: `${list[idx].title} · ${prev}→${next}`,
+    meta: { id: list[idx].id, escalation_id: esc.id },
+  });
+  return { ok: true, work_order: list[idx], escalation: esc, overview: campusCoreOverview() };
+}
+
 /** Açık incident → iş emri üret */
 export function runCampusWorkOrderSweep(input = {}, actor = 'system') {
   const incidents = readCollection('campus-incidents', []) || [];
@@ -235,7 +400,9 @@ export function runCampusWorkOrderSweep(input = {}, actor = 'system') {
   for (const inc of open.slice(0, Number(input.limit) || 12)) {
     if (
       (Array.isArray(existing) ? existing : []).some(
-        (w) => w.incident_id === inc.id && (w.status === 'open' || w.status === 'in_progress'),
+        (w) =>
+          w.incident_id === inc.id &&
+          (w.status === 'open' || w.status === 'assigned' || w.status === 'in_progress'),
       )
     ) {
       continue;
