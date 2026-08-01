@@ -144,6 +144,18 @@ export default function CulturescenePage() {
               >
                 Stüdyo ready
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.cultureBoxOfficeRollup().then((r: any) => {
+                    ping(`Gişe ${r.rollup?.tickets_sold} · ${r.rollup?.revenue_try} TRY`)
+                    return refresh()
+                  })
+                }
+              >
+                Gişe rollup
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı

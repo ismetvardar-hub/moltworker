@@ -1236,6 +1236,7 @@ export function buildOpenApi() {
       '/api/agentqueue/sla-sweep': { post: { summary: 'Ajan kuyruk SLA sweep', tags: ['agentqueue'] } },
       '/api/campusbrief/actions': { post: { summary: 'Brif aksiyon kayıt sync', tags: ['campusbrief'] } },
       '/api/culture/stream/start': { post: { summary: 'Canlı yayın başlat', tags: ['culturescene'] } },
+      '/api/culture/box-office': { post: { summary: 'Gişe günlük rollup', tags: ['culturescene'] } },
       '/api/marketos/restock': { post: { summary: 'Pazaryeri restock', tags: ['marketos'] } },
       '/api/marketos/reconcile': { post: { summary: 'Kanal toplu sync', tags: ['marketos'] } },
       '/api/greenpulse/batch': { post: { summary: 'ESG sayaç batch', tags: ['greenpulse'] } },

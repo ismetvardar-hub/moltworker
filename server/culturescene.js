@@ -298,6 +298,36 @@ export function endCultureStream(input = {}, actor = 'system') {
   return { ok: true, stream: list[idx], overview: cultureSceneOverview() };
 }
 
+/** Günlük gişe rollup — satış + hold + stream peak */
+export function cultureBoxOfficeRollup(actor = 'system') {
+  const overview = cultureSceneOverview();
+  const sales = readCollection('culture-sales', []) || [];
+  const today = new Date().toISOString().slice(0, 10);
+  const todaySales = (Array.isArray(sales) ? sales : []).filter((s) => String(s.at || '').startsWith(today));
+  const revenue = todaySales.reduce((s, x) => s + (Number(x.price_try) || 0), 0);
+  const qty = todaySales.reduce((s, x) => s + (Number(x.qty) || 0), 0);
+  const rollup = {
+    id: rid('cbo'),
+    date: today,
+    tickets_sold: qty,
+    revenue_try: revenue,
+    open_holds: overview.summary?.open_holds || 0,
+    live_streams: overview.summary?.streams_live || 0,
+    viewers_peak: overview.summary?.viewers_peak || 0,
+    events_on_sale: overview.summary?.on_sale || 0,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-box-office', rollup, 90);
+  appendAudit({
+    actor,
+    action: 'culture.box_office',
+    detail: `${today} · ${qty} bilet · ${revenue} TRY`,
+    meta: { id: rollup.id },
+  });
+  return { ok: true, rollup, overview: cultureSceneOverview() };
+}
+
 /** Sahne fitout → ready (veya tersi) */
 export function setCultureStageStatus(input = {}, actor = 'system') {
   const stages = ensureStages();

@@ -6718,6 +6718,7 @@ import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './ag
 import {
   confirmCultureTicket,
   createCultureEvent,
+  cultureBoxOfficeRollup,
   cultureSceneOverview,
   endCultureStream,
   holdCultureTicket,
@@ -36249,6 +36250,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, setCultureStageStatus(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/culture/box-office' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, cultureBoxOfficeRollup(user.username));
           return;
         }
         if (path === '/api/sportbridge' && req.method === 'GET') {

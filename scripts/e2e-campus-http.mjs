@@ -223,6 +223,8 @@ try {
   await req('/api/culture/stream/pulse', { method: 'POST', token, body: { viewers: 40 } });
   await req('/api/culture/stream/end', { method: 'POST', token, body: {} });
   await req('/api/culture/stage', { method: 'POST', token, body: { stage_id: 'cs_studio', status: 'ready' } });
+  const box = await req('/api/culture/box-office', { method: 'POST', token, body: {} });
+  assert(box.res.ok && box.data.rollup, 'culture box office');
 
   const restock = await req('/api/marketos/restock', {
     method: 'POST',

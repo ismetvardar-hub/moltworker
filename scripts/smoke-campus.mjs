@@ -87,6 +87,7 @@ import {
   pulseCultureStream,
   endCultureStream,
   setCultureStageStatus,
+  cultureBoxOfficeRollup,
 } from '../server/culturescene.js';
 import { returnMarketRental, restockMarketListing, reconcileMarketChannels } from '../server/marketos.js';
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
@@ -211,6 +212,7 @@ assert(stream.ok, 'culture stream start');
 pulseCultureStream({ viewers: 33 }, 'smoke');
 endCultureStream({}, 'smoke');
 setCultureStageStatus({ stage_id: 'cs_studio', status: 'ready' }, 'smoke');
+assert(cultureBoxOfficeRollup('smoke').ok, 'culture box office');
 
 const health = campusHealthCheck();
 assert(health.score >= 0, 'campus health');
