@@ -1231,6 +1231,8 @@ export function buildOpenApi() {
       '/api/agentfleet/presence-sweep': { post: { summary: 'Filo presence sweep', tags: ['agentfleet'] } },
       '/api/extreme/slot-reserve': { post: { summary: 'Slot rezervasyon', tags: ['extreme'] } },
       '/api/extreme/gear-return': { post: { summary: 'Ekipman iade', tags: ['extreme'] } },
+      '/api/extreme/gear-issue': { post: { summary: 'Ekipman checkout', tags: ['extreme'] } },
+      '/api/extreme/gear-service-sweep': { post: { summary: 'Ekipman servis taraması', tags: ['extreme'] } },
       '/api/sportbridge/eligibility': { post: { summary: 'Spor eligibilite taraması', tags: ['sportbridge'] } },
       '/api/greenpulse/automations': { post: { summary: 'ESG remediation playbook', tags: ['greenpulse'] } },
       '/api/agentqueue/sla-sweep': { post: { summary: 'Ajan kuyruk SLA sweep', tags: ['agentqueue'] } },

@@ -6679,10 +6679,12 @@ import {
   extremeSlotWeatherCheck,
   extremeUserSpec,
   extremeWalletSpend,
+  issueExtremeGear,
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
   reserveExtremeSlot,
   returnExtremeGear,
+  runExtremeGearServiceSweep,
   signExtremeWaiver,
   updateExtremeGear,
 } from './extremepark.js';
@@ -36561,6 +36563,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, returnExtremeGear(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/extreme/gear-issue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, issueExtremeGear(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/gear-service-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runExtremeGearServiceSweep(await readBody(req), user.username)); })();
           return;
         }
 

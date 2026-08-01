@@ -118,6 +118,26 @@ export async function returnExtremeGear(body: Record<string, unknown> = {}) {
   )
 }
 
+export async function issueExtremeGear(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/gear-issue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runExtremeGearServiceSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/gear-service-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function joinExtremeWaitlist(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/extreme/waitlist', {

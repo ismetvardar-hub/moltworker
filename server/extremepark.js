@@ -272,6 +272,10 @@ export function extremeOverview() {
   const weather = buildWeatherBrief('venue_antalya_extreme');
   const notices = ensureNotices();
   const waitlist = ensureWaitlist().filter((w) => w.status === 'waiting');
+  const ledger = readCollection('extreme-gear-ledger', []) || [];
+  const sweeps = readCollection('extreme-gear-sweeps', []) || [];
+  const now = Date.now();
+  const gear_overdue = gear.filter((g) => g.status === 'out' && g.due_at && new Date(g.due_at).getTime() < now).length;
   return {
     club_id: CLUB_ID,
     title: 'Antalya Extreme Spor · Yaşam & Deneyim Parkı',
@@ -281,6 +285,8 @@ export function extremeOverview() {
     slots,
     members,
     gear,
+    gear_ledger: (Array.isArray(ledger) ? ledger : []).slice(0, 20),
+    gear_sweeps: (Array.isArray(sweeps) ? sweeps : []).slice(0, 8),
     waitlist: waitlist.slice(0, 30),
     waivers_total: waivers.length,
     notices: notices.slice(0, 20),
@@ -296,6 +302,8 @@ export function extremeOverview() {
       cancelled_slots: slots.filter((s) => s.status === 'cancelled_weather').length,
       gear_out: gear.filter((g) => g.status === 'out').length,
       gear_service: gear.filter((g) => g.status === 'service').length,
+      gear_ready: gear.filter((g) => g.status === 'ready').length,
+      gear_overdue,
       waiver_pending: members.filter((m) => !m.user_profile?.waiver_signed).length,
       waitlist: waitlist.length,
     },
@@ -766,6 +774,159 @@ export function cancelExtremeReservation(input = {}, actor = 'system') {
   return { ok: true, user_spec: extremeUserSpec(userId), overview: extremeOverview() };
 }
 
+/** Ekipman checkout — waiver + kota + ready gear */
+export function issueExtremeGear(input = {}, actor = 'system') {
+  const userId = input.user_id || 'guest_ela';
+  const members = ensureMembers();
+  const midx = members.findIndex((m) => m.user_profile?.user_id === userId || m.id === userId);
+  if (midx < 0) return { ok: false, error: 'Üye yok' };
+  const member = members[midx];
+  if (!member.user_profile?.waiver_signed) {
+    return { ok: false, error: 'Waiver gerekli' };
+  }
+  const holds = Number(member.quota_management?.gear_holds) || 0;
+  const holdCap = Number(input.max_holds) || 2;
+  if (holds >= holdCap) {
+    return { ok: false, error: 'Ekipman kotası dolu' };
+  }
+  const gear = ensureGear();
+  let idx = gear.findIndex(
+    (g) =>
+      (g.id === input.gear_id || g.serial === input.gear_id || g.id === input.id) &&
+      (g.status === 'ready' || !g.status),
+  );
+  if (idx < 0) {
+    idx = gear.findIndex((g) => g.status === 'ready' && !g.holder);
+  }
+  if (idx < 0) return { ok: false, error: 'Hazır ekipman yok' };
+  const item = gear[idx];
+  const branch =
+    input.branch ||
+    member.active_reservation?.branch ||
+    (item.kind === 'MTB' ? 'mtb_trail' : item.kind === 'İp' ? 'paragliding' : 'skatepark');
+  const dueHours = Number(input.due_hours) || 4;
+  const dueAt = new Date(Date.now() + dueHours * 3600_000).toISOString();
+  gear[idx] = {
+    ...item,
+    status: 'out',
+    holder: member.user_profile.user_id,
+    holder_name: member.user_profile.display_name,
+    branch,
+    issued_at: new Date().toISOString(),
+    due_at: dueAt,
+    reservation_id: input.reservation_id || member.active_reservation?.reservation_id || null,
+    return_note: null,
+    condition: item.condition || 'ok',
+  };
+  writeCollection('extreme-gear', gear);
+  members[midx] = {
+    ...member,
+    quota_management: {
+      ...member.quota_management,
+      gear_holds: holds + 1,
+    },
+  };
+  writeCollection('extreme-members', members);
+  const ledger = {
+    id: rid('xgl'),
+    gear_id: item.id,
+    serial: item.serial,
+    kind: item.kind,
+    user_id: member.user_profile.user_id,
+    action: 'issue',
+    branch,
+    due_at: dueAt,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('extreme-gear-ledger', ledger, 400);
+  enqueueAgentJob(
+    {
+      agent: 'HEPHAESTUS',
+      title: `gear out · ${item.serial} · ${member.user_profile.display_name}`,
+      priority: 'normal',
+      payload: { gear_id: item.id, user_id: member.user_profile.user_id, due_at: dueAt },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.gear_issue',
+    detail: `${item.serial} → ${member.user_profile.user_id}`,
+    meta: { id: item.id, ledger_id: ledger.id },
+  });
+  return {
+    ok: true,
+    gear: gear[idx],
+    ledger,
+    user_spec: extremeUserSpec(userId),
+    overview: extremeOverview(),
+  };
+}
+
+/** Servis / gecikme taraması — HEPHAESTUS kuyruğu */
+export function runExtremeGearServiceSweep(input = {}, actor = 'system') {
+  const gear = ensureGear();
+  const today = new Date().toISOString().slice(0, 10);
+  const now = Date.now();
+  const flagged = [];
+  const jobs = [];
+  for (let i = 0; i < gear.length; i++) {
+    const g = gear[i];
+    const serviceDue = g.next_service && String(g.next_service) <= today;
+    const overdue = g.status === 'out' && g.due_at && new Date(g.due_at).getTime() < now;
+    const damaged = g.condition === 'damaged' || g.status === 'damaged';
+    const inService = g.status === 'service';
+    if (!serviceDue && !overdue && !damaged && !(inService && input.include_open)) continue;
+    const reason = damaged
+      ? 'damaged'
+      : overdue
+        ? 'overdue'
+        : serviceDue
+          ? 'service_due'
+          : 'open_service';
+    if (serviceDue && g.status === 'ready') {
+      gear[i] = { ...g, status: 'service', service_flag: reason };
+    } else if (overdue || damaged) {
+      gear[i] = { ...g, service_flag: reason };
+    }
+    flagged.push({ ...gear[i], reason });
+    const job = enqueueAgentJob(
+      {
+        agent: 'HEPHAESTUS',
+        title: `gear sweep · ${g.serial} · ${reason}`,
+        priority: damaged || overdue ? 'high' : 'normal',
+        payload: { gear_id: g.id, reason },
+      },
+      actor,
+    );
+    jobs.push(job?.id || g.id);
+  }
+  if (flagged.some((f) => f.status === 'service' || f.service_flag)) {
+    writeCollection('extreme-gear', gear);
+  }
+  const sweep = {
+    id: rid('xgs'),
+    flagged: flagged.length,
+    reasons: flagged.reduce((acc, f) => {
+      acc[f.reason] = (acc[f.reason] || 0) + 1;
+      return acc;
+    }, {}),
+    gear_ids: flagged.map((f) => f.id),
+    jobs: jobs.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('extreme-gear-sweeps', sweep, 120);
+  appendAudit({
+    actor,
+    action: 'extreme.gear_service_sweep',
+    detail: `${sweep.flagged} ekipman`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, flagged, overview: extremeOverview() };
+}
+
 /** Ekipman iade / hasar — holder temizle + HEPHAESTUS */
 export function returnExtremeGear(input = {}, actor = 'system') {
   const gear = ensureGear();
@@ -799,6 +960,20 @@ export function returnExtremeGear(input = {}, actor = 'system') {
       writeCollection('extreme-members', members);
     }
   }
+  prependItem(
+    'extreme-gear-ledger',
+    {
+      id: rid('xgl'),
+      gear_id: item.id,
+      serial: item.serial,
+      kind: item.kind,
+      user_id: holder,
+      action: damaged ? 'damage_return' : 'return',
+      at: new Date().toISOString(),
+      actor,
+    },
+    400,
+  );
   if (service) {
     enqueueAgentJob(
       {

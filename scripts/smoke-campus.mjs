@@ -61,6 +61,8 @@ import {
   cancelExtremeReservation,
   reserveExtremeSlot,
   returnExtremeGear,
+  issueExtremeGear,
+  runExtremeGearServiceSweep,
   signExtremeWaiver,
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
@@ -247,6 +249,10 @@ if (!reserved.ok) reserved = reserveExtremeSlot({ user_id: 'guest_can' }, 'smoke
 assert(reserved.ok, 'slot reserve');
 const gearRet = returnExtremeGear({ gear_id: 'xg_1' }, 'smoke');
 assert(gearRet.ok, 'gear return');
+const gearIssue = issueExtremeGear({ user_id: 'guest_ela' }, 'smoke');
+assert(gearIssue.ok, 'gear issue');
+const gearSweep = runExtremeGearServiceSweep({ include_open: true }, 'smoke');
+assert(gearSweep.ok && gearSweep.sweep?.flagged >= 1, 'gear service sweep');
 assert(joinExtremeWaitlist({ user_id: 'guest_can', slot_id: 'xs_2' }, 'smoke').ok, 'waitlist join');
 promoteExtremeWaitlist({}, 'smoke');
 const greenAuto = runGreenPulseAutomations({}, 'smoke');

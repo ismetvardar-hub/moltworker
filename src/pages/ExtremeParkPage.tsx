@@ -8,11 +8,13 @@ import {
   extremeWalletSpend,
   fetchExtremeOverview,
   fetchExtremeUserSpec,
+  issueExtremeGear,
   joinExtremeWaitlist,
   patchExtremeGear,
   promoteExtremeWaitlist,
   reserveExtremeSlot,
   returnExtremeGear,
+  runExtremeGearServiceSweep,
   runExtremeWeatherCheck,
   signExtremeWaiver,
 } from '../services/extremepark'
@@ -349,6 +351,36 @@ export default function ExtremeParkPage() {
 
           <div className="lg:col-span-3">
             <PanelCard title="HEPHAESTUS · Kiralık Ekipman">
+              <div className="mb-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-md bg-lykia-500/90 px-2 py-1 text-[11px] font-medium text-obsidian-950"
+                  onClick={() =>
+                    void issueExtremeGear({ user_id: userId }).then((r: any) => {
+                      ping(r.ok ? `Verildi · ${r.gear?.serial}` : r.error || 'Verilemedi')
+                      return refresh()
+                    })
+                  }
+                >
+                  Ekipman ver
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-amber-500/20 px-2 py-1 text-[11px] text-amber-100"
+                  onClick={() =>
+                    void runExtremeGearServiceSweep({ include_open: true }).then((r: any) => {
+                      ping(`Servis sweep · ${r.sweep?.flagged ?? 0}`)
+                      return refresh()
+                    })
+                  }
+                >
+                  Servis sweep
+                </button>
+                <span className="self-center text-[11px] text-slate-500">
+                  ready {summary?.gear_ready ?? 0} · out {summary?.gear_out ?? 0} · overdue{' '}
+                  {summary?.gear_overdue ?? 0}
+                </span>
+              </div>
               <ul className="space-y-2 text-sm">
                 {(overview.gear || []).map((g: any) => (
                   <li
@@ -359,6 +391,8 @@ export default function ExtremeParkPage() {
                       {g.serial} · {g.kind}
                       <div className="text-xs text-slate-500">
                         {g.holder || 'rafta'} · servis {g.next_service}
+                        {g.due_at ? ` · due ${String(g.due_at).slice(11, 16)}` : ''}
+                        {g.service_flag ? ` · ${g.service_flag}` : ''}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -374,6 +408,22 @@ export default function ExtremeParkPage() {
                           {st}
                         </button>
                       ))}
+                      {g.status === 'ready' && (
+                        <button
+                          type="button"
+                          className="rounded-md bg-sky-500/20 px-2 py-1 text-[10px] text-sky-200"
+                          onClick={() =>
+                            void issueExtremeGear({ user_id: userId, gear_id: g.id }).then(
+                              (r: any) => {
+                                ping(r.ok ? `Verildi · ${g.serial}` : r.error || 'Verilemedi')
+                                return refresh()
+                              },
+                            )
+                          }
+                        >
+                          ver
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] text-emerald-200"

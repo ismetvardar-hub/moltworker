@@ -195,6 +195,20 @@ try {
   });
   assert(gear.res.ok, 'gear return');
 
+  const gearIssue = await req('/api/extreme/gear-issue', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_ela' },
+  });
+  assert(gearIssue.res.ok && gearIssue.data.ok !== false, 'gear issue');
+
+  const gearSweep = await req('/api/extreme/gear-service-sweep', {
+    method: 'POST',
+    token,
+    body: { include_open: true },
+  });
+  assert(gearSweep.res.ok && gearSweep.data.ok !== false, 'gear service sweep');
+
   const wl = await req('/api/extreme/waitlist', {
     method: 'POST',
     token,
