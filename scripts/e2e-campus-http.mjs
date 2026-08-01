@@ -137,6 +137,10 @@ try {
     '/api/kairos',
     '/api/keystone',
     '/api/lattice',
+    '/api/mirror',
+    '/api/monument',
+    '/api/olympus',
+    '/api/pathos',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1277,6 +1281,50 @@ try {
   assert(latFail.res.ok && latFail.data.ok !== false, 'lattice failback clear');
   const latAck = await req('/api/lattice/flag/ack', { method: 'POST', token, body: {} });
   assert(latAck.res.ok && latAck.data.ok !== false, 'lattice flag ack');
+
+  const mirSweep = await req('/api/mirror/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mirSweep.res.ok && mirSweep.data.ok !== false, 'mirror sweep');
+  const mirTwin = await req('/api/mirror/twin/refresh', { method: 'POST', token, body: {} });
+  assert(mirTwin.res.ok && mirTwin.data.ok !== false, 'mirror twin refresh');
+  const mirNba = await req('/api/mirror/nba/accept', { method: 'POST', token, body: {} });
+  assert(mirNba.res.ok && mirNba.data.ok !== false, 'mirror nba accept');
+  const mirRec = await req('/api/mirror/recovery/close', { method: 'POST', token, body: {} });
+  assert(mirRec.res.ok && mirRec.data.ok !== false, 'mirror recovery close');
+  const mirAck = await req('/api/mirror/flag/ack', { method: 'POST', token, body: {} });
+  assert(mirAck.res.ok && mirAck.data.ok !== false, 'mirror flag ack');
+
+  const monSweep = await req('/api/monument/sweep', { method: 'POST', token, body: { force: true } });
+  assert(monSweep.res.ok && monSweep.data.ok !== false, 'monument sweep');
+  const monCor = await req('/api/monument/corrective/close', { method: 'POST', token, body: {} });
+  assert(monCor.res.ok && monCor.data.ok !== false, 'monument corrective close');
+  const monOral = await req('/api/monument/oral/live', { method: 'POST', token, body: {} });
+  assert(monOral.res.ok && monOral.data.ok !== false, 'monument oral live');
+  const monTim = await req('/api/monument/timeline/run', { method: 'POST', token, body: {} });
+  assert(monTim.res.ok && monTim.data.ok !== false, 'monument timeline run');
+  const monAck = await req('/api/monument/flag/ack', { method: 'POST', token, body: {} });
+  assert(monAck.res.ok && monAck.data.ok !== false, 'monument flag ack');
+
+  const olySweep = await req('/api/olympus/sweep', { method: 'POST', token, body: { force: true } });
+  assert(olySweep.res.ok && olySweep.data.ok !== false, 'olympus sweep');
+  const olySeal = await req('/api/olympus/seal/close', { method: 'POST', token, body: {} });
+  assert(olySeal.res.ok && olySeal.data.ok !== false, 'olympus seal close');
+  const olyBrief = await req('/api/olympus/brief/live', { method: 'POST', token, body: {} });
+  assert(olyBrief.res.ok && olyBrief.data.ok !== false, 'olympus brief live');
+  const olyStory = await req('/api/olympus/story/busy', { method: 'POST', token, body: {} });
+  assert(olyStory.res.ok && olyStory.data.ok !== false, 'olympus story busy');
+  const olyAck = await req('/api/olympus/flag/ack', { method: 'POST', token, body: {} });
+  assert(olyAck.res.ok && olyAck.data.ok !== false, 'olympus flag ack');
+
+  const patSweep = await req('/api/pathos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(patSweep.res.ok && patSweep.data.ok !== false, 'pathos sweep');
+  const patIp = await req('/api/pathos/ip/close', { method: 'POST', token, body: {} });
+  assert(patIp.res.ok && patIp.data.ok !== false, 'pathos ip close');
+  const patRisk = await req('/api/pathos/risk/live', { method: 'POST', token, body: {} });
+  assert(patRisk.res.ok && patRisk.data.ok !== false, 'pathos risk live');
+  const patClaim = await req('/api/pathos/claim/run', { method: 'POST', token, body: {} });
+  assert(patClaim.res.ok && patClaim.data.ok !== false, 'pathos claim run');
+  const patAck = await req('/api/pathos/flag/ack', { method: 'POST', token, body: {} });
+  assert(patAck.res.ok && patAck.data.ok !== false, 'pathos flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

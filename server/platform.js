@@ -2027,7 +2027,9 @@ import {
   wowmomentSummary,
   updateWowmoment,
 } from './wowmoment.js';
-import { buildMirror } from './mirror.js';
+import {
+  ackMirrorFlag, acceptMirrorNba, buildMirror, closeMirrorRecovery, refreshMirrorTwin, runMirrorSweep,
+} from './mirror.js';
 import {
   createIncidentbus,
   listIncidentbus,
@@ -5109,7 +5111,9 @@ import {
   legacygiftSummary,
   updateLegacygift,
 } from './legacygift.js';
-import { buildMonument } from './monument.js';
+import {
+  ackMonumentFlag, buildMonument, closeMonumentCorrective, liveMonumentOral, runMonumentSweep, runMonumentTimeline,
+} from './monument.js';
 import {
   createStoryvault,
   listStoryvault,
@@ -5194,7 +5198,9 @@ import {
   empirefinalSummary,
   updateEmpirefinal,
 } from './empirefinal.js';
-import { buildOlympus } from './olympus.js';
+import {
+  ackOlympusFlag, buildOlympus, busyOlympusStory, closeOlympusSeal, liveOlympusBrief, runOlympusSweep,
+} from './olympus.js';
 import {
   createAccessgate2,
   listAccessgate2,
@@ -6832,7 +6838,9 @@ import {
   auditevidence3Summary,
   updateAuditevidence3,
 } from './auditevidence3.js';
-import { buildPathos } from './pathos.js';
+import {
+  ackPathosFlag, buildPathos, closePathosIp, livePathosRisk, runPathosClaim, runPathosSweep,
+} from './pathos.js';
 import {
   createBoardresolve3,
   listBoardresolve3,
@@ -16989,6 +16997,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/mirror' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildMirror());
+          return;
+        }
+        if (path === '/api/mirror/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMirrorSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mirror/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMirrorFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mirror/twin/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshMirrorTwin(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mirror/nba/accept' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, acceptMirrorNba(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mirror/recovery/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeMirrorRecovery(await readBody(req), user.username)); })();
           return;
         }
 
@@ -30266,6 +30304,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildMonument());
           return;
         }
+        if (path === '/api/monument/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMonumentSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/monument/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMonumentFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/monument/corrective/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeMonumentCorrective(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/monument/oral/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveMonumentOral(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/monument/timeline/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMonumentTimeline(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Olympus Finale · Olympus (AŞAMA 886–900) ──
 
@@ -30621,6 +30689,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/olympus' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildOlympus());
+          return;
+        }
+        if (path === '/api/olympus/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOlympusSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/olympus/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOlympusFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/olympus/seal/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeOlympusSeal(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/olympus/brief/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveOlympusBrief(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/olympus/story/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyOlympusStory(await readBody(req), user.username)); })();
           return;
         }
 
@@ -37674,6 +37772,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/pathos' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildPathos());
+          return;
+        }
+        if (path === '/api/pathos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPathosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pathos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPathosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pathos/ip/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePathosIp(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pathos/risk/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, livePathosRisk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pathos/claim/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPathosClaim(await readBody(req), user.username)); })();
           return;
         }
 

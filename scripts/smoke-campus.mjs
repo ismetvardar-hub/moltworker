@@ -482,6 +482,18 @@ import {
   buildLattice, runLatticeSweep, ackLatticeFlag, healLatticeGate, retryLatticeOta, clearLatticeFailback,
 } from '../server/lattice.js';
 import {
+  buildMirror, runMirrorSweep, ackMirrorFlag, refreshMirrorTwin, acceptMirrorNba, closeMirrorRecovery,
+} from '../server/mirror.js';
+import {
+  buildMonument, runMonumentSweep, ackMonumentFlag, closeMonumentCorrective, liveMonumentOral, runMonumentTimeline,
+} from '../server/monument.js';
+import {
+  buildOlympus, runOlympusSweep, ackOlympusFlag, closeOlympusSeal, liveOlympusBrief, busyOlympusStory,
+} from '../server/olympus.js';
+import {
+  buildPathos, runPathosSweep, ackPathosFlag, closePathosIp, livePathosRisk, runPathosClaim,
+} from '../server/pathos.js';
+import {
   buildPyramid, runPyramidSweep, ackPyramidFlag, resolvePyramidSys, healPyramidNet, flushPyramidComms,
 } from '../server/pyramid.js';
 import {
@@ -1308,7 +1320,35 @@ assert(retryLatticeOta({}, 'smoke').ok, 'lattice ota retry');
 assert(clearLatticeFailback({}, 'smoke').ok, 'lattice failback clear');
 assert(ackLatticeFlag({}, 'smoke').ok, 'lattice flag ack');
 
-console.log('MOD115_OK');
+assert(buildMirror().title, 'mirror overview');
+assert(runMirrorSweep({ force: true }, 'smoke').ok, 'mirror sweep');
+assert(refreshMirrorTwin({}, 'smoke').ok, 'mirror twin refresh');
+assert(acceptMirrorNba({}, 'smoke').ok, 'mirror nba accept');
+assert(closeMirrorRecovery({}, 'smoke').ok, 'mirror recovery close');
+assert(ackMirrorFlag({}, 'smoke').ok, 'mirror flag ack');
+
+assert(buildMonument().title, 'monument overview');
+assert(runMonumentSweep({ force: true }, 'smoke').ok, 'monument sweep');
+assert(closeMonumentCorrective({}, 'smoke').ok, 'monument corrective close');
+assert(liveMonumentOral({}, 'smoke').ok, 'monument oral live');
+assert(runMonumentTimeline({}, 'smoke').ok, 'monument timeline run');
+assert(ackMonumentFlag({}, 'smoke').ok, 'monument flag ack');
+
+assert(buildOlympus().title, 'olympus overview');
+assert(runOlympusSweep({ force: true }, 'smoke').ok, 'olympus sweep');
+assert(closeOlympusSeal({}, 'smoke').ok, 'olympus seal close');
+assert(liveOlympusBrief({}, 'smoke').ok, 'olympus brief live');
+assert(busyOlympusStory({}, 'smoke').ok, 'olympus story busy');
+assert(ackOlympusFlag({}, 'smoke').ok, 'olympus flag ack');
+
+assert(buildPathos().title, 'pathos overview');
+assert(runPathosSweep({ force: true }, 'smoke').ok, 'pathos sweep');
+assert(closePathosIp({}, 'smoke').ok, 'pathos ip close');
+assert(livePathosRisk({}, 'smoke').ok, 'pathos risk live');
+assert(runPathosClaim({}, 'smoke').ok, 'pathos claim run');
+assert(ackPathosFlag({}, 'smoke').ok, 'pathos flag ack');
+
+console.log('MOD119_OK');
 
 console.log(
   JSON.stringify(
