@@ -266,6 +266,14 @@ import {
   clearVanguardInvDrift,
   flushVanguardMintQueue,
 } from '../server/vanguard.js';
+import {
+  buildWarroom,
+  runWarroomSweep,
+  ackWarroomFlag,
+  clearWarroomHaccp,
+  clearWarroomPatrol,
+  closeWarroomConcierge,
+} from '../server/warroom.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -697,6 +705,13 @@ assert(forceVanguardPosOnline({}, 'smoke').ok, 'vanguard pos online');
 assert(clearVanguardInvDrift({ force: true }, 'smoke').ok, 'vanguard inv clear');
 assert(flushVanguardMintQueue({}, 'smoke').ok, 'vanguard mint flush');
 assert(ackVanguardFlag({}, 'smoke').ok, 'vanguard flag ack');
+
+assert(buildWarroom().title, 'warroom overview');
+assert(runWarroomSweep({ force: true }, 'smoke').ok, 'warroom sweep');
+assert(clearWarroomHaccp({}, 'smoke').ok, 'warroom haccp clear');
+assert(clearWarroomPatrol({}, 'smoke').ok, 'warroom patrol clear');
+assert(closeWarroomConcierge({}, 'smoke').ok, 'warroom concierge close');
+assert(ackWarroomFlag({}, 'smoke').ok, 'warroom flag ack');
 
 console.log(
   JSON.stringify(

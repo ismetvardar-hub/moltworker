@@ -86,6 +86,7 @@ try {
     '/api/cognisphere',
     '/api/readiness',
     '/api/vanguard',
+    '/api/warroom',
     '/api/health',
   ];
   for (const p of paths) {
@@ -663,6 +664,17 @@ try {
   assert(vgMint.res.ok && vgMint.data.ok !== false, 'vanguard mint flush');
   const vgAck = await req('/api/vanguard/flag/ack', { method: 'POST', token, body: {} });
   assert(vgAck.res.ok && vgAck.data.ok !== false, 'vanguard flag ack');
+
+  const wrSweep = await req('/api/warroom/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wrSweep.res.ok && wrSweep.data.ok !== false, 'warroom sweep');
+  const wrHaccp = await req('/api/warroom/haccp/clear', { method: 'POST', token, body: {} });
+  assert(wrHaccp.res.ok && wrHaccp.data.ok !== false, 'warroom haccp clear');
+  const wrPatrol = await req('/api/warroom/patrol/clear', { method: 'POST', token, body: {} });
+  assert(wrPatrol.res.ok && wrPatrol.data.ok !== false, 'warroom patrol clear');
+  const wrConc = await req('/api/warroom/concierge/close', { method: 'POST', token, body: {} });
+  assert(wrConc.res.ok && wrConc.data.ok !== false, 'warroom concierge close');
+  const wrAck = await req('/api/warroom/flag/ack', { method: 'POST', token, body: {} });
+  assert(wrAck.res.ok && wrAck.data.ok !== false, 'warroom flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -481,7 +481,14 @@ import {
   flashSummary,
   updateFlash,
 } from './flash.js';
-import { buildWarroom } from './warroom.js';
+import {
+  ackWarroomFlag,
+  buildWarroom,
+  clearWarroomHaccp,
+  clearWarroomPatrol,
+  closeWarroomConcierge,
+  runWarroomSweep,
+} from './warroom.js';
 import {
   createUpsell,
   listUpsell,
@@ -10163,6 +10170,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/warroom' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildWarroom());
+          return;
+        }
+        if (path === '/api/warroom/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWarroomSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/warroom/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWarroomFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/warroom/haccp/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearWarroomHaccp(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/warroom/patrol/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearWarroomPatrol(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/warroom/concierge/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeWarroomConcierge(await readBody(req), user.username)); })();
           return;
         }
 
