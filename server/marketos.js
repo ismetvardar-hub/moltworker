@@ -161,3 +161,24 @@ export function returnMarketRental(input = {}, actor = 'system') {
   appendAudit({ actor, action: 'market.return', detail: order.title, meta: { id: ret.id } });
   return { ok: true, order: olist[oidx] || order, overview: marketOsOverview() };
 }
+
+/** Satılan / hold listing’i yeniden live + stok */
+export function restockMarketListing(input = {}, actor = 'system') {
+  const list = ensureListings();
+  const idx = list.findIndex((l) => l.id === input.listing_id || l.sku === input.listing_id);
+  if (idx < 0) return { ok: false, error: 'Listing yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'live',
+    stock: Number(input.stock) || Math.max(1, Number(list[idx].stock) || 1),
+    restocked_at: new Date().toISOString(),
+  };
+  writeCollection('market-listings', list);
+  appendAudit({
+    actor,
+    action: 'market.restock',
+    detail: `${list[idx].title} · stok ${list[idx].stock}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, listing: list[idx], overview: marketOsOverview() };
+}

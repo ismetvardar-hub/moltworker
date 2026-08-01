@@ -173,6 +173,30 @@ try {
   const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
   assert(green.res.ok, 'green automations');
 
+  const stream = await req('/api/culture/stream/start', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1' },
+  });
+  assert(stream.res.ok && stream.data.ok !== false, 'culture stream');
+  await req('/api/culture/stream/pulse', { method: 'POST', token, body: { viewers: 40 } });
+  await req('/api/culture/stream/end', { method: 'POST', token, body: {} });
+  await req('/api/culture/stage', { method: 'POST', token, body: { stage_id: 'cs_studio', status: 'ready' } });
+
+  const restock = await req('/api/marketos/restock', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_1' },
+  });
+  assert(restock.res.ok, 'market restock');
+
+  const settle = await req('/api/openmall/fnb-settle', {
+    method: 'POST',
+    token,
+    body: { tenant_id: 'mt_4' },
+  });
+  assert(settle.res.ok && settle.data.ok !== false, 'mall fnb settle');
+
   const sla = await req('/api/agentqueue/sla-sweep', {
     method: 'POST',
     token,

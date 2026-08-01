@@ -1166,6 +1166,8 @@ const BACKUP_COLLECTIONS = [
   'green-incidents',
   'agent-pings',
   'agent-presence',
+  'mall-fnb-settlements',
+  'culture-streams',
   'campus-brief-actions',
   'green-automations',
   'sport-eligibility',

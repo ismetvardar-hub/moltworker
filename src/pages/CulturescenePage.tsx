@@ -96,9 +96,58 @@ export default function CulturescenePage() {
               >
                 Hold onayla
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.startCultureStream({ event_id: data.events?.[0]?.id }).then((r: any) => {
+                    ping(`Stream ${r.stream?.channel}`)
+                    return refresh()
+                  })
+                }
+              >
+                Stream start
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.pulseCultureStream({ viewers: 48 }).then((r: any) => {
+                    ping(`İzleyici ${r.stream?.viewers}`)
+                    return refresh()
+                  })
+                }
+              >
+                Stream pulse
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.endCultureStream({}).then(() => {
+                    ping('Stream ended')
+                    return refresh()
+                  })
+                }
+              >
+                Stream end
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.setCultureStageStatus({ stage_id: 'cs_studio', status: 'ready' }).then(() => {
+                    ping('Stüdyo ready')
+                    return refresh()
+                  })
+                }
+              >
+                Stüdyo ready
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0}
+              Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı
+              stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Program">

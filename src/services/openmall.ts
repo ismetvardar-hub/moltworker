@@ -27,3 +27,13 @@ export async function mallDayRollup() {
   )
 }
 
+export async function settleMallTenantFnb(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/fnb-settle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+

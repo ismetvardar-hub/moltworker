@@ -41,6 +41,7 @@ import {
   extremeSlotWeatherCheck,
   applyExtremeWeatherHold,
   clearExtremeWeatherHold,
+  cancelExtremeReservation,
   reserveExtremeSlot,
   returnExtremeGear,
   signExtremeWaiver,
@@ -51,9 +52,15 @@ import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../s
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import { familyCampOverview, familyCheckIn, bookFamilyProgram, familyEmergencyNote } from '../server/familycamp.js';
-import { confirmCultureTicket } from '../server/culturescene.js';
-import { returnMarketRental } from '../server/marketos.js';
-import { mallDayRollup } from '../server/openmall.js';
+import {
+  confirmCultureTicket,
+  startCultureStream,
+  pulseCultureStream,
+  endCultureStream,
+  setCultureStageStatus,
+} from '../server/culturescene.js';
+import { returnMarketRental, restockMarketListing } from '../server/marketos.js';
+import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
 import { campusHealthCheck } from '../server/campusbrief.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
@@ -146,6 +153,7 @@ const held = holdCultureTicket({ event_id: culture.events[0].id, qty: 1 }, 'smok
 confirmCultureTicket({ hold_id: held.hold?.id }, 'smoke');
 
 mallDayRollup('smoke');
+settleMallTenantFnb({ tenant_id: 'mt_2' }, 'smoke');
 const rented = marketOsOverview().listings.find((l) => l.status === 'rented');
 if (rented) returnMarketRental({ listing_id: rented.id }, 'smoke');
 else {
@@ -155,6 +163,14 @@ else {
     returnMarketRental({ listing_id: liveRent.id }, 'smoke');
   }
 }
+const soldish = marketOsOverview().listings.find((l) => l.status !== 'live') || marketOsOverview().listings[0];
+if (soldish) restockMarketListing({ listing_id: soldish.id }, 'smoke');
+
+const stream = startCultureStream({ event_id: 'ce_1' }, 'smoke');
+assert(stream.ok, 'culture stream start');
+pulseCultureStream({ viewers: 33 }, 'smoke');
+endCultureStream({}, 'smoke');
+setCultureStageStatus({ stage_id: 'cs_studio', status: 'ready' }, 'smoke');
 
 const health = campusHealthCheck();
 assert(health.score >= 0, 'campus health');
@@ -180,7 +196,10 @@ const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, fo
 assert(hold.ok, 'weather hold');
 clearExtremeWeatherHold({}, 'smoke');
 signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
-const reserved = reserveExtremeSlot({ user_id: 'guest_ela' }, 'smoke');
+cancelExtremeReservation({ user_id: 'guest_ela' }, 'smoke');
+cancelExtremeReservation({ user_id: 'guest_can' }, 'smoke');
+let reserved = reserveExtremeSlot({ user_id: 'guest_ela' }, 'smoke');
+if (!reserved.ok) reserved = reserveExtremeSlot({ user_id: 'guest_can' }, 'smoke');
 assert(reserved.ok, 'slot reserve');
 const gearRet = returnExtremeGear({ gear_id: 'xg_1' }, 'smoke');
 assert(gearRet.ok, 'gear return');

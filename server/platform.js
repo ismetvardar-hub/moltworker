@@ -6707,11 +6707,22 @@ import {
   registerLifeDevice,
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
-import { createMarketListing, marketCheckout, marketOsOverview, returnMarketRental, syncMarketChannel } from './marketos.js';
-import { mallDayRollup, openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
+import { createMarketListing, marketCheckout, marketOsOverview, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
+import { mallDayRollup, openMallOverview, recordMallSale, settleMallTenantFnb, updateMallTenant } from './openmall.js';
 import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote } from './familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
-import { confirmCultureTicket, createCultureEvent, cultureSceneOverview, holdCultureTicket, releaseCultureHold, setCultureLive } from './culturescene.js';
+import {
+  confirmCultureTicket,
+  createCultureEvent,
+  cultureSceneOverview,
+  endCultureStream,
+  holdCultureTicket,
+  pulseCultureStream,
+  releaseCultureHold,
+  setCultureLive,
+  setCultureStageStatus,
+  startCultureStream,
+} from './culturescene.js';
 import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
@@ -36165,6 +36176,31 @@ export function createPlatformMiddleware() {
           void (async () => { sendJson(res, 200, setCultureLive(await readBody(req), user.username)); })();
           return;
         }
+
+        if (path === '/api/culture/stream/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, startCultureStream(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/stream/pulse' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, pulseCultureStream(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/stream/end' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, endCultureStream(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/stage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setCultureStageStatus(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/sportbridge' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, sportBridgeOverview());
@@ -36352,6 +36388,19 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, returnMarketRental(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/marketos/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockMarketListing(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall/fnb-settle' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, settleMallTenantFnb(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/openmall/day-rollup' && req.method === 'POST') {

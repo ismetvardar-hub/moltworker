@@ -52,3 +52,43 @@ export async function setCultureLive(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function startCultureStream(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/stream/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function pulseCultureStream(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/stream/pulse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function endCultureStream(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/stream/end', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function setCultureStageStatus(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/stage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -125,6 +125,20 @@ export default function MarketosPage() {
                         </button>
                       </>
                     )}
+                    {l.status !== 'live' && (
+                      <button
+                        type="button"
+                        className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] text-emerald-200"
+                        onClick={() =>
+                          void api.restockMarketListing({ listing_id: l.id }).then(() => {
+                            ping('Restock')
+                            return refresh()
+                          })
+                        }
+                      >
+                        Restock
+                      </button>
+                    )}
                     {l.status === 'rented' && (
                       <button
                         type="button"

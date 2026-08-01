@@ -74,6 +74,18 @@ export default function OpenmallPage() {
               >
                 Günlük rollup
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.settleMallTenantFnb({ tenant_id: 'mt_4' }).then((r: any) => {
+                    ping(`F&B settle gap ${r.settlement?.after_gap}`)
+                    return refresh()
+                  })
+                }
+              >
+                Trail Kitchen F&B settle
+              </button>
             </div>
           </PanelCard>
           <PanelCard title="Kiracılar">

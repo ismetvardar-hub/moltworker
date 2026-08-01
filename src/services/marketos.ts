@@ -43,3 +43,13 @@ export async function returnMarketRental(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function restockMarketListing(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/marketos/restock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

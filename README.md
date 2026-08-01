@@ -1844,6 +1844,9 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | green+ | `/api/greenpulse/automations` | ESG remediation playbook |
 | queue+ | `/api/agentqueue/sla-sweep` | SLA escalate / requeue / dead-letter |
 | brief+ | `/api/campusbrief/actions` · `/ack` | Kalıcı aksiyon kayıt + ack |
+| culture++ | `/api/culture/stream/*` · `/stage` | Canlı yayın oturumu + sahne ready |
+| market++ | `/api/marketos/restock` | İlan restock |
+| mall++ | `/api/openmall/fnb-settle` | F&B asgari kapanış |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

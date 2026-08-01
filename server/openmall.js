@@ -127,3 +127,42 @@ export function mallDayRollup(actor = 'system') {
   appendAudit({ actor, action: 'mall.day_rollup', detail: `${today} · ${rollup.total_try} TRY`, meta: { id: rollup.id } });
   return { ok: true, rollup, overview: openMallOverview() };
 }
+
+/** F&B asgari harcama kapanışı — gap sıfırla / period reset */
+export function settleMallTenantFnb(input = {}, actor = 'system') {
+  const list = ensureTenants();
+  const idx = list.findIndex((t) => t.id === input.tenant_id);
+  if (idx < 0) return { ok: false, error: 'Kiracı yok' };
+  const t = list[idx];
+  if (!t.fnb_min_try) return { ok: false, error: 'F&B hedefi yok' };
+  const before = withFnb([t])[0];
+  const credit = Number(input.credit_try);
+  const spend = Number.isFinite(credit)
+    ? (Number(t.fnb_spend_try) || 0) + credit
+    : Number(t.fnb_min_try) || 0;
+  list[idx] = {
+    ...t,
+    fnb_spend_try: spend,
+    fnb_settled_at: new Date().toISOString(),
+    fnb_period: input.period || t.fnb_period || '2026-08',
+  };
+  writeCollection('mall-tenants', list);
+  const after = withFnb([list[idx]])[0];
+  const settlement = {
+    id: rid('mfs'),
+    tenant_id: t.id,
+    before_gap: before.fnb_gap_try,
+    after_gap: after.fnb_gap_try,
+    spend,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-fnb-settlements', settlement, 100);
+  appendAudit({
+    actor,
+    action: 'mall.fnb_settle',
+    detail: `${t.name || t.id} gap ${before.fnb_gap_try} → ${after.fnb_gap_try}`,
+    meta: { id: settlement.id },
+  });
+  return { ok: true, settlement, tenant: after, overview: openMallOverview() };
+}

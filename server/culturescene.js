@@ -4,6 +4,7 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -70,8 +71,11 @@ export function cultureSceneOverview() {
   const events = ensureEvents();
   const holds = readCollection('culture-holds', []) || [];
   const sales = readCollection('culture-sales', []) || [];
+  const streams = readCollection('culture-streams', []) || [];
   const holdList = Array.isArray(holds) ? holds : [];
   const saleList = Array.isArray(sales) ? sales : [];
+  const streamList = Array.isArray(streams) ? streams : [];
+  const liveStreams = streamList.filter((s) => s.status === 'live');
   return {
     title: 'Kültür & Sahne',
     ethos: 'Sahne ormanın sesi — bilet, yayın, sanat tek nabız.',
@@ -79,6 +83,7 @@ export function cultureSceneOverview() {
     events,
     holds: holdList.slice(0, 20),
     sales: saleList.slice(0, 20),
+    streams: streamList.slice(0, 20),
     summary: {
       stages_ready: stages.filter((s) => s.status === 'ready').length,
       on_sale: events.filter((e) => e.status === 'on_sale').length,
@@ -86,6 +91,8 @@ export function cultureSceneOverview() {
       tickets_held: events.reduce((s, e) => s + (Number(e.tickets_held) || 0), 0),
       tickets_sold: saleList.reduce((s, x) => s + (Number(x.qty) || 0), 0),
       streams: events.filter((e) => e.stream).length,
+      streams_live: liveStreams.length,
+      viewers_peak: liveStreams.reduce((s, x) => s + (Number(x.viewers_peak) || 0), 0),
       open_holds: holdList.filter((h) => h.status !== 'sold' && h.status !== 'released').length,
     },
     generatedAt: new Date().toISOString(),
@@ -198,4 +205,123 @@ export function setCultureLive(input = {}, actor = 'system') {
   writeCollection('culture-events', events);
   appendAudit({ actor, action: 'culture.live', detail: `${events[idx].title} → ${events[idx].status}`, meta: { id: events[idx].id } });
   return { ok: true, event: events[idx], overview: cultureSceneOverview() };
+}
+
+/** Canlı yayın oturumu aç — CULTURE-AI + mediawall nabız */
+export function startCultureStream(input = {}, actor = 'system') {
+  const events = ensureEvents();
+  let ev = events.find((e) => e.id === input.event_id);
+  if (!ev) ev = events.find((e) => e.stream) || events[0];
+  if (!ev) return { ok: false, error: 'Etkinlik yok' };
+  const eidx = events.findIndex((e) => e.id === ev.id);
+  events[eidx] = { ...events[eidx], status: 'live', stream: true };
+  writeCollection('culture-events', events);
+  const stream = {
+    id: rid('cstr'),
+    event_id: ev.id,
+    title: ev.title,
+    channel: input.channel || 'livecast',
+    status: 'live',
+    viewers: Number(input.viewers) || 12,
+    viewers_peak: Number(input.viewers) || 12,
+    started_at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-streams', stream, 200);
+  enqueueAgentJob(
+    {
+      agent: 'CULTURE-AI',
+      title: `stream live · ${ev.title} · ${stream.channel}`,
+      priority: 'high',
+      payload: { stream_id: stream.id, event_id: ev.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.stream_start',
+    detail: `${ev.title} · ${stream.channel}`,
+    meta: { id: stream.id },
+  });
+  return { ok: true, stream, overview: cultureSceneOverview() };
+}
+
+export function pulseCultureStream(input = {}, actor = 'system') {
+  const streams = readCollection('culture-streams', []) || [];
+  const list = Array.isArray(streams) ? streams : [];
+  let idx = list.findIndex((s) => s.id === input.stream_id && s.status === 'live');
+  if (idx < 0) idx = list.findIndex((s) => s.status === 'live');
+  if (idx < 0) return { ok: false, error: 'Canlı stream yok — önce start' };
+  const viewers = Number(input.viewers);
+  const next = Number.isFinite(viewers) ? viewers : (Number(list[idx].viewers) || 10) + 5;
+  list[idx] = {
+    ...list[idx],
+    viewers: next,
+    viewers_peak: Math.max(Number(list[idx].viewers_peak) || 0, next),
+    pulsed_at: new Date().toISOString(),
+  };
+  writeCollection('culture-streams', list);
+  appendAudit({
+    actor,
+    action: 'culture.stream_pulse',
+    detail: `${list[idx].id} · ${next} izleyici`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, stream: list[idx], overview: cultureSceneOverview() };
+}
+
+export function endCultureStream(input = {}, actor = 'system') {
+  const streams = readCollection('culture-streams', []) || [];
+  const list = Array.isArray(streams) ? streams : [];
+  let idx = list.findIndex((s) => s.id === input.stream_id && s.status === 'live');
+  if (idx < 0) idx = list.findIndex((s) => s.status === 'live');
+  if (idx < 0) return { ok: false, error: 'Canlı stream yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'ended',
+    ended_at: new Date().toISOString(),
+    ended_by: actor,
+  };
+  writeCollection('culture-streams', list);
+  const events = ensureEvents();
+  const eidx = events.findIndex((e) => e.id === list[idx].event_id);
+  if (eidx >= 0 && events[eidx].status === 'live') {
+    events[eidx] = { ...events[eidx], status: 'ended', stream: false };
+    writeCollection('culture-events', events);
+  }
+  appendAudit({
+    actor,
+    action: 'culture.stream_end',
+    detail: `${list[idx].title} peak ${list[idx].viewers_peak}`,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, stream: list[idx], overview: cultureSceneOverview() };
+}
+
+/** Sahne fitout → ready (veya tersi) */
+export function setCultureStageStatus(input = {}, actor = 'system') {
+  const stages = ensureStages();
+  const idx = stages.findIndex((s) => s.id === input.stage_id || s.name === input.stage_id);
+  if (idx < 0) return { ok: false, error: 'Sahne yok' };
+  const status = input.status || (stages[idx].status === 'ready' ? 'fitout' : 'ready');
+  stages[idx] = { ...stages[idx], status, updatedAt: new Date().toISOString() };
+  writeCollection('culture-stages', stages);
+  if (status === 'ready') {
+    enqueueAgentJob(
+      {
+        agent: 'CULTURE-AI',
+        title: `sahne ready · ${stages[idx].name}`,
+        priority: 'normal',
+        payload: { stage_id: stages[idx].id },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'culture.stage',
+    detail: `${stages[idx].name} → ${status}`,
+    meta: { id: stages[idx].id },
+  });
+  return { ok: true, stage: stages[idx], overview: cultureSceneOverview() };
 }

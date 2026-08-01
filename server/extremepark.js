@@ -645,6 +645,19 @@ export function reserveExtremeSlot(input = {}, actor = 'system') {
   let slot =
     slots.find((s) => s.id === input.slot_id) ||
     slots.find((s) => (s.status === 'open' || s.status === 'available') && (s.booked || 0) < (s.capacity || 1));
+  // hava iptallerinden sonra demo için bir slotu reopen
+  if (!slot) {
+    const reopenIdx = slots.findIndex(
+      (s) =>
+        (s.status === 'cancelled_weather' || s.status === 'weather_hold') &&
+        (s.booked || 0) < (s.capacity || 1),
+    );
+    if (reopenIdx >= 0) {
+      slots[reopenIdx] = { ...slots[reopenIdx], status: 'open', cancel_reason: null, hold_until: null };
+      writeCollection('extreme-slots', slots);
+      slot = slots[reopenIdx];
+    }
+  }
   if (!slot) return { ok: false, error: 'Müsait slot yok' };
   if (slot.status === 'weather_hold' || slot.status === 'cancelled_weather') {
     return { ok: false, error: `Slot ${slot.status}` };
