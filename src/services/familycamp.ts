@@ -43,3 +43,13 @@ export async function familyEmergencyNote(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function transferFamilyChild(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

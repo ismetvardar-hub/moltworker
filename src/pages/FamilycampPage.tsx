@@ -108,7 +108,24 @@ export default function FamilycampPage() {
               >
                 Acil not
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api
+                    .transferFamilyChild({ to_program_id: openProg?.id || 'fp_1' })
+                    .then((r: any) => {
+                      if (!r.ok) throw new Error(r.error || 'Transfer başarısız')
+                      ping(`Transfer → ${r.transfer?.to}`)
+                      return refresh()
+                    })
+                    .catch((e: Error) => setError(e.message))
+                }
+              >
+                Programa transfer
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">Transfer kaydı: {data.summary?.transfers ?? 0}</p>
           </PanelCard>
         </div>
       )}

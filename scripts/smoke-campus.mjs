@@ -59,7 +59,13 @@ import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
-import { familyCampOverview, familyCheckIn, bookFamilyProgram, familyEmergencyNote } from '../server/familycamp.js';
+import {
+  familyCampOverview,
+  familyCheckIn,
+  bookFamilyProgram,
+  familyEmergencyNote,
+  transferFamilyChild,
+} from '../server/familycamp.js';
 import {
   confirmCultureTicket,
   startCultureStream,
@@ -154,6 +160,7 @@ assert(family.programs?.length >= 2, 'family camp');
 bookFamilyProgram({ program_id: 'fp_1', child_name: 'Smoke Book' }, 'smoke');
 familyCheckIn({ child_name: 'Smoke Kid', program_id: 'fp_3', guardian: 'Parent' }, 'smoke');
 familyEmergencyNote({ child_name: 'Smoke Kid', note: 'smoke allergy' }, 'smoke');
+assert(transferFamilyChild({ child_name: 'Smoke Kid', to_program_id: 'fp_1' }, 'smoke').ok, 'family transfer');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');

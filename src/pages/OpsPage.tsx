@@ -9,6 +9,7 @@ import {
 import PanelCard from '../components/PanelCard';
 import {
   downloadBackup,
+  fetchCampusHealth,
   fetchDataFiles,
   fetchHealth,
   restoreBackup,
@@ -17,6 +18,7 @@ import {
 
 export default function OpsPage() {
   const [health, setHealth] = useState<HealthReport | null>(null);
+  const [campus, setCampus] = useState<HealthReport['campus'] | null>(null);
   const [files, setFiles] = useState<Array<{ name: string; bytes: number; mtime: string }>>(
     [],
   );
@@ -25,9 +27,14 @@ export default function OpsPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [h, f] = await Promise.all([fetchHealth(), fetchDataFiles()]);
+      const [h, f, c] = await Promise.all([
+        fetchHealth(),
+        fetchDataFiles(),
+        fetchCampusHealth().catch(() => null),
+      ]);
       setHealth(h);
       setFiles(f);
+      setCampus(c || h.campus || null);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ops verisi alınamadı');
@@ -122,6 +129,36 @@ export default function OpsPage() {
           </ul>
         </PanelCard>
       </div>
+
+      {campus && (
+        <PanelCard title="Kampüs sağlığı" subtitle="/api/campus/health">
+          <dl className="grid grid-cols-2 gap-3 text-sm text-slate-300 sm:grid-cols-4">
+            <div>
+              <dt className="text-xs text-slate-500">Durum</dt>
+              <dd className="text-lykia-200">{campus.status}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Skor</dt>
+              <dd className="text-2xl font-semibold text-lykia-200">{campus.score ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Alert</dt>
+              <dd>{campus.alerts ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-500">Warn</dt>
+              <dd>{campus.warns ?? 0}</dd>
+            </div>
+          </dl>
+          <ul className="mt-3 max-h-28 space-y-1 overflow-auto text-xs text-slate-400">
+            {(campus.actions || []).slice(0, 6).map((a, i) => (
+              <li key={`${a.href}-${i}`}>
+                [{a.level}] {a.text}
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <PanelCard title="Yedekleme" subtitle="likya-backup-v1">

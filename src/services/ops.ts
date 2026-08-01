@@ -7,6 +7,19 @@ export interface HealthReport {
   uptimeSec: number;
   generatedAt: string;
   checks: Record<string, unknown>;
+  campus?: {
+    status?: string;
+    score?: number;
+    alerts?: number;
+    warns?: number;
+    actions?: Array<{ level?: string; text?: string; href?: string }>;
+  };
+}
+
+export async function fetchCampusHealth(): Promise<NonNullable<HealthReport['campus']>> {
+  const res = await fetch('/api/campus/health', { headers: authHeaders() });
+  if (!res.ok) throw new Error('Kampüs health alınamadı');
+  return (await res.json()) as NonNullable<HealthReport['campus']>;
 }
 
 export async function fetchHealth(): Promise<HealthReport> {

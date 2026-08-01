@@ -1849,6 +1849,10 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | mall++ | `/api/openmall/fnb-settle` | F&B asgari kapanış |
 | campus+ | `/api/campus/zone-transition` · `/capacity` · `/incident/resolve` | Zon geçiş + kapasite |
 | bridge+ | `/api/agentbridge/broadcast` | Çoklu ajan broadcast |
+| readiness+ | `/api/readiness` | Kampüs + ESG + ajan boyutları eklendi |
+| campus map | `/campus` UI | Canlı nabız + hızlı ops (oto/SLA/ESG/broadcast) |
+| family++ | `/api/familycamp/transfer` | Emanet → program transfer |
+| ops UI | OpsPage | Kampüs health skoru şeridi |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

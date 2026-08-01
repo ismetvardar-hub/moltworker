@@ -37,16 +37,19 @@ export function familyCampOverview() {
   const programs = ensurePrograms().map(refreshProgramStatus);
   const checkins = ensureCheckins();
   const notes = readCollection('family-notes', []) || [];
+  const transfers = readCollection('family-transfers', []) || [];
   return {
     title: 'Aile & Çocuk',
     programs,
     checkins: checkins.slice(0, 20),
     notes: (Array.isArray(notes) ? notes : []).slice(0, 15),
+    transfers: (Array.isArray(transfers) ? transfers : []).slice(0, 15),
     summary: {
       open: programs.filter((p) => p.status === 'open').length,
       full: programs.filter((p) => p.status === 'full').length,
       in_care: checkins.filter((c) => c.status === 'in_care').length,
       seats_left: programs.reduce((s, p) => s + Math.max(0, (p.seats || 0) - (p.booked || 0)), 0),
+      transfers: Array.isArray(transfers) ? transfers.length : 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -120,6 +123,54 @@ export function familyCheckOut(id, actor = 'system') {
   writeCollection('family-checkins', list);
   appendAudit({ actor, action: 'family.checkout', detail: list[idx].child_name, meta: { id } });
   return { ok: true, checkin: list[idx], overview: familyCampOverview() };
+}
+
+/** Emanet / program arası transfer */
+export function transferFamilyChild(input = {}, actor = 'system') {
+  const checkins = ensureCheckins();
+  let idx = checkins.findIndex((c) => c.id === input.checkin_id && c.status === 'in_care');
+  if (idx < 0) idx = checkins.findIndex((c) => c.child_name === input.child_name && c.status === 'in_care');
+  if (idx < 0) idx = checkins.findIndex((c) => c.status === 'in_care');
+  if (idx < 0) return { ok: false, error: 'Açık emanet yok' };
+  const to = input.to_program_id || 'fp_1';
+  const programs = ensurePrograms();
+  const prog = programs.find((p) => p.id === to);
+  if (!prog) return { ok: false, error: 'Hedef program yok' };
+  const from = checkins[idx].program_id;
+  checkins[idx] = {
+    ...checkins[idx],
+    program_id: to,
+    transferred_from: from,
+    transferred_at: new Date().toISOString(),
+    note: input.note || `transfer ${from} → ${to}`,
+  };
+  writeCollection('family-checkins', checkins);
+  const row = {
+    id: rid('ft'),
+    checkin_id: checkins[idx].id,
+    child_name: checkins[idx].child_name,
+    from,
+    to,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-transfers', row, 200);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `transfer · ${row.child_name} · ${from}→${to}`,
+      priority: 'normal',
+      payload: { transfer_id: row.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'family.transfer',
+    detail: `${row.child_name} ${from}→${to}`,
+    meta: { id: row.id },
+  });
+  return { ok: true, transfer: row, checkin: checkins[idx], overview: familyCampOverview() };
 }
 
 export function familyEmergencyNote(input = {}, actor = 'system') {

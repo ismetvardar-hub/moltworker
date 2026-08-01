@@ -1249,6 +1249,7 @@ export function buildOpenApi() {
       '/api/stayring/hk-complete': { post: { summary: 'HK görevi tamamla', tags: ['stayring'] } },
       '/api/stayring/night-rollup': { post: { summary: 'Gece doluluk/RevPAR', tags: ['stayring'] } },
       '/api/familycamp/book': { post: { summary: 'Aile program rezervasyon', tags: ['familycamp'] } },
+      '/api/familycamp/transfer': { post: { summary: 'Emanet/program transfer', tags: ['familycamp'] } },
       '/api/culture/confirm': { post: { summary: 'Bilet hold onay', tags: ['culturescene'] } },
       '/api/marketos/return': { post: { summary: 'Kiralama iade', tags: ['marketos'] } },
       '/api/openmall/day-rollup': { post: { summary: 'AVM günlük POS rollup', tags: ['openmall'] } },

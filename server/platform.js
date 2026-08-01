@@ -6709,7 +6709,7 @@ import {
 } from './lifecoach.js';
 import { createMarketListing, marketCheckout, marketOsOverview, restockMarketListing, returnMarketRental, syncMarketChannel } from './marketos.js';
 import { mallDayRollup, openMallOverview, recordMallSale, settleMallTenantFnb, updateMallTenant } from './openmall.js';
-import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote } from './familycamp.js';
+import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote, transferFamilyChild } from './familycamp.js';
 import { agentBridgeBroadcast, agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import {
   confirmCultureTicket,
@@ -36396,6 +36396,13 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, familyEmergencyNote(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/familycamp/transfer' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, transferFamilyChild(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/culture/confirm' && req.method === 'POST') {

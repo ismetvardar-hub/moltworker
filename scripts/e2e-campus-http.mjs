@@ -91,6 +91,17 @@ try {
     body: { program_id: openProg.id, child_name: 'E2E' },
   });
   assert(book.res.ok && book.data.ok !== false, 'family book');
+  await req('/api/familycamp/checkin', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E', program_id: 'fp_3', guardian: 'e2e' },
+  });
+  const xfer = await req('/api/familycamp/transfer', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E', to_program_id: openProg.id },
+  });
+  assert(xfer.res.ok && xfer.data.ok !== false, 'family transfer');
 
   const hold = await req('/api/culture/hold', {
     method: 'POST',
