@@ -197,10 +197,47 @@ export default function LifecoachPage() {
               >
                 Adherence hesapla
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.flagLifeCrisis({ client_id: 'lc_2', severity: 'high', force: true }).then((r: any) => {
+                    ping(r.ok ? `Kriz · ${r.crisis?.severity}` : r.error || 'Kriz yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kriz bayrağı
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.clearLifeCrisis({ client_id: 'lc_2' }).then((r: any) => {
+                    ping(r.ok ? 'Kriz kapandı' : r.error || 'Clear yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kriz kapat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runLifeMissedCheckInSweep({ force: true, stale_hours: 1 }).then((r: any) => {
+                    ping(`Missed CI · ${r.sweep?.missed ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Missed check-in
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Check-in: {data.summary?.checkins ?? 0} · açık FU: {data.summary?.followups_open ?? 0} ·
-              adherence: {data.summary?.adherence_avg ?? '—'}
+              adherence: {data.summary?.adherence_avg ?? '—'} · kriz: {data.summary?.crises_open ?? 0} · missed:{' '}
+              {data.summary?.missed_checkins ?? 0}
             </p>
             <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-obsidian-950 p-2 text-[10px] text-slate-500">
               {JSON.stringify(data.webhooks?.slice?.(0, 5) || [], null, 2)}

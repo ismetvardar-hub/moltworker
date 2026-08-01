@@ -68,6 +68,9 @@ import {
   scheduleLifeFollowUps,
   completeLifeFollowUp,
   scoreLifePlanAdherence,
+  flagLifeCrisis,
+  clearLifeCrisis,
+  runLifeMissedCheckInSweep,
 } from '../server/lifecoach.js';
 import {
   agentQueueOverview,
@@ -274,6 +277,9 @@ assert(lifeWeeklyDigest('smoke').ok, 'life digest');
 assert(scheduleLifeFollowUps({}, 'smoke').ok, 'life followups');
 assert(completeLifeFollowUp({}, 'smoke').ok, 'life followup complete');
 assert(scoreLifePlanAdherence({}, 'smoke').ok, 'life adherence');
+assert(flagLifeCrisis({ client_id: 'lc_2', severity: 'high', force: true }, 'smoke').ok, 'life crisis');
+assert(clearLifeCrisis({ client_id: 'lc_2' }, 'smoke').ok, 'life crisis clear');
+assert(runLifeMissedCheckInSweep({ force: true, stale_hours: 1 }, 'smoke').ok, 'life missed checkin');
 
 const queue = agentQueueOverview();
 assert(queue.jobs?.length >= 1, 'agent queue');

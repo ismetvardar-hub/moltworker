@@ -104,3 +104,33 @@ export async function scoreLifePlanAdherence(body: Record<string, unknown> = {})
     }),
   )
 }
+
+export async function flagLifeCrisis(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/crisis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearLifeCrisis(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/crisis/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runLifeMissedCheckInSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/checkin/missed-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

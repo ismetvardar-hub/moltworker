@@ -262,6 +262,24 @@ try {
   assert(fuDone.res.ok && fuDone.data.ok !== false, 'life followup complete');
   const adh = await req('/api/lifecoach/adherence', { method: 'POST', token, body: {} });
   assert(adh.res.ok && adh.data.ok !== false, 'life adherence');
+  const crisis = await req('/api/lifecoach/crisis', {
+    method: 'POST',
+    token,
+    body: { client_id: 'lc_2', severity: 'high', force: true },
+  });
+  assert(crisis.res.ok && crisis.data.ok !== false, 'life crisis');
+  const crisisClear = await req('/api/lifecoach/crisis/clear', {
+    method: 'POST',
+    token,
+    body: { client_id: 'lc_2' },
+  });
+  assert(crisisClear.res.ok && crisisClear.data.ok !== false, 'life crisis clear');
+  const missed = await req('/api/lifecoach/checkin/missed-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true, stale_hours: 1 },
+  });
+  assert(missed.res.ok && missed.data.ok !== false, 'life missed checkin sweep');
 
   const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });
   assert(night.res.ok && night.data.rollup, 'stay night rollup');
