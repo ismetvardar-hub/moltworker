@@ -221,6 +221,7 @@ import {
   CloudDownload,
   Unplug,
   Satellite,
+  Rss,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -264,6 +265,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'vanguard',
   'lattice',
   'mirror',
+  'keystone',
 ]);
 
 interface SidebarProps {
@@ -811,6 +813,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'lifetimeval', label: 'LTV', description: 'Ömür boyu değer tahmini.', icon: BadgeDollarSign },
   { id: 'churnrisk', label: 'Churn Risk', description: 'Ayrılma / dönmeme riski.', icon: TrendingDown },
   { id: 'wowmoment', label: 'Wow Moment', description: 'Sürpriz / wow anı planı.', icon: PartyPopper },
+    { id: 'incidentbus', label: 'Incident Bus', description: 'Olay veri yolu mesajları.', icon: Rss },
+  { id: 'playtrigger', label: 'Play Trigger', description: 'Playbook tetikleyicileri.', icon: Zap },
+  { id: 'escalation', label: 'Escalation', description: 'Yükseltme matrisi kayıtları.', icon: TriangleAlert },
+  { id: 'warroomseat', label: 'War Room Seat', description: 'War room koltuk / rol ataması.', icon: Armchair },
+  { id: 'decisionlog', label: 'Decision Log', description: 'Karar günlüğü.', icon: ScrollText },
+  { id: 'slotrack', label: 'SLO Track', description: 'Servis seviyesi hedef takibi.', icon: Target },
+  { id: 'errorbudget', label: 'Error Budget', description: 'Hata bütçesi tüketimi.', icon: Percent },
+  { id: 'changewindow', label: 'Change Window', description: 'Değişiklik penceresi planı.', icon: CalendarClock },
+  { id: 'blameless', label: 'Blameless Review', description: 'Blameless postmortem kayıtları.', icon: FileText },
+  { id: 'pagerduty', label: 'On-Call', description: 'Nöbet / on-call rotası.', icon: PhoneCall },
+  { id: 'statuspage', label: 'Status Page', description: 'Dış durum sayfası bileşenleri.', icon: MonitorPlay },
+  { id: 'runbooklink', label: 'Runbook Link', description: 'Olay→runbook eşlemesi.', icon: BookOpen },
+  { id: 'commsbridge', label: 'Comms Bridge', description: 'Kriz iletişim köprüsü.', icon: Megaphone },
+  { id: 'afteraction', label: 'After Action', description: 'After-action madde listesi.', icon: ClipboardCheck },
+  { id: 'keystone', label: 'Keystone', description: 'AŞAMA 375 komuta kumaşı özeti.', icon: Landmark },
   { id: 'mirror', label: 'Mirror', description: 'AŞAMA 360 guest twin özeti.', icon: Sparkles },
   { id: 'lattice', label: 'Lattice', description: 'AŞAMA 345 edge mesh özeti.', icon: Radar },
   { id: 'vanguard', label: 'Vanguard', description: 'AŞAMA 330 Nexus Prime özeti.', icon: Rocket },

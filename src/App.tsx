@@ -359,6 +359,21 @@ import LifetimevalPage from './pages/LifetimevalPage';
 import ChurnriskPage from './pages/ChurnriskPage';
 import WowmomentPage from './pages/WowmomentPage';
 import MirrorPage from './pages/MirrorPage';
+import IncidentbusPage from './pages/IncidentbusPage';
+import PlaytriggerPage from './pages/PlaytriggerPage';
+import EscalationPage from './pages/EscalationPage';
+import WarroomseatPage from './pages/WarroomseatPage';
+import DecisionlogPage from './pages/DecisionlogPage';
+import SlotrackPage from './pages/SlotrackPage';
+import ErrorbudgetPage from './pages/ErrorbudgetPage';
+import ChangewindowPage from './pages/ChangewindowPage';
+import BlamelessPage from './pages/BlamelessPage';
+import PagerdutyPage from './pages/PagerdutyPage';
+import StatuspagePage from './pages/StatuspagePage';
+import RunbooklinkPage from './pages/RunbooklinkPage';
+import CommsbridgePage from './pages/CommsbridgePage';
+import AfteractionPage from './pages/AfteractionPage';
+import KeystonePage from './pages/KeystonePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -687,6 +702,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   churnrisk: ChurnriskPage,
   wowmoment: WowmomentPage,
   mirror: MirrorPage,
+  incidentbus: IncidentbusPage,
+  playtrigger: PlaytriggerPage,
+  escalation: EscalationPage,
+  warroomseat: WarroomseatPage,
+  decisionlog: DecisionlogPage,
+  slotrack: SlotrackPage,
+  errorbudget: ErrorbudgetPage,
+  changewindow: ChangewindowPage,
+  blameless: BlamelessPage,
+  pagerduty: PagerdutyPage,
+  statuspage: StatuspagePage,
+  runbooklink: RunbooklinkPage,
+  commsbridge: CommsbridgePage,
+  afteraction: AfteractionPage,
+  keystone: KeystonePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
