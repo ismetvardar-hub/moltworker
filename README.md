@@ -671,6 +671,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **344** | Sat Link |
 | **345** | Lattice checkpoint (`/api/lattice`) |
 
+### Guest Twin · Mirror (AŞAMA 346–360)
+
+| Aşama | Özellik |
+|-------|---------|
+| **346** | Guest Twin |
+| **347** | Tercih Grafı |
+| **348** | Niyet Skoru |
+| **349** | Next Best Action |
+| **350** | Yolculuk Haritası |
+| **351** | Mikro Segment |
+| **352** | Offer Lab |
+| **353** | Consent Graph |
+| **354** | Duygu Nabız |
+| **355** | Servis Hafızası |
+| **356** | Recovery Path |
+| **357** | LTV |
+| **358** | Churn Risk |
+| **359** | Wow Moment |
+| **360** | Mirror checkpoint (`/api/mirror`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

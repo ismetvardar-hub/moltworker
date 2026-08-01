@@ -344,6 +344,21 @@ import TelemetryPage from './pages/TelemetryPage';
 import NetslicePage from './pages/NetslicePage';
 import SatlinkPage from './pages/SatlinkPage';
 import LatticePage from './pages/LatticePage';
+import GuesttwinPage from './pages/GuesttwinPage';
+import PrefgraphPage from './pages/PrefgraphPage';
+import IntentscorePage from './pages/IntentscorePage';
+import NextbestPage from './pages/NextbestPage';
+import JourneymapPage from './pages/JourneymapPage';
+import MicrosegPage from './pages/MicrosegPage';
+import OfferlabPage from './pages/OfferlabPage';
+import ConsentgraphPage from './pages/ConsentgraphPage';
+import EmotionpulsePage from './pages/EmotionpulsePage';
+import ServicememoryPage from './pages/ServicememoryPage';
+import RecoverypathPage from './pages/RecoverypathPage';
+import LifetimevalPage from './pages/LifetimevalPage';
+import ChurnriskPage from './pages/ChurnriskPage';
+import WowmomentPage from './pages/WowmomentPage';
+import MirrorPage from './pages/MirrorPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -657,6 +672,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   netslice: NetslicePage,
   satlink: SatlinkPage,
   lattice: LatticePage,
+  guesttwin: GuesttwinPage,
+  prefgraph: PrefgraphPage,
+  intentscore: IntentscorePage,
+  nextbest: NextbestPage,
+  journeymap: JourneymapPage,
+  microseg: MicrosegPage,
+  offerlab: OfferlabPage,
+  consentgraph: ConsentgraphPage,
+  emotionpulse: EmotionpulsePage,
+  servicememory: ServicememoryPage,
+  recoverypath: RecoverypathPage,
+  lifetimeval: LifetimevalPage,
+  churnrisk: ChurnriskPage,
+  wowmoment: WowmomentPage,
+  mirror: MirrorPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

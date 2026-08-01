@@ -1825,6 +1825,91 @@ import {
   updateSatlink,
 } from './satlink.js';
 import { buildLattice } from './lattice.js';
+import {
+  createGuesttwin,
+  listGuesttwin,
+  guesttwinSummary,
+  updateGuesttwin,
+} from './guesttwin.js';
+import {
+  createPrefgraph,
+  listPrefgraph,
+  prefgraphSummary,
+  updatePrefgraph,
+} from './prefgraph.js';
+import {
+  createIntentscore,
+  listIntentscore,
+  intentscoreSummary,
+  updateIntentscore,
+} from './intentscore.js';
+import {
+  createNextbest,
+  listNextbest,
+  nextbestSummary,
+  updateNextbest,
+} from './nextbest.js';
+import {
+  createJourneymap,
+  listJourneymap,
+  journeymapSummary,
+  updateJourneymap,
+} from './journeymap.js';
+import {
+  createMicroseg,
+  listMicroseg,
+  microsegSummary,
+  updateMicroseg,
+} from './microseg.js';
+import {
+  createOfferlab,
+  listOfferlab,
+  offerlabSummary,
+  updateOfferlab,
+} from './offerlab.js';
+import {
+  createConsentgraph,
+  listConsentgraph,
+  consentgraphSummary,
+  updateConsentgraph,
+} from './consentgraph.js';
+import {
+  createEmotionpulse,
+  listEmotionpulse,
+  emotionpulseSummary,
+  updateEmotionpulse,
+} from './emotionpulse.js';
+import {
+  createServicememory,
+  listServicememory,
+  servicememorySummary,
+  updateServicememory,
+} from './servicememory.js';
+import {
+  createRecoverypath,
+  listRecoverypath,
+  recoverypathSummary,
+  updateRecoverypath,
+} from './recoverypath.js';
+import {
+  createLifetimeval,
+  listLifetimeval,
+  lifetimevalSummary,
+  updateLifetimeval,
+} from './lifetimeval.js';
+import {
+  createChurnrisk,
+  listChurnrisk,
+  churnriskSummary,
+  updateChurnrisk,
+} from './churnrisk.js';
+import {
+  createWowmoment,
+  listWowmoment,
+  wowmomentSummary,
+  updateWowmoment,
+} from './wowmoment.js';
+import { buildMirror } from './mirror.js';
 
 
 
@@ -10689,6 +10774,363 @@ export function createPlatformMiddleware() {
         if (path === '/api/lattice' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildLattice());
+          return;
+        }
+
+        // ── Guest Twin · Mirror (AŞAMA 346–360) ──
+
+        if (path === '/api/guesttwin' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, guesttwinSummary());
+          return;
+        }
+        if (path === '/api/guesttwin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createGuesttwin(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/guesttwin/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateGuesttwin(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/prefgraph' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, prefgraphSummary());
+          return;
+        }
+        if (path === '/api/prefgraph' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createPrefgraph(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/prefgraph/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updatePrefgraph(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/intentscore' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, intentscoreSummary());
+          return;
+        }
+        if (path === '/api/intentscore' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createIntentscore(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/intentscore/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateIntentscore(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/nextbest' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, nextbestSummary());
+          return;
+        }
+        if (path === '/api/nextbest' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createNextbest(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/nextbest/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateNextbest(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/journeymap' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, journeymapSummary());
+          return;
+        }
+        if (path === '/api/journeymap' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createJourneymap(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/journeymap/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateJourneymap(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/microseg' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, microsegSummary());
+          return;
+        }
+        if (path === '/api/microseg' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createMicroseg(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/microseg/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateMicroseg(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/offerlab' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, offerlabSummary());
+          return;
+        }
+        if (path === '/api/offerlab' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createOfferlab(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/offerlab/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateOfferlab(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/consentgraph' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, consentgraphSummary());
+          return;
+        }
+        if (path === '/api/consentgraph' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createConsentgraph(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/consentgraph/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateConsentgraph(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/emotionpulse' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, emotionpulseSummary());
+          return;
+        }
+        if (path === '/api/emotionpulse' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createEmotionpulse(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/emotionpulse/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateEmotionpulse(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/servicememory' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, servicememorySummary());
+          return;
+        }
+        if (path === '/api/servicememory' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createServicememory(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/servicememory/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateServicememory(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/recoverypath' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, recoverypathSummary());
+          return;
+        }
+        if (path === '/api/recoverypath' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createRecoverypath(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/recoverypath/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateRecoverypath(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/lifetimeval' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, lifetimevalSummary());
+          return;
+        }
+        if (path === '/api/lifetimeval' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createLifetimeval(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/lifetimeval/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateLifetimeval(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/churnrisk' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, churnriskSummary());
+          return;
+        }
+        if (path === '/api/churnrisk' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createChurnrisk(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/churnrisk/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateChurnrisk(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+
+        if (path === '/api/wowmoment' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, wowmomentSummary());
+          return;
+        }
+        if (path === '/api/wowmoment' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { item: createWowmoment(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/wowmoment/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateWowmoment(path.split('/')[3], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+
+        if (path === '/api/mirror' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildMirror());
           return;
         }
 
