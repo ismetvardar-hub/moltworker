@@ -346,9 +346,14 @@ function buildSlice(startStage, theme, stemOffset, prevCp) {
   };
 }
 
-let prev = { id: 'verdant', stage: 690, openapiSummary: 'Verdant' };
-let stemOffset = 0;
-let themeIdx = 0;
+const prevId = process.argv[4];
+const prevStage = Number(process.argv[5] || 0);
+const prevSummary = process.argv[6] || (prevId ? prevId[0].toUpperCase() + prevId.slice(1) : '');
+let prev = prevId
+  ? { id: prevId, stage: prevStage, openapiSummary: prevSummary }
+  : { id: 'verdant', stage: 690, openapiSummary: 'Verdant' };
+let stemOffset = Number(process.argv[7] || 0);
+let themeIdx = Number(process.argv[8] || 0);
 
 for (let start = from; start <= to; start += 15) {
   const end = start + 14;

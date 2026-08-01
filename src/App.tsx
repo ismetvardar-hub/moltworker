@@ -749,6 +749,156 @@ import WarbriefPage from './pages/WarbriefPage';
 import DecisionhubPage from './pages/DecisionhubPage';
 import SealnotePage from './pages/SealnotePage';
 import DominionPage from './pages/DominionPage';
+import LegacyflagPage from './pages/LegacyflagPage';
+import CalmroomPage from './pages/CalmroomPage';
+import QuiethoursPage from './pages/QuiethoursPage';
+import ScentmoodPage from './pages/ScentmoodPage';
+import Pillowmenu2Page from './pages/Pillowmenu2Page';
+import BathritualPage from './pages/BathritualPage';
+import SleepscorePage from './pages/SleepscorePage';
+import WelcomeamenPage from './pages/WelcomeamenPage';
+import FarewellPage from './pages/FarewellPage';
+import MemorybookPage from './pages/MemorybookPage';
+import CarecallPage from './pages/CarecallPage';
+import SurprisegiftPage from './pages/SurprisegiftPage';
+import LoyaltyhugPage from './pages/LoyaltyhugPage';
+import FeedbackloopPage from './pages/FeedbackloopPage';
+import SerenityPage from './pages/SerenityPage';
+import MomentmapPage from './pages/MomentmapPage';
+import ApigatewayPage from './pages/ApigatewayPage';
+import WebhookhubPage from './pages/WebhookhubPage';
+import Ratelimit2Page from './pages/Ratelimit2Page';
+import SchemaregPage from './pages/SchemaregPage';
+import EventbusPage from './pages/EventbusPage';
+import Jobqueue2Page from './pages/Jobqueue2Page';
+import CachemeshPage from './pages/CachemeshPage';
+import CdnedgePage from './pages/CdnedgePage';
+import ObservemapPage from './pages/ObservemapPage';
+import Errorbudget2Page from './pages/Errorbudget2Page';
+import FeaturegatePage from './pages/FeaturegatePage';
+import CanaryrunPage from './pages/CanaryrunPage';
+import RollbackPage from './pages/RollbackPage';
+import CircuitPage from './pages/CircuitPage';
+import ChaosdrillPage from './pages/ChaosdrillPage';
+import MemberhubPage from './pages/MemberhubPage';
+import CirclePage from './pages/CirclePage';
+import MeetupPage from './pages/MeetupPage';
+import ForummodPage from './pages/ForummodPage';
+import PolldeskPage from './pages/PolldeskPage';
+import BadgeearnPage from './pages/BadgeearnPage';
+import QuestlinePage from './pages/QuestlinePage';
+import VolunteerPage from './pages/VolunteerPage';
+import DonationPage from './pages/DonationPage';
+import ChapterPage from './pages/ChapterPage';
+import Ambassador2Page from './pages/Ambassador2Page';
+import StorywallPage from './pages/StorywallPage';
+import RitualcalPage from './pages/RitualcalPage';
+import AgoraPage from './pages/AgoraPage';
+import CohortPage from './pages/CohortPage';
+import LabbenchPage from './pages/LabbenchPage';
+import PilotrunPage from './pages/PilotrunPage';
+import PrototypePage from './pages/PrototypePage';
+import HypothesisPage from './pages/HypothesisPage';
+import MetricslabPage from './pages/MetricslabPage';
+import UserboardPage from './pages/UserboardPage';
+import PatentdeskPage from './pages/PatentdeskPage';
+import SandboxPage from './pages/SandboxPage';
+import HackdayPage from './pages/HackdayPage';
+import IncubatePage from './pages/IncubatePage';
+import SpindeskPage from './pages/SpindeskPage';
+import ResearchnotePage from './pages/ResearchnotePage';
+import LabbudgetPage from './pages/LabbudgetPage';
+import CruciblePage from './pages/CruciblePage';
+import IpvaultPage from './pages/IpvaultPage';
+import LegaldeskPage from './pages/LegaldeskPage';
+import RiskregPage from './pages/RiskregPage';
+import PolicyhubPage from './pages/PolicyhubPage';
+import ClaimdeskPage from './pages/ClaimdeskPage';
+import InsurancetPage from './pages/InsurancetPage';
+import LitigationPage from './pages/LitigationPage';
+import Compliance2Page from './pages/Compliance2Page';
+import EthicslinePage from './pages/EthicslinePage';
+import KycrowPage from './pages/KycrowPage';
+import SanctionsPage from './pages/SanctionsPage';
+import DataprivPage from './pages/DataprivPage';
+import RetentionpolPage from './pages/RetentionpolPage';
+import AuditevidencePage from './pages/AuditevidencePage';
+import CharterPage from './pages/CharterPage';
+import BoardresolvePage from './pages/BoardresolvePage';
+import DrplanPage from './pages/DrplanPage';
+import BackupjobPage from './pages/BackupjobPage';
+import Failover2Page from './pages/Failover2Page';
+import RunbookPage from './pages/RunbookPage';
+import Warroom2Page from './pages/Warroom2Page';
+import Commsbridge2Page from './pages/Commsbridge2Page';
+import SiteevacPage from './pages/SiteevacPage';
+import ColdsitePage from './pages/ColdsitePage';
+import HotsparePage from './pages/HotsparePage';
+import DrillscorePage from './pages/DrillscorePage';
+import VendorfailPage from './pages/VendorfailPage';
+import PowercutPage from './pages/PowercutPage';
+import NetsplitPage from './pages/NetsplitPage';
+import PhoenixPage from './pages/PhoenixPage';
+import RestorejobPage from './pages/RestorejobPage';
+import MarketscanPage from './pages/MarketscanPage';
+import SitehuntPage from './pages/SitehuntPage';
+import CapextablePage from './pages/CapextablePage';
+import SoftopenPage from './pages/SoftopenPage';
+import LaunchpadPage from './pages/LaunchpadPage';
+import LocalhirePage from './pages/LocalhirePage';
+import PermitdeskPage from './pages/PermitdeskPage';
+import LandleasePage from './pages/LandleasePage';
+import BuildphasePage from './pages/BuildphasePage';
+import FfespecPage from './pages/FfespecPage';
+import BrandrolloutPage from './pages/BrandrolloutPage';
+import TrainwavePage from './pages/TrainwavePage';
+import GolivePage from './pages/GolivePage';
+import FrontierPage from './pages/FrontierPage';
+import PostlaunchPage from './pages/PostlaunchPage';
+import QasamplePage from './pages/QasamplePage';
+import DefectlogPage from './pages/DefectlogPage';
+import StandardopPage from './pages/StandardopPage';
+import MysteryguestPage from './pages/MysteryguestPage';
+import NpsdeepPage from './pages/NpsdeepPage';
+import ServicemarkPage from './pages/ServicemarkPage';
+import CalibdeskPage from './pages/CalibdeskPage';
+import LabresultPage from './pages/LabresultPage';
+import CertrenewPage from './pages/CertrenewPage';
+import IsotrackPage from './pages/IsotrackPage';
+import GuestvoicePage from './pages/GuestvoicePage';
+import FixgatePage from './pages/FixgatePage';
+import RootcausePage from './pages/RootcausePage';
+import PrismPage from './pages/PrismPage';
+import CorrectivePage from './pages/CorrectivePage';
+import ArchiveboxPage from './pages/ArchiveboxPage';
+import OralhistoryPage from './pages/OralhistoryPage';
+import ArtifactPage from './pages/ArtifactPage';
+import TimelinePage from './pages/TimelinePage';
+import FoundersnotePage from './pages/FoundersnotePage';
+import BrandbiblePage from './pages/BrandbiblePage';
+import MuseumdeskPage from './pages/MuseumdeskPage';
+import HeritagePage from './pages/HeritagePage';
+import AnniversaryPage from './pages/AnniversaryPage';
+import AlumniPage from './pages/AlumniPage';
+import ScholarshipPage from './pages/ScholarshipPage';
+import FoundationPage from './pages/FoundationPage';
+import LegacygiftPage from './pages/LegacygiftPage';
+import MonumentPage from './pages/MonumentPage';
+import StoryvaultPage from './pages/StoryvaultPage';
+import OlympulsePage from './pages/OlympulsePage';
+import HoldingsealPage from './pages/HoldingsealPage';
+import AgentcourtPage from './pages/AgentcourtPage';
+import FinalbriefPage from './pages/FinalbriefPage';
+import LegacycodePage from './pages/LegacycodePage';
+import EternallogPage from './pages/EternallogPage';
+import SummitnotePage from './pages/SummitnotePage';
+import ConstellatePage from './pages/ConstellatePage';
+import MythosPage from './pages/MythosPage';
+import AegisfinalPage from './pages/AegisfinalPage';
+import CrownfinalPage from './pages/CrownfinalPage';
+import VaultfinalPage from './pages/VaultfinalPage';
+import EmpirefinalPage from './pages/EmpirefinalPage';
+import OlympusPage from './pages/OlympusPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1467,6 +1617,156 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   decisionhub: DecisionhubPage,
   sealnote: SealnotePage,
   dominion: DominionPage,
+  legacyflag: LegacyflagPage,
+  calmroom: CalmroomPage,
+  quiethours: QuiethoursPage,
+  scentmood: ScentmoodPage,
+  pillowmenu2: Pillowmenu2Page,
+  bathritual: BathritualPage,
+  sleepscore: SleepscorePage,
+  welcomeamen: WelcomeamenPage,
+  farewell: FarewellPage,
+  memorybook: MemorybookPage,
+  carecall: CarecallPage,
+  surprisegift: SurprisegiftPage,
+  loyaltyhug: LoyaltyhugPage,
+  feedbackloop: FeedbackloopPage,
+  serenity: SerenityPage,
+  momentmap: MomentmapPage,
+  apigateway: ApigatewayPage,
+  webhookhub: WebhookhubPage,
+  ratelimit2: Ratelimit2Page,
+  schemareg: SchemaregPage,
+  eventbus: EventbusPage,
+  jobqueue2: Jobqueue2Page,
+  cachemesh: CachemeshPage,
+  cdnedge: CdnedgePage,
+  observemap: ObservemapPage,
+  errorbudget2: Errorbudget2Page,
+  featuregate: FeaturegatePage,
+  canaryrun: CanaryrunPage,
+  rollback: RollbackPage,
+  circuit: CircuitPage,
+  chaosdrill: ChaosdrillPage,
+  memberhub: MemberhubPage,
+  circle: CirclePage,
+  meetup: MeetupPage,
+  forummod: ForummodPage,
+  polldesk: PolldeskPage,
+  badgeearn: BadgeearnPage,
+  questline: QuestlinePage,
+  volunteer: VolunteerPage,
+  donation: DonationPage,
+  chapter: ChapterPage,
+  ambassador2: Ambassador2Page,
+  storywall: StorywallPage,
+  ritualcal: RitualcalPage,
+  agora: AgoraPage,
+  cohort: CohortPage,
+  labbench: LabbenchPage,
+  pilotrun: PilotrunPage,
+  prototype: PrototypePage,
+  hypothesis: HypothesisPage,
+  metricslab: MetricslabPage,
+  userboard: UserboardPage,
+  patentdesk: PatentdeskPage,
+  sandbox: SandboxPage,
+  hackday: HackdayPage,
+  incubate: IncubatePage,
+  spindesk: SpindeskPage,
+  researchnote: ResearchnotePage,
+  labbudget: LabbudgetPage,
+  crucible: CruciblePage,
+  ipvault: IpvaultPage,
+  legaldesk: LegaldeskPage,
+  riskreg: RiskregPage,
+  policyhub: PolicyhubPage,
+  claimdesk: ClaimdeskPage,
+  insurancet: InsurancetPage,
+  litigation: LitigationPage,
+  compliance2: Compliance2Page,
+  ethicsline: EthicslinePage,
+  kycrow: KycrowPage,
+  sanctions: SanctionsPage,
+  datapriv: DataprivPage,
+  retentionpol: RetentionpolPage,
+  auditevidence: AuditevidencePage,
+  charter: CharterPage,
+  boardresolve: BoardresolvePage,
+  drplan: DrplanPage,
+  backupjob: BackupjobPage,
+  failover2: Failover2Page,
+  runbook: RunbookPage,
+  warroom2: Warroom2Page,
+  commsbridge2: Commsbridge2Page,
+  siteevac: SiteevacPage,
+  coldsite: ColdsitePage,
+  hotspare: HotsparePage,
+  drillscore: DrillscorePage,
+  vendorfail: VendorfailPage,
+  powercut: PowercutPage,
+  netsplit: NetsplitPage,
+  phoenix: PhoenixPage,
+  restorejob: RestorejobPage,
+  marketscan: MarketscanPage,
+  sitehunt: SitehuntPage,
+  capextable: CapextablePage,
+  softopen: SoftopenPage,
+  launchpad: LaunchpadPage,
+  localhire: LocalhirePage,
+  permitdesk: PermitdeskPage,
+  landlease: LandleasePage,
+  buildphase: BuildphasePage,
+  ffespec: FfespecPage,
+  brandrollout: BrandrolloutPage,
+  trainwave: TrainwavePage,
+  golive: GolivePage,
+  frontier: FrontierPage,
+  postlaunch: PostlaunchPage,
+  qasample: QasamplePage,
+  defectlog: DefectlogPage,
+  standardop: StandardopPage,
+  mysteryguest: MysteryguestPage,
+  npsdeep: NpsdeepPage,
+  servicemark: ServicemarkPage,
+  calibdesk: CalibdeskPage,
+  labresult: LabresultPage,
+  certrenew: CertrenewPage,
+  isotrack: IsotrackPage,
+  guestvoice: GuestvoicePage,
+  fixgate: FixgatePage,
+  rootcause: RootcausePage,
+  prism: PrismPage,
+  corrective: CorrectivePage,
+  archivebox: ArchiveboxPage,
+  oralhistory: OralhistoryPage,
+  artifact: ArtifactPage,
+  timeline: TimelinePage,
+  foundersnote: FoundersnotePage,
+  brandbible: BrandbiblePage,
+  museumdesk: MuseumdeskPage,
+  heritage: HeritagePage,
+  anniversary: AnniversaryPage,
+  alumni: AlumniPage,
+  scholarship: ScholarshipPage,
+  foundation: FoundationPage,
+  legacygift: LegacygiftPage,
+  monument: MonumentPage,
+  storyvault: StoryvaultPage,
+  olympulse: OlympulsePage,
+  holdingseal: HoldingsealPage,
+  agentcourt: AgentcourtPage,
+  finalbrief: FinalbriefPage,
+  legacycode: LegacycodePage,
+  eternallog: EternallogPage,
+  summitnote: SummitnotePage,
+  constellate: ConstellatePage,
+  mythos: MythosPage,
+  aegisfinal: AegisfinalPage,
+  crownfinal: CrownfinalPage,
+  vaultfinal: VaultfinalPage,
+  empirefinal: EmpirefinalPage,
+  olympus: OlympusPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

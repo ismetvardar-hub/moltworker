@@ -1211,6 +1211,206 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **749** | Seal Note |
 | **750** | Dominion checkpoint (`/api/dominion`) |
 
+### Serenity OS · Serenity (AŞAMA 751–765)
+
+| Aşama | Özellik |
+|-------|---------|
+| **751** | Legacy Flag |
+| **752** | Calm Room |
+| **753** | Quiet Hours |
+| **754** | Scent Mood |
+| **755** | Pillow Menu |
+| **756** | Bath Ritual |
+| **757** | Sleep Score |
+| **758** | Welcome Amen |
+| **759** | Farewell |
+| **760** | Memory Book |
+| **761** | Care Call |
+| **762** | Surprise Gift |
+| **763** | Loyalty Hug |
+| **764** | Feedback Loop |
+| **765** | Serenity checkpoint (`/api/serenity`) |
+
+### Circuit OS · Circuit (AŞAMA 766–780)
+
+| Aşama | Özellik |
+|-------|---------|
+| **766** | Moment Map |
+| **767** | API Gateway |
+| **768** | Webhook Hub |
+| **769** | Rate Limit+ |
+| **770** | Schema Reg |
+| **771** | Event Bus |
+| **772** | Job Queue+ |
+| **773** | Cache Mesh |
+| **774** | CDN Edge |
+| **775** | Observe Map |
+| **776** | Error Budget |
+| **777** | Feature Gate |
+| **778** | Canary Run |
+| **779** | Rollback |
+| **780** | Circuit checkpoint (`/api/circuit`) |
+
+### Agora OS · Agora (AŞAMA 781–795)
+
+| Aşama | Özellik |
+|-------|---------|
+| **781** | Chaos Drill |
+| **782** | Member Hub |
+| **783** | Circle |
+| **784** | Meetup |
+| **785** | Forum Mod |
+| **786** | Poll Desk |
+| **787** | Badge Earn |
+| **788** | Quest Line |
+| **789** | Volunteer |
+| **790** | Donation |
+| **791** | Chapter |
+| **792** | Ambassador+ |
+| **793** | Story Wall |
+| **794** | Ritual Cal |
+| **795** | Agora checkpoint (`/api/agora`) |
+
+### Crucible OS · Crucible (AŞAMA 796–810)
+
+| Aşama | Özellik |
+|-------|---------|
+| **796** | Cohort |
+| **797** | Lab Bench |
+| **798** | Pilot Run |
+| **799** | Prototype |
+| **800** | Hypothesis |
+| **801** | Metrics Lab |
+| **802** | User Board |
+| **803** | Patent Desk |
+| **804** | Sandbox |
+| **805** | Hack Day |
+| **806** | Incubate |
+| **807** | Spin Desk |
+| **808** | Research Note |
+| **809** | Lab Budget |
+| **810** | Crucible checkpoint (`/api/crucible`) |
+
+### Charter OS · Charter (AŞAMA 811–825)
+
+| Aşama | Özellik |
+|-------|---------|
+| **811** | IP Vault |
+| **812** | Legal Desk |
+| **813** | Risk Reg |
+| **814** | Policy Hub |
+| **815** | Claim Desk |
+| **816** | Insurance T |
+| **817** | Litigation |
+| **818** | Compliance+ |
+| **819** | Ethics Line |
+| **820** | KYC Row |
+| **821** | Sanctions |
+| **822** | Data Priv |
+| **823** | Retention Pol |
+| **824** | Audit Evidence |
+| **825** | Charter checkpoint (`/api/charter`) |
+
+### Phoenix OS · Phoenix (AŞAMA 826–840)
+
+| Aşama | Özellik |
+|-------|---------|
+| **826** | Board Resolve |
+| **827** | DR Plan |
+| **828** | Backup Job |
+| **829** | Failover |
+| **830** | Runbook |
+| **831** | War Room+ |
+| **832** | Comms Bridge+ |
+| **833** | Site Evac |
+| **834** | Cold Site |
+| **835** | Hot Spare |
+| **836** | Drill Score |
+| **837** | Vendor Fail |
+| **838** | Power Cut |
+| **839** | Net Split |
+| **840** | Phoenix checkpoint (`/api/phoenix`) |
+
+### Frontier OS · Frontier (AŞAMA 841–855)
+
+| Aşama | Özellik |
+|-------|---------|
+| **841** | Restore Job |
+| **842** | Market Scan |
+| **843** | Site Hunt |
+| **844** | Capex Table |
+| **845** | Soft Open |
+| **846** | Launch Pad |
+| **847** | Local Hire |
+| **848** | Permit Desk |
+| **849** | Land Lease |
+| **850** | Build Phase |
+| **851** | FFE Spec |
+| **852** | Brand Rollout |
+| **853** | Train Wave |
+| **854** | Go Live |
+| **855** | Frontier checkpoint (`/api/frontier`) |
+
+### Prism OS · Prism (AŞAMA 856–870)
+
+| Aşama | Özellik |
+|-------|---------|
+| **856** | Post Launch |
+| **857** | QA Sample |
+| **858** | Defect Log |
+| **859** | Standard OP |
+| **860** | Mystery Guest |
+| **861** | NPS Deep |
+| **862** | Service Mark |
+| **863** | Calib Desk |
+| **864** | Lab Result |
+| **865** | Cert Renew |
+| **866** | ISO Track |
+| **867** | Guest Voice |
+| **868** | Form Gate |
+| **869** | Root Cause |
+| **870** | Prism checkpoint (`/api/prism`) |
+
+### Monument OS · Monument (AŞAMA 871–885)
+
+| Aşama | Özellik |
+|-------|---------|
+| **871** | Corrective |
+| **872** | Archive Box |
+| **873** | Oral History |
+| **874** | Artifact |
+| **875** | Timeline |
+| **876** | Founders Note |
+| **877** | Brand Bible |
+| **878** | Museum Desk |
+| **879** | Heritage |
+| **880** | Anniversary |
+| **881** | Alumni |
+| **882** | Scholarship |
+| **883** | Foundation |
+| **884** | Legacy Gift |
+| **885** | Monument checkpoint (`/api/monument`) |
+
+### Olympus Finale · Olympus (AŞAMA 886–900)
+
+| Aşama | Özellik |
+|-------|---------|
+| **886** | Story Vault |
+| **887** | Olym Pulse |
+| **888** | Holding Seal |
+| **889** | Agent Court |
+| **890** | Final Brief |
+| **891** | Legacy Code |
+| **892** | Eternal Log |
+| **893** | Summit Note |
+| **894** | Constellate |
+| **895** | Mythos |
+| **896** | Aegis Final |
+| **897** | Crown Final |
+| **898** | Vault Final |
+| **899** | Empire Final |
+| **900** | Olympus checkpoint (`/api/olympus`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
