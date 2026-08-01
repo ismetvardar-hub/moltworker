@@ -44,3 +44,33 @@ export async function runAgentQueueSlaSweep(body: Record<string, unknown> = {}) 
     }),
   )
 }
+
+export async function rebalanceAgentQueue(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/rebalance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function reviveDeadAgentJobs(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/revive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function archiveAgentJobs(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

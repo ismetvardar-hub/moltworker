@@ -451,6 +451,28 @@ try {
   });
   assert(sla.res.ok, 'sla sweep');
 
+  const reb = await req('/api/agentqueue/rebalance', { method: 'POST', token, body: {} });
+  assert(reb.res.ok && reb.data.ok !== false, 'agent rebalance');
+  const enqFail = await req('/api/agentqueue/enqueue', {
+    method: 'POST',
+    token,
+    body: { agent: 'ETHOS', title: 'e2e-fail-seed' },
+  });
+  const claimFail = await req('/api/agentqueue/claim', {
+    method: 'POST',
+    token,
+    body: { id: enqFail.data.job?.id },
+  });
+  await req('/api/agentqueue/complete', {
+    method: 'POST',
+    token,
+    body: { id: claimFail.data.job?.id || enqFail.data.job?.id, fail: true },
+  });
+  const revive = await req('/api/agentqueue/revive', { method: 'POST', token, body: { limit: 5 } });
+  assert(revive.res.ok && revive.data.ok !== false, 'agent revive');
+  const arch = await req('/api/agentqueue/archive', { method: 'POST', token, body: { force: true } });
+  assert(arch.res.ok && arch.data.ok !== false, 'agent archive');
+
   const syncAct = await req('/api/campusbrief/actions', { method: 'POST', token, body: {} });
   assert(syncAct.res.ok, 'brief actions sync');
   const openAct = (syncAct.data.overview?.register || [])[0];

@@ -100,9 +100,48 @@ export default function AgentqueuePage() {
               >
                 SLA sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.rebalanceAgentQueue({}).then((r: any) => {
+                    ping(
+                      `Rebalance boost ${r.run?.boosted ?? 0} · demote ${r.run?.demoted ?? 0} · dedupe ${r.run?.deduped ?? 0}`,
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Rebalance
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.reviveDeadAgentJobs({ limit: 10 }).then((r: any) => {
+                    ping(r.ok ? `Revive ${r.revived?.length ?? 0}` : r.error || 'Revive yok')
+                    return refresh()
+                  })
+                }
+              >
+                Dead revive
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.archiveAgentJobs({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Arşiv ${r.run?.archived ?? 0}` : r.error || 'Arşiv yok')
+                    return refresh()
+                  })
+                }
+              >
+                Arşivle
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              SLA ihlal {data.summary?.sla_breach ?? 0} · dead-letter {data.summary?.dead_letter ?? 0}
+              SLA ihlal {data.summary?.sla_breach ?? 0} · dead-letter {data.summary?.dead_letter ?? 0} · high{' '}
+              {data.summary?.high_priority ?? 0} · arşiv {data.summary?.archived ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="İşler">

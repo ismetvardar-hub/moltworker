@@ -58,6 +58,9 @@ import {
   completeAgentJob,
   tickAgentQueue,
   runAgentQueueSlaSweep,
+  rebalanceAgentQueue,
+  reviveDeadAgentJobs,
+  archiveAgentJobs,
 } from '../server/agentqueue.js';
 import {
   greenPulseOverview,
@@ -320,6 +323,12 @@ if ((synced.overview?.register || []).length) {
 }
 const sla = runAgentQueueSlaSweep({ force: true }, 'smoke');
 assert(sla.ok, 'agent sla sweep');
+assert(rebalanceAgentQueue({}, 'smoke').ok, 'agent rebalance');
+const failSeed = enqueueAgentJob({ agent: 'ETHOS', title: 'fail-seed-for-revive' }, 'smoke');
+const failClaim = claimAgentJob({ id: failSeed.job?.id }, 'smoke');
+completeAgentJob({ id: failClaim.job?.id || failSeed.job?.id, fail: true }, 'smoke');
+assert(reviveDeadAgentJobs({ limit: 5 }, 'smoke').ok, 'agent revive');
+assert(archiveAgentJobs({ force: true }, 'smoke').ok, 'agent archive');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
 const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, force: true }, 'smoke');
 assert(hold.ok, 'weather hold');

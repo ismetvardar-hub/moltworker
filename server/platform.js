@@ -6798,7 +6798,17 @@ import {
   sportBridgeOverview,
   syncSlotToSession,
 } from './sportbridge.js';
-import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, runAgentQueueSlaSweep, tickAgentQueue } from './agentqueue.js';
+import {
+  agentQueueOverview,
+  archiveAgentJobs,
+  claimAgentJob,
+  completeAgentJob,
+  enqueueAgentJob,
+  rebalanceAgentQueue,
+  reviveDeadAgentJobs,
+  runAgentQueueSlaSweep,
+  tickAgentQueue,
+} from './agentqueue.js';
 import {
   addGreenIncident,
   approveGreenWorkPermit,
@@ -36528,6 +36538,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runAgentQueueSlaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/agentqueue/rebalance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, rebalanceAgentQueue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/revive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reviveDeadAgentJobs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveAgentJobs(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campusbrief/actions' && req.method === 'POST') {

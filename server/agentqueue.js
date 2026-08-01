@@ -115,6 +115,8 @@ export function agentQueueOverview() {
       failed: jobs.filter((j) => j.status === 'failed').length,
       sla_breach,
       dead_letter: jobs.filter((j) => j.status === 'dead').length,
+      high_priority: jobs.filter((j) => j.status === 'queued' && j.priority === 'high').length,
+      archived: (readCollection('agent-jobs-archive', []) || []).length || 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -331,4 +333,137 @@ export function runAgentQueueSlaSweep(input = {}, actor = 'system') {
     digest: digest?.job || null,
     overview: agentQueueOverview(),
   };
+}
+
+/** Ajan yüküne göre öncelik dengele + yinelenen queued birleştir */
+export function rebalanceAgentQueue(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const queued = jobs.filter((j) => j.status === 'queued');
+  const byAgent = {};
+  for (const j of queued) {
+    byAgent[j.agent] = (byAgent[j.agent] || 0) + 1;
+  }
+  const avg =
+    Object.keys(byAgent).length
+      ? Object.values(byAgent).reduce((s, n) => s + n, 0) / Object.keys(byAgent).length
+      : 0;
+  let boosted = 0;
+  let demoted = 0;
+  let deduped = 0;
+  const seenTitle = new Set();
+
+  for (let i = 0; i < jobs.length; i++) {
+    const j = jobs[i];
+    if (j.status !== 'queued') continue;
+    const load = byAgent[j.agent] || 0;
+    const key = `${j.agent}::${String(j.title || '').toLowerCase()}`;
+    if (seenTitle.has(key) && !input.keep_dupes) {
+      jobs[i] = {
+        ...j,
+        status: 'done',
+        result: 'deduped-rebalance',
+        done_at: new Date().toISOString(),
+      };
+      deduped++;
+      continue;
+    }
+    seenTitle.add(key);
+    if (load > avg + 2 && j.priority === 'high' && !j.sla_breached) {
+      jobs[i] = { ...j, priority: 'normal', rebalanced: 'demote' };
+      demoted++;
+    } else if (load <= 1 && j.priority === 'normal') {
+      jobs[i] = { ...j, priority: 'high', rebalanced: 'boost' };
+      boosted++;
+    }
+  }
+  writeCollection('agent-jobs', jobs);
+  const run = {
+    id: rid('aqr'),
+    boosted,
+    demoted,
+    deduped,
+    avg_load: Math.round(avg * 10) / 10,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('agent-queue-rebalances', run, 80);
+  appendAudit({
+    actor,
+    action: 'agent.rebalance',
+    detail: `boost ${boosted} · demote ${demoted} · dedupe ${deduped}`,
+    meta: { id: run.id },
+  });
+  return { ok: true, run, overview: agentQueueOverview() };
+}
+
+/** Dead-letter yeniden kuyruk */
+export function reviveDeadAgentJobs(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const limit = Number(input.limit) || 20;
+  const revived = [];
+  let n = 0;
+  for (let i = 0; i < jobs.length && n < limit; i++) {
+    const j = jobs[i];
+    if (j.status !== 'dead' && j.status !== 'failed') continue;
+    if (input.agent && j.agent !== input.agent) continue;
+    jobs[i] = {
+      ...j,
+      status: 'queued',
+      priority: 'high',
+      sla_requeued: false,
+      revived_at: new Date().toISOString(),
+      revived_by: actor,
+      result: null,
+      dead_at: null,
+    };
+    revived.push(jobs[i].id);
+    n++;
+  }
+  if (!revived.length) return { ok: false, error: 'Dead/failed iş yok' };
+  writeCollection('agent-jobs', jobs);
+  appendAudit({
+    actor,
+    action: 'agent.revive',
+    detail: `${revived.length} iş`,
+    meta: { n: revived.length },
+  });
+  return { ok: true, revived, overview: agentQueueOverview() };
+}
+
+/** Eski done/dead arşivle — kuyruk incelir */
+export function archiveAgentJobs(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const hours = Number(input.hours);
+  const cutoff = Date.now() - (Number.isFinite(hours) ? hours : 24) * 3600_000;
+  const keep = [];
+  const archived = [];
+  for (const j of jobs) {
+    const ts = j.done_at || j.completed_at || j.dead_at || j.at;
+    const old = ts && new Date(ts).getTime() < cutoff;
+    if ((j.status === 'done' || j.status === 'dead' || j.status === 'failed') && (old || input.force)) {
+      archived.push(j);
+    } else {
+      keep.push(j);
+    }
+  }
+  if (!archived.length) return { ok: false, error: 'Arşivlenecek iş yok' };
+  writeCollection('agent-jobs', keep);
+  const existing = readCollection('agent-jobs-archive', []) || [];
+  const merged = [...archived, ...(Array.isArray(existing) ? existing : [])].slice(0, 2000);
+  writeCollection('agent-jobs-archive', merged);
+  const run = {
+    id: rid('aqa'),
+    archived: archived.length,
+    remaining: keep.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('agent-queue-archives', run, 60);
+  appendAudit({
+    actor,
+    action: 'agent.archive',
+    detail: `${archived.length} arşiv · ${keep.length} kaldı`,
+    meta: { id: run.id },
+  });
+  return { ok: true, run, overview: agentQueueOverview() };
 }
