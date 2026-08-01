@@ -54,15 +54,21 @@ export function openMallOverview() {
   const unpaid = invList.filter((i) => i.status === 'open' || i.status === 'partial');
   const overdue = unpaid.filter((i) => i.due_date && i.due_date < today);
   const payments = readCollection('mall-payments', []) || [];
+  const camRuns = readCollection('mall-cam-runs', []) || [];
+  const holds = readCollection('mall-lease-holds', []) || [];
+  const openHolds = (Array.isArray(holds) ? holds : []).filter((h) => h.status === 'open');
   return {
     title: 'Açık AVM',
     tenants,
     day: { date: today, tickets: todaySales.length, sales_try: day_sales_try },
     invoices: invList.slice(0, 40),
     payments: (Array.isArray(payments) ? payments : []).slice(0, 20),
+    cam_runs: (Array.isArray(camRuns) ? camRuns : []).slice(0, 10),
+    lease_holds: (Array.isArray(holds) ? holds : []).slice(0, 20),
     summary: {
       active: tenants.filter((t) => t.status === 'active').length,
       fitout: tenants.filter((t) => t.status === 'fitout').length,
+      on_hold: tenants.filter((t) => t.status === 'hold').length,
       rent_roll: tenants.reduce((s, t) => s + (Number(t.rent_try) || 0), 0),
       fnb_targets: fnbTargets.length,
       fnb_met: fnbTargets.filter((t) => t.fnb_met).length,
@@ -75,6 +81,8 @@ export function openMallOverview() {
         (s, i) => s + Math.max(0, (Number(i.total_try) || 0) - (Number(i.paid_try) || 0)),
         0,
       ),
+      cam_invoices_open: unpaid.filter((i) => i.kind === 'cam' || (i.lines || []).some((l) => l.code === 'cam')).length,
+      lease_holds_open: openHolds.length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -184,7 +192,7 @@ export function settleMallTenantFnb(input = {}, actor = 'system') {
 /** Aylık kira + F&B gap + opsiyonel ciro payı faturası */
 export function generateMallRentRun(input = {}, actor = 'system') {
   const period = input.period || new Date().toISOString().slice(0, 7);
-  const tenants = withFnb(ensureTenants()).filter((t) => t.status === 'active');
+  const tenants = withFnb(ensureTenants()).filter((t) => t.status === 'active' || (input.include_hold && t.status === 'hold'));
   const sales = readCollection('mall-sales', []) || [];
   const salesList = Array.isArray(sales) ? sales : [];
   const existing = readCollection('mall-invoices', []) || [];
@@ -337,4 +345,198 @@ export function runMallDunningSweep(input = {}, actor = 'system') {
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, jobs, overview: openMallOverview() };
+}
+
+/** Ortak alan (CAM) masraf dağıtımı — kiracı faturaları */
+export function generateMallCamRun(input = {}, actor = 'system') {
+  const period = input.period || new Date().toISOString().slice(0, 7);
+  const tenants = withFnb(ensureTenants()).filter((t) => t.status === 'active');
+  if (!tenants.length) return { ok: false, error: 'Aktif kiracı yok' };
+  const pool = Number(input.pool_try);
+  const camPool = Number.isFinite(pool) && pool > 0
+    ? pool
+    : Math.round(tenants.reduce((s, t) => s + (Number(t.rent_try) || 0), 0) * (Number(input.cam_pct) || 0.12));
+  const rentRoll = tenants.reduce((s, t) => s + (Number(t.rent_try) || 0), 0) || 1;
+  const existing = readCollection('mall-invoices', []) || [];
+  const invoices = Array.isArray(existing) ? [...existing] : [];
+  const created = [];
+  const due = new Date();
+  due.setDate(due.getDate() + (Number(input.due_days) || 14));
+  const dueDate = due.toISOString().slice(0, 10);
+
+  for (const t of tenants) {
+    if (input.tenant_id && t.id !== input.tenant_id) continue;
+    if (
+      !input.force &&
+      invoices.some((i) => i.tenant_id === t.id && i.period === period && i.kind === 'cam' && i.status !== 'void')
+    ) {
+      continue;
+    }
+    const share = Math.max(1, Math.round(camPool * ((Number(t.rent_try) || 0) / rentRoll)));
+    const invoice = {
+      id: rid('mcam'),
+      tenant_id: t.id,
+      tenant_name: t.name,
+      unit: t.unit,
+      period,
+      kind: 'cam',
+      lines: [{ code: 'cam', label: 'Ortak alan (CAM)', amount_try: share }],
+      total_try: share,
+      paid_try: 0,
+      status: 'open',
+      due_date: dueDate,
+      at: new Date().toISOString(),
+      actor,
+    };
+    invoices.unshift(invoice);
+    created.push(invoice);
+  }
+  writeCollection('mall-invoices', invoices.slice(0, 500));
+  if (!created.length) return { ok: false, error: 'CAM faturası yok (dönem zaten üretildi?)' };
+  const run = {
+    id: rid('mcr'),
+    period,
+    pool_try: camPool,
+    invoices: created.length,
+    total_try: created.reduce((s, i) => s + i.total_try, 0),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-cam-runs', run, 80);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `CAM run · ${period} · ${run.invoices} fatura · ${run.total_try} TRY`,
+      priority: 'normal',
+      payload: { cam_run_id: run.id, period },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'mall.cam_run',
+    detail: `${period} · ${run.invoices} · ${run.total_try} TRY`,
+    meta: { id: run.id },
+  });
+  return { ok: true, run, created, overview: openMallOverview() };
+}
+
+/** Kronik gecikme → lease hold */
+export function holdMallLease(input = {}, actor = 'system') {
+  const tenants = ensureTenants();
+  const invoices = readCollection('mall-invoices', []) || [];
+  const today = new Date().toISOString().slice(0, 10);
+  let tenant = tenants.find((t) => t.id === input.tenant_id || t.name === input.tenant_id);
+  if (!tenant) {
+    const overdueByTenant = {};
+    for (const inv of Array.isArray(invoices) ? invoices : []) {
+      if (inv.status !== 'open' && inv.status !== 'partial') continue;
+      if (!input.force && (!inv.due_date || inv.due_date >= today)) continue;
+      const bal = Math.max(0, (Number(inv.total_try) || 0) - (Number(inv.paid_try) || 0));
+      overdueByTenant[inv.tenant_id] = (overdueByTenant[inv.tenant_id] || 0) + bal;
+    }
+    const best = Object.entries(overdueByTenant).sort((a, b) => b[1] - a[1])[0];
+    if (best) tenant = tenants.find((t) => t.id === best[0]);
+  }
+  if (!tenant && input.force) tenant = tenants.find((t) => t.status === 'active');
+  if (!tenant) return { ok: false, error: 'Hold edilecek kiracı yok' };
+  if (tenant.status === 'hold' && !input.force) {
+    return { ok: true, tenant: withFnb([tenant])[0], already: true, overview: openMallOverview() };
+  }
+  const balance = (Array.isArray(invoices) ? invoices : [])
+    .filter((i) => i.tenant_id === tenant.id && (i.status === 'open' || i.status === 'partial'))
+    .reduce((s, i) => s + Math.max(0, (Number(i.total_try) || 0) - (Number(i.paid_try) || 0)), 0);
+  const idx = tenants.findIndex((t) => t.id === tenant.id);
+  tenants[idx] = {
+    ...tenants[idx],
+    status: 'hold',
+    previous_status: tenant.status === 'hold' ? tenant.previous_status || 'active' : tenant.status,
+    hold_at: new Date().toISOString(),
+    hold_reason: input.reason || 'chronic_unpaid',
+  };
+  writeCollection('mall-tenants', tenants);
+  const hold = {
+    id: rid('mlh'),
+    tenant_id: tenant.id,
+    tenant_name: tenant.name,
+    unit: tenant.unit,
+    balance_try: balance,
+    reason: tenants[idx].hold_reason,
+    status: 'open',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('mall-lease-holds', hold, 120);
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `lease hold · ${tenant.name} · ${balance} TRY`,
+      priority: 'high',
+      payload: { hold_id: hold.id, tenant_id: tenant.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'mall.lease_hold',
+    detail: `${tenant.name} · ${balance} TRY`,
+    meta: { id: hold.id },
+  });
+  return { ok: true, hold, tenant: withFnb([tenants[idx]])[0], overview: openMallOverview() };
+}
+
+/** Ödeme sonrası lease hold kaldır */
+export function releaseMallLease(input = {}, actor = 'system') {
+  const holds = readCollection('mall-lease-holds', []) || [];
+  if (!Array.isArray(holds) || !holds.length) return { ok: false, error: 'Hold yok' };
+  let idx = holds.findIndex((h) => h.id === input.id && h.status === 'open');
+  if (idx < 0) {
+    idx = holds.findIndex(
+      (h) => h.status === 'open' && (!input.tenant_id || h.tenant_id === input.tenant_id),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Açık hold yok' };
+  const row = holds[idx];
+  holds[idx] = {
+    ...row,
+    status: 'released',
+    released_at: new Date().toISOString(),
+    released_by: actor,
+    note: input.note || 'paid',
+  };
+  writeCollection('mall-lease-holds', holds);
+  const tenants = ensureTenants();
+  const tidx = tenants.findIndex((t) => t.id === row.tenant_id);
+  if (tidx >= 0) {
+    tenants[tidx] = {
+      ...tenants[tidx],
+      status: tenants[tidx].previous_status || 'active',
+      previous_status: null,
+      hold_at: null,
+      hold_reason: null,
+      released_at: holds[idx].released_at,
+    };
+    writeCollection('mall-tenants', tenants);
+  }
+  enqueueAgentJob(
+    {
+      agent: 'MINT',
+      title: `lease release · ${row.tenant_name}`,
+      priority: 'normal',
+      payload: { hold_id: row.id, tenant_id: row.tenant_id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'mall.lease_release',
+    detail: row.tenant_name,
+    meta: { id: row.id },
+  });
+  return {
+    ok: true,
+    hold: holds[idx],
+    tenant: tidx >= 0 ? withFnb([tenants[tidx]])[0] : null,
+    overview: openMallOverview(),
+  };
 }

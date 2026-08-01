@@ -122,10 +122,51 @@ export default function OpenmallPage() {
               >
                 Dunning sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.generateMallCamRun({ force: true }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `CAM · ${r.run?.invoices ?? 0} · ${r.run?.total_try ?? 0} TRY`
+                        : r.error || 'CAM yok',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                CAM run
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/30 px-3 py-2 text-sm text-rose-50"
+                onClick={() =>
+                  void api.holdMallLease({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Hold · ${r.tenant?.name}` : r.error || 'Hold yok')
+                    return refresh()
+                  })
+                }
+              >
+                Lease hold
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.releaseMallLease({}).then((r: any) => {
+                    ping(r.ok ? `Release · ${r.tenant?.name}` : r.error || 'Release yok')
+                    return refresh()
+                  })
+                }
+              >
+                Lease release
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Açık fatura {data.summary?.invoices_open ?? 0} · gecikmiş {data.summary?.invoices_overdue ?? 0} · bakiye{' '}
-              {data.summary?.invoices_balance_try?.toLocaleString?.('tr-TR') ?? 0} TRY
+              {data.summary?.invoices_balance_try?.toLocaleString?.('tr-TR') ?? 0} TRY · hold{' '}
+              {data.summary?.lease_holds_open ?? 0} · on-hold kiracı {data.summary?.on_hold ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Kiracılar">

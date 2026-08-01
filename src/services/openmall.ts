@@ -67,3 +67,33 @@ export async function runMallDunningSweep(body: Record<string, unknown> = {}) {
   )
 }
 
+export async function generateMallCamRun(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/cam-run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function holdMallLease(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/lease/hold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function releaseMallLease(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/openmall/lease/release', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+

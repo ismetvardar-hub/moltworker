@@ -1200,6 +1200,8 @@ const BACKUP_COLLECTIONS = [
   'mall-dunning-sweeps',
   'mall-payments',
   'mall-invoices',
+  'mall-lease-holds',
+  'mall-cam-runs',
   'stay-folio-settlements',
   'stay-folio-charges',
   'extreme-gear-sweeps',

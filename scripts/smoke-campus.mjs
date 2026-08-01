@@ -128,6 +128,9 @@ import {
   generateMallRentRun,
   payMallInvoice,
   runMallDunningSweep,
+  generateMallCamRun,
+  holdMallLease,
+  releaseMallLease,
 } from '../server/openmall.js';
 import {
   familyCampOverview,
@@ -304,6 +307,9 @@ const rentRun = generateMallRentRun({ period: '2026-08', force: true, due_days: 
 assert(rentRun.ok && rentRun.created?.length >= 1, 'mall rent run');
 assert(payMallInvoice({ invoice_id: rentRun.created[0].id, amount_try: 1000 }, 'smoke').ok, 'mall invoice pay');
 assert(runMallDunningSweep({ force: true }, 'smoke').ok, 'mall dunning');
+assert(generateMallCamRun({ period: '2026-08', force: true }, 'smoke').ok, 'mall cam run');
+assert(holdMallLease({ force: true }, 'smoke').ok, 'mall lease hold');
+assert(releaseMallLease({}, 'smoke').ok, 'mall lease release');
 const rented = marketOsOverview().listings.find((l) => l.status === 'rented');
 if (rented) returnMarketRental({ listing_id: rented.id }, 'smoke');
 else {

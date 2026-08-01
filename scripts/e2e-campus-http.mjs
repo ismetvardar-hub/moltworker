@@ -499,6 +499,24 @@ try {
     body: { force: true },
   });
   assert(dunning.res.ok && dunning.data.ok !== false, 'mall dunning');
+  const camRun = await req('/api/openmall/cam-run', {
+    method: 'POST',
+    token,
+    body: { period: '2026-08', force: true },
+  });
+  assert(camRun.res.ok && camRun.data.ok !== false, 'mall cam run');
+  const leaseHold = await req('/api/openmall/lease/hold', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(leaseHold.res.ok && leaseHold.data.ok !== false, 'mall lease hold');
+  const leaseRelease = await req('/api/openmall/lease/release', {
+    method: 'POST',
+    token,
+    body: {},
+  });
+  assert(leaseRelease.res.ok && leaseRelease.data.ok !== false, 'mall lease release');
 
   const ztr = await req('/api/campus/zone-transition', {
     method: 'POST',
