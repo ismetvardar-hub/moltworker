@@ -558,8 +558,22 @@ try {
     body: { title: 'e2e alert', domain: 'green', severity: 'high' },
   });
   assert(alertEsc.res.ok && alertEsc.data.ok !== false, 'bridge alert');
+  const alertRoute = await req('/api/agentbridge/alert/route', {
+    method: 'POST',
+    token,
+    body: { mode: 'work_order' },
+  });
+  assert(alertRoute.res.ok && alertRoute.data.ok !== false, 'bridge alert route');
+  const alertSla = await req('/api/agentbridge/alert/sla-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(alertSla.res.ok && alertSla.data.ok !== false, 'bridge alert sla');
   const alertRes = await req('/api/agentbridge/alert/resolve', { method: 'POST', token, body: {} });
   assert(alertRes.res.ok && alertRes.data.ok !== false, 'bridge alert resolve');
+  const chClose = await req('/api/agentbridge/channel/close', { method: 'POST', token, body: {} });
+  assert(chClose.res.ok && chClose.data.ok !== false, 'bridge channel close');
 
   const sla = await req('/api/agentqueue/sla-sweep', {
     method: 'POST',

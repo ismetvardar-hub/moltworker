@@ -1167,6 +1167,8 @@ const BACKUP_COLLECTIONS = [
   'agent-pings',
   'agent-presence',
   'agent-bridge-alerts',
+  'agent-bridge-sla-sweeps',
+  'agent-bridge-alert-routes',
   'agent-bridge-channels',
   'fleet-directives',
   'fleet-handoffs',

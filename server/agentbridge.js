@@ -2,7 +2,7 @@
  * Adım 9 — Ajan komuta köprüsü: tek hub sinyali.
  */
 import { appendAudit } from './audit.js';
-import { campusCoreOverview } from './campuscore.js';
+import { campusCoreOverview, createCampusWorkOrder } from './campuscore.js';
 import { stayRingOverview } from './stayring.js';
 import { athleteOsOverview } from './athleteos.js';
 import { lifeCoachOverview } from './lifecoach.js';
@@ -92,7 +92,10 @@ export function agentBridgeOverview() {
     summary: {
       agents: agents.length,
       channels_open: chList.filter((c) => c.status === 'open').length,
+      channels_closed: chList.filter((c) => c.status === 'closed').length,
       alerts_open: alertList.filter((a) => a.status === 'open').length,
+      alerts_routed: alertList.filter((a) => a.routed).length,
+      alerts_sla_breach: alertList.filter((a) => a.sla_breach).length,
       fleet_online: fleet.summary?.online ?? 0,
     },
     generatedAt: new Date().toISOString(),
@@ -285,4 +288,166 @@ export function resolveAgentBridgeAlert(input = {}, actor = 'system') {
     meta: { id: list[idx].id },
   });
   return { ok: true, alert: list[idx], overview: agentBridgeOverview() };
+}
+
+/** Açık köprü kanalını kapat */
+export function closeAgentBridgeChannel(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-channels', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Kanal yok' };
+  let idx = list.findIndex((c) => c.id === input.id && c.status === 'open');
+  if (idx < 0) idx = list.findIndex((c) => c.topic === input.topic && c.status === 'open');
+  if (idx < 0) idx = list.findIndex((c) => c.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık kanal yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'closed',
+    closed_at: new Date().toISOString(),
+    closed_by: actor,
+    close_reason: input.reason || 'ops_done',
+  };
+  writeCollection('agent-bridge-channels', list);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-HUB',
+      title: `kanal kapat · ${list[idx].topic}`,
+      priority: 'low',
+      payload: { channel_id: list[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'agent.channel_close',
+    detail: list[idx].topic,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, channel: list[idx], overview: agentBridgeOverview() };
+}
+
+/** Yaşlanmış açık alertler → SLA breach + fleet/queue bump */
+export function runAgentBridgeAlertSlaSweep(input = {}, actor = 'system') {
+  const maxAgeMin = Number(input.max_age_min) || 30;
+  const cutoff = Date.now() - maxAgeMin * 60_000;
+  const list = readCollection('agent-bridge-alerts', []) || [];
+  const breached = [];
+  for (let i = 0; i < (Array.isArray(list) ? list.length : 0); i++) {
+    const a = list[i];
+    if (a.status !== 'open') continue;
+    const at = a.at ? new Date(a.at).getTime() : 0;
+    const force = input.force === true || input.id === a.id;
+    if (!force && at && at > cutoff) continue;
+    list[i] = {
+      ...a,
+      sla_breach: true,
+      sla_flagged_at: new Date().toISOString(),
+      severity: a.severity === 'critical' ? 'critical' : 'critical',
+    };
+    breached.push(list[i]);
+    dispatchFleetDirective(
+      {
+        title: `SLA alert · ${a.title}`,
+        priority: 'high',
+        agent: a.agents?.[1] || 'DAZE-HUB',
+        payload: { alert_id: a.id, domain: a.domain },
+      },
+      actor,
+    );
+  }
+  writeCollection('agent-bridge-alerts', list);
+  const sweep = {
+    id: rid('abas'),
+    max_age_min: maxAgeMin,
+    breached: breached.length,
+    ids: breached.map((b) => b.id),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('agent-bridge-sla-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'agent.alert_sla_sweep',
+    detail: `${breached.length} breach · ${maxAgeMin}dk`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, breached, overview: agentBridgeOverview() };
+}
+
+/** Alert → campus WO veya fleet directive route */
+export function routeAgentBridgeAlert(input = {}, actor = 'system') {
+  const list = readCollection('agent-bridge-alerts', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Alert yok' };
+  let idx = list.findIndex((a) => a.id === input.id && a.status === 'open');
+  if (idx < 0) idx = list.findIndex((a) => a.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık alert yok' };
+  const alert = list[idx];
+  const mode = input.mode || (['green', 'greenpulse', 'stay', 'stayring', 'extreme'].includes(alert.domain) ? 'work_order' : 'fleet');
+  let work_order = null;
+  let directive = null;
+  if (mode === 'work_order') {
+    const zoneMap = {
+      green: 'z_forest',
+      greenpulse: 'z_forest',
+      stay: 'z_glamp',
+      stayring: 'z_glamp',
+      extreme: 'z_sport',
+      sport: 'z_sport',
+      culture: 'z_culture',
+      family: 'z_family',
+      mall: 'z_mall',
+      openmall: 'z_mall',
+    };
+    const wo = createCampusWorkOrder(
+      {
+        zone_id: input.zone_id || zoneMap[alert.domain] || 'z_sport',
+        title: `Alert · ${alert.title}`,
+        kind: 'bridge_alert',
+        priority: alert.severity === 'critical' || alert.severity === 'high' ? 'high' : 'normal',
+      },
+      actor,
+    );
+    work_order = wo.work_order || null;
+  } else {
+    const d = dispatchFleetDirective(
+      {
+        title: `Route · ${alert.title}`,
+        priority: alert.severity || 'high',
+        agent: alert.agents?.[1],
+        payload: { alert_id: alert.id, domain: alert.domain },
+      },
+      actor,
+    );
+    directive = d.directive || d || null;
+  }
+  const route = {
+    id: rid('abar'),
+    alert_id: alert.id,
+    mode,
+    work_order_id: work_order?.id || null,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('agent-bridge-alert-routes', route, 120);
+  list[idx] = {
+    ...alert,
+    routed: true,
+    route_mode: mode,
+    route_id: route.id,
+    work_order_id: work_order?.id || null,
+    routed_at: route.at,
+  };
+  writeCollection('agent-bridge-alerts', list);
+  appendAudit({
+    actor,
+    action: 'agent.alert_route',
+    detail: `${alert.title} · ${mode}`,
+    meta: { id: alert.id, route_id: route.id },
+  });
+  return {
+    ok: true,
+    alert: list[idx],
+    route,
+    work_order,
+    directive,
+    overview: agentBridgeOverview(),
+  };
 }

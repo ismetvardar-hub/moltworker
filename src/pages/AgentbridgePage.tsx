@@ -107,9 +107,50 @@ export default function AgentbridgePage() {
               >
                 Alert kapat
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-700 px-3 py-2 text-sm text-slate-200"
+                onClick={() =>
+                  void api.closeAgentBridgeChannel({}).then((r: any) => {
+                    ping(r.ok ? `Kanal kapandı · ${r.channel?.topic}` : r.error || 'Kanal yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kanal kapat
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runAgentBridgeAlertSlaSweep({ force: true }).then((r: any) => {
+                    ping(`SLA sweep · ${r.sweep?.breached ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Alert SLA
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.routeAgentBridgeAlert({ mode: 'work_order' }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `Route · ${r.route?.mode}${r.work_order ? ` · ${r.work_order.id}` : ''}`
+                        : r.error || 'Route yok',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Alert route
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Kanal {data.summary?.channels_open ?? 0} · alert {data.summary?.alerts_open ?? 0}
+              Kanal {data.summary?.channels_open ?? 0} · alert {data.summary?.alerts_open ?? 0} · SLA{' '}
+              {data.summary?.alerts_sla_breach ?? 0} · routed {data.summary?.alerts_routed ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Kampüs nabızları">

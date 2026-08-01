@@ -23,6 +23,9 @@ import {
   pulseAgentBridgeChannel,
   escalateAgentBridgeAlert,
   resolveAgentBridgeAlert,
+  closeAgentBridgeChannel,
+  runAgentBridgeAlertSlaSweep,
+  routeAgentBridgeAlert,
 } from '../server/agentbridge.js';
 import {
   stayRingOverview,
@@ -188,7 +191,10 @@ assert(
   escalateAgentBridgeAlert({ title: 'smoke alert', domain: 'green', severity: 'high' }, 'smoke').ok,
   'bridge alert',
 );
+assert(routeAgentBridgeAlert({ mode: 'work_order' }, 'smoke').ok, 'bridge alert route');
+assert(runAgentBridgeAlertSlaSweep({ force: true }, 'smoke').ok, 'bridge alert sla');
 assert(resolveAgentBridgeAlert({}, 'smoke').ok, 'bridge alert resolve');
+assert(closeAgentBridgeChannel({}, 'smoke').ok, 'bridge channel close');
 
 const stay = stayRingOverview();
 assert(stay.units?.length >= 4, 'stay units');

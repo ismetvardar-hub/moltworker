@@ -6786,10 +6786,13 @@ import {
   agentBridgeBroadcast,
   agentBridgeOverview,
   agentBridgePing,
+  closeAgentBridgeChannel,
   escalateAgentBridgeAlert,
   openAgentBridgeChannel,
   pulseAgentBridgeChannel,
   resolveAgentBridgeAlert,
+  routeAgentBridgeAlert,
+  runAgentBridgeAlertSlaSweep,
 } from './agentbridge.js';
 import {
   confirmCultureTicket,
@@ -36438,6 +36441,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, resolveAgentBridgeAlert(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/agentbridge/channel/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeAgentBridgeChannel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentbridge/alert/sla-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgentBridgeAlertSlaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentbridge/alert/route' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, routeAgentBridgeAlert(await readBody(req), user.username)); })();
           return;
         }
 

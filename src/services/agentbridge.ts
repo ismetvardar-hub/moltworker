@@ -62,3 +62,33 @@ export async function resolveAgentBridgeAlert(body: Record<string, unknown> = {}
   )
 }
 
+export async function closeAgentBridgeChannel(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/channel/close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runAgentBridgeAlertSlaSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/alert/sla-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function routeAgentBridgeAlert(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentbridge/alert/route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
