@@ -667,6 +667,30 @@ try {
     body: { role: 'stage' },
   });
   assert(crewAck.res.ok && crewAck.data.ok !== false, 'culture crew ack');
+  const vip = await req('/api/culture/sale/vip', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(vip.res.ok && vip.data.ok !== false, 'culture vip upgrade');
+  const holdTr = await req('/api/culture/hold', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1', qty: 1, guest: 'e2e-from' },
+  });
+  assert(holdTr.res.ok && holdTr.data.ok !== false, 'culture hold for transfer');
+  const holdTransfer = await req('/api/culture/hold/transfer', {
+    method: 'POST',
+    token,
+    body: { hold_id: holdTr.data.hold?.id, to_guest: 'e2e-to' },
+  });
+  assert(holdTransfer.res.ok && holdTransfer.data.ok !== false, 'culture hold transfer');
+  const doorDeny = await req('/api/culture/door/deny', {
+    method: 'POST',
+    token,
+    body: { gate: 'vip', reason: 'e2e_deny', guest: 'blocked' },
+  });
+  assert(doorDeny.res.ok && doorDeny.data.ok !== false, 'culture door deny');
   const refund = await req('/api/culture/refund', { method: 'POST', token, body: {} });
   assert(refund.res.ok && refund.data.ok !== false, 'culture refund');
   const settleEv = await req('/api/culture/event/settle', {

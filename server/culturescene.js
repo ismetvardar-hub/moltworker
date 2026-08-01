@@ -111,6 +111,8 @@ export function cultureSceneOverview() {
       door_admitted: scanList.filter((s) => s.result === 'admit').length,
       door_denied: scanList.filter((s) => s.result === 'deny').length,
       crew_open: crewList.filter((c) => c.status === 'open' || c.status === 'acked').length,
+      vip_sales: saleList.filter((s) => s.tier === 'vip').length,
+      hold_transfers: (readCollection('culture-hold-transfers', []) || []).length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -691,4 +693,129 @@ export function ackCultureCrewCall(input = {}, actor = 'system') {
     meta: { id: list[idx].id, role },
   });
   return { ok: true, crew_call: list[idx], overview: cultureSceneOverview() };
+}
+
+/** Satışı VIP'e yükselt — ekstra ücret */
+export function upgradeCultureSaleVip(input = {}, actor = 'system') {
+  const sales = readCollection('culture-sales', []) || [];
+  const saleList = Array.isArray(sales) ? sales : [];
+  let idx = saleList.findIndex((s) => s.id === input.sale_id);
+  if (idx < 0) {
+    idx = saleList.findIndex(
+      (s) =>
+        s.tier !== 'vip' &&
+        (!input.event_id || s.event_id === input.event_id) &&
+        (!input.guest || s.guest === input.guest),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Satış yok' };
+  if (saleList[idx].tier === 'vip' && !input.force) {
+    return { ok: false, error: 'Zaten VIP', sale: saleList[idx] };
+  }
+  const fee = Number(input.fee_try) || Math.max(150, Math.round((Number(saleList[idx].price_try) || 250) * 0.4));
+  saleList[idx] = {
+    ...saleList[idx],
+    tier: 'vip',
+    price_try: (Number(saleList[idx].price_try) || 0) + fee,
+    vip_fee_try: fee,
+    vip_upgraded_at: new Date().toISOString(),
+    vip_upgraded_by: actor,
+  };
+  writeCollection('culture-sales', saleList);
+  const upgrade = {
+    id: rid('cvip'),
+    sale_id: saleList[idx].id,
+    event_id: saleList[idx].event_id,
+    guest: saleList[idx].guest,
+    fee_try: fee,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-vip-upgrades', upgrade, 120);
+  enqueueAgentJob(
+    {
+      agent: 'CULTURE-AI',
+      title: `VIP upgrade · ${saleList[idx].guest || saleList[idx].id} · +${fee}`,
+      priority: 'normal',
+      payload: { upgrade_id: upgrade.id, sale_id: saleList[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.vip_upgrade',
+    detail: `${saleList[idx].guest || saleList[idx].id} · +${fee}`,
+    meta: { id: upgrade.id },
+  });
+  return { ok: true, sale: saleList[idx], upgrade, overview: cultureSceneOverview() };
+}
+
+/** Hold'u başka misafire transfer */
+export function transferCultureHold(input = {}, actor = 'system') {
+  const holds = readCollection('culture-holds', []) || [];
+  const list = Array.isArray(holds) ? holds : [];
+  let idx = list.findIndex((h) => h.id === input.hold_id && (h.status === 'held' || !h.status));
+  if (idx < 0) idx = list.findIndex((h) => h.status === 'held' || !h.status);
+  if (idx < 0) return { ok: false, error: 'Açık hold yok' };
+  const toGuest = String(input.to_guest || input.guest || '').trim();
+  if (!toGuest) return { ok: false, error: 'to_guest gerekli' };
+  const from = list[idx].guest;
+  list[idx] = {
+    ...list[idx],
+    guest: toGuest,
+    transferred_from: from,
+    transferred_at: new Date().toISOString(),
+    transferred_by: actor,
+  };
+  writeCollection('culture-holds', list);
+  const transfer = {
+    id: rid('cht'),
+    hold_id: list[idx].id,
+    event_id: list[idx].event_id,
+    from_guest: from,
+    to_guest: toGuest,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-hold-transfers', transfer, 120);
+  appendAudit({
+    actor,
+    action: 'culture.hold_transfer',
+    detail: `${from} → ${toGuest}`,
+    meta: { id: transfer.id },
+  });
+  return { ok: true, hold: list[idx], transfer, overview: cultureSceneOverview() };
+}
+
+/** Kapı deny kaydı (manuel güvenlik) */
+export function denyCultureDoor(input = {}, actor = 'system') {
+  const gate = input.gate || 'main';
+  const deny = {
+    id: rid('cds'),
+    result: 'deny',
+    reason: String(input.reason || 'manual_deny').slice(0, 240),
+    gate,
+    guest: input.guest || null,
+    sale_id: input.sale_id || null,
+    event_id: input.event_id || null,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-door-scans', deny, 400);
+  enqueueAgentJob(
+    {
+      agent: 'NEXUS',
+      title: `kapı deny · ${gate} · ${deny.reason}`,
+      priority: 'high',
+      payload: { scan_id: deny.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.door_deny',
+    detail: `${gate} · ${deny.reason}`,
+    meta: { id: deny.id },
+  });
+  return { ok: true, scan: deny, overview: cultureSceneOverview() };
 }

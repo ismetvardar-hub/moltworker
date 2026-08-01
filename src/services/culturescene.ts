@@ -162,3 +162,33 @@ export async function ackCultureCrewCall(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function upgradeCultureSaleVip(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/sale/vip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function transferCultureHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/hold/transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function denyCultureDoor(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/door/deny', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

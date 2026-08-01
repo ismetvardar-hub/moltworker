@@ -6833,6 +6833,7 @@ import {
   createCultureEvent,
   cultureBoxOfficeRollup,
   cultureSceneOverview,
+  denyCultureDoor,
   endCultureStream,
   expireCultureHolds,
   holdCultureTicket,
@@ -6844,6 +6845,8 @@ import {
   setCultureStageStatus,
   settleCultureEvent,
   startCultureStream,
+  transferCultureHold,
+  upgradeCultureSaleVip,
 } from './culturescene.js';
 import {
   applySportCompetitionHold,
@@ -36708,6 +36711,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, ackCultureCrewCall(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/culture/sale/vip' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, upgradeCultureSaleVip(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/hold/transfer' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, transferCultureHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/door/deny' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, denyCultureDoor(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge' && req.method === 'GET') {

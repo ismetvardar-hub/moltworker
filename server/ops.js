@@ -1269,6 +1269,8 @@ const BACKUP_COLLECTIONS = [
   'culture-sales',
   'culture-crew-calls',
   'culture-door-scans',
+  'culture-hold-transfers',
+  'culture-vip-upgrades',
   'family-notes',
   'family-bookings',
   'green-readings',

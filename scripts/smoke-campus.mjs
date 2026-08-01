@@ -192,6 +192,9 @@ import {
   scanCultureDoor,
   callCultureCrew,
   ackCultureCrewCall,
+  upgradeCultureSaleVip,
+  transferCultureHold,
+  denyCultureDoor,
 } from '../server/culturescene.js';
 import {
   returnMarketRental,
@@ -439,6 +442,14 @@ assert(expireCultureHolds({ force: true }, 'smoke').ok, 'culture hold expire');
 assert(scanCultureDoor({ force: true, gate: 'main' }, 'smoke').ok, 'culture door scan');
 assert(callCultureCrew({ event_id: culture.events[0].id }, 'smoke').ok, 'culture crew call');
 assert(ackCultureCrewCall({ role: 'stage' }, 'smoke').ok, 'culture crew ack');
+assert(upgradeCultureSaleVip({ force: true }, 'smoke').ok, 'culture vip upgrade');
+const holdX = holdCultureTicket({ event_id: culture.events[0].id, qty: 1, guest: 'transfer-from' }, 'smoke');
+assert(holdX.ok, 'culture hold for transfer');
+assert(
+  transferCultureHold({ hold_id: holdX.hold.id, to_guest: 'transfer-to' }, 'smoke').ok,
+  'culture hold transfer',
+);
+assert(denyCultureDoor({ gate: 'vip', reason: 'smoke_deny', guest: 'blocked' }, 'smoke').ok, 'culture door deny');
 assert(refundCultureSale({}, 'smoke').ok, 'culture refund');
 assert(settleCultureEvent({ event_id: culture.events[0].id }, 'smoke').ok, 'culture settle');
 

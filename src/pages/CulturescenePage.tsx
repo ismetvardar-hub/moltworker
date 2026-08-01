@@ -238,13 +238,49 @@ export default function CulturescenePage() {
               >
                 Crew ack
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.upgradeCultureSaleVip({ force: true }).then((r: any) => {
+                    ping(r.ok ? `VIP · +${r.upgrade?.fee_try}` : r.error || 'VIP yok')
+                    return refresh()
+                  })
+                }
+              >
+                VIP upgrade
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.transferCultureHold({ to_guest: 'VIP Guest' }).then((r: any) => {
+                    ping(r.ok ? `Transfer · ${r.transfer?.to_guest}` : r.error || 'Transfer yok')
+                    return refresh()
+                  })
+                }
+              >
+                Hold transfer
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.denyCultureDoor({ gate: 'vip', reason: 'ui_deny' }).then((r: any) => {
+                    ping(r.ok ? `Deny · ${r.scan?.gate}` : r.error || 'Deny yok')
+                    return refresh()
+                  })
+                }
+              >
+                Kapı deny
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı
               stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0} · iade{' '}
               {data.summary?.refunds_try ?? 0} TRY · settle {data.summary?.settlements ?? 0} · kapı{' '}
               {data.summary?.door_admitted ?? 0}/{data.summary?.door_denied ?? 0} · crew{' '}
-              {data.summary?.crew_open ?? 0}
+              {data.summary?.crew_open ?? 0} · VIP {data.summary?.vip_sales ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Program">
