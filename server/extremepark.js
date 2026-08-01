@@ -272,10 +272,13 @@ export function extremeOverview() {
   const weather = buildWeatherBrief('venue_antalya_extreme');
   const notices = ensureNotices();
   const waitlist = ensureWaitlist().filter((w) => w.status === 'waiting');
+  const reservations = readCollection('extreme-reservations', []) || [];
   const ledger = readCollection('extreme-gear-ledger', []) || [];
   const sweeps = readCollection('extreme-gear-sweeps', []) || [];
+  const expires = readCollection('extreme-waitlist-expires', []) || [];
   const now = Date.now();
   const gear_overdue = gear.filter((g) => g.status === 'out' && g.due_at && new Date(g.due_at).getTime() < now).length;
+  const resRows = Array.isArray(reservations) ? reservations : [];
   return {
     club_id: CLUB_ID,
     title: 'Antalya Extreme Spor · Yaşam & Deneyim Parkı',
@@ -288,6 +291,8 @@ export function extremeOverview() {
     gear_ledger: (Array.isArray(ledger) ? ledger : []).slice(0, 20),
     gear_sweeps: (Array.isArray(sweeps) ? sweeps : []).slice(0, 8),
     waitlist: waitlist.slice(0, 30),
+    waitlist_expires: (Array.isArray(expires) ? expires : []).slice(0, 8),
+    reservations: resRows.slice(0, 40),
     waivers_total: waivers.length,
     notices: notices.slice(0, 20),
     agents: {
@@ -306,6 +311,9 @@ export function extremeOverview() {
       gear_overdue,
       waiver_pending: members.filter((m) => !m.user_profile?.waiver_signed).length,
       waitlist: waitlist.length,
+      checked_in: resRows.filter((r) => r.status === 'checked_in').length,
+      no_show: resRows.filter((r) => r.status === 'no_show').length,
+      confirmed: resRows.filter((r) => r.status === 'confirmed').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -1057,4 +1065,204 @@ export function promoteExtremeWaitlist(input = {}, actor = 'system') {
     meta: { id: entry.id, reserved: !!reserved.ok },
   });
   return { ok: true, entry: list[idx], reservation: reserved, overview: extremeOverview() };
+}
+
+function freeExtremeSlotCapacity(slotId) {
+  if (!slotId) return null;
+  const slots = ensureSlots();
+  const sidx = slots.findIndex((s) => s.id === slotId);
+  if (sidx < 0) return null;
+  const booked = Math.max(0, (Number(slots[sidx].booked) || 1) - 1);
+  slots[sidx] = {
+    ...slots[sidx],
+    booked,
+    status: slots[sidx].status === 'full' ? 'open' : slots[sidx].status,
+  };
+  writeCollection('extreme-slots', slots);
+  return slots[sidx];
+}
+
+/** Gün-içi check-in — confirmed → checked_in (NEXUS gate) */
+export function checkInExtremeReservation(input = {}, actor = 'system') {
+  const userId = input.user_id || 'guest_can';
+  const members = ensureMembers();
+  const midx = members.findIndex((m) => m.user_profile?.user_id === userId || m.id === userId);
+  if (midx < 0) return { ok: false, error: 'Üye yok' };
+  const member = members[midx];
+  const reservations = readCollection('extreme-reservations', []) || [];
+  let ridx = reservations.findIndex(
+    (r) =>
+      r.id === input.reservation_id ||
+      (r.user_id === userId &&
+        (r.status === 'confirmed' || r.status === 'checked_in') &&
+        (!input.slot_id || r.slot_id === input.slot_id)),
+  );
+  if (ridx < 0 && member.active_reservation?.reservation_id) {
+    ridx = reservations.findIndex((r) => r.id === member.active_reservation.reservation_id);
+  }
+  if (ridx < 0) return { ok: false, error: 'Rezervasyon yok' };
+  const row = reservations[ridx];
+  if (row.status === 'checked_in') {
+    return { ok: true, reservation: row, already: true, overview: extremeOverview() };
+  }
+  if (row.status !== 'confirmed') {
+    return { ok: false, error: `Durum ${row.status}` };
+  }
+  const gate = input.gate || 'main';
+  reservations[ridx] = {
+    ...row,
+    status: 'checked_in',
+    checked_in_at: new Date().toISOString(),
+    gate,
+    checked_in_by: actor,
+  };
+  writeCollection('extreme-reservations', reservations);
+  members[midx] = {
+    ...member,
+    active_reservation: {
+      ...(member.active_reservation || {}),
+      branch: row.branch,
+      slot_start: row.slot_start,
+      slot_id: row.slot_id,
+      reservation_id: row.id,
+      status: 'checked_in',
+      gate,
+    },
+  };
+  writeCollection('extreme-members', members);
+  enqueueAgentJob(
+    {
+      agent: 'NEXUS',
+      title: `check-in · ${member.user_profile.display_name} · ${row.branch} · ${gate}`,
+      priority: 'high',
+      payload: { reservation_id: row.id, gate },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.check_in',
+    detail: `${userId} · ${row.branch} · ${gate}`,
+    meta: { reservation_id: row.id, gate },
+  });
+  return { ok: true, reservation: reservations[ridx], overview: extremeOverview() };
+}
+
+/** No-show — kapasite serbest, isteğe bağlı waitlist promote */
+export function markExtremeNoShow(input = {}, actor = 'system') {
+  const userId = input.user_id || 'guest_can';
+  const members = ensureMembers();
+  const midx = members.findIndex((m) => m.user_profile?.user_id === userId || m.id === userId);
+  if (midx < 0) return { ok: false, error: 'Üye yok' };
+  const member = members[midx];
+  const reservations = readCollection('extreme-reservations', []) || [];
+  let ridx = reservations.findIndex(
+    (r) =>
+      r.id === input.reservation_id ||
+      (r.user_id === userId && r.status === 'confirmed' && (!input.slot_id || r.slot_id === input.slot_id)),
+  );
+  if (ridx < 0 && member.active_reservation?.reservation_id) {
+    ridx = reservations.findIndex(
+      (r) => r.id === member.active_reservation.reservation_id && r.status === 'confirmed',
+    );
+  }
+  if (ridx < 0) return { ok: false, error: 'Confirmed rezervasyon yok' };
+  const row = reservations[ridx];
+  reservations[ridx] = {
+    ...row,
+    status: 'no_show',
+    no_show_at: new Date().toISOString(),
+    no_show_by: actor,
+    reason: input.reason || 'grace_expired',
+  };
+  writeCollection('extreme-reservations', reservations);
+  freeExtremeSlotCapacity(row.slot_id);
+  const used = Math.max(0, (Number(member.quota_management?.weekly_used) || 1) - 1);
+  members[midx] = {
+    ...member,
+    quota_management: { ...member.quota_management, weekly_used: used },
+    active_reservation: null,
+  };
+  writeCollection('extreme-members', members);
+  let promoted = null;
+  if (input.promote !== false) {
+    const waiting = ensureWaitlist().find((w) => w.status === 'waiting' && w.slot_id === row.slot_id)
+      || ensureWaitlist().find((w) => w.status === 'waiting');
+    if (waiting) {
+      promoted = promoteExtremeWaitlist({ waitlist_id: waiting.id, slot_id: row.slot_id }, actor);
+    }
+  }
+  enqueueAgentJob(
+    {
+      agent: 'REMINDER-AI',
+      title: `no-show · ${userId} · ${row.branch}`,
+      priority: 'normal',
+      payload: { reservation_id: row.id, slot_id: row.slot_id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.no_show',
+    detail: `${userId} · ${row.slot_id}`,
+    meta: { reservation_id: row.id, promoted: !!promoted?.ok },
+  });
+  return {
+    ok: true,
+    reservation: reservations[ridx],
+    promoted,
+    overview: extremeOverview(),
+  };
+}
+
+/** Eski waitlist kayıtlarını expire et */
+export function expireExtremeWaitlist(input = {}, actor = 'system') {
+  const maxAgeMin = Number(input.max_age_min) || 90;
+  const cutoff = Date.now() - maxAgeMin * 60_000;
+  const list = ensureWaitlist();
+  const expired = [];
+  for (let i = 0; i < list.length; i++) {
+    const w = list[i];
+    if (w.status !== 'waiting') continue;
+    const at = w.at ? new Date(w.at).getTime() : 0;
+    const force = input.waitlist_id === w.id || input.force === true;
+    if (!force && at && at > cutoff) continue;
+    if (input.branch && w.branch !== input.branch) continue;
+    list[i] = {
+      ...w,
+      status: 'expired',
+      expired_at: new Date().toISOString(),
+      expired_by: actor,
+      expire_reason: input.reason || (force ? 'force' : 'stale'),
+    };
+    expired.push(list[i]);
+  }
+  writeCollection('extreme-waitlist', list);
+  const sweep = {
+    id: rid('xwe'),
+    at: new Date().toISOString(),
+    actor,
+    max_age_min: maxAgeMin,
+    expired: expired.length,
+    ids: expired.map((e) => e.id),
+  };
+  prependItem('extreme-waitlist-expires', sweep, 80);
+  if (expired.length) {
+    enqueueAgentJob(
+      {
+        agent: 'REMINDER-AI',
+        title: `waitlist expire · ${expired.length}`,
+        priority: 'low',
+        payload: { ids: sweep.ids, max_age_min: maxAgeMin },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'extreme.waitlist_expire',
+    detail: `${expired.length} kayıt · ${maxAgeMin}dk`,
+    meta: { ids: sweep.ids },
+  });
+  return { ok: true, sweep, expired, overview: extremeOverview() };
 }

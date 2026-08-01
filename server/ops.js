@@ -1207,6 +1207,7 @@ const BACKUP_COLLECTIONS = [
   'green-batches',
   'market-reconciles',
   'extreme-waitlist',
+  'extreme-waitlist-expires',
   'family-transfers',
   'agent-broadcasts',
   'campus-capacity-rollups',

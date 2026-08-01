@@ -251,6 +251,29 @@ try {
     });
   }
   assert(reserve.res.ok && reserve.data.ok !== false, 'slot reserve');
+  const reserveUser = reserve.data.reservation?.user_id || 'guest_ela';
+  const checkIn = await req('/api/extreme/reservation/check-in', {
+    method: 'POST',
+    token,
+    body: { user_id: reserveUser, gate: 'main' },
+  });
+  assert(checkIn.res.ok && checkIn.data.ok !== false, 'extreme check-in');
+
+  const noshowUser = reserveUser === 'guest_ela' ? 'guest_can' : 'guest_ela';
+  await req('/api/extreme/slot-cancel', { method: 'POST', token, body: { user_id: noshowUser } });
+  await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: noshowUser } });
+  const noshowReserve = await req('/api/extreme/slot-reserve', {
+    method: 'POST',
+    token,
+    body: { user_id: noshowUser },
+  });
+  assert(noshowReserve.res.ok && noshowReserve.data.ok !== false, 'slot reserve for no-show');
+  const noshow = await req('/api/extreme/reservation/no-show', {
+    method: 'POST',
+    token,
+    body: { user_id: noshowUser, promote: false },
+  });
+  assert(noshow.res.ok && noshow.data.ok !== false, 'extreme no-show');
 
   const gear = await req('/api/extreme/gear-return', {
     method: 'POST',
@@ -280,6 +303,17 @@ try {
   });
   assert(wl.res.ok, 'waitlist');
   await req('/api/extreme/waitlist/promote', { method: 'POST', token, body: {} });
+  await req('/api/extreme/waitlist', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_ela', slot_id: 'xs_2' },
+  });
+  const wlExpire = await req('/api/extreme/waitlist/expire', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(wlExpire.res.ok && wlExpire.data.ok !== false, 'waitlist expire');
 
   const presence = await req('/api/agentfleet/presence-sweep', {
     method: 'POST',

@@ -90,6 +90,9 @@ import {
   applyExtremeWeatherHold,
   clearExtremeWeatherHold,
   cancelExtremeReservation,
+  checkInExtremeReservation,
+  expireExtremeWaitlist,
+  markExtremeNoShow,
   reserveExtremeSlot,
   returnExtremeGear,
   issueExtremeGear,
@@ -360,8 +363,19 @@ signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
 cancelExtremeReservation({ user_id: 'guest_ela' }, 'smoke');
 cancelExtremeReservation({ user_id: 'guest_can' }, 'smoke');
 let reserved = reserveExtremeSlot({ user_id: 'guest_ela' }, 'smoke');
-if (!reserved.ok) reserved = reserveExtremeSlot({ user_id: 'guest_can' }, 'smoke');
+let reserveUser = 'guest_ela';
+if (!reserved.ok) {
+  reserved = reserveExtremeSlot({ user_id: 'guest_can' }, 'smoke');
+  reserveUser = 'guest_can';
+}
 assert(reserved.ok, 'slot reserve');
+assert(checkInExtremeReservation({ user_id: reserveUser, gate: 'main' }, 'smoke').ok, 'extreme check-in');
+cancelExtremeReservation({ user_id: reserveUser === 'guest_ela' ? 'guest_can' : 'guest_ela' }, 'smoke');
+const noshowUser = reserveUser === 'guest_ela' ? 'guest_can' : 'guest_ela';
+signExtremeWaiver({ user_id: noshowUser }, 'smoke');
+const noshowReserve = reserveExtremeSlot({ user_id: noshowUser }, 'smoke');
+assert(noshowReserve.ok, 'slot reserve for no-show');
+assert(markExtremeNoShow({ user_id: noshowUser, promote: false }, 'smoke').ok, 'extreme no-show');
 const gearRet = returnExtremeGear({ gear_id: 'xg_1' }, 'smoke');
 assert(gearRet.ok, 'gear return');
 const gearIssue = issueExtremeGear({ user_id: 'guest_ela' }, 'smoke');
@@ -370,6 +384,8 @@ const gearSweep = runExtremeGearServiceSweep({ include_open: true }, 'smoke');
 assert(gearSweep.ok && gearSweep.sweep?.flagged >= 1, 'gear service sweep');
 assert(joinExtremeWaitlist({ user_id: 'guest_can', slot_id: 'xs_2' }, 'smoke').ok, 'waitlist join');
 promoteExtremeWaitlist({}, 'smoke');
+assert(joinExtremeWaitlist({ user_id: 'guest_ela', slot_id: 'xs_2' }, 'smoke').ok !== undefined, 'waitlist join2');
+assert(expireExtremeWaitlist({ force: true }, 'smoke').ok, 'waitlist expire');
 const greenAuto = runGreenPulseAutomations({}, 'smoke');
 assert(greenAuto.ok && Array.isArray(greenAuto.actions), 'green automations');
 assert(createGreenWorkPermit({ zone_id: 'z_forest', work: 'smoke path' }, 'smoke').ok, 'green permit');

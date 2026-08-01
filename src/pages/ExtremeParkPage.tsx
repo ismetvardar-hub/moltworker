@@ -3,13 +3,16 @@ import PanelCard from '../components/PanelCard'
 import {
   applyExtremeWeatherHold,
   cancelExtremeReservation,
+  checkInExtremeReservation,
   clearExtremeWeatherHold,
   createExtremeMaas,
+  expireExtremeWaitlist,
   extremeWalletSpend,
   fetchExtremeOverview,
   fetchExtremeUserSpec,
   issueExtremeGear,
   joinExtremeWaitlist,
+  markExtremeNoShow,
   patchExtremeGear,
   promoteExtremeWaitlist,
   reserveExtremeSlot,
@@ -344,8 +347,51 @@ export default function ExtremeParkPage() {
                 >
                   Waitlist promote
                 </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-emerald-500/25 px-2 py-1 text-xs text-emerald-100"
+                  onClick={() =>
+                    void checkInExtremeReservation({ user_id: userId, gate: 'main' }).then((r: any) => {
+                      ping(r.ok ? `Check-in · ${r.reservation?.branch || ''}` : r.error || 'Check-in yok')
+                      return refresh()
+                    })
+                  }
+                >
+                  Check-in
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-rose-500/20 px-2 py-1 text-xs text-rose-100"
+                  onClick={() =>
+                    void markExtremeNoShow({ user_id: userId, promote: true }).then((r: any) => {
+                      ping(
+                        r.ok
+                          ? `No-show${r.promoted?.ok ? ' · waitlist promote' : ''}`
+                          : r.error || 'No-show yok',
+                      )
+                      return refresh()
+                    })
+                  }
+                >
+                  No-show
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-obsidian-800 px-2 py-1 text-xs text-slate-300"
+                  onClick={() =>
+                    void expireExtremeWaitlist({ force: true }).then((r: any) => {
+                      ping(`Waitlist expire · ${r.sweep?.expired ?? 0}`)
+                      return refresh()
+                    })
+                  }
+                >
+                  Waitlist expire
+                </button>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Waitlist: {summary?.waitlist ?? 0}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Waitlist: {summary?.waitlist ?? 0} · check-in {summary?.checked_in ?? 0} · no-show{' '}
+                {summary?.no_show ?? 0}
+              </p>
             </PanelCard>
           </div>
 

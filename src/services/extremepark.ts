@@ -157,3 +157,33 @@ export async function promoteExtremeWaitlist(body: Record<string, unknown> = {})
     }),
   )
 }
+
+export async function checkInExtremeReservation(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/reservation/check-in', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function markExtremeNoShow(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/reservation/no-show', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function expireExtremeWaitlist(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/waitlist/expire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

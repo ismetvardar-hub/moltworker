@@ -6673,14 +6673,17 @@ import { buildApotheosis } from './apotheosis.js';
 import {
   applyExtremeWeatherHold,
   cancelExtremeReservation,
+  checkInExtremeReservation,
   clearExtremeWeatherHold,
   createExtremeMaas,
+  expireExtremeWaitlist,
   extremeOverview,
   extremeSlotWeatherCheck,
   extremeUserSpec,
   extremeWalletSpend,
   issueExtremeGear,
   joinExtremeWaitlist,
+  markExtremeNoShow,
   promoteExtremeWaitlist,
   reserveExtremeSlot,
   returnExtremeGear,
@@ -36908,6 +36911,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, promoteExtremeWaitlist(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/extreme/reservation/check-in' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInExtremeReservation(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/reservation/no-show' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markExtremeNoShow(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/waitlist/expire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, expireExtremeWaitlist(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/agentfleet/presence-sweep' && req.method === 'POST') {
