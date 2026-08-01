@@ -1811,6 +1811,22 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **1199** | Net Split |
 | **1200** | Apotheosis checkpoint (`/api/apotheosis`) |
 
+### Kampüs stack (Adım 2–9) — sealed
+
+| Modül | API | İş |
+|-------|-----|-----|
+| campuscore | `/api/campus` | Arazi zonları |
+| stayring | `/api/stayring` | Glamping/karavan/bungalow |
+| athleteos | `/api/athleteos` | Kulüp & sporcu |
+| lifecoach | `/api/lifecoach` | Yaşam uzmanı + saat |
+| marketos | `/api/marketos` | Al / kirala / 2. el |
+| openmall | `/api/openmall` | Açık AVM |
+| familycamp | `/api/familycamp` | Aile & çocuk |
+| agentbridge | `/api/agentbridge` | Ajan komuta |
+
+Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  
+Kampüs sayfaları `App.tsx` içinde lazy chunk.
+
 ### Kampüs menü (Adım 1)
 
 CEO sidebar artık **domain hub** + **Lab arama** ile sade.

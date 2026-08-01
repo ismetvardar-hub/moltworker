@@ -6679,6 +6679,14 @@ import {
   signExtremeWaiver,
   updateExtremeGear,
 } from './extremepark.js';
+import { addCampusIncident, campusCoreOverview, updateCampusZone } from './campuscore.js';
+import { createStayBooking, stayRingOverview, updateStayUnit } from './stayring.js';
+import { athleteOsOverview, logAthleteSession, upsertAthletePlan } from './athleteos.js';
+import { createLifePlan, ingestWearable, lifeCoachOverview } from './lifecoach.js';
+import { createMarketListing, marketCheckout, marketOsOverview } from './marketos.js';
+import { openMallOverview, recordMallSale, updateMallTenant } from './openmall.js';
+import { familyCampOverview, familyCheckIn, familyCheckOut } from './familycamp.js';
+import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 
 
 
@@ -35892,6 +35900,154 @@ export function createPlatformMiddleware() {
         if (path === '/api/apotheosis' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildApotheosis());
+          return;
+        }
+
+
+        // ── Kampüs stack Adım 2–9 ──
+        if (path === '/api/campus' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, campusCoreOverview());
+          return;
+        }
+        if (path.startsWith('/api/campus/zones/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateCampusZone(path.split('/')[4], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Zon yok' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+        if (path === '/api/campus/incident' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, { item: addCampusIncident(await readBody(req), user.username) }); })();
+          return;
+        }
+        if (path === '/api/stayring' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, stayRingOverview());
+          return;
+        }
+        if (path === '/api/stayring/book' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createStayBooking(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path.startsWith('/api/stayring/units/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateStayUnit(path.split('/')[4], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Ünite yok' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+        if (path === '/api/athleteos' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, athleteOsOverview());
+          return;
+        }
+        if (path === '/api/athleteos/plan' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, upsertAthletePlan(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/session' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, logAthleteSession(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lifecoach' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, lifeCoachOverview());
+          return;
+        }
+        if (path === '/api/lifecoach/wearable' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ingestWearable(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lifecoach/plan' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createLifePlan(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, marketOsOverview());
+          return;
+        }
+        if (path === '/api/marketos/list' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createMarketListing(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/checkout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, marketCheckout(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/openmall' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, openMallOverview());
+          return;
+        }
+        if (path === '/api/openmall/sale' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordMallSale(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path.startsWith('/api/openmall/tenants/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const item = updateMallTenant(path.split('/')[4], await readBody(req), user.username);
+            if (!item) { sendJson(res, 404, { error: 'Kiracı yok' }); return; }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+        if (path === '/api/familycamp' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, familyCampOverview());
+          return;
+        }
+        if (path === '/api/familycamp/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, familyCheckIn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/checkout' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const body = await readBody(req);
+            sendJson(res, 200, familyCheckOut(body.id, user.username));
+          })();
+          return;
+        }
+        if (path === '/api/agentbridge' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, agentBridgeOverview());
+          return;
+        }
+        if (path === '/api/agentbridge/ping' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, agentBridgePing(await readBody(req), user.username)); })();
           return;
         }
 

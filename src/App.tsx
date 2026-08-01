@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType } from 'react';
 import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
 import DazeHubPage from './pages/DazeHubPage';
@@ -1202,6 +1202,16 @@ import ApotheosisPage from './pages/ApotheosisPage';
 import ExtremeParkPage from './pages/ExtremeParkPage';
 import CampusMapPage from './pages/CampusMapPage';
 import DocsPage from './pages/DocsPage';
+
+/** Adım 10 — kampüs stack lazy chunk’ları (ilk yükü hafiflet) */
+const CampuscorePage = lazy(() => import('./pages/CampuscorePage'));
+const StayringPage = lazy(() => import('./pages/StayringPage'));
+const AthleteosPage = lazy(() => import('./pages/AthleteosPage'));
+const LifecoachPage = lazy(() => import('./pages/LifecoachPage'));
+const MarketosPage = lazy(() => import('./pages/MarketosPage'));
+const OpenmallPage = lazy(() => import('./pages/OpenmallPage'));
+const FamilycampPage = lazy(() => import('./pages/FamilycampPage'));
+const AgentbridgePage = lazy(() => import('./pages/AgentbridgePage'));
 import {
   fetchMe,
   getStoredUser,
@@ -1210,7 +1220,7 @@ import {
 } from './services/auth';
 import { setActiveBrand } from './services/brands';
 
-const PAGES: Record<string, () => React.JSX.Element> = {
+const PAGES: Record<string, ComponentType> = {
   hub: DazeHubPage,
   komuta: CommandCenter,
   ollama: OllamaPanel,
@@ -2370,6 +2380,14 @@ const PAGES: Record<string, () => React.JSX.Element> = {
   apotheosis: ApotheosisPage,
   extremepark: ExtremeParkPage,
   campus: CampusMapPage,
+  campuscore: CampuscorePage,
+  stayring: StayringPage,
+  athleteos: AthleteosPage,
+  lifecoach: LifecoachPage,
+  marketos: MarketosPage,
+  openmall: OpenmallPage,
+  familycamp: FamilycampPage,
+  agentbridge: AgentbridgePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
@@ -2541,7 +2559,15 @@ export default function App() {
         onLogout={() => void handleLogout()}
       />
       <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
-        <ActivePage />
+        <Suspense
+          fallback={
+            <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+              Modül yükleniyor…
+            </div>
+          }
+        >
+          <ActivePage />
+        </Suspense>
       </main>
     </div>
   );
