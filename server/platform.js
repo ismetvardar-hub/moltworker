@@ -6708,6 +6708,7 @@ import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToS
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
 import { addGreenIncident, greenPulseOverview, recordGreenMeter } from './greenpulse.js';
 import { campusBriefOverview, runCampusAutomations } from './campusbrief.js';
+import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
 
 
 
@@ -36244,6 +36245,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, { ...runCampusAutomations(user.username), brief: campusBriefOverview(user.username) });
+          return;
+        }
+
+        if (path === '/api/agentfleet' && req.method === 'GET') {
+          const u = requireUser(req, res);
+          if (!u) return;
+          sendJson(res, 200, agentFleetOverview());
+          return;
+        }
+        if (path === '/api/agentfleet/ping' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, pingFleetAgent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/dispatch' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, dispatchFleetDirective(await readBody(req), user.username)); })();
           return;
         }
 

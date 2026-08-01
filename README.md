@@ -1830,6 +1830,7 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | greenpulse | `/api/greenpulse` | Yeşil ESG nabız |
 | life flags | `/api/lifecoach/flags` | Flag → ajan kuyruk + recovery |
 | campusbrief | `/api/campusbrief` | CEO sabah brifi + çapraz otomasyon |
+| agentfleet | `/api/agentfleet` | 28 ajan filo + LİKYA-1 dispatch |
 
 Smoke: `npm run smoke:campus` · Yedek: `npm run backup -- "not"`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy (`scripts/lazyify-app.mjs`).  

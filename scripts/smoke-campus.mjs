@@ -23,6 +23,7 @@ import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, t
 import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
 import { campusBriefOverview, runCampusAutomations } from '../server/campusbrief.js';
 import { extremeSlotWeatherCheck } from '../server/extremepark.js';
+import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
 import { familyCampOverview, familyCheckIn } from '../server/familycamp.js';
@@ -112,9 +113,16 @@ assert(brief.pulses?.green && brief.actions, 'campus brief');
 runCampusAutomations('smoke');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
 
+const fleet = agentFleetOverview();
+assert(fleet.summary?.total === 28, '28 core agents');
+pingFleetAgent({ agent: 'ETHOS', note: 'smoke' }, 'smoke');
+const dispatched = dispatchFleetDirective({ title: 'Hava iptal ve ESG alert brifing' }, 'smoke');
+assert(dispatched.targets?.includes('REMINDER-AI') || dispatched.targets?.includes('GAIA-ESG'), 'fleet dispatch');
+
 const bridge = agentBridgeOverview();
-assert(bridge.agents?.length >= 8, 'agent fleet');
-assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue && bridge.pulses?.green, 'bridge pulses wave4');
+assert(bridge.agents?.length >= 8, 'campus agents on bridge');
+assert(bridge.pulses?.fleet?.total === 28, 'bridge fleet pulse');
+assert(bridge.pulses?.culture && bridge.pulses?.sport && bridge.pulses?.queue && bridge.pulses?.green, 'bridge pulses');
 const ping = agentBridgePing({ agent: 'DAZE-HUB', note: 'smoke' }, 'smoke');
 assert(ping.ok, 'agent ping');
 
@@ -132,7 +140,8 @@ console.log(
       queue: agentQueueOverview().summary,
       green: greenPulseOverview().summary,
       brief_actions: brief.actions.length,
-      agents: bridge.agents.map((a) => a.id),
+      fleet: agentFleetOverview().summary,
+      campus_agents: bridge.agents.map((a) => a.id),
       extreme_slots: extreme.summary?.open_slots ?? null,
     },
     null,

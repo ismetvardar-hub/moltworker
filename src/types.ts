@@ -1170,6 +1170,7 @@ export type PageId =
   | 'agentqueue'
   | 'greenpulse'
   | 'campusbrief'
+  | 'agentfleet'
   | 'culturescene'
   | 'mysteryshop'
   | 'partners'

@@ -45,20 +45,25 @@ export default function CampusbriefPage() {
                 <li className="text-slate-400">Kritik aksiyon yok — orman sakin.</li>
               )}
               {(data.actions || []).map((a: any, i: number) => (
-                <li
-                  key={`${a.href}-${i}`}
-                  className={
-                    a.level === 'alert'
-                      ? 'rounded-lg border border-rose-500/30 px-3 py-2 text-rose-100'
-                      : a.level === 'warn'
-                        ? 'rounded-lg border border-amber-500/30 px-3 py-2 text-amber-100'
-                        : a.level === 'ok'
-                          ? 'rounded-lg border border-emerald-500/30 px-3 py-2 text-emerald-100'
-                          : 'rounded-lg border border-obsidian-700 px-3 py-2 text-slate-200'
-                  }
-                >
-                  {a.text}
-                  <span className="ml-2 text-[10px] text-slate-500">→ {a.href}</span>
+                <li key={`${a.href}-${i}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (a.href) window.location.hash = `/${a.href}`
+                    }}
+                    className={
+                      a.level === 'alert'
+                        ? 'w-full rounded-lg border border-rose-500/30 px-3 py-2 text-left text-rose-100 hover:bg-rose-500/10'
+                        : a.level === 'warn'
+                          ? 'w-full rounded-lg border border-amber-500/30 px-3 py-2 text-left text-amber-100 hover:bg-amber-500/10'
+                          : a.level === 'ok'
+                            ? 'w-full rounded-lg border border-emerald-500/30 px-3 py-2 text-left text-emerald-100 hover:bg-emerald-500/10'
+                            : 'w-full rounded-lg border border-obsidian-700 px-3 py-2 text-left text-slate-200 hover:bg-obsidian-800'
+                    }
+                  >
+                    {a.text}
+                    <span className="ml-2 text-[10px] text-slate-500">→ {a.href}</span>
+                  </button>
                 </li>
               ))}
             </ul>

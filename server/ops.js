@@ -1164,6 +1164,8 @@ const BACKUP_COLLECTIONS = [
   'market-channel-syncs',
   'agent-jobs',
   'green-incidents',
+  'agent-pings',
+  'agent-presence',
   'green-readings',
   'green-meters',
   'life-webhooks',

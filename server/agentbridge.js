@@ -14,6 +14,7 @@ import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview } from './agentqueue.js';
 import { greenPulseOverview } from './greenpulse.js';
+import { agentFleetOverview, pingFleetAgent } from './agentfleet.js';
 
 export function agentBridgeOverview() {
   const campus = campusCoreOverview();
@@ -28,24 +29,24 @@ export function agentBridgeOverview() {
   const sport = sportBridgeOverview();
   const queue = agentQueueOverview();
   const green = greenPulseOverview();
+  const fleet = agentFleetOverview();
 
-  const agents = [
-    { id: 'NEXUS', role: 'IoT / kapı / ışık / NFC', signal: `keys ${stay.summary.keys_active || 0} · slots ${extreme.summary?.open_slots ?? '?'}`, status: 'online' },
-    { id: 'HEPHAESTUS', role: 'Depo / zimmet / bakım', signal: `gear service ${extreme.summary?.gear_service || 0} · q ${queue.byAgent['HEPHAESTUS']?.queued || 0}`, status: 'online' },
-    { id: 'REMINDER-AI', role: 'WhatsApp / iptal / slot', signal: `weather ${extreme.weather?.condition || '?'} · q ${queue.byAgent['REMINDER-AI']?.queued || 0}`, status: 'online' },
-    { id: 'MINT', role: 'Dinamik fiyat / doluluk', signal: `stay free ${stay.summary.free} · HK ${stay.summary.hk_dirty || 0}`, status: 'online' },
-    { id: 'DAZE-VISION', role: 'Kiosk / waiver / MaaS', signal: `waiver pending ${extreme.summary?.waiver_pending || 0}`, status: 'online' },
-    { id: 'DAZE-HUB', role: 'Komuta paneli', signal: `zones ${campus.summary.active} · queue ${queue.summary.queued}`, status: 'online' },
-    { id: 'LIFE-COACH-AI', role: 'Yaşam / performans asistanı', signal: `flags ${life.summary.flags} · hooks ${life.summary.webhook_events || 0}`, status: 'online' },
-    { id: 'CULTURE-AI', role: 'Sahne / bilet / yayın', signal: `live ${culture.summary.live} · held ${culture.summary.tickets_held}`, status: 'online' },
-    { id: 'SPORT-BRIDGE', role: 'Park ↔ kulüp', signal: `linked ${sport.summary.linked} · gaps ${sport.summary.waiver_gaps}`, status: 'online' },
-    { id: 'GAIA-ESG', role: 'Yeşil / ESG', signal: `score ${green.summary.score} · alerts ${green.summary.alerts}`, status: 'online' },
-  ];
+  const agents = (fleet.agents || [])
+    .filter((a) => a.campus)
+    .map((a) => ({
+      id: a.code,
+      role: a.role,
+      signal: `q ${a.queue?.queued || 0}/${a.queue?.running || 0} · ${a.status}`,
+      status: a.status === 'standby' ? 'standby' : 'online',
+      department: a.department,
+    }));
 
   return {
     title: 'Ajan Komuta Köprüsü',
     ethos: 'ETHOS güler · ajanlar çalışır · orman dinlenir.',
+    master_rule: fleet.master_rule,
     agents,
+    fleet: fleet.summary,
     pulses: {
       campus: campus.summary,
       stay: stay.summary,
@@ -59,6 +60,7 @@ export function agentBridgeOverview() {
       sport: sport.summary,
       queue: queue.summary,
       green: green.summary,
+      fleet: fleet.summary,
     },
     links: {
       campus: '/api/campus',
@@ -74,6 +76,7 @@ export function agentBridgeOverview() {
       queue: '/api/agentqueue',
       green: '/api/greenpulse',
       brief: '/api/campusbrief',
+      fleet: '/api/agentfleet',
     },
     generatedAt: new Date().toISOString(),
   };
@@ -81,6 +84,7 @@ export function agentBridgeOverview() {
 
 export function agentBridgePing(input = {}, actor = 'system') {
   const agent = input.agent || 'DAZE-HUB';
+  pingFleetAgent({ agent, note: input.note || 'nabız' }, actor);
   appendAudit({
     actor,
     action: 'agent.ping',

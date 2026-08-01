@@ -21,6 +21,7 @@ const AgentbridgePage = lazy(() => import('./pages/AgentbridgePage'));
 const AgentqueuePage = lazy(() => import('./pages/AgentqueuePage'));
 const GreenpulsePage = lazy(() => import('./pages/GreenpulsePage'));
 const CampusbriefPage = lazy(() => import('./pages/CampusbriefPage'));
+const AgentfleetPage = lazy(() => import('./pages/AgentfleetPage'));
 const AgentcourtPage = lazy(() => import('./pages/AgentcourtPage'));
 const AgentevalPage = lazy(() => import('./pages/AgentevalPage'));
 const Agentpulse2Page = lazy(() => import('./pages/Agentpulse2Page'));
@@ -2400,6 +2401,7 @@ const PAGES: Record<string, ComponentType> = {
   agentqueue: AgentqueuePage,
   greenpulse: GreenpulsePage,
   campusbrief: CampusbriefPage,
+  agentfleet: AgentfleetPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

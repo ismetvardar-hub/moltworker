@@ -1244,6 +1244,7 @@ export const ROLE_PAGES = {
     'agentqueue',
     'greenpulse',
     'campusbrief',
+    'agentfleet',
     'culturescene',
     'docs',
     'webhooks',
