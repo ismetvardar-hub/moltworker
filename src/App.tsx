@@ -689,6 +689,66 @@ import PlasticauditPage from './pages/PlasticauditPage';
 import EvchargerPage from './pages/EvchargerPage';
 import ReefwatchPage from './pages/ReefwatchPage';
 import VerdantPage from './pages/VerdantPage';
+import AccessgatePage from './pages/AccessgatePage';
+import IdproofPage from './pages/IdproofPage';
+import RolegrantPage from './pages/RolegrantPage';
+import SessionguardPage from './pages/SessionguardPage';
+import DevicetrustPage from './pages/DevicetrustPage';
+import SecretvaultPage from './pages/SecretvaultPage';
+import MfaregPage from './pages/MfaregPage';
+import SsobridgePage from './pages/SsobridgePage';
+import PrivacypolPage from './pages/PrivacypolPage';
+import ConsentrowPage from './pages/ConsentrowPage';
+import BreachlogPage from './pages/BreachlogPage';
+import SocqueuePage from './pages/SocqueuePage';
+import PatchdeskPage from './pages/PatchdeskPage';
+import ZerohourPage from './pages/ZerohourPage';
+import BastionPage from './pages/BastionPage';
+import PartnerdeskPage from './pages/PartnerdeskPage';
+import FranchisePage from './pages/FranchisePage';
+import ChannelkitPage from './pages/ChannelkitPage';
+import RebatePage from './pages/RebatePage';
+import CoinvestPage from './pages/CoinvestPage';
+import SlatrackPage from './pages/SlatrackPage';
+import JointpromoPage from './pages/JointpromoPage';
+import LeadsharePage from './pages/LeadsharePage';
+import B2borderPage from './pages/B2borderPage';
+import WholesalePage from './pages/WholesalePage';
+import DealroomPage from './pages/DealroomPage';
+import ContractrowPage from './pages/ContractrowPage';
+import CommissionPage from './pages/CommissionPage';
+import OnboardkitPage from './pages/OnboardkitPage';
+import Alliance2Page from './pages/Alliance2Page';
+import InboundpoPage from './pages/InboundpoPage';
+import OutboundsoPage from './pages/OutboundsoPage';
+import AsntrackPage from './pages/AsntrackPage';
+import DockyardPage from './pages/DockyardPage';
+import CrossdockPage from './pages/CrossdockPage';
+import Coldchain2Page from './pages/Coldchain2Page';
+import SlotbookPage from './pages/SlotbookPage';
+import CarrierbidPage from './pages/CarrierbidPage';
+import FreightbillPage from './pages/FreightbillPage';
+import MilestonetPage from './pages/MilestonetPage';
+import ExceptionlogPage from './pages/ExceptionlogPage';
+import InventoryagePage from './pages/InventoryagePage';
+import ReplenplanPage from './pages/ReplenplanPage';
+import SafetystockPage from './pages/SafetystockPage';
+import ArteryPage from './pages/ArteryPage';
+import SupplierkpiPage from './pages/SupplierkpiPage';
+import CmdpulsePage from './pages/CmdpulsePage';
+import BoardpulsePage from './pages/BoardpulsePage';
+import RiskheatPage from './pages/RiskheatPage';
+import CashpulsePage from './pages/CashpulsePage';
+import OpsheatPage from './pages/OpsheatPage';
+import GuestheatPage from './pages/GuestheatPage';
+import BrandheatPage from './pages/BrandheatPage';
+import AgentpulsePage from './pages/AgentpulsePage';
+import SystempulsePage from './pages/SystempulsePage';
+import AlertfusePage from './pages/AlertfusePage';
+import WarbriefPage from './pages/WarbriefPage';
+import DecisionhubPage from './pages/DecisionhubPage';
+import SealnotePage from './pages/SealnotePage';
+import DominionPage from './pages/DominionPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1347,6 +1407,66 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   evcharger: EvchargerPage,
   reefwatch: ReefwatchPage,
   verdant: VerdantPage,
+  accessgate: AccessgatePage,
+  idproof: IdproofPage,
+  rolegrant: RolegrantPage,
+  sessionguard: SessionguardPage,
+  devicetrust: DevicetrustPage,
+  secretvault: SecretvaultPage,
+  mfareg: MfaregPage,
+  ssobridge: SsobridgePage,
+  privacypol: PrivacypolPage,
+  consentrow: ConsentrowPage,
+  breachlog: BreachlogPage,
+  socqueue: SocqueuePage,
+  patchdesk: PatchdeskPage,
+  zerohour: ZerohourPage,
+  bastion: BastionPage,
+  partnerdesk: PartnerdeskPage,
+  franchise: FranchisePage,
+  channelkit: ChannelkitPage,
+  rebate: RebatePage,
+  coinvest: CoinvestPage,
+  slatrack: SlatrackPage,
+  jointpromo: JointpromoPage,
+  leadshare: LeadsharePage,
+  b2border: B2borderPage,
+  wholesale: WholesalePage,
+  dealroom: DealroomPage,
+  contractrow: ContractrowPage,
+  commission: CommissionPage,
+  onboardkit: OnboardkitPage,
+  alliance2: Alliance2Page,
+  inboundpo: InboundpoPage,
+  outboundso: OutboundsoPage,
+  asntrack: AsntrackPage,
+  dockyard: DockyardPage,
+  crossdock: CrossdockPage,
+  coldchain2: Coldchain2Page,
+  slotbook: SlotbookPage,
+  carrierbid: CarrierbidPage,
+  freightbill: FreightbillPage,
+  milestonet: MilestonetPage,
+  exceptionlog: ExceptionlogPage,
+  inventoryage: InventoryagePage,
+  replenplan: ReplenplanPage,
+  safetystock: SafetystockPage,
+  artery: ArteryPage,
+  supplierkpi: SupplierkpiPage,
+  cmdpulse: CmdpulsePage,
+  boardpulse: BoardpulsePage,
+  riskheat: RiskheatPage,
+  cashpulse: CashpulsePage,
+  opsheat: OpsheatPage,
+  guestheat: GuestheatPage,
+  brandheat: BrandheatPage,
+  agentpulse: AgentpulsePage,
+  systempulse: SystempulsePage,
+  alertfuse: AlertfusePage,
+  warbrief: WarbriefPage,
+  decisionhub: DecisionhubPage,
+  sealnote: SealnotePage,
+  dominion: DominionPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

@@ -1131,6 +1131,86 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **689** | Reef Watch |
 | **690** | Verdant checkpoint (`/api/verdant`) |
 
+### Identity OS · Bastion (AŞAMA 691–705)
+
+| Aşama | Özellik |
+|-------|---------|
+| **691** | Access Gate |
+| **692** | ID Proof |
+| **693** | Role Grant |
+| **694** | Session Guard |
+| **695** | Device Trust |
+| **696** | Secret Vault |
+| **697** | MFA Reg |
+| **698** | SSO Bridge |
+| **699** | Privacy Pol |
+| **700** | Consent Row |
+| **701** | Breach Log |
+| **702** | SOC Queue |
+| **703** | Patch Desk |
+| **704** | Zero Hour |
+| **705** | Bastion checkpoint (`/api/bastion`) |
+
+### Alliance OS · Alliance2 (AŞAMA 706–720)
+
+| Aşama | Özellik |
+|-------|---------|
+| **706** | Partner Desk |
+| **707** | Franchise |
+| **708** | Channel Kit |
+| **709** | Rebate |
+| **710** | Co Invest |
+| **711** | SLA Track |
+| **712** | Joint Promo |
+| **713** | Lead Share |
+| **714** | B2B Order |
+| **715** | Wholesale |
+| **716** | Deal Room |
+| **717** | Contract Row |
+| **718** | Commission |
+| **719** | Onboard Kit |
+| **720** | Alliance2 checkpoint (`/api/alliance2`) |
+
+### Supply OS · Artery (AŞAMA 721–735)
+
+| Aşama | Özellik |
+|-------|---------|
+| **721** | Inbound PO |
+| **722** | Outbound SO |
+| **723** | ASN Track |
+| **724** | Dock Yard |
+| **725** | Cross Dock |
+| **726** | Cold Chain+ |
+| **727** | Slot Book |
+| **728** | Carrier Bid |
+| **729** | Freight Bill |
+| **730** | Milestone T |
+| **731** | Exception Log |
+| **732** | Inventory Age |
+| **733** | Replen Plan |
+| **734** | Safety Stock |
+| **735** | Artery checkpoint (`/api/artery`) |
+
+### Dominion Seal · Dominion (AŞAMA 736–750)
+
+| Aşama | Özellik |
+|-------|---------|
+| **736** | Supplier KPI |
+| **737** | Cmd Pulse |
+| **738** | Board Pulse |
+| **739** | Risk Heat |
+| **740** | Cash Pulse |
+| **741** | Ops Heat |
+| **742** | Guest Heat |
+| **743** | Brand Heat |
+| **744** | Agent Pulse |
+| **745** | System Pulse |
+| **746** | Alert Fuse |
+| **747** | War Brief |
+| **748** | Decision Hub |
+| **749** | Seal Note |
+| **750** | Dominion checkpoint (`/api/dominion`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
