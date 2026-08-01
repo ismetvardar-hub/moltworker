@@ -10,14 +10,17 @@ import {
   issueStayKeyless,
   createStayHkTask,
   setStayWintering,
+  completeStayHk,
+  stayNightRollup,
 } from '../server/stayring.js';
-import { athleteOsOverview, logAthleteSession } from '../server/athleteos.js';
+import { athleteOsOverview, issueAthleteLicense, logAthleteSession, athleteReadinessRollup } from '../server/athleteos.js';
 import {
   lifeCoachOverview,
   ingestWearable,
   ingestWearableWebhook,
   registerLifeDevice,
   processLifeFlags,
+  lifeCoachCheckIn,
 } from '../server/lifecoach.js';
 import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, tickAgentQueue } from '../server/agentqueue.js';
 import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
@@ -51,10 +54,17 @@ createStayBooking({ unit_id: stay.units.find((u) => u.status === 'free')?.id, gu
 issueStayKeyless({}, 'smoke');
 createStayHkTask({ kind: 'linen' }, 'smoke');
 setStayWintering({ unit_id: 'su_4' }, 'smoke');
+completeStayHk({ unit_id: 'su_2' }, 'smoke');
+const night = stayNightRollup('smoke');
+assert(night.ok && night.rollup?.occupancy_pct != null, 'stay night rollup');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');
 logAthleteSession({ athlete_id: athletes.athletes[0].id, session: 'smoke tempo', rpe: 5 }, 'smoke');
+const lic = issueAthleteLicense({ athlete_id: 'ath_3' }, 'smoke');
+assert(lic.ok && lic.athlete?.license, 'athlete license');
+const ready = athleteReadinessRollup('smoke');
+assert(ready.athletes?.length >= 2, 'athlete readiness');
 
 const life = lifeCoachOverview();
 assert(life.clients?.length >= 1, 'life clients');
@@ -64,6 +74,8 @@ ingestWearableWebhook(
   { actor: 'smoke', verified: true },
 );
 registerLifeDevice({ provider: 'fitbit', client_id: 'lc_1', label: 'Smoke Fitbit' }, 'smoke');
+const checkin = lifeCoachCheckIn({ client_id: 'lc_2', mood: 5, sleep_h: 6 }, 'smoke');
+assert(checkin.ok && checkin.checkin, 'life checkin');
 
 const queue = agentQueueOverview();
 assert(queue.jobs?.length >= 1, 'agent queue');

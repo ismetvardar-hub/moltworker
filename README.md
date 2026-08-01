@@ -1836,6 +1836,9 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | culture+ | `/api/culture/confirm` · `/release` | Bilet hold → satış |
 | market+ | `/api/marketos/return` | Kiralama iade |
 | mall+ | `/api/openmall/day-rollup` | Günlük POS rollup |
+| athlete+ | `/api/athleteos/license` · `/readiness` | Lisans + RPE/recovery readiness |
+| life+ | `/api/lifecoach/checkin` | Uzman check-in → metrik/plan |
+| stay+ | `/api/stayring/hk-complete` · `/night-rollup` | HK tamam + gece RevPAR |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  

@@ -54,3 +54,13 @@ export async function processLifeFlags() {
     }),
   )
 }
+
+export async function lifeCoachCheckIn(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/lifecoach/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -52,3 +52,23 @@ export async function checkoutStay(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function completeStayHk(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/hk-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function stayNightRollup(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/night-rollup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

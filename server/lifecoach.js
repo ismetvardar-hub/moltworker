@@ -153,6 +153,7 @@ export function lifeCoachOverview() {
   const metrics = ensureMetrics();
   const devices = ensureDevices();
   const hooks = readCollection('life-webhooks', []) || [];
+  const checkins = readCollection('life-checkins', []) || [];
   const flags = metrics.filter((m) => m.recovery < 55 || m.mood < 6);
   const latestByClient = {};
   for (const m of metrics) {
@@ -163,6 +164,7 @@ export function lifeCoachOverview() {
     clients,
     devices,
     metrics: metrics.slice(0, 40),
+    checkins: (Array.isArray(checkins) ? checkins : []).slice(0, 20),
     flags,
     latestByClient,
     webhooks: (Array.isArray(hooks) ? hooks : []).slice(0, 20),
@@ -174,6 +176,7 @@ export function lifeCoachOverview() {
       wearables_linked: clients.filter((c) => c.wearables).length,
       devices: devices.filter((d) => d.status === 'linked').length,
       webhook_events: Array.isArray(hooks) ? hooks.length : 0,
+      checkins: Array.isArray(checkins) ? checkins.length : 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -338,6 +341,71 @@ export function createLifePlan(input = {}, actor = 'system') {
   prependItem('life-plans', row, 200);
   appendAudit({ actor, action: 'life.plan', detail: row.client_id, meta: { id: row.id } });
   return { ok: true, plan: row };
+}
+
+/** Uzman yüz yüze / tele check-in → metrik + opsiyonel plan */
+export function lifeCoachCheckIn(input = {}, actor = 'system') {
+  const clients = ensureClients();
+  const client =
+    clients.find((c) => c.id === input.client_id || c.name === input.client_id) || clients[0];
+  if (!client) return { ok: false, error: 'Danışan yok' };
+  const mood = Number(input.mood) || 6;
+  const sleep_h = Number(input.sleep_h) || 7;
+  const recovery = Number(input.recovery) || Math.round(50 + mood * 5 + (sleep_h - 6) * 4);
+  const note = {
+    id: rid('lci'),
+    client_id: client.id,
+    specialist: input.specialist || client.specialist || actor,
+    mood,
+    sleep_h,
+    recovery: Math.max(0, Math.min(100, recovery)),
+    load: Number(input.load) || 50,
+    hrv: Number(input.hrv) || 60,
+    note: input.note || 'Check-in',
+    channel: input.channel || 'in_person',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('life-checkins', note, 400);
+  const metric = ingestWearable(
+    {
+      client_id: client.id,
+      device_id: client.device_id,
+      provider: client.provider || 'checkin',
+      sleep_h: note.sleep_h,
+      mood: note.mood,
+      recovery: note.recovery,
+      load: note.load,
+      hrv: note.hrv,
+      source: 'coach_checkin',
+    },
+    actor,
+  );
+  let plan = null;
+  if (input.write_plan !== false && note.recovery < 60) {
+    plan = createLifePlan(
+      {
+        client_id: client.id,
+        physical: 'Aktif dinlenme · yürüyüş',
+        mental: 'Kısa nefes + ekran kes',
+        fundamentals: `Uyku hedef ${Math.max(8, sleep_h + 1)}s · hidrasyon`,
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'life.checkin',
+    detail: `${client.name} mood ${mood} recovery ${note.recovery}`,
+    meta: { id: note.id },
+  });
+  return {
+    ok: true,
+    checkin: note,
+    metric: metric.metric,
+    plan: plan?.plan || null,
+    overview: lifeCoachOverview(),
+  };
 }
 
 export function signLifeWebhookDemo(bodyObj) {

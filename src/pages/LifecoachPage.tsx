@@ -135,7 +135,22 @@ export default function LifecoachPage() {
               >
                 Flag → ajan/recovery
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api
+                    .lifeCoachCheckIn({ client_id: 'lc_2', mood: 4, sleep_h: 5.5, note: 'Yorgunluk' })
+                    .then((r: any) => {
+                      ping(`Check-in recovery ${r.checkin?.recovery}`)
+                      return refresh()
+                    })
+                }
+              >
+                Uzman check-in
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">Check-in: {data.summary?.checkins ?? 0}</p>
             <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-obsidian-950 p-2 text-[10px] text-slate-500">
               {JSON.stringify(data.webhooks?.slice?.(0, 5) || [], null, 2)}
             </pre>

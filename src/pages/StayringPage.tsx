@@ -130,7 +130,38 @@ export default function StayringPage() {
               >
                 Checkout
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api
+                    .completeStayHk({ unit_id: (data?.units || []).find((u: any) => u.hk === 'dirty')?.id || 'su_2' })
+                    .then(() => {
+                      ping('HK tamam')
+                      return refresh()
+                    })
+                }
+              >
+                HK tamamla
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.stayNightRollup().then((r: any) => {
+                    ping(`Doluluk %${r.rollup?.occupancy_pct} · RevPAR ${r.rollup?.revpar_try}`)
+                    return refresh()
+                  })
+                }
+              >
+                Gece rollup
+              </button>
             </div>
+            {(data.summary?.occupancy_pct != null || data.summary?.revpar_try != null) && (
+              <p className="mt-2 text-xs text-slate-500">
+                Son gece: %{data.summary.occupancy_pct} doluluk · RevPAR {data.summary.revpar_try} TRY
+              </p>
+            )}
           </PanelCard>
           <PanelCard title="Üniteler">
             <ul className="space-y-2 text-sm">

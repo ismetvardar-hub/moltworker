@@ -35,18 +35,97 @@ function ensurePlans() {
 export function athleteOsOverview() {
   const athletes = ensureAthletes();
   const plans = ensurePlans();
+  const sessions = readCollection('athlete-sessions', []) || [];
+  const readiness = athleteReadinessRollup();
   return {
     title: 'Kulüp & Sporcu OS',
     athletes,
     plans,
+    sessions: (Array.isArray(sessions) ? sessions : []).slice(0, 30),
+    readiness: readiness.athletes,
     summary: {
       active: athletes.filter((a) => a.status === 'active').length,
       licensed: athletes.filter((a) => a.license).length,
       trial: athletes.filter((a) => a.status === 'trial').length,
       plans_active: plans.filter((p) => p.status === 'active').length,
+      sessions_logged: Array.isArray(sessions) ? sessions.length : 0,
+      avg_readiness: readiness.avg,
+      license_expiring: athletes.filter((a) => a.license_expires && a.license_expires < new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10)).length,
     },
     generatedAt: new Date().toISOString(),
   };
+}
+
+/** Lisans ver / yenile → trial → active */
+export function issueAthleteLicense(input = {}, actor = 'system') {
+  const athletes = ensureAthletes();
+  const idx = athletes.findIndex((a) => a.id === input.athlete_id || a.name === input.athlete_id);
+  if (idx < 0) return { ok: false, error: 'Sporcu yok' };
+  const sport = (athletes[idx].sport || 'GEN').slice(0, 3).toUpperCase();
+  const code = input.license || athletes[idx].license || `TR-${sport}-${randomBytes(2).toString('hex').toUpperCase()}`;
+  const expires = input.expires || new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10);
+  athletes[idx] = {
+    ...athletes[idx],
+    license: code,
+    license_expires: expires,
+    status: athletes[idx].status === 'trial' ? 'active' : athletes[idx].status || 'active',
+    licensed_at: new Date().toISOString(),
+    licensed_by: actor,
+  };
+  writeCollection('club-athletes', athletes);
+  appendAudit({
+    actor,
+    action: 'athlete.license',
+    detail: `${athletes[idx].name} · ${code}`,
+    meta: { id: athletes[idx].id, expires },
+  });
+  return { ok: true, athlete: athletes[idx], overview: athleteOsOverview() };
+}
+
+/** Seans RPE + yaşam recovery birleşik readiness */
+export function athleteReadinessRollup(actor = 'system') {
+  const athletes = ensureAthletes();
+  const sessions = readCollection('athlete-sessions', []) || [];
+  let lifeMetrics = [];
+  try {
+    lifeMetrics = readCollection('life-metrics', []) || [];
+  } catch {
+    lifeMetrics = [];
+  }
+  let lifeClients = [];
+  try {
+    lifeClients = readCollection('life-clients', []) || [];
+  } catch {
+    lifeClients = [];
+  }
+  const rows = athletes.map((a) => {
+    const recent = (Array.isArray(sessions) ? sessions : []).filter((s) => s.athlete_id === a.id).slice(0, 5);
+    const avgRpe = recent.length
+      ? recent.reduce((s, x) => s + (Number(x.rpe) || 0), 0) / recent.length
+      : null;
+    const client = (Array.isArray(lifeClients) ? lifeClients : []).find((c) => c.athlete_id === a.id);
+    const metric = client
+      ? (Array.isArray(lifeMetrics) ? lifeMetrics : []).find((m) => m.client_id === client.id)
+      : null;
+    const recovery = metric ? Number(metric.recovery) : null;
+    // readiness: recovery ağırlıklı, yüksek RPE düşürür
+    let score = 70;
+    if (recovery != null) score = recovery;
+    if (avgRpe != null) score = Math.round(score * 0.7 + (100 - avgRpe * 8) * 0.3);
+    score = Math.max(0, Math.min(100, score));
+    return {
+      athlete_id: a.id,
+      name: a.name,
+      license: a.license,
+      avg_rpe: avgRpe != null ? Math.round(avgRpe * 10) / 10 : null,
+      recovery,
+      sessions_n: recent.length,
+      score,
+      flag: score < 55 ? 'watch' : score < 70 ? 'monitor' : 'ok',
+    };
+  });
+  const avg = rows.length ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length) : null;
+  return { ok: true, athletes: rows, avg, at: new Date().toISOString(), actor };
 }
 
 export function upsertAthletePlan(input = {}, actor = 'system') {

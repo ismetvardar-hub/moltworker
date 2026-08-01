@@ -46,12 +46,15 @@ export function stayRingOverview() {
   const bookings = ensureBookings();
   const keys = ensureKeys();
   const hk = ensureHk();
+  const rollups = readCollection('stay-night-rollups', []) || [];
+  const lastRollup = Array.isArray(rollups) && rollups[0] ? rollups[0] : null;
   return {
     title: 'Konaklama Halkası',
     units,
     bookings: bookings.slice(0, 30),
     keys: keys.slice(0, 20),
     hk: hk.slice(0, 20),
+    night_rollups: (Array.isArray(rollups) ? rollups : []).slice(0, 10),
     summary: {
       free: units.filter((u) => u.status === 'free').length,
       occupied: units.filter((u) => u.status === 'occupied').length,
@@ -59,6 +62,8 @@ export function stayRingOverview() {
       hold: units.filter((u) => u.status === 'hold').length,
       hk_dirty: units.filter((u) => u.hk === 'dirty' || u.hk === 'inspect').length,
       keys_active: keys.filter((k) => k.status === 'active').length,
+      occupancy_pct: lastRollup?.occupancy_pct ?? null,
+      revpar_try: lastRollup?.revpar_try ?? null,
       byType: {
         glamping: units.filter((u) => u.type === 'glamping').length,
         caravan: units.filter((u) => u.type === 'caravan').length,
@@ -209,4 +214,81 @@ export function checkoutStay(input = {}, actor = 'system') {
   createStayHkTask({ unit_id: units[idx].id, kind: 'turnover', note: 'Checkout sonrası' }, actor);
   appendAudit({ actor, action: 'stay.checkout', detail: units[idx].code, meta: { unit_id: units[idx].id } });
   return { ok: true, unit: units[idx], overview: stayRingOverview() };
+}
+
+/** HK görevi tamamla → ünite clean */
+export function completeStayHk(input = {}, actor = 'system') {
+  const hk = ensureHk();
+  const units = ensureUnits();
+  let task = hk.find((t) => t.id === input.task_id);
+  if (!task && input.unit_id) {
+    task = hk.find((t) => (t.unit_id === input.unit_id || t.unit_code === input.unit_id) && t.status === 'open');
+  }
+  if (!task) {
+    // açık görev yoksa üniteyi doğrudan temizle
+    const idx = units.findIndex((u) => u.id === input.unit_id || u.code === input.unit_id);
+    if (idx < 0) return { ok: false, error: 'HK görevi / ünite yok' };
+    units[idx] = { ...units[idx], hk: 'clean' };
+    writeCollection('stay-units', units);
+    appendAudit({ actor, action: 'stay.hk_done', detail: units[idx].code, meta: { unit_id: units[idx].id } });
+    return { ok: true, unit: units[idx], overview: stayRingOverview() };
+  }
+  const list = readCollection('stay-hk', []) || [];
+  const tidx = list.findIndex((t) => t.id === task.id);
+  if (tidx >= 0) {
+    list[tidx] = { ...list[tidx], status: 'done', done_at: new Date().toISOString(), done_by: actor };
+    writeCollection('stay-hk', list);
+  }
+  const uidx = units.findIndex((u) => u.id === task.unit_id);
+  if (uidx >= 0) {
+    units[uidx] = { ...units[uidx], hk: 'clean' };
+    writeCollection('stay-units', units);
+  }
+  appendAudit({
+    actor,
+    action: 'stay.hk_done',
+    detail: `${task.unit_code} · ${task.kind}`,
+    meta: { id: task.id },
+  });
+  return { ok: true, task: list[tidx] || task, overview: stayRingOverview() };
+}
+
+/** Gece doluluk + gelir rollup */
+export function stayNightRollup(actor = 'system') {
+  const units = ensureUnits();
+  const bookings = ensureBookings();
+  const occupied = units.filter((u) => u.status === 'occupied' || u.status === 'wintering');
+  const free = units.filter((u) => u.status === 'free');
+  const byType = {};
+  let adrSum = 0;
+  for (const u of occupied) {
+    byType[u.type] = (byType[u.type] || 0) + 1;
+    adrSum += Number(u.rate_try) || 0;
+  }
+  const confirmedNights = bookings
+    .filter((b) => b.status === 'confirmed')
+    .reduce((s, b) => s + (Number(b.nights) || 0), 0);
+  const rollup = {
+    id: rid('snr'),
+    date: new Date().toISOString().slice(0, 10),
+    occupied: occupied.length,
+    free: free.length,
+    wintering: units.filter((u) => u.status === 'wintering').length,
+    occupancy_pct: units.length ? Math.round((occupied.length / units.length) * 100) : 0,
+    revpar_try: units.length ? Math.round(adrSum / units.length) : 0,
+    occupied_adr_try: occupied.length ? Math.round(adrSum / occupied.length) : 0,
+    pipeline_nights: confirmedNights,
+    byType,
+    hk_open: (ensureHk() || []).filter((t) => t.status === 'open').length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('stay-night-rollups', rollup, 120);
+  appendAudit({
+    actor,
+    action: 'stay.night_rollup',
+    detail: `${rollup.occupancy_pct}% · RevPAR ${rollup.revpar_try}`,
+    meta: { id: rollup.id },
+  });
+  return { ok: true, rollup, overview: stayRingOverview() };
 }

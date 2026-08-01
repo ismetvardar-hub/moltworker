@@ -104,6 +104,33 @@ try {
   const roll = await req('/api/openmall/day-rollup', { method: 'POST', token, body: {} });
   assert(roll.res.ok, 'mall rollup');
 
+  const lic = await req('/api/athleteos/license', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_3' },
+  });
+  assert(lic.res.ok && lic.data.ok !== false, 'athlete license');
+
+  const ready = await req('/api/athleteos/readiness', { token });
+  assert(ready.res.ok && Array.isArray(ready.data.athletes), 'athlete readiness');
+
+  const checkin = await req('/api/lifecoach/checkin', {
+    method: 'POST',
+    token,
+    body: { client_id: 'lc_1', mood: 6, sleep_h: 7 },
+  });
+  assert(checkin.res.ok && checkin.data.ok !== false, 'life checkin');
+
+  const night = await req('/api/stayring/night-rollup', { method: 'POST', token, body: {} });
+  assert(night.res.ok && night.data.rollup, 'stay night rollup');
+
+  const hk = await req('/api/stayring/hk-complete', {
+    method: 'POST',
+    token,
+    body: { unit_id: 'su_2' },
+  });
+  assert(hk.res.ok, 'stay hk complete');
+
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');
 
@@ -115,6 +142,8 @@ try {
         health: health.data.status,
         campus_score: (await req('/api/campus/health', { token })).data.score,
         fleet: (await req('/api/agentfleet', { token })).data.summary?.total,
+        readiness_avg: ready.data.avg,
+        occupancy_pct: night.data.rollup?.occupancy_pct,
       },
       null,
       2,

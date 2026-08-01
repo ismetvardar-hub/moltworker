@@ -6682,18 +6682,21 @@ import {
 import { addCampusIncident, campusCoreOverview, updateCampusZone } from './campuscore.js';
 import {
   checkoutStay,
+  completeStayHk,
   createStayBooking,
   createStayHkTask,
   issueStayKeyless,
   setStayWintering,
+  stayNightRollup,
   stayRingOverview,
   updateStayUnit,
 } from './stayring.js';
-import { athleteOsOverview, logAthleteSession, upsertAthletePlan } from './athleteos.js';
+import { athleteOsOverview, athleteReadinessRollup, issueAthleteLicense, logAthleteSession, upsertAthletePlan } from './athleteos.js';
 import {
   createLifePlan,
   ingestWearable,
   ingestWearableWebhook,
+  lifeCoachCheckIn,
   lifeCoachOverview,
   processLifeFlags,
   registerLifeDevice,
@@ -35984,6 +35987,36 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, logAthleteSession(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/athleteos/license' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, issueAthleteLicense(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/athleteos/readiness' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, athleteReadinessRollup());
+          return;
+        }
+        if (path === '/api/lifecoach/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, lifeCoachCheckIn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/hk-complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeStayHk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/night-rollup' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          sendJson(res, 200, stayNightRollup(user.username));
           return;
         }
         if (path === '/api/lifecoach' && req.method === 'GET') {

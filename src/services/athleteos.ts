@@ -12,3 +12,27 @@ export async function upsertAthletePlan(body: Record<string, unknown> = {}) {
   return parse(await fetch('/api/athleteos/plan', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
 }
 
+export async function logAthleteSession(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function issueAthleteLicense(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/athleteos/license', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchAthleteReadiness() {
+  return parse(await fetch('/api/athleteos/readiness', { headers: authHeaders() }))
+}
+

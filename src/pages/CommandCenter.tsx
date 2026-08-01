@@ -541,6 +541,12 @@ export default function CommandCenter() {
               Extreme slot <strong>{campusPulse.pulses?.extreme?.open_slots ?? '—'}</strong>
             </span>
             <span>
+              Stay HK <strong>{campusPulse.pulses?.stay?.hk_dirty ?? 0}</strong>
+            </span>
+            <span>
+              Life flag <strong>{campusPulse.pulses?.life?.flags ?? 0}</strong>
+            </span>
+            <span>
               Aksiyon <strong>{campusPulse.actions?.length ?? 0}</strong>
             </span>
             <button
