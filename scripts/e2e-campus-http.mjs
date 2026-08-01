@@ -744,6 +744,35 @@ try {
   assert(woEsc.res.ok && woEsc.data.ok !== false, 'campus WO escalate');
   const woDone = await req('/api/campus/work-order/complete', { method: 'POST', token, body: {} });
   assert(woDone.res.ok && woDone.data.ok !== false, 'campus WO complete');
+  await req('/api/campus/incident', {
+    method: 'POST',
+    token,
+    body: { title: 'e2e escalate', zone_id: 'z_sport', severity: 'info' },
+  });
+  const incEsc = await req('/api/campus/incident/escalate', {
+    method: 'POST',
+    token,
+    body: { reason: 'e2e' },
+  });
+  assert(incEsc.res.ok && incEsc.data.ok !== false, 'campus incident escalate');
+  const lock = await req('/api/campus/zone/lockdown', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_sport', reason: 'e2e', force: true },
+  });
+  assert(lock.res.ok && lock.data.ok !== false, 'campus lockdown');
+  const lockClear = await req('/api/campus/zone/lockdown/clear', {
+    method: 'POST',
+    token,
+    body: { zone_id: 'z_sport' },
+  });
+  assert(lockClear.res.ok && lockClear.data.ok !== false, 'campus lockdown clear');
+  const capAlert = await req('/api/campus/capacity/alert-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true, threshold: 1 },
+  });
+  assert(capAlert.res.ok && capAlert.data.ok !== false, 'campus capacity alert');
   await req('/api/campus/incident/resolve', { method: 'POST', token, body: {} });
   const cap = await req('/api/campus/capacity', { method: 'POST', token, body: {} });
   assert(cap.res.ok && cap.data.rollup, 'campus capacity');

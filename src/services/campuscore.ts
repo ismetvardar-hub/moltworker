@@ -107,3 +107,43 @@ export async function escalateCampusWorkOrder(body: Record<string, unknown> = {}
     }),
   )
 }
+
+export async function escalateCampusIncident(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/incident/escalate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function lockdownCampusZone(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/zone/lockdown', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearCampusZoneLockdown(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/zone/lockdown/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runCampusCapacityAlertSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campus/capacity/alert-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

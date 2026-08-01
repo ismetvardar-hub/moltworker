@@ -151,11 +151,60 @@ export default function CampuscorePage() {
               >
                 WO tamamla
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.escalateCampusIncident({ reason: 'ops' }).then((r: any) => {
+                    ping(r.ok ? `Inc escalate · ${r.escalation?.to_severity}` : r.error || 'Inc yok')
+                    return refresh()
+                  })
+                }
+              >
+                Incident escalate
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.lockdownCampusZone({ zone_id: 'z_sport', reason: 'safety', force: true }).then((r: any) => {
+                    ping(r.ok ? `Lockdown · ${r.zone?.name}` : r.error || 'Lock yok')
+                    return refresh()
+                  })
+                }
+              >
+                Zon lockdown
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.clearCampusZoneLockdown({ zone_id: 'z_sport' }).then((r: any) => {
+                    ping(r.ok ? 'Lockdown kalktı' : r.error || 'Clear yok')
+                    return refresh()
+                  })
+                }
+              >
+                Lockdown kaldır
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.runCampusCapacityAlertSweep({ force: true, threshold: 50 }).then((r: any) => {
+                    ping(`Cap alert · ${r.sweep?.alerts ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Kapasite alert
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Açık incident {data.summary?.open_incidents ?? 0} · açık WO{' '}
               {data.summary?.open_work_orders ?? 0} · atanan {data.summary?.assigned_work_orders ?? 0}{' '}
-              · devam {data.summary?.in_progress_work_orders ?? 0}
+              · devam {data.summary?.in_progress_work_orders ?? 0} · lockdown {data.summary?.locked_zones ?? 0} ·
+              cap alert {data.summary?.capacity_alerts ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Zonlar">
@@ -169,7 +218,10 @@ export default function CampuscorePage() {
                     </span>
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-lykia-300">{z.status}</span>
+                    <span className="text-xs text-lykia-300">
+                      {z.status}
+                      {z.lockdown ? ' · LOCK' : ''}
+                    </span>
                     {z.status !== 'protected' && z.status !== 'active' && (
                       <button
                         type="button"

@@ -16,6 +16,10 @@ import {
   assignCampusWorkOrder,
   startCampusWorkOrder,
   escalateCampusWorkOrder,
+  escalateCampusIncident,
+  lockdownCampusZone,
+  clearCampusZoneLockdown,
+  runCampusCapacityAlertSweep,
 } from '../server/campuscore.js';
 import {
   agentBridgeBroadcast,
@@ -206,6 +210,11 @@ assert(campus.zones?.length >= 8, 'campus zones');
 updateCampusZone(campus.zones[0].id, { notes: 'smoke' }, 'smoke');
 addCampusIncident({ title: 'smoke incident', zone_id: 'z_sport' }, 'smoke');
 transitionCampusZone({ zone_id: 'z_culture' }, 'smoke');
+addCampusIncident({ title: 'smoke escalate target', zone_id: 'z_sport', severity: 'info' }, 'smoke');
+assert(escalateCampusIncident({ reason: 'smoke' }, 'smoke').ok, 'campus incident escalate');
+assert(lockdownCampusZone({ zone_id: 'z_sport', reason: 'smoke', force: true }, 'smoke').ok, 'campus lockdown');
+assert(clearCampusZoneLockdown({ zone_id: 'z_sport' }, 'smoke').ok, 'campus lockdown clear');
+assert(runCampusCapacityAlertSweep({ force: true, threshold: 1 }, 'smoke').ok, 'campus capacity alert');
 resolveCampusIncident({}, 'smoke');
 assert(campusCapacityRollup('smoke').ok, 'campus capacity');
 assert(createCampusWorkOrder({ zone_id: 'z_sport', title: 'smoke WO' }, 'smoke').ok, 'campus WO');

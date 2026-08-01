@@ -6696,10 +6696,14 @@ import {
   assignCampusWorkOrder,
   campusCapacityRollup,
   campusCoreOverview,
+  clearCampusZoneLockdown,
   completeCampusWorkOrder,
   createCampusWorkOrder,
+  escalateCampusIncident,
   escalateCampusWorkOrder,
+  lockdownCampusZone,
   resolveCampusIncident,
+  runCampusCapacityAlertSweep,
   runCampusWorkOrderSweep,
   startCampusWorkOrder,
   transitionCampusZone,
@@ -36177,6 +36181,31 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, escalateCampusWorkOrder(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/campus/incident/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateCampusIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/zone/lockdown' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, lockdownCampusZone(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/zone/lockdown/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearCampusZoneLockdown(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campus/capacity/alert-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCampusCapacityAlertSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/stayring' && req.method === 'GET') {
