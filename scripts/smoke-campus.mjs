@@ -175,6 +175,9 @@ import {
   assignFamilyStaff,
   runFamilyRollCall,
   runFamilyStaffRatioSweep,
+  flagFamilyPickupNoShow,
+  cancelFamilyProgramBooking,
+  runFamilyPickupExpirySweep,
 } from '../server/familycamp.js';
 import {
   confirmCultureTicket,
@@ -354,6 +357,14 @@ assert(runFamilySafetySweep({ stale_hours: 0 }, 'smoke').ok, 'family safety swee
 assert(assignFamilyStaff({ program_id: 'fp_3', name: 'Smoke Rehber', max_ratio: 6 }, 'smoke').ok, 'family staff');
 assert(runFamilyRollCall({ mark_first_absent: true }, 'smoke').ok, 'family roll call');
 assert(runFamilyStaffRatioSweep({ force: true }, 'smoke').ok, 'family staff ratio');
+familyCheckIn({ child_name: 'Pickup Kid', program_id: 'fp_3', guardian: 'Veli' }, 'smoke');
+const pickup2 = issueFamilyPickupCode({ child_name: 'Pickup Kid', authorized_name: 'Veli', minutes: 1 }, 'smoke');
+assert(pickup2.ok, 'family pickup for noshow');
+assert(flagFamilyPickupNoShow({ pickup_id: pickup2.pickup.id, force: true }, 'smoke').ok, 'family pickup noshow');
+assert(cancelFamilyProgramBooking({ program_id: 'fp_1', seats: 1 }, 'smoke').ok, 'family program cancel');
+familyCheckIn({ child_name: 'Expiry Kid', program_id: 'fp_3', guardian: 'Veli2' }, 'smoke');
+issueFamilyPickupCode({ child_name: 'Expiry Kid', authorized_name: 'Veli2', minutes: 1 }, 'smoke');
+assert(runFamilyPickupExpirySweep({ force: true }, 'smoke').ok, 'family pickup expiry');
 
 const extreme = extremeOverview();
 assert(extreme, 'extreme park');

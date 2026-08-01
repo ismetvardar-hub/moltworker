@@ -70,6 +70,8 @@ export function familyCampOverview() {
       staff_ratio:
         activeStaff.length > 0 ? Math.round((inCare.length / activeStaff.length) * 10) / 10 : inCare.length || 0,
       ratio_breaches: (Array.isArray(ratioSweeps) ? ratioSweeps[0]?.breaches : 0) || 0,
+      pickup_noshows: (readCollection('family-pickup-noshows', []) || []).filter((n) => n.status === 'open').length,
+      program_cancels: (readCollection('family-program-cancels', []) || []).length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -555,4 +557,129 @@ export function runFamilyStaffRatioSweep(input = {}, actor = 'system') {
     meta: { id: sweep.id },
   });
   return { ok: true, sweep, breaches, overview: familyCampOverview() };
+}
+
+/** Pickup no-show — kod expire + emanet uyarısı */
+export function flagFamilyPickupNoShow(input = {}, actor = 'system') {
+  const codes = readCollection('family-pickup-codes', []) || [];
+  const codeList = Array.isArray(codes) ? codes : [];
+  let pidx = codeList.findIndex((p) => p.id === input.pickup_id && p.status === 'active');
+  if (pidx < 0) {
+    pidx = codeList.findIndex(
+      (p) =>
+        p.status === 'active' &&
+        (!input.child_name || p.child_name === input.child_name) &&
+        (!input.code || p.code === String(input.code)),
+    );
+  }
+  if (pidx < 0) return { ok: false, error: 'Aktif pickup yok' };
+  const pickup = codeList[pidx];
+  const expired = pickup.expires_at && new Date(pickup.expires_at).getTime() < Date.now();
+  if (!expired && !input.force) return { ok: false, error: 'Pickup henüz dolmadı', expires_at: pickup.expires_at };
+  codeList[pidx] = {
+    ...pickup,
+    status: 'no_show',
+    no_show_at: new Date().toISOString(),
+    no_show_by: actor,
+  };
+  writeCollection('family-pickup-codes', codeList);
+  const noshow = {
+    id: rid('fpn'),
+    pickup_id: pickup.id,
+    checkin_id: pickup.checkin_id,
+    child_name: pickup.child_name,
+    authorized_name: pickup.authorized_name,
+    status: 'open',
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-pickup-noshows', noshow, 120);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `pickup no-show · ${pickup.child_name}`,
+      priority: 'high',
+      payload: { noshow_id: noshow.id, pickup_id: pickup.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'family.pickup_noshow',
+    detail: pickup.child_name,
+    meta: { id: noshow.id },
+  });
+  return { ok: true, noshow, pickup: codeList[pidx], overview: familyCampOverview() };
+}
+
+/** Program rezervasyon iptali — koltuk iadesi */
+export function cancelFamilyProgramBooking(input = {}, actor = 'system') {
+  const programs = ensurePrograms();
+  let idx = programs.findIndex((p) => p.id === input.program_id);
+  if (idx < 0) idx = programs.findIndex((p) => (p.booked || 0) > 0);
+  if (idx < 0) return { ok: false, error: 'Program yok' };
+  const prog = programs[idx];
+  if ((Number(prog.booked) || 0) <= 0 && !input.force) {
+    return { ok: false, error: 'İptal edilecek rezervasyon yok' };
+  }
+  const seats = Math.max(1, Number(input.seats) || 1);
+  const booked = Math.max(0, (Number(prog.booked) || 0) - seats);
+  programs[idx] = refreshProgramStatus({ ...prog, booked });
+  writeCollection('family-programs', programs);
+  const cancel = {
+    id: rid('fpcx'),
+    program_id: programs[idx].id,
+    program_title: programs[idx].title || programs[idx].name,
+    child_name: input.child_name || null,
+    seats,
+    reason: String(input.reason || 'guest_cancel').slice(0, 240),
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-program-cancels', cancel, 200);
+  enqueueAgentJob(
+    {
+      agent: 'DAZE-CREW',
+      title: `program cancel · ${cancel.program_title || cancel.program_id} · −${seats}`,
+      priority: 'normal',
+      payload: { cancel_id: cancel.id, program_id: cancel.program_id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'family.program_cancel',
+    detail: `${cancel.program_id} · −${seats}`,
+    meta: { id: cancel.id },
+  });
+  return { ok: true, cancel, program: programs[idx], overview: familyCampOverview() };
+}
+
+/** Süresi dolan pickup kodlarını no-show işaretle */
+export function runFamilyPickupExpirySweep(input = {}, actor = 'system') {
+  const codes = readCollection('family-pickup-codes', []) || [];
+  const codeList = Array.isArray(codes) ? codes : [];
+  const now = Date.now();
+  const flagged = [];
+  for (const p of codeList) {
+    if (p.status !== 'active') continue;
+    const exp = p.expires_at ? new Date(p.expires_at).getTime() : 0;
+    if (!input.force && (!exp || exp > now)) continue;
+    const r = flagFamilyPickupNoShow({ pickup_id: p.id, force: true }, actor);
+    if (r.ok) flagged.push(r.noshow);
+  }
+  const sweep = {
+    id: rid('fpes'),
+    flagged: flagged.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('family-pickup-expiry-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'family.pickup_expiry_sweep',
+    detail: `${flagged.length} no-show`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, flagged, overview: familyCampOverview() };
 }

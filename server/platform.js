@@ -6801,11 +6801,14 @@ import {
   assignFamilyStaff,
   authorizedFamilyCheckout,
   bookFamilyProgram,
+  cancelFamilyProgramBooking,
   familyCampOverview,
   familyCheckIn,
   familyCheckOut,
   familyEmergencyNote,
+  flagFamilyPickupNoShow,
   issueFamilyPickupCode,
+  runFamilyPickupExpirySweep,
   runFamilyRollCall,
   runFamilySafetySweep,
   runFamilyStaffRatioSweep,
@@ -36953,6 +36956,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runFamilyStaffRatioSweep(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/familycamp/pickup/noshow' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagFamilyPickupNoShow(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/program/cancel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cancelFamilyProgramBooking(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/familycamp/pickup/expiry-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFamilyPickupExpirySweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/culture/confirm' && req.method === 'POST') {

@@ -113,3 +113,33 @@ export async function runFamilyStaffRatioSweep(body: Record<string, unknown> = {
     }),
   )
 }
+
+export async function flagFamilyPickupNoShow(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/pickup/noshow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function cancelFamilyProgramBooking(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/program/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runFamilyPickupExpirySweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/familycamp/pickup/expiry-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

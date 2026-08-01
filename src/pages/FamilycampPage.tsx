@@ -209,11 +209,48 @@ export default function FamilycampPage() {
               >
                 Oran sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.flagFamilyPickupNoShow({ force: true }).then((r: any) => {
+                    ping(r.ok ? `No-show · ${r.noshow?.child_name}` : r.error || 'No-show yok')
+                    return refresh()
+                  })
+                }
+              >
+                Pickup no-show
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.cancelFamilyProgramBooking({ program_id: 'fp_1', seats: 1 }).then((r: any) => {
+                    ping(r.ok ? `İptal · −${r.cancel?.seats}` : r.error || 'İptal yok')
+                    return refresh()
+                  })
+                }
+              >
+                Program iptal
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.runFamilyPickupExpirySweep({ force: true }).then((r: any) => {
+                    ping(`Pickup expiry · ${r.sweep?.flagged ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Pickup expiry
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Transfer: {data.summary?.transfers ?? 0} · aktif kod: {data.summary?.pickup_codes_active ?? 0} ·
               custody: {data.summary?.custody_events ?? 0} · personel {data.summary?.staff_on_duty ?? 0} · oran{' '}
-              {data.summary?.staff_ratio ?? '—'}
+              {data.summary?.staff_ratio ?? '—'} · noshow {data.summary?.pickup_noshows ?? 0} · iptal{' '}
+              {data.summary?.program_cancels ?? 0}
             </p>
           </PanelCard>
         </div>

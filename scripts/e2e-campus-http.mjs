@@ -157,6 +157,45 @@ try {
     body: { force: true },
   });
   assert(famRatio.res.ok && famRatio.data.ok !== false, 'family staff ratio');
+  await req('/api/familycamp/checkin', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E Pickup', program_id: 'fp_3', guardian: 'E2E Veli' },
+  });
+  const pickup2 = await req('/api/familycamp/pickup-code', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E Pickup', authorized_name: 'E2E Veli', minutes: 1 },
+  });
+  assert(pickup2.res.ok && pickup2.data.ok !== false, 'family pickup seed noshow');
+  const famNoshow = await req('/api/familycamp/pickup/noshow', {
+    method: 'POST',
+    token,
+    body: { pickup_id: pickup2.data.pickup?.id, force: true },
+  });
+  assert(famNoshow.res.ok && famNoshow.data.ok !== false, 'family pickup noshow');
+  const progCancel = await req('/api/familycamp/program/cancel', {
+    method: 'POST',
+    token,
+    body: { program_id: 'fp_1', seats: 1 },
+  });
+  assert(progCancel.res.ok && progCancel.data.ok !== false, 'family program cancel');
+  await req('/api/familycamp/checkin', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E Expiry', program_id: 'fp_3', guardian: 'E2E Veli2' },
+  });
+  await req('/api/familycamp/pickup-code', {
+    method: 'POST',
+    token,
+    body: { child_name: 'E2E Expiry', authorized_name: 'E2E Veli2', minutes: 1 },
+  });
+  const pickupExp = await req('/api/familycamp/pickup/expiry-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(pickupExp.res.ok && pickupExp.data.ok !== false, 'family pickup expiry');
 
   const hold = await req('/api/culture/hold', {
     method: 'POST',
