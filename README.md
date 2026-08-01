@@ -1051,6 +1051,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **629** | Concierge Job |
 | **630** | Atlas checkpoint (`/api/atlas`) |
 
+### Konglomerat Ticaret · Empire (AŞAMA 631–645)
+
+| Aşama | Özellik |
+|-------|---------|
+| **631** | Trendyol Bridge |
+| **632** | Dolap List |
+| **633** | Hepha Pick |
+| **634** | Tour Pack |
+| **635** | Rent Gear |
+| **636** | WA Reserve |
+| **637** | Stay Book |
+| **638** | Daze Room |
+| **639** | Keyless Door |
+| **640** | Sport Slot |
+| **641** | Arena Book |
+| **642** | NEXUS Gate |
+| **643** | MINT Bundle |
+| **644** | Pack Folio |
+| **645** | Empire checkpoint (`/api/empire`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

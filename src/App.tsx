@@ -629,6 +629,21 @@ import FrontlogPage from './pages/FrontlogPage';
 import MoveticketPage from './pages/MoveticketPage';
 import ConciergejobPage from './pages/ConciergejobPage';
 import AtlasPage from './pages/AtlasPage';
+import TybridgePage from './pages/TybridgePage';
+import DolaplistPage from './pages/DolaplistPage';
+import HephapickPage from './pages/HephapickPage';
+import TourpackPage from './pages/TourpackPage';
+import RentgearPage from './pages/RentgearPage';
+import WareservePage from './pages/WareservePage';
+import StaybookPage from './pages/StaybookPage';
+import DazeroomPage from './pages/DazeroomPage';
+import KeylessdoorPage from './pages/KeylessdoorPage';
+import SportslotPage from './pages/SportslotPage';
+import ArenabookPage from './pages/ArenabookPage';
+import NexusgatePage from './pages/NexusgatePage';
+import MintbundlePage from './pages/MintbundlePage';
+import PackfolioPage from './pages/PackfolioPage';
+import EmpirePage from './pages/EmpirePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1227,6 +1242,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   moveticket: MoveticketPage,
   conciergejob: ConciergejobPage,
   atlas: AtlasPage,
+  tybridge: TybridgePage,
+  dolaplist: DolaplistPage,
+  hephapick: HephapickPage,
+  tourpack: TourpackPage,
+  rentgear: RentgearPage,
+  wareserve: WareservePage,
+  staybook: StaybookPage,
+  dazeroom: DazeroomPage,
+  keylessdoor: KeylessdoorPage,
+  sportslot: SportslotPage,
+  arenabook: ArenabookPage,
+  nexusgate: NexusgatePage,
+  mintbundle: MintbundlePage,
+  packfolio: PackfolioPage,
+  empire: EmpirePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

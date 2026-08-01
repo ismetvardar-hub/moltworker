@@ -272,6 +272,9 @@ import {
   LogIn,
   Phone,
   PlaneLanding,
+  PackageSearch,
+  Backpack,
+  Dumbbell,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -333,6 +336,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'convoy',
   'linen',
   'atlas',
+  'empire',
 ]);
 
 interface SidebarProps {
@@ -1132,6 +1136,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'frontlog', label: 'Front Log', description: 'Ön büro vardiya logu.', icon: NotebookPen },
   { id: 'moveticket', label: 'Move Ticket', description: 'Oda değişim fişleri.', icon: ArrowLeftRight },
   { id: 'conciergejob', label: 'Concierge Job', description: 'Concierge işleri.', icon: Sparkles },
+    { id: 'tybridge', label: 'Trendyol Bridge', description: 'Daze Hub stok → Trendyol otomatik aktarım.', icon: Store },
+  { id: 'dolaplist', label: 'Dolap List', description: 'Dolap 2. el / yenilenmiş ürün listeleri.', icon: ShoppingBag },
+  { id: 'hephapick', label: 'Hepha Pick', description: 'HEPHAESTUS otonom depo karşılama.', icon: PackageSearch },
+  { id: 'tourpack', label: 'Tour Pack', description: 'Olympos tur paketleri.', icon: Map },
+  { id: 'rentgear', label: 'Rent Gear', description: 'Ekipman kiralama rezervasyonları.', icon: Backpack },
+  { id: 'wareserve', label: 'WA Reserve', description: 'WhatsApp (REMINDER-AI) rezervasyon doğrulama.', icon: MessageCircle },
+  { id: 'staybook', label: 'Stay Book', description: 'LİKYA Stay oda / konaklama rezervasyonu.', icon: Hotel },
+  { id: 'dazeroom', label: 'Daze Room', description: 'Oda içi Daze Vision ikram modülleri.', icon: MonitorPlay },
+  { id: 'keylessdoor', label: 'Keyless Door', description: 'OlymposPass anahtarsız kapı girişleri.', icon: KeyRound },
+  { id: 'sportslot', label: 'Sport Slot', description: 'Tesis spor alanı saatlik slot rezervasyonu.', icon: Trophy },
+  { id: 'arenabook', label: 'Arena Book', description: 'Padel / fitness / arena rezervasyonları.', icon: Dumbbell },
+  { id: 'nexusgate', label: 'NEXUS Gate', description: 'NEXUS turnike / ışık otomasyonu.', icon: DoorOpen },
+  { id: 'mintbundle', label: 'MINT Bundle', description: 'MINT dinamik fiyat + tur/konaklama paket birleşimi.', icon: BadgeDollarSign },
+  { id: 'packfolio', label: 'Pack Folio', description: 'Paket / tesis harcama konsolide folio.', icon: Wallet },
+  { id: 'empire', label: 'Empire', description: 'AŞAMA 645 konglomerat özeti.', icon: Globe2 },
   { id: 'atlas', label: 'Atlas', description: 'AŞAMA 630 ön büro özeti.', icon: Globe2 },
   { id: 'linen', label: 'Linen', description: 'AŞAMA 615 HK özeti.', icon: Shirt },
   { id: 'convoy', label: 'Convoy', description: 'AŞAMA 600 mobilite özeti.', icon: Bus },
