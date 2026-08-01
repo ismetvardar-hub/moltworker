@@ -9,6 +9,12 @@
  */
 
 import { URL } from 'node:url';
+import {
+  persistWhatsapp,
+  persistNexusEvent,
+  readWhatsapp,
+  readNexusEvents,
+} from './platform.js';
 
 // ─── Ortak yardımcılar ────────────────────────────────────────────────
 
@@ -17,7 +23,7 @@ function sendJson(res, status, body) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Cache-Control', 'no-store');
   res.end(JSON.stringify(body));
 }
@@ -32,7 +38,7 @@ async function readBody(req) {
 
 // ─── REMINDER-AI / WhatsApp ───────────────────────────────────────────
 
-const messageLog = [];
+let messageLog = readWhatsapp();
 
 async function sendViaTwilio(to, body) {
   const sid = process.env.TWILIO_ACCOUNT_SID;
@@ -127,8 +133,7 @@ async function handleWhatsAppSend(req, res) {
       errors: errors.length ? errors : undefined,
       at: new Date().toISOString(),
     };
-    messageLog.unshift(entry);
-    if (messageLog.length > 50) messageLog.length = 50;
+    messageLog = persistWhatsapp(entry);
     sendJson(res, 200, { ok: true, live: result.provider !== 'mock', ...entry });
   } catch (err) {
     sendJson(res, 500, { error: err instanceof Error ? err.message : 'WhatsApp gönderimi başarısız' });
@@ -233,16 +238,17 @@ const devices = [
   },
 ];
 
-const nexusEvents = [
-  {
+let nexusEvents = readNexusEvents();
+if (nexusEvents.length === 0) {
+  nexusEvents = persistNexusEvent({
     id: 'boot',
     at: new Date().toISOString(),
     deviceId: 'nexus-hub',
     action: 'protocol_ready',
     detail: 'NEXUS IoT protokolü simülasyon modunda hazır',
     ok: true,
-  },
-];
+  });
+}
 
 function handleNexusDevices(_req, res) {
   sendJson(res, 200, {
@@ -316,8 +322,7 @@ async function handleNexusCommand(req, res) {
       bridge,
       mode: liveUrl ? 'live-bridge' : 'simulation',
     };
-    nexusEvents.unshift(event);
-    if (nexusEvents.length > 80) nexusEvents.length = 80;
+    nexusEvents = persistNexusEvent(event);
 
     sendJson(res, 200, { ok: true, device, event });
   } catch (err) {

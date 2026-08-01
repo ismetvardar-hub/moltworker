@@ -45,6 +45,7 @@ import {
   saveArchiveEntry,
   type ArchiveEntry,
 } from '../services/archive';
+import { syncArchiveToServer } from '../services/hub';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -401,7 +402,7 @@ export default function CommandCenter() {
         finalStatus = 'hata';
       }
     } finally {
-      // Zincir çıktısını kalıcı arşive yaz (localStorage).
+      // Zincir çıktısını kalıcı arşive yaz (localStorage + sunucu).
       const entry = buildArchiveEntry({
         id: directive.id,
         text: directive.text,
@@ -411,6 +412,7 @@ export default function CommandCenter() {
         steps: working,
       });
       setArchive(saveArchiveEntry(entry));
+      void syncArchiveToServer(entry);
       setStreaming(false);
       abortRef.current = null;
     }

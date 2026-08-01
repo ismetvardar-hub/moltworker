@@ -1,4 +1,5 @@
 export type PageId =
+  | 'hub'
   | 'komuta'
   | 'ollama'
   | 'ajanlar'

@@ -14,6 +14,8 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 | **Daze Crew (Personel Portalı)** | Saatlik kazanç hesaplayıcı (taban + performans primi), canlı görev listesi ve DAZE-CREW/SOCRATES performans-centilmenlik puanlama kartları |
 | **Daze Vision (Müşteri Portalı)** | MINT canlı talep yoğunluğu matrisi (`/api/mint/demand`) ile dinamik borsa, Daze-Gift ikram simülatörü ve Yaşam Koçu |
 | **NEXUS IoT Komuta** | Turnike / kapı röle / RFID protokolü (`/api/nexus/*`); unlock/lock/pulse/scan; opsiyonel canlı ESP32 köprüsü |
+| **Daze Hub** | Merkezi operasyon özeti — arşiv / WhatsApp / NEXUS sayaçları ve son olaylar |
+| **Rol tabanlı giriş** | CEO / kitchen / crew demo hesapları; sayfa erişimi role göre kısıtlanır |
 
 ## Kurulum
 
@@ -105,6 +107,31 @@ Vite middleware (`server/integrations.js`):
 | `GET /api/nexus/events` | Protokol olay günlüğü |
 
 Daze Chef hazır/termal geçişlerinde otomatik WhatsApp; Daze Vision fiyatları MINT matrisinden akar; NEXUS sekmesinden cihaz komutları gönderilir. Anahtarlar: `.env.example`.
+
+### Platform — Auth, Kalıcı Depo & Daze Hub (AŞAMA 4)
+
+Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer token oturumu (`server/auth.js`) ve Hub özeti (`server/platform.js`).
+
+#### Demo hesaplar
+
+| Kullanıcı | Şifre | Rol | Erişim |
+|-----------|-------|-----|--------|
+| `ceo` | `likya2026` | ceo | Tüm paneller |
+| `chef` | `daze123` | kitchen | Hub, Chef, NEXUS |
+| `crew` | `crew123` | crew | Hub, Crew, OlymposPass, Vision |
+
+#### API
+
+| Uç nokta | Amaç |
+|----------|------|
+| `POST /api/auth/login` | Giriş → token + kullanıcı |
+| `GET /api/auth/me` | Oturum doğrula |
+| `POST /api/auth/logout` | Çıkış |
+| `GET /api/auth/demo-users` | Demo hesap listesi |
+| `GET/POST /api/archive` | Kalıcı zincir arşivi (localStorage ile birlikte senkron) |
+| `GET /api/hub/summary` | Daze Hub operasyon özeti |
+
+`data/` dizini git’e eklenmez. WhatsApp ve NEXUS logları da aynı depoya yazılır.
 
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
