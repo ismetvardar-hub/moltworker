@@ -38,6 +38,10 @@ export function buildOpenApi() {
       '/api/report': { get: { summary: 'Operasyon raporu', tags: ['report'] } },
       '/api/ops/backup': { get: { summary: 'Yedek indir', tags: ['ops'] } },
       '/api/ops/restore': { post: { summary: 'Yedek geri yükle', tags: ['ops'] } },
+      '/api/ops/integrity': { post: { summary: 'Data bütünlük taraması', tags: ['ops'] } },
+      '/api/ops/backup/rotate': { post: { summary: 'Yedek rotate snapshot', tags: ['ops'] } },
+      '/api/ops/quarantine': { post: { summary: 'Dosya karantina', tags: ['ops'] } },
+      '/api/ops/degraded/clear': { post: { summary: 'Karantina/degraded temizle', tags: ['ops'] } },
       '/api/inventory': { get: { summary: 'Stok envanteri', tags: ['inventory'] } },
       '/api/inventory/adjust': { post: { summary: 'Stok hareketi', tags: ['inventory'] } },
       '/api/shifts': {

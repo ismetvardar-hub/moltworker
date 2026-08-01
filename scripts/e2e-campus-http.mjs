@@ -639,6 +639,19 @@ try {
   const readyGap = await req('/api/readiness/gap/resolve', { method: 'POST', token, body: {} });
   assert(readyGap.res.ok && readyGap.data.ok !== false, 'readiness gap resolve');
 
+  const opsInt = await req('/api/ops/integrity', { method: 'POST', token, body: { force: true } });
+  assert(opsInt.res.ok && opsInt.data.ok !== false, 'ops integrity');
+  const opsRot = await req('/api/ops/backup/rotate', { method: 'POST', token, body: { note: 'e2e' } });
+  assert(opsRot.res.ok && opsRot.data.ok !== false, 'ops backup rotate');
+  const opsQ = await req('/api/ops/quarantine', {
+    method: 'POST',
+    token,
+    body: { file: 'ops-backup-rotations.json', reason: 'e2e' },
+  });
+  assert(opsQ.res.ok && opsQ.data.ok !== false, 'ops quarantine');
+  const opsClear = await req('/api/ops/degraded/clear', { method: 'POST', token, body: {} });
+  assert(opsClear.res.ok && opsClear.data.ok !== false, 'ops clear degraded');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,

@@ -252,6 +252,12 @@ import {
   clearCognisphereDrift,
   mitigateCognisphereRisk,
 } from '../server/cognisphere.js';
+import {
+  runOpsIntegritySweep,
+  rotateOpsBackup,
+  quarantineOpsFile,
+  clearOpsDegraded,
+} from '../server/ops.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -671,6 +677,11 @@ assert(haltCognisphereCost({ service: 'Ollama', reason: 'smoke' }, 'smoke').ok, 
 assert(clearCognisphereDrift({ force: true }, 'smoke').ok, 'cognisphere drift clear');
 assert(mitigateCognisphereRisk({}, 'smoke').ok, 'cognisphere mitigate');
 assert(ackCognisphereFlag({}, 'smoke').ok, 'cognisphere flag ack');
+
+assert(runOpsIntegritySweep({ force: true }, 'smoke').ok, 'ops integrity');
+assert(rotateOpsBackup({ note: 'smoke' }, 'smoke').ok, 'ops backup rotate');
+assert(quarantineOpsFile({ file: 'ops-backup-rotations.json', reason: 'smoke' }, 'smoke').ok, 'ops quarantine');
+assert(clearOpsDegraded({}, 'smoke').ok, 'ops clear degraded');
 
 console.log(
   JSON.stringify(

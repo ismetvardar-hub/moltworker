@@ -1389,3 +1389,172 @@ export function listDataFiles() {
       return { name: f, bytes: st.size, mtime: st.mtime.toISOString() };
     });
 }
+
+const CAMPUS_CRITICAL = [
+  'agent-jobs',
+  'campus-brief-actions',
+  'agent-bridge-alerts',
+  'fleet-directives',
+  'sport-comp-holds',
+  'readiness-snapshots',
+];
+
+function rid(p) {
+  return `${p}_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`;
+}
+
+/** Data dosya bütünlük taraması */
+export function runOpsIntegritySweep(input = {}, actor = 'system') {
+  const files = listDataFiles();
+  const issues = [];
+  const quarantine = readCollection('ops-quarantine', []) || [];
+  const qSet = new Set((Array.isArray(quarantine) ? quarantine : []).filter((q) => q.status === 'active').map((q) => q.file));
+
+  for (const f of files) {
+    if (qSet.has(f.name)) {
+      issues.push({ file: f.name, kind: 'quarantined', detail: 'karantina aktif' });
+      continue;
+    }
+    if (f.bytes === 0) {
+      issues.push({ file: f.name, kind: 'empty', detail: '0 byte' });
+      continue;
+    }
+    try {
+      const raw = fs.readFileSync(path.join(DATA_DIR, f.name), 'utf8');
+      JSON.parse(raw);
+    } catch (err) {
+      issues.push({
+        file: f.name,
+        kind: 'corrupt',
+        detail: err instanceof Error ? err.message : 'parse error',
+      });
+    }
+  }
+
+  for (const col of CAMPUS_CRITICAL) {
+    const file = `${col}.json`;
+    if (!files.some((f) => f.name === file) && input.force) {
+      issues.push({ file, kind: 'missing', detail: 'kritik koleksiyon yok' });
+    }
+  }
+
+  const sweep = {
+    id: rid('ois'),
+    scanned: files.length,
+    issues: issues.length,
+    items: issues.slice(0, 80),
+    at: new Date().toISOString(),
+    actor,
+  };
+  const history = readCollection('ops-integrity-sweeps', []) || [];
+  writeCollection('ops-integrity-sweeps', [sweep, ...(Array.isArray(history) ? history : [])].slice(0, 80));
+  appendAudit({
+    actor,
+    action: 'ops.integrity_sweep',
+    detail: `${files.length} dosya · ${issues.length} issue`,
+    meta: { id: sweep.id },
+  });
+  return {
+    ok: true,
+    sweep,
+    issues,
+    overview: { health: healthCheck(), files: files.length, quarantine: qSet.size },
+  };
+}
+
+/** Yedek rotate — metadata + koleksiyon sayısı snapshot */
+export function rotateOpsBackup(input = {}, actor = 'system') {
+  const backup = createBackup();
+  const keys = Object.keys(backup.collections || {});
+  const row = {
+    id: rid('obr'),
+    createdAt: backup.createdAt,
+    collections: keys.length,
+    note: String(input.note || '').slice(0, 240) || undefined,
+    // tam dump değil — özet (disk dostu)
+    sample_keys: keys.slice(0, 40),
+    at: new Date().toISOString(),
+    actor,
+  };
+  const list = readCollection('ops-backup-rotations', []) || [];
+  const next = [row, ...(Array.isArray(list) ? list : [])].slice(0, Number(input.keep) || 40);
+  writeCollection('ops-backup-rotations', next);
+  appendAudit({
+    actor,
+    action: 'ops.backup_rotate',
+    detail: `${row.collections} koleksiyon`,
+    meta: { id: row.id },
+  });
+  return { ok: true, rotation: row, overview: { rotations: next.length, health: healthCheck() } };
+}
+
+/** Bozuk / şüpheli dosyayı karantinaya al */
+export function quarantineOpsFile(input = {}, actor = 'system') {
+  const file = String(input.file || input.name || '').replace(/[^a-zA-Z0-9._-]/g, '');
+  if (!file.endsWith('.json')) return { ok: false, error: 'Geçersiz dosya adı' };
+  const full = path.join(DATA_DIR, file);
+  if (!fs.existsSync(full)) return { ok: false, error: 'Dosya yok' };
+  const row = {
+    id: rid('oqf'),
+    file,
+    status: 'active',
+    reason: String(input.reason || 'quarantine').slice(0, 240),
+    at: new Date().toISOString(),
+    actor,
+  };
+  const list = readCollection('ops-quarantine', []) || [];
+  const arr = Array.isArray(list) ? list.filter((q) => !(q.file === file && q.status === 'active')) : [];
+  arr.unshift(row);
+  writeCollection('ops-quarantine', arr.slice(0, 200));
+  appendAudit({
+    actor,
+    action: 'ops.quarantine',
+    detail: file,
+    meta: { id: row.id },
+  });
+  return { ok: true, quarantine: row, overview: { quarantine_active: arr.filter((q) => q.status === 'active').length } };
+}
+
+/** Karantina / degraded bayraklarını temizle */
+export function clearOpsDegraded(input = {}, actor = 'system') {
+  const list = readCollection('ops-quarantine', []) || [];
+  const arr = Array.isArray(list) ? [...list] : [];
+  let cleared = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].status !== 'active') continue;
+    if (input.file && arr[i].file !== input.file) continue;
+    arr[i] = {
+      ...arr[i],
+      status: 'cleared',
+      cleared_at: new Date().toISOString(),
+      cleared_by: actor,
+      clear_reason: String(input.reason || 'cleared').slice(0, 240),
+    };
+    cleared++;
+  }
+  if (!cleared && input.force) {
+    // force: boş kayıt
+    cleared = 0;
+  }
+  writeCollection('ops-quarantine', arr);
+  const flag = {
+    id: rid('ocd'),
+    cleared,
+    at: new Date().toISOString(),
+    actor,
+  };
+  const hist = readCollection('ops-degraded-clears', []) || [];
+  writeCollection('ops-degraded-clears', [flag, ...(Array.isArray(hist) ? hist : [])].slice(0, 60));
+  appendAudit({
+    actor,
+    action: 'ops.clear_degraded',
+    detail: `${cleared} karantina`,
+    meta: { id: flag.id },
+  });
+  return {
+    ok: true,
+    cleared,
+    flag,
+    overview: { health: healthCheck(), quarantine_active: arr.filter((q) => q.status === 'active').length },
+  };
+}

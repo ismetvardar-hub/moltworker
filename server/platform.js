@@ -41,7 +41,17 @@ import {
   updateVenue,
   venuesSummary,
 } from './venues.js';
-import { createBackup, healthCheck, healthCheckAsync, listDataFiles, restoreBackup } from './ops.js';
+import {
+  clearOpsDegraded,
+  createBackup,
+  healthCheck,
+  healthCheckAsync,
+  listDataFiles,
+  quarantineOpsFile,
+  restoreBackup,
+  rotateOpsBackup,
+  runOpsIntegritySweep,
+} from './ops.js';
 import {
   listNotifications,
   markAllRead,
@@ -7547,6 +7557,30 @@ export function createPlatformMiddleware() {
               });
             }
           })();
+          return;
+        }
+        if (path === '/api/ops/integrity' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOpsIntegritySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ops/backup/rotate' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, rotateOpsBackup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ops/quarantine' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, quarantineOpsFile(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/ops/degraded/clear' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearOpsDegraded(await readBody(req), user.username)); })();
           return;
         }
 

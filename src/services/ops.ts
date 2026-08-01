@@ -66,3 +66,49 @@ export async function restoreBackup(payload: unknown): Promise<{
   }
   return (await res.json()) as { ok: boolean; restored: string[] };
 }
+
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string }
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`)
+  return data
+}
+
+export async function runOpsIntegritySweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/ops/integrity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function rotateOpsBackup(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/ops/backup/rotate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function quarantineOpsFile(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/ops/quarantine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearOpsDegraded(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/ops/degraded/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

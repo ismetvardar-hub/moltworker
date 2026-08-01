@@ -8,11 +8,15 @@ import {
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import {
+  clearOpsDegraded,
   downloadBackup,
   fetchCampusHealth,
   fetchDataFiles,
   fetchHealth,
+  quarantineOpsFile,
   restoreBackup,
+  rotateOpsBackup,
+  runOpsIntegritySweep,
   type HealthReport,
 } from '../services/ops';
 
@@ -80,14 +84,64 @@ export default function OpsPage() {
             Healthcheck, data dosyaları ve tam JSON yedek / geri yükleme.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void refresh()}
-          className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-4 py-2.5 text-sm font-semibold text-slate-200"
-        >
-          <RefreshCw className="size-4" />
-          Yenile
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              void runOpsIntegritySweep({ force: true }).then((r: any) => {
+                setMessage(`Integrity · ${r.sweep?.scanned ?? 0} dosya · ${r.issues?.length ?? 0} issue`)
+                return refresh()
+              }).catch((e) => setError(e instanceof Error ? e.message : 'Integrity başarısız'))
+            }
+            className="rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm text-slate-200"
+          >
+            Integrity
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void rotateOpsBackup({ note: 'ops rotate' }).then((r: any) => {
+                setMessage(`Rotate · ${r.rotation?.collections ?? 0} koleksiyon`)
+                return refresh()
+              }).catch((e) => setError(e instanceof Error ? e.message : 'Rotate başarısız'))
+            }
+            className="rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm text-slate-200"
+          >
+            Backup rotate
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void quarantineOpsFile({ file: 'ops-quarantine.json', reason: 'ops self-check' }).then((r: any) => {
+                setMessage(r.ok ? `Karantina · ${r.quarantine?.file}` : r.error || 'Karantina yok')
+                return refresh()
+              }).catch((e) => setError(e instanceof Error ? e.message : 'Karantina başarısız'))
+            }
+            className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+          >
+            Quarantine
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void clearOpsDegraded({ force: true }).then((r: any) => {
+                setMessage(`Degraded clear · ${r.cleared ?? 0}`)
+                return refresh()
+              }).catch((e) => setError(e instanceof Error ? e.message : 'Clear başarısız'))
+            }
+            className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100"
+          >
+            Clear degraded
+          </button>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-4 py-2.5 text-sm font-semibold text-slate-200"
+          >
+            <RefreshCw className="size-4" />
+            Yenile
+          </button>
+        </div>
       </div>
 
       {error && (
