@@ -83,13 +83,16 @@ export function agentFleetOverview() {
     const q = queue.byAgent[a.code] || { queued: 0, running: 0, done: 0 };
     const p = byCode[a.code] || { status: 'standby' };
     let status = p.status;
-    if (q.running > 0) status = 'busy';
+    if (status === 'parked') {
+      // parked kalır
+    } else if (q.running > 0) status = 'busy';
     else if (q.queued > 0) status = 'queued';
     return {
       ...a,
       status,
       queue: q,
       last_ping: p.last_ping,
+      parked_until: p.parked_until || null,
     };
   });
   const core28 = agents.filter((a) => !a.extension);
@@ -114,11 +117,13 @@ export function agentFleetOverview() {
       online: agents.filter((a) => a.status === 'online' || a.status === 'busy' || a.status === 'queued').length,
       busy: agents.filter((a) => a.status === 'busy').length,
       standby: agents.filter((a) => a.status === 'standby').length,
+      parked: agents.filter((a) => a.status === 'parked').length,
       campus_ops: agents.filter((a) => a.campus).length,
       queue_queued: queue.summary.queued,
       queue_running: queue.summary.running,
       shift_active: !!activeShift,
       directives_open: (Array.isArray(directives) ? directives : []).filter((d) => d.status === 'open').length,
+      directives_retired: (Array.isArray(directives) ? directives : []).filter((d) => d.status === 'retired').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -344,6 +349,182 @@ export function handoffFleetShift(input = {}, actor = 'system') {
   return { ok: true, handoff, shift: next, overview: agentFleetOverview() };
 }
 
+/** Açık direktifi emekli et / iptal */
+export function retireFleetDirective(input = {}, actor = 'system') {
+  const list = readCollection('fleet-directives', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Direktif yok' };
+  let idx = list.findIndex((d) => d.id === input.id && d.status === 'open');
+  if (idx < 0) idx = list.findIndex((d) => d.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık direktif yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'retired',
+    retire_reason: String(input.reason || 'retired').slice(0, 240) || 'retired',
+    retired_at: new Date().toISOString(),
+    retired_by: actor,
+  };
+  writeCollection('fleet-directives', list);
+  appendAudit({
+    actor,
+    action: 'fleet.directive_retire',
+    detail: list[idx].title,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, directive: list[idx], overview: agentFleetOverview() };
+}
+
+/** Ajanı park et — yeni iş almaz (presence=parked) */
+export function parkFleetAgent(input = {}, actor = 'system') {
+  const key = String(input.agent || input.code || '');
+  const normalized = FLEET.find(
+    (a) => a.code === key || a.id === key || a.code.toLowerCase() === key.toLowerCase(),
+  );
+  if (!normalized) return { ok: false, error: 'Ajan yok' };
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 60));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  const presence = ensurePresence();
+  const idx = presence.findIndex((p) => p.code === normalized.code);
+  const row = {
+    code: normalized.code,
+    status: 'parked',
+    parked_until: until,
+    park_reason: String(input.reason || '').slice(0, 240) || undefined,
+    parked_at: new Date().toISOString(),
+    parked_by: actor,
+    last_ping: new Date().toISOString(),
+    note: input.note || 'parked',
+    actor,
+  };
+  if (idx >= 0) presence[idx] = { ...presence[idx], ...row };
+  else presence.push(row);
+  writeCollection('agent-presence', presence);
+  appendAudit({
+    actor,
+    action: 'fleet.park',
+    detail: `${normalized.code} · ${minutes}dk`,
+    meta: { code: normalized.code, minutes },
+  });
+  return { ok: true, agent: normalized.code, presence: row, overview: agentFleetOverview() };
+}
+
+/** Park süresi dolan / force unpark */
+export function unparkFleetAgents(input = {}, actor = 'system') {
+  const presence = ensurePresence();
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const unparked = [];
+  for (let i = 0; i < presence.length && unparked.length < limit; i++) {
+    const p = presence[i];
+    if (p.status !== 'parked') continue;
+    if (input.agent && p.code !== input.agent && p.code?.toLowerCase() !== String(input.agent).toLowerCase()) {
+      continue;
+    }
+    const until = p.parked_until ? new Date(p.parked_until).getTime() : 0;
+    if (!force && !input.agent && until && until > now) continue;
+    presence[i] = {
+      ...p,
+      status: 'online',
+      parked_until: null,
+      unparked_at: new Date().toISOString(),
+      unparked_by: actor,
+      last_ping: new Date().toISOString(),
+      note: 'unparked',
+    };
+    unparked.push(presence[i].code);
+  }
+  if (unparked.length) {
+    writeCollection('agent-presence', presence);
+    appendAudit({
+      actor,
+      action: 'fleet.unpark',
+      detail: `${unparked.length} ajan`,
+      meta: { n: unparked.length },
+    });
+  }
+  return { ok: true, unparked, overview: agentFleetOverview() };
+}
+
+/** Kuyruk yüküne göre hafif dengele — boş ajanlara seed job */
+export function runFleetLoadBalance(input = {}, actor = 'system') {
+  unparkFleetAgents({ limit: 20 }, actor);
+  const overview = agentFleetOverview();
+  const campus = (overview.agents || []).filter((a) => a.campus && a.status !== 'parked');
+  if (!campus.length) return { ok: false, error: 'Kampüs ajanı yok' };
+  const loads = campus.map((a) => ({
+    code: a.code,
+    load: (a.queue?.queued || 0) + (a.queue?.running || 0) * 2,
+  }));
+  const avg = loads.reduce((s, x) => s + x.load, 0) / loads.length;
+  const heavy = loads.filter((x) => x.load > avg + 1).sort((a, b) => b.load - a.load);
+  const light = loads.filter((x) => x.load <= avg).sort((a, b) => a.load - b.load);
+  const seeded = [];
+  const n = Math.min(Number(input.limit) || 3, light.length, Math.max(1, heavy.length || 1));
+  for (let i = 0; i < n && i < light.length; i++) {
+    const agent = light[i].code;
+    const job = enqueueAgentJob(
+      {
+        agent,
+        title: input.title || `load-balance · ${agent}`,
+        priority: 'normal',
+        payload: { source: 'fleet.load_balance', avg_load: Math.round(avg * 10) / 10 },
+      },
+      actor,
+    );
+    seeded.push(job.job?.id || agent);
+  }
+  const run = {
+    id: rid('flb'),
+    avg_load: Math.round(avg * 10) / 10,
+    heavy: heavy.slice(0, 5).map((h) => h.code),
+    light: light.slice(0, 5).map((l) => l.code),
+    seeded: seeded.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('fleet-load-balances', run, 80);
+  appendAudit({
+    actor,
+    action: 'fleet.load_balance',
+    detail: `seed ${seeded.length} · avg ${run.avg_load}`,
+    meta: { id: run.id },
+  });
+  return { ok: true, run, seeded, overview: agentFleetOverview() };
+}
+
+/** Aktif vardiyayı kapat (handoff olmadan) */
+export function closeFleetShift(input = {}, actor = 'system') {
+  const shifts = readCollection('fleet-shifts', []) || [];
+  const list = Array.isArray(shifts) ? [...shifts] : [];
+  let idx = list.findIndex((s) => s.id === input.shift_id && s.status === 'active');
+  if (idx < 0) idx = list.findIndex((s) => s.status === 'active');
+  if (idx < 0) return { ok: false, error: 'Aktif vardiya yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'closed',
+    close_reason: String(input.reason || 'closed').slice(0, 240) || 'closed',
+    closed_at: new Date().toISOString(),
+    closed_by: actor,
+  };
+  writeCollection('fleet-shifts', list);
+  enqueueAgentJob(
+    {
+      agent: list[idx].lead || 'LİKYA-1',
+      title: `vardiya close · ${list[idx].name}`,
+      priority: 'normal',
+      payload: { shift_id: list[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'fleet.shift_close',
+    detail: list[idx].name,
+    meta: { id: list[idx].id },
+  });
+  return { ok: true, shift: list[idx], overview: agentFleetOverview() };
+}
+
 /** Kampüs ajanlarına toplu presence nabız */
 export function sweepFleetPresence(input = {}, actor = 'system') {
   const campusOnly = input.campus_only !== false;
@@ -353,11 +534,18 @@ export function sweepFleetPresence(input = {}, actor = 'system') {
   let updated = 0;
   for (const a of targets) {
     const idx = presence.findIndex((p) => p.code === a.code);
+    const existing = idx >= 0 ? presence[idx] : null;
+    // parked ajanları sweep bozmasın (süre dolmadıysa)
+    if (existing?.status === 'parked') {
+      const until = existing.parked_until ? new Date(existing.parked_until).getTime() : 0;
+      if (until && until > Date.now() && !input.force) continue;
+    }
     const row = {
       code: a.code,
       status: 'online',
       last_ping: now,
       note: input.note || 'fleet sweep',
+      parked_until: null,
       actor,
     };
     if (idx >= 0) presence[idx] = { ...presence[idx], ...row };

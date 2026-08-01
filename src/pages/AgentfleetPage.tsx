@@ -130,10 +130,71 @@ export default function AgentfleetPage() {
               >
                 Vardiya handoff
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.retireFleetDirective({ reason: 'ops retire' }).then((r: any) => {
+                    ping(r.ok ? 'Direktif retired' : r.error || 'Retire yok')
+                    return refresh()
+                  })
+                }
+              >
+                Direktif retire
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.parkFleetAgent({ agent: 'MINT', minutes: 30 }).then((r: any) => {
+                    ping(r.ok ? `Park · ${r.agent}` : r.error || 'Park yok')
+                    return refresh()
+                  })
+                }
+              >
+                Ajan park
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/10 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.unparkFleetAgents({ force: true }).then((r: any) => {
+                    ping(`Unpark ${r.unparked?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Unpark
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/10 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.runFleetLoadBalance({}).then((r: any) => {
+                    ping(r.ok ? `Load-balance seed ${r.seeded?.length ?? 0}` : r.error || 'LB yok')
+                    return refresh()
+                  })
+                }
+              >
+                Load balance
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-700 px-3 py-2 text-sm text-slate-200"
+                onClick={() =>
+                  void api.closeFleetShift({ reason: 'ops close' }).then((r: any) => {
+                    ping(r.ok ? `Vardiya kapandı · ${r.shift?.name}` : r.error || 'Close yok')
+                    return refresh()
+                  })
+                }
+              >
+                Vardiya kapat
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Aktif vardiya {data.summary?.shift_active ? 'var' : 'yok'} · açık direktif{' '}
-              {data.summary?.directives_open ?? 0}
+              {data.summary?.directives_open ?? 0} · retired {data.summary?.directives_retired ?? 0} · park{' '}
+              {data.summary?.parked ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Kampüs ajanları">

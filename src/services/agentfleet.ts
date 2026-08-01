@@ -65,3 +65,53 @@ export async function handoffFleetShift(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function retireFleetDirective(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/directive/retire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function parkFleetAgent(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/park', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function unparkFleetAgents(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/unpark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runFleetLoadBalance(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/load-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function closeFleetShift(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/shift/close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

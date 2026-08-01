@@ -6911,11 +6911,16 @@ import {
 import {
   acknowledgeFleetDirective,
   agentFleetOverview,
+  closeFleetShift,
   dispatchFleetDirective,
   handoffFleetShift,
+  parkFleetAgent,
   pingFleetAgent,
+  retireFleetDirective,
+  runFleetLoadBalance,
   startFleetShift,
   sweepFleetPresence,
+  unparkFleetAgents,
 } from './agentfleet.js';
 
 
@@ -37392,6 +37397,36 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, handoffFleetShift(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/directive/retire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, retireFleetDirective(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/park' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, parkFleetAgent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/unpark' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, unparkFleetAgents(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/load-balance' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFleetLoadBalance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/shift/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeFleetShift(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge/eligibility' && req.method === 'POST') {

@@ -559,6 +559,33 @@ try {
     body: { to_lead: 'DAZE-HUB', note: 'e2e handoff' },
   });
   assert(handoff.res.ok && handoff.data.ok !== false, 'fleet handoff');
+  const retireSeed = await req('/api/agentfleet/dispatch', {
+    method: 'POST',
+    token,
+    body: { title: 'e2e retire-seed ESG' },
+  });
+  const retire = await req('/api/agentfleet/directive/retire', {
+    method: 'POST',
+    token,
+    body: { id: retireSeed.data.directive?.id, reason: 'e2e retire' },
+  });
+  assert(retire.res.ok && retire.data.ok !== false, 'fleet directive retire');
+  const park = await req('/api/agentfleet/park', {
+    method: 'POST',
+    token,
+    body: { agent: 'MINT', minutes: 1 },
+  });
+  assert(park.res.ok && park.data.ok !== false, 'fleet park');
+  const unpark = await req('/api/agentfleet/unpark', { method: 'POST', token, body: { force: true } });
+  assert(unpark.res.ok && unpark.data.ok !== false, 'fleet unpark');
+  const lb = await req('/api/agentfleet/load-balance', { method: 'POST', token, body: { limit: 2 } });
+  assert(lb.res.ok && lb.data.ok !== false, 'fleet load balance');
+  const shiftClose = await req('/api/agentfleet/shift/close', {
+    method: 'POST',
+    token,
+    body: { reason: 'e2e close' },
+  });
+  assert(shiftClose.res.ok && shiftClose.data.ok !== false, 'fleet shift close');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

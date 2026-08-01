@@ -163,6 +163,11 @@ import {
   acknowledgeFleetDirective,
   startFleetShift,
   handoffFleetShift,
+  retireFleetDirective,
+  parkFleetAgent,
+  unparkFleetAgents,
+  runFleetLoadBalance,
+  closeFleetShift,
 } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import {
@@ -616,6 +621,12 @@ assert(
 );
 assert(startFleetShift({ name: 'smoke shift' }, 'smoke').ok, 'fleet shift start');
 assert(handoffFleetShift({ to_lead: 'DAZE-HUB', note: 'smoke handoff' }, 'smoke').ok, 'fleet handoff');
+dispatchFleetDirective({ title: 'retire-seed ESG alert' }, 'smoke');
+assert(retireFleetDirective({ reason: 'smoke retire' }, 'smoke').ok, 'fleet directive retire');
+assert(parkFleetAgent({ agent: 'MINT', minutes: 1, reason: 'smoke park' }, 'smoke').ok, 'fleet park');
+assert(unparkFleetAgents({ force: true }, 'smoke').ok, 'fleet unpark');
+assert(runFleetLoadBalance({ limit: 2 }, 'smoke').ok, 'fleet load balance');
+assert(closeFleetShift({ reason: 'smoke close' }, 'smoke').ok, 'fleet shift close');
 
 const bridge = agentBridgeOverview();
 assert(bridge.agents?.length >= 8, 'campus agents on bridge');
