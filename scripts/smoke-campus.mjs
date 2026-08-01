@@ -466,6 +466,18 @@ import {
 import {
   buildCharter2, runCharter2Sweep, ackCharter2Flag, closeCharter2Ethics, liveCharter2Risk, doneCharter2Claim,
 } from '../server/charter2.js';
+import {
+  buildZenith, runZenithSweep, ackZenithFlag, catchZenithPace, healZenithMargin, coolZenithDemand,
+} from '../server/zenith.js';
+import {
+  buildPyramid, runPyramidSweep, ackPyramidFlag, resolvePyramidSys, healPyramidNet, flushPyramidComms,
+} from '../server/pyramid.js';
+import {
+  buildConvoy, runConvoySweep, ackConvoyFlag, clearConvoyDispatch, readyConvoyFleet, freeConvoyCurb,
+} from '../server/convoy.js';
+import {
+  buildCrucible2, runCrucible2Sweep, ackCrucible2Flag, liveCrucible2Pilot, busyCrucible2Learn, shipCrucible2Lab,
+} from '../server/crucible2.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -1147,6 +1159,34 @@ assert(closeCharter2Ethics({}, 'smoke').ok, 'charter2 ethics close');
 assert(liveCharter2Risk({}, 'smoke').ok, 'charter2 risk live');
 assert(doneCharter2Claim({}, 'smoke').ok, 'charter2 claim done');
 assert(ackCharter2Flag({}, 'smoke').ok, 'charter2 flag ack');
+
+assert(buildZenith().title, 'zenith overview');
+assert(runZenithSweep({ force: true }, 'smoke').ok, 'zenith sweep');
+assert(catchZenithPace({}, 'smoke').ok, 'zenith pace catch');
+assert(healZenithMargin({}, 'smoke').ok, 'zenith margin heal');
+assert(coolZenithDemand({}, 'smoke').ok, 'zenith demand cool');
+assert(ackZenithFlag({}, 'smoke').ok, 'zenith flag ack');
+
+assert(buildPyramid().title, 'pyramid overview');
+assert(runPyramidSweep({ force: true }, 'smoke').ok, 'pyramid sweep');
+assert(resolvePyramidSys({}, 'smoke').ok, 'pyramid sys resolve');
+assert(healPyramidNet({}, 'smoke').ok, 'pyramid net heal');
+assert(flushPyramidComms({}, 'smoke').ok, 'pyramid comms flush');
+assert(ackPyramidFlag({}, 'smoke').ok, 'pyramid flag ack');
+
+assert(buildConvoy().title, 'convoy overview');
+assert(runConvoySweep({ force: true }, 'smoke').ok, 'convoy sweep');
+assert(clearConvoyDispatch({}, 'smoke').ok, 'convoy dispatch clear');
+assert(readyConvoyFleet({}, 'smoke').ok, 'convoy fleet ready');
+assert(freeConvoyCurb({}, 'smoke').ok, 'convoy curb free');
+assert(ackConvoyFlag({}, 'smoke').ok, 'convoy flag ack');
+
+assert(buildCrucible2().title, 'crucible2 overview');
+assert(runCrucible2Sweep({ force: true }, 'smoke').ok, 'crucible2 sweep');
+assert(liveCrucible2Pilot({}, 'smoke').ok, 'crucible2 pilot live');
+assert(busyCrucible2Learn({}, 'smoke').ok, 'crucible2 learn busy');
+assert(shipCrucible2Lab({}, 'smoke').ok, 'crucible2 lab ship');
+assert(ackCrucible2Flag({}, 'smoke').ok, 'crucible2 flag ack');
 
 console.log(
   JSON.stringify(

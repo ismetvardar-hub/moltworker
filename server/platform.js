@@ -856,7 +856,9 @@ import {
   edgecacheSummary,
   updateEdgecache,
 } from './edgecache.js';
-import { buildPyramid } from './pyramid.js';
+import {
+  ackPyramidFlag, buildPyramid, flushPyramidComms, healPyramidNet, resolvePyramidSys, runPyramidSweep,
+} from './pyramid.js';
 import {
   createSignage,
   listSignage,
@@ -2193,7 +2195,9 @@ import {
   promoattrSummary,
   updatePromoattr,
 } from './promoattr.js';
-import { buildZenith } from './zenith.js';
+import {
+  ackZenithFlag, buildZenith, catchZenithPace, coolZenithDemand, healZenithMargin, runZenithSweep,
+} from './zenith.js';
 import {
   createMasterplan,
   listMasterplan,
@@ -3438,7 +3442,9 @@ import {
   lanecontrolSummary,
   updateLanecontrol,
 } from './lanecontrol.js';
-import { buildConvoy } from './convoy.js';
+import {
+  ackConvoyFlag, buildConvoy, clearConvoyDispatch, freeConvoyCurb, readyConvoyFleet, runConvoySweep,
+} from './convoy.js';
 import {
   createRoomrack,
   listRoomrack,
@@ -5852,7 +5858,9 @@ import {
   labbudget2Summary,
   updateLabbudget2,
 } from './labbudget2.js';
-import { buildCrucible2 } from './crucible2.js';
+import {
+  ackCrucible2Flag, buildCrucible2, busyCrucible2Learn, liveCrucible2Pilot, runCrucible2Sweep, shipCrucible2Lab,
+} from './crucible2.js';
 import {
   createIpvault2,
   listIpvault2,
@@ -11928,6 +11936,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildPyramid());
           return;
         }
+        if (path === '/api/pyramid/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPyramidSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pyramid/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPyramidFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pyramid/sys/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolvePyramidSys(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pyramid/net/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healPyramidNet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pyramid/comms/flush' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flushPyramidComms(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 166–180 ──
 
@@ -17613,6 +17651,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildZenith());
           return;
         }
+        if (path === '/api/zenith/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runZenithSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/zenith/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackZenithFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/zenith/pace/catch' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, catchZenithPace(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/zenith/margin/heal' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healZenithMargin(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/zenith/demand/cool' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, coolZenithDemand(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Finale · Odyssey (AŞAMA 391–405) ──
 
@@ -22909,6 +22977,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/convoy' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildConvoy());
+          return;
+        }
+        if (path === '/api/convoy/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runConvoySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/convoy/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackConvoyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/convoy/dispatch/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearConvoyDispatch(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/convoy/fleet/ready' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, readyConvoyFleet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/convoy/curb/free' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, freeConvoyCurb(await readBody(req), user.username)); })();
           return;
         }
 
@@ -33115,6 +33213,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/crucible2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildCrucible2());
+          return;
+        }
+        if (path === '/api/crucible2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCrucible2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCrucible2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible2/pilot/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCrucible2Pilot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible2/learn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyCrucible2Learn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/crucible2/lab/ship' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, shipCrucible2Lab(await readBody(req), user.username)); })();
           return;
         }
 

@@ -121,6 +121,10 @@ try {
     '/api/signalhub',
     '/api/linen',
     '/api/charter2',
+    '/api/zenith',
+    '/api/pyramid',
+    '/api/convoy',
+    '/api/crucible2',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1085,6 +1089,50 @@ try {
   assert(c2Claim.res.ok && c2Claim.data.ok !== false, 'charter2 claim done');
   const c2Ack = await req('/api/charter2/flag/ack', { method: 'POST', token, body: {} });
   assert(c2Ack.res.ok && c2Ack.data.ok !== false, 'charter2 flag ack');
+
+  const znSweep = await req('/api/zenith/sweep', { method: 'POST', token, body: { force: true } });
+  assert(znSweep.res.ok && znSweep.data.ok !== false, 'zenith sweep');
+  const znPace = await req('/api/zenith/pace/catch', { method: 'POST', token, body: {} });
+  assert(znPace.res.ok && znPace.data.ok !== false, 'zenith pace catch');
+  const znMargin = await req('/api/zenith/margin/heal', { method: 'POST', token, body: {} });
+  assert(znMargin.res.ok && znMargin.data.ok !== false, 'zenith margin heal');
+  const znDemand = await req('/api/zenith/demand/cool', { method: 'POST', token, body: {} });
+  assert(znDemand.res.ok && znDemand.data.ok !== false, 'zenith demand cool');
+  const znAck = await req('/api/zenith/flag/ack', { method: 'POST', token, body: {} });
+  assert(znAck.res.ok && znAck.data.ok !== false, 'zenith flag ack');
+
+  const pySweep = await req('/api/pyramid/sweep', { method: 'POST', token, body: { force: true } });
+  assert(pySweep.res.ok && pySweep.data.ok !== false, 'pyramid sweep');
+  const pySys = await req('/api/pyramid/sys/resolve', { method: 'POST', token, body: {} });
+  assert(pySys.res.ok && pySys.data.ok !== false, 'pyramid sys resolve');
+  const pyNet = await req('/api/pyramid/net/heal', { method: 'POST', token, body: {} });
+  assert(pyNet.res.ok && pyNet.data.ok !== false, 'pyramid net heal');
+  const pyComms = await req('/api/pyramid/comms/flush', { method: 'POST', token, body: {} });
+  assert(pyComms.res.ok && pyComms.data.ok !== false, 'pyramid comms flush');
+  const pyAck = await req('/api/pyramid/flag/ack', { method: 'POST', token, body: {} });
+  assert(pyAck.res.ok && pyAck.data.ok !== false, 'pyramid flag ack');
+
+  const cvSweep = await req('/api/convoy/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cvSweep.res.ok && cvSweep.data.ok !== false, 'convoy sweep');
+  const cvDisp = await req('/api/convoy/dispatch/clear', { method: 'POST', token, body: {} });
+  assert(cvDisp.res.ok && cvDisp.data.ok !== false, 'convoy dispatch clear');
+  const cvFleet = await req('/api/convoy/fleet/ready', { method: 'POST', token, body: {} });
+  assert(cvFleet.res.ok && cvFleet.data.ok !== false, 'convoy fleet ready');
+  const cvCurb = await req('/api/convoy/curb/free', { method: 'POST', token, body: {} });
+  assert(cvCurb.res.ok && cvCurb.data.ok !== false, 'convoy curb free');
+  const cvAck = await req('/api/convoy/flag/ack', { method: 'POST', token, body: {} });
+  assert(cvAck.res.ok && cvAck.data.ok !== false, 'convoy flag ack');
+
+  const crSweep = await req('/api/crucible2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(crSweep.res.ok && crSweep.data.ok !== false, 'crucible2 sweep');
+  const crPilot = await req('/api/crucible2/pilot/live', { method: 'POST', token, body: {} });
+  assert(crPilot.res.ok && crPilot.data.ok !== false, 'crucible2 pilot live');
+  const crLearn = await req('/api/crucible2/learn/busy', { method: 'POST', token, body: {} });
+  assert(crLearn.res.ok && crLearn.data.ok !== false, 'crucible2 learn busy');
+  const crLab = await req('/api/crucible2/lab/ship', { method: 'POST', token, body: {} });
+  assert(crLab.res.ok && crLab.data.ok !== false, 'crucible2 lab ship');
+  const crAck = await req('/api/crucible2/flag/ack', { method: 'POST', token, body: {} });
+  assert(crAck.res.ok && crAck.data.ok !== false, 'crucible2 flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
