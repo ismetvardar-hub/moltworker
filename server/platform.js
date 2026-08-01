@@ -750,7 +750,14 @@ import {
   slabreachesSummary,
   updateSlabreaches,
 } from './slabreaches.js';
-import { buildApex } from './apex.js';
+import {
+  ackApexFlag,
+  approveApexOvertime,
+  buildApex,
+  clearApexInvoices,
+  renewApexLicenses,
+  runApexSweep,
+} from './apex.js';
 import {
   createExtlinks,
   listExtlinks,
@@ -1430,7 +1437,14 @@ import {
   whistleSummary,
   updateWhistle,
 } from './whistle.js';
-import { buildPeoplehub } from './peoplehub.js';
+import {
+  ackPeoplehubFlag,
+  approvePeoplehubLeave,
+  buildPeoplehub,
+  closePeoplehubNearmiss,
+  completePeoplehubOnboarding,
+  runPeoplehubSweep,
+} from './peoplehub.js';
 import {
   createCarbonlog,
   listCarbonlog,
@@ -2733,7 +2747,14 @@ import {
   estatescanSummary,
   updateEstatescan,
 } from './estatescan.js';
-import { buildCitadel } from './citadel.js';
+import {
+  ackCitadelFlag,
+  buildCitadel,
+  clearCitadelHvac,
+  clearCitadelPlant,
+  closeCitadelWorkorder,
+  runCitadelSweep,
+} from './citadel.js';
 import {
   createTalentdesk,
   listTalentdesk,
@@ -3944,7 +3965,14 @@ import {
   zerohourSummary,
   updateZerohour,
 } from './zerohour.js';
-import { buildBastion } from './bastion.js';
+import {
+  ackBastionFlag,
+  approveBastionRole,
+  archiveBastionBreach,
+  buildBastion,
+  closeBastionAccess,
+  runBastionSweep,
+} from './bastion.js';
 import {
   createPartnerdesk,
   listPartnerdesk,
@@ -11345,6 +11373,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildApex());
           return;
         }
+        if (path === '/api/apex/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runApexSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apex/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackApexFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apex/invoice/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearApexInvoices(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apex/license/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewApexLicenses(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apex/overtime/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveApexOvertime(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 151–165 ──
 
@@ -14199,6 +14257,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/peoplehub' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildPeoplehub());
+          return;
+        }
+        if (path === '/api/peoplehub/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPeoplehubSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/peoplehub/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPeoplehubFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/peoplehub/leave/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approvePeoplehubLeave(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/peoplehub/nearmiss/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePeoplehubNearmiss(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/peoplehub/onboarding/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completePeoplehubOnboarding(await readBody(req), user.username)); })();
           return;
         }
 
@@ -19676,6 +19764,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildCitadel());
           return;
         }
+        if (path === '/api/citadel/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCitadelSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/citadel/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCitadelFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/citadel/plant/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearCitadelPlant(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/citadel/hvac/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearCitadelHvac(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/citadel/workorder/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCitadelWorkorder(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Talent OS · Forge (AŞAMA 496–510) ──
 
@@ -24762,6 +24880,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/bastion' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildBastion());
+          return;
+        }
+        if (path === '/api/bastion/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBastionSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBastionFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion/access/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeBastionAccess(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion/role/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveBastionRole(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bastion/breach/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveBastionBreach(await readBody(req), user.username)); })();
           return;
         }
 

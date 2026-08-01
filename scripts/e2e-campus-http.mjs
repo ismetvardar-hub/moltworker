@@ -93,6 +93,10 @@ try {
     '/api/forge',
     '/api/ecosphere',
     '/api/boardpack',
+    '/api/citadel',
+    '/api/peoplehub',
+    '/api/bastion',
+    '/api/apex',
     '/api/health',
   ];
   for (const p of paths) {
@@ -747,6 +751,50 @@ try {
   assert(bdBud.res.ok && bdBud.data.ok !== false, 'boardpack budget rebalance');
   const bdAck = await req('/api/boardpack/flag/ack', { method: 'POST', token, body: {} });
   assert(bdAck.res.ok && bdAck.data.ok !== false, 'boardpack flag ack');
+
+  const ctSweep = await req('/api/citadel/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ctSweep.res.ok && ctSweep.data.ok !== false, 'citadel sweep');
+  const ctPlant = await req('/api/citadel/plant/clear', { method: 'POST', token, body: {} });
+  assert(ctPlant.res.ok && ctPlant.data.ok !== false, 'citadel plant clear');
+  const ctHvac = await req('/api/citadel/hvac/clear', { method: 'POST', token, body: {} });
+  assert(ctHvac.res.ok && ctHvac.data.ok !== false, 'citadel hvac clear');
+  const ctWo = await req('/api/citadel/workorder/close', { method: 'POST', token, body: {} });
+  assert(ctWo.res.ok && ctWo.data.ok !== false, 'citadel wo close');
+  const ctAck = await req('/api/citadel/flag/ack', { method: 'POST', token, body: {} });
+  assert(ctAck.res.ok && ctAck.data.ok !== false, 'citadel flag ack');
+
+  const phSweep = await req('/api/peoplehub/sweep', { method: 'POST', token, body: { force: true } });
+  assert(phSweep.res.ok && phSweep.data.ok !== false, 'peoplehub sweep');
+  const phLeave = await req('/api/peoplehub/leave/approve', { method: 'POST', token, body: {} });
+  assert(phLeave.res.ok && phLeave.data.ok !== false, 'peoplehub leave approve');
+  const phNear = await req('/api/peoplehub/nearmiss/close', { method: 'POST', token, body: {} });
+  assert(phNear.res.ok && phNear.data.ok !== false, 'peoplehub nearmiss close');
+  const phOnb = await req('/api/peoplehub/onboarding/complete', { method: 'POST', token, body: {} });
+  assert(phOnb.res.ok && phOnb.data.ok !== false, 'peoplehub onboarding complete');
+  const phAck = await req('/api/peoplehub/flag/ack', { method: 'POST', token, body: {} });
+  assert(phAck.res.ok && phAck.data.ok !== false, 'peoplehub flag ack');
+
+  const bsSweep = await req('/api/bastion/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bsSweep.res.ok && bsSweep.data.ok !== false, 'bastion sweep');
+  const bsAcc = await req('/api/bastion/access/close', { method: 'POST', token, body: {} });
+  assert(bsAcc.res.ok && bsAcc.data.ok !== false, 'bastion access close');
+  const bsRole = await req('/api/bastion/role/approve', { method: 'POST', token, body: {} });
+  assert(bsRole.res.ok && bsRole.data.ok !== false, 'bastion role approve');
+  const bsBreach = await req('/api/bastion/breach/archive', { method: 'POST', token, body: {} });
+  assert(bsBreach.res.ok && bsBreach.data.ok !== false, 'bastion breach archive');
+  const bsAck = await req('/api/bastion/flag/ack', { method: 'POST', token, body: {} });
+  assert(bsAck.res.ok && bsAck.data.ok !== false, 'bastion flag ack');
+
+  const apSweep = await req('/api/apex/sweep', { method: 'POST', token, body: { force: true } });
+  assert(apSweep.res.ok && apSweep.data.ok !== false, 'apex sweep');
+  const apInv = await req('/api/apex/invoice/clear', { method: 'POST', token, body: {} });
+  assert(apInv.res.ok && apInv.data.ok !== false, 'apex invoice clear');
+  const apLic = await req('/api/apex/license/renew', { method: 'POST', token, body: {} });
+  assert(apLic.res.ok && apLic.data.ok !== false, 'apex license renew');
+  const apOt = await req('/api/apex/overtime/approve', { method: 'POST', token, body: {} });
+  assert(apOt.res.ok && apOt.data.ok !== false, 'apex overtime approve');
+  const apAck = await req('/api/apex/flag/ack', { method: 'POST', token, body: {} });
+  assert(apAck.res.ok && apAck.data.ok !== false, 'apex flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

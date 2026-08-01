@@ -322,6 +322,38 @@ import {
   renewBoardpackContract,
   rebalanceBoardpackBudget,
 } from '../server/boardpack.js';
+import {
+  buildCitadel,
+  runCitadelSweep,
+  ackCitadelFlag,
+  clearCitadelPlant,
+  clearCitadelHvac,
+  closeCitadelWorkorder,
+} from '../server/citadel.js';
+import {
+  buildPeoplehub,
+  runPeoplehubSweep,
+  ackPeoplehubFlag,
+  approvePeoplehubLeave,
+  closePeoplehubNearmiss,
+  completePeoplehubOnboarding,
+} from '../server/peoplehub.js';
+import {
+  buildBastion,
+  runBastionSweep,
+  ackBastionFlag,
+  closeBastionAccess,
+  approveBastionRole,
+  archiveBastionBreach,
+} from '../server/bastion.js';
+import {
+  buildApex,
+  runApexSweep,
+  ackApexFlag,
+  clearApexInvoices,
+  renewApexLicenses,
+  approveApexOvertime,
+} from '../server/apex.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
@@ -802,6 +834,34 @@ assert(snapshotBoardpack({}, 'smoke').ok, 'boardpack snapshot');
 assert(renewBoardpackContract({}, 'smoke').ok, 'boardpack contract renew');
 assert(rebalanceBoardpackBudget({}, 'smoke').ok, 'boardpack budget rebalance');
 assert(ackBoardpackFlag({}, 'smoke').ok, 'boardpack flag ack');
+
+assert(buildCitadel().title, 'citadel overview');
+assert(runCitadelSweep({ force: true }, 'smoke').ok, 'citadel sweep');
+assert(clearCitadelPlant({}, 'smoke').ok, 'citadel plant clear');
+assert(clearCitadelHvac({}, 'smoke').ok, 'citadel hvac clear');
+assert(closeCitadelWorkorder({}, 'smoke').ok, 'citadel wo close');
+assert(ackCitadelFlag({}, 'smoke').ok, 'citadel flag ack');
+
+assert(buildPeoplehub().title, 'peoplehub overview');
+assert(runPeoplehubSweep({ force: true }, 'smoke').ok, 'peoplehub sweep');
+assert(approvePeoplehubLeave({}, 'smoke').ok, 'peoplehub leave approve');
+assert(closePeoplehubNearmiss({}, 'smoke').ok, 'peoplehub nearmiss close');
+assert(completePeoplehubOnboarding({}, 'smoke').ok, 'peoplehub onboarding complete');
+assert(ackPeoplehubFlag({}, 'smoke').ok, 'peoplehub flag ack');
+
+assert(buildBastion().title, 'bastion overview');
+assert(runBastionSweep({ force: true }, 'smoke').ok, 'bastion sweep');
+assert(closeBastionAccess({}, 'smoke').ok, 'bastion access close');
+assert(approveBastionRole({}, 'smoke').ok, 'bastion role approve');
+assert(archiveBastionBreach({}, 'smoke').ok, 'bastion breach archive');
+assert(ackBastionFlag({}, 'smoke').ok, 'bastion flag ack');
+
+assert(buildApex().title, 'apex overview');
+assert(runApexSweep({ force: true }, 'smoke').ok, 'apex sweep');
+assert(clearApexInvoices({}, 'smoke').ok, 'apex invoice clear');
+assert(renewApexLicenses({}, 'smoke').ok, 'apex license renew');
+assert(approveApexOvertime({}, 'smoke').ok, 'apex overtime approve');
+assert(ackApexFlag({}, 'smoke').ok, 'apex flag ack');
 
 console.log(
   JSON.stringify(
