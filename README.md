@@ -23,6 +23,16 @@ npm run dev
 
 Uygulama varsayılan olarak [http://localhost:5173](http://localhost:5173) adresinde açılır.
 
+### Otomatik Eşitlemeli Önizleme (dev:sync)
+
+Bulut ajanı geliştirmeye devam ederken önizlemenizin **kendi kendine güncel kalmasını** istiyorsanız `npm run dev` yerine şunu kullanın:
+
+```bash
+npm run dev:sync
+```
+
+Bu komut Vite sunucusunu başlatır ve arka planda her 20 saniyede bir uzak daldaki yeni commit'leri çeker; Vite değişiklikleri anında tarayıcıya yansıtır. Bağımlılık değiştiyse `npm install` otomatik çalışır. Yerel düzenlenmemiş dosyanız varsa eşitleme o turu atlar (çalışmanızı ezmez). Kontrol aralığı: `SYNC_INTERVAL=10 npm run dev:sync`.
+
 ## Ollama Entegrasyonu
 
 Yerel AI panelinin çalışması için makinenizde [Ollama](https://ollama.com) kurulu ve çalışıyor olmalıdır:
