@@ -995,6 +995,40 @@ try {
   });
   const revive = await req('/api/agentqueue/revive', { method: 'POST', token, body: { limit: 5 } });
   assert(revive.res.ok && revive.data.ok !== false, 'agent revive');
+  const bumpEnq = await req('/api/agentqueue/enqueue', {
+    method: 'POST',
+    token,
+    body: { agent: 'DAZE-HUB', title: 'e2e-bump-snooze', priority: 'normal' },
+  });
+  const bump = await req('/api/agentqueue/priority-bump', {
+    method: 'POST',
+    token,
+    body: { id: bumpEnq.data.job?.id, reason: 'e2e bump' },
+  });
+  assert(bump.res.ok && bump.data.ok !== false, 'agent priority bump');
+  const snooze = await req('/api/agentqueue/snooze', {
+    method: 'POST',
+    token,
+    body: { id: bumpEnq.data.job?.id, minutes: 1 },
+  });
+  assert(snooze.res.ok && snooze.data.ok !== false, 'agent snooze');
+  const wake = await req('/api/agentqueue/wake-snoozed', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(wake.res.ok && wake.data.ok !== false, 'agent wake snoozed');
+  const cancelEnq = await req('/api/agentqueue/enqueue', {
+    method: 'POST',
+    token,
+    body: { agent: 'ETHOS', title: 'e2e-cancel' },
+  });
+  const cancel = await req('/api/agentqueue/cancel', {
+    method: 'POST',
+    token,
+    body: { id: cancelEnq.data.job?.id, reason: 'e2e cancel' },
+  });
+  assert(cancel.res.ok && cancel.data.ok !== false, 'agent cancel');
   const arch = await req('/api/agentqueue/archive', { method: 'POST', token, body: { force: true } });
   assert(arch.res.ok && arch.data.ok !== false, 'agent archive');
 

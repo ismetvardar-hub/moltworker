@@ -6865,13 +6865,17 @@ import {
 import {
   agentQueueOverview,
   archiveAgentJobs,
+  bumpAgentJobPriority,
+  cancelAgentJob,
   claimAgentJob,
   completeAgentJob,
   enqueueAgentJob,
   rebalanceAgentQueue,
   reviveDeadAgentJobs,
   runAgentQueueSlaSweep,
+  snoozeAgentJob,
   tickAgentQueue,
+  wakeSnoozedAgentJobs,
 } from './agentqueue.js';
 import {
   addGreenIncident,
@@ -36861,6 +36865,30 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, archiveAgentJobs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/priority-bump' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, bumpAgentJobPriority(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/snooze' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, snoozeAgentJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/cancel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cancelAgentJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentqueue/wake-snoozed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, wakeSnoozedAgentJobs(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campusbrief/actions' && req.method === 'POST') {

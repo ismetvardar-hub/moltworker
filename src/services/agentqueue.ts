@@ -74,3 +74,43 @@ export async function archiveAgentJobs(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function bumpAgentJobPriority(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/priority-bump', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function snoozeAgentJob(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/snooze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function cancelAgentJob(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function wakeSnoozedAgentJobs(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentqueue/wake-snoozed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

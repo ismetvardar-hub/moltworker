@@ -138,10 +138,23 @@ export default function AgentqueuePage() {
               >
                 Arşivle
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.wakeSnoozedAgentJobs({ force: true }).then((r: any) => {
+                    ping(`Wake ${r.woken?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Snooze wake
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               SLA ihlal {data.summary?.sla_breach ?? 0} · dead-letter {data.summary?.dead_letter ?? 0} · high{' '}
-              {data.summary?.high_priority ?? 0} · arşiv {data.summary?.archived ?? 0}
+              {data.summary?.high_priority ?? 0} · snooze {data.summary?.snoozed ?? 0} · iptal{' '}
+              {data.summary?.cancelled ?? 0} · arşiv {data.summary?.archived ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="İşler">
@@ -168,17 +181,69 @@ export default function AgentqueuePage() {
                       </button>
                     )}
                     {j.status === 'queued' && (
+                      <span className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]"
+                          onClick={() =>
+                            void api.claimAgentJob({ id: j.id }).then(() => {
+                              ping('Claimed')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Claim
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md bg-amber-500/20 px-2 py-1 text-[10px] text-amber-100"
+                          onClick={() =>
+                            void api.bumpAgentJobPriority({ id: j.id, reason: 'ops bump' }).then((r: any) => {
+                              ping(r.ok ? `Bump → ${r.job?.priority}` : r.error || 'Bump yok')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Bump
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md bg-sky-500/20 px-2 py-1 text-[10px] text-sky-100"
+                          onClick={() =>
+                            void api.snoozeAgentJob({ id: j.id, minutes: 15 }).then((r: any) => {
+                              ping(r.ok ? 'Snooze' : r.error || 'Snooze yok')
+                              return refresh()
+                            })
+                          }
+                        >
+                          Snooze
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md bg-rose-500/20 px-2 py-1 text-[10px] text-rose-100"
+                          onClick={() =>
+                            void api.cancelAgentJob({ id: j.id, reason: 'ops cancel' }).then((r: any) => {
+                              ping(r.ok ? 'İptal' : r.error || 'İptal yok')
+                              return refresh()
+                            })
+                          }
+                        >
+                          İptal
+                        </button>
+                      </span>
+                    )}
+                    {j.status === 'snoozed' && (
                       <button
                         type="button"
-                        className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]"
+                        className="rounded-md bg-violet-500/20 px-2 py-1 text-[10px] text-violet-100"
                         onClick={() =>
-                          void api.claimAgentJob({ id: j.id }).then(() => {
-                            ping('Claimed')
+                          void api.wakeSnoozedAgentJobs({ force: true }).then((r: any) => {
+                            ping(`Wake ${r.woken?.length ?? 0}`)
                             return refresh()
                           })
                         }
                       >
-                        Claim
+                        Wake
                       </button>
                     )}
                   </div>

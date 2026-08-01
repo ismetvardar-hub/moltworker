@@ -113,6 +113,8 @@ export function agentQueueOverview() {
       running: jobs.filter((j) => j.status === 'running').length,
       done: jobs.filter((j) => j.status === 'done').length,
       failed: jobs.filter((j) => j.status === 'failed').length,
+      snoozed: jobs.filter((j) => j.status === 'snoozed').length,
+      cancelled: jobs.filter((j) => j.status === 'cancelled').length,
       sla_breach,
       dead_letter: jobs.filter((j) => j.status === 'dead').length,
       high_priority: jobs.filter((j) => j.status === 'queued' && j.priority === 'high').length,
@@ -194,6 +196,7 @@ export function completeAgentJob(input = {}, actor = 'system') {
  * 2) 15sn+ running işleri auto-complete
  */
 export function tickAgentQueue(actor = 'system') {
+  const wake = wakeSnoozedAgentJobs({ limit: 20 }, actor);
   const jobs = ensureQueue();
   let claimed = 0;
   let completed = 0;
@@ -201,7 +204,9 @@ export function tickAgentQueue(actor = 'system') {
 
   const hasRunning = jobs.some((j) => j.status === 'running');
   if (!hasRunning) {
-    const qidx = jobs.findIndex((j) => j.status === 'queued');
+    // high/urgent önce
+    let qidx = jobs.findIndex((j) => j.status === 'queued' && (j.priority === 'high' || j.priority === 'urgent'));
+    if (qidx < 0) qidx = jobs.findIndex((j) => j.status === 'queued');
     if (qidx >= 0) {
       jobs[qidx] = {
         ...jobs[qidx],
@@ -235,15 +240,21 @@ export function tickAgentQueue(actor = 'system') {
   }
 
   if (claimed || completed) writeCollection('agent-jobs', jobs);
-  if (claimed || completed) {
+  if (claimed || completed || (wake.woken || []).length) {
     appendAudit({
       actor,
       action: 'agent.tick',
-      detail: `claim ${claimed} · done ${completed}`,
-      meta: { claimed, completed },
+      detail: `wake ${wake.woken?.length || 0} · claim ${claimed} · done ${completed}`,
+      meta: { woken: wake.woken?.length || 0, claimed, completed },
     });
   }
-  return { ok: true, claimed, completed, overview: agentQueueOverview() };
+  return {
+    ok: true,
+    woken: wake.woken?.length || 0,
+    claimed,
+    completed,
+    overview: agentQueueOverview(),
+  };
 }
 
 /**
@@ -430,6 +441,125 @@ export function reviveDeadAgentJobs(input = {}, actor = 'system') {
   return { ok: true, revived, overview: agentQueueOverview() };
 }
 
+/** Öncelik yükselt — queued/failed/snoozed → high (veya urgent) */
+export function bumpAgentJobPriority(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const idx = jobs.findIndex((j) => j.id === input.id);
+  if (idx < 0) return { ok: false, error: 'İş yok' };
+  const j = jobs[idx];
+  if (!['queued', 'failed', 'snoozed'].includes(j.status)) {
+    return { ok: false, error: 'Öncelik yalnızca queued / failed / snoozed işlerde yükseltilir' };
+  }
+  const level = input.priority === 'urgent' ? 'urgent' : 'high';
+  jobs[idx] = {
+    ...j,
+    priority: level,
+    bumped_at: new Date().toISOString(),
+    bump_reason: String(input.reason || '').slice(0, 240) || undefined,
+    bumped_by: actor,
+  };
+  writeCollection('agent-jobs', jobs);
+  appendAudit({
+    actor,
+    action: 'agent.priority_bump',
+    detail: `${jobs[idx].agent}: ${jobs[idx].title} → ${level}`,
+    meta: { id: jobs[idx].id, priority: level },
+  });
+  return { ok: true, job: jobs[idx], overview: agentQueueOverview() };
+}
+
+/** İş ertele (snooze) — claim'den düşer, süre dolunca wake */
+export function snoozeAgentJob(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const idx = jobs.findIndex((j) => j.id === input.id);
+  if (idx < 0) return { ok: false, error: 'İş yok' };
+  const j = jobs[idx];
+  if (!['queued', 'failed', 'running'].includes(j.status)) {
+    return { ok: false, error: 'Snooze yalnızca queued / failed / running işlerde uygulanır' };
+  }
+  const minutes = Math.max(1, Math.min(24 * 60, Number(input.minutes) || 30));
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  jobs[idx] = {
+    ...j,
+    status: 'snoozed',
+    snooze_until: until,
+    snooze_reason: String(input.reason || '').slice(0, 240) || undefined,
+    snoozed_by: actor,
+    snoozed_at: new Date().toISOString(),
+    claimed_by: null,
+    claimed_at: null,
+  };
+  writeCollection('agent-jobs', jobs);
+  appendAudit({
+    actor,
+    action: 'agent.snooze',
+    detail: `${jobs[idx].agent}: ${jobs[idx].title} · ${minutes}dk`,
+    meta: { id: jobs[idx].id, minutes, snooze_until: until },
+  });
+  return { ok: true, job: jobs[idx], overview: agentQueueOverview() };
+}
+
+/** İş iptal */
+export function cancelAgentJob(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const idx = jobs.findIndex((j) => j.id === input.id);
+  if (idx < 0) return { ok: false, error: 'İş yok' };
+  const j = jobs[idx];
+  if (['done', 'cancelled', 'archived'].includes(j.status)) {
+    return { ok: false, error: 'İş zaten kapanmış' };
+  }
+  jobs[idx] = {
+    ...j,
+    status: 'cancelled',
+    cancel_reason: String(input.reason || 'cancelled').slice(0, 240) || 'cancelled',
+    cancelled_at: new Date().toISOString(),
+    cancelled_by: actor,
+    claimed_by: null,
+    claimed_at: null,
+  };
+  writeCollection('agent-jobs', jobs);
+  appendAudit({
+    actor,
+    action: 'agent.cancel',
+    detail: `${jobs[idx].agent}: ${jobs[idx].title}`,
+    meta: { id: jobs[idx].id, reason: jobs[idx].cancel_reason },
+  });
+  return { ok: true, job: jobs[idx], overview: agentQueueOverview() };
+}
+
+/** Snooze süresi dolan işleri yeniden kuyruğa al */
+export function wakeSnoozedAgentJobs(input = {}, actor = 'system') {
+  const jobs = ensureQueue();
+  const limit = Math.max(1, Math.min(200, Number(input.limit) || 40));
+  const force = !!input.force;
+  const now = Date.now();
+  const woken = [];
+  for (let i = 0; i < jobs.length && woken.length < limit; i++) {
+    const j = jobs[i];
+    if (j.status !== 'snoozed') continue;
+    const until = j.snooze_until ? new Date(j.snooze_until).getTime() : 0;
+    if (!force && until && until > now) continue;
+    jobs[i] = {
+      ...j,
+      status: 'queued',
+      priority: j.priority === 'normal' ? 'high' : j.priority,
+      snooze_until: null,
+      woken_at: new Date().toISOString(),
+      woken_by: actor,
+    };
+    woken.push(jobs[i].id);
+  }
+  if (!woken.length) return { ok: true, woken: [], overview: agentQueueOverview() };
+  writeCollection('agent-jobs', jobs);
+  appendAudit({
+    actor,
+    action: 'agent.snooze_wake',
+    detail: `${woken.length} iş uyandı`,
+    meta: { n: woken.length },
+  });
+  return { ok: true, woken, overview: agentQueueOverview() };
+}
+
 /** Eski done/dead arşivle — kuyruk incelir */
 export function archiveAgentJobs(input = {}, actor = 'system') {
   const jobs = ensureQueue();
@@ -440,7 +570,10 @@ export function archiveAgentJobs(input = {}, actor = 'system') {
   for (const j of jobs) {
     const ts = j.done_at || j.completed_at || j.dead_at || j.at;
     const old = ts && new Date(ts).getTime() < cutoff;
-    if ((j.status === 'done' || j.status === 'dead' || j.status === 'failed') && (old || input.force)) {
+    if (
+      (j.status === 'done' || j.status === 'dead' || j.status === 'failed' || j.status === 'cancelled') &&
+      (old || input.force)
+    ) {
       archived.push(j);
     } else {
       keep.push(j);

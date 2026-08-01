@@ -92,6 +92,10 @@ import {
   rebalanceAgentQueue,
   reviveDeadAgentJobs,
   archiveAgentJobs,
+  bumpAgentJobPriority,
+  snoozeAgentJob,
+  cancelAgentJob,
+  wakeSnoozedAgentJobs,
 } from '../server/agentqueue.js';
 import {
   greenPulseOverview,
@@ -518,6 +522,12 @@ const failSeed = enqueueAgentJob({ agent: 'ETHOS', title: 'fail-seed-for-revive'
 const failClaim = claimAgentJob({ id: failSeed.job?.id }, 'smoke');
 completeAgentJob({ id: failClaim.job?.id || failSeed.job?.id, fail: true }, 'smoke');
 assert(reviveDeadAgentJobs({ limit: 5 }, 'smoke').ok, 'agent revive');
+const bumpSeed = enqueueAgentJob({ agent: 'DAZE-HUB', title: 'bump-snooze-cancel-seed', priority: 'normal' }, 'smoke');
+assert(bumpAgentJobPriority({ id: bumpSeed.job?.id, reason: 'smoke bump' }, 'smoke').ok, 'agent priority bump');
+assert(snoozeAgentJob({ id: bumpSeed.job?.id, minutes: 1, reason: 'smoke snooze' }, 'smoke').ok, 'agent snooze');
+assert(wakeSnoozedAgentJobs({ force: true }, 'smoke').ok, 'agent wake snoozed');
+const cancelSeed = enqueueAgentJob({ agent: 'ETHOS', title: 'cancel-seed' }, 'smoke');
+assert(cancelAgentJob({ id: cancelSeed.job?.id, reason: 'smoke cancel' }, 'smoke').ok, 'agent cancel');
 assert(archiveAgentJobs({ force: true }, 'smoke').ok, 'agent archive');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
 const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, force: true }, 'smoke');
