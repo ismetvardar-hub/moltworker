@@ -16,6 +16,8 @@ import ReportsPage from './pages/ReportsPage';
 import VenuesPage from './pages/VenuesPage';
 import OpsPage from './pages/OpsPage';
 import NotificationsPage from './pages/NotificationsPage';
+import FieldPage from './pages/FieldPage';
+import MetricsPage from './pages/MetricsPage';
 import {
   fetchMe,
   getStoredUser,
@@ -39,6 +41,8 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   reports: ReportsPage,
   notifications: NotificationsPage,
   ops: OpsPage,
+  metrics: MetricsPage,
+  field: FieldPage,
   settings: SettingsPage,
 };
 

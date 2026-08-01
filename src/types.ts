@@ -13,6 +13,8 @@ export type PageId =
   | 'reports'
   | 'notifications'
   | 'ops'
+  | 'metrics'
+  | 'field'
   | 'settings';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';

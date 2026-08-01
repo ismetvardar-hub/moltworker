@@ -47,10 +47,12 @@ export const ROLE_PAGES = {
     'reports',
     'notifications',
     'ops',
+    'metrics',
+    'field',
     'settings',
   ],
-  kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications'],
-  crew: ['hub', 'crew', 'olympospass', 'vision', 'notifications'],
+  kitchen: ['hub', 'chef', 'nexus', 'jobs', 'notifications', 'field'],
+  crew: ['hub', 'crew', 'olympospass', 'vision', 'notifications', 'field'],
 };
 
 function loadSessions() {

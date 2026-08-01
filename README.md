@@ -196,6 +196,14 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **11** | `GET /api/health`, `GET /api/ops/backup`, `POST /api/ops/restore` |
 | **12** | Bildirim merkezi (`/api/notifications`), SSE ile canlı gelen kutusu |
 
+### Geçiş · Saha · Metrikler (AŞAMA 13–15)
+
+| Aşama | Özellik |
+|-------|---------|
+| **13** | OlymposPass geçiş motoru (`/api/pass/*`) — kapı yetkisi + NEXUS pulse |
+| **14** | Saha Modu — tablet UI, offline WhatsApp/görev kuyruğu |
+| **15** | Gözlemlenebilirlik (`/api/metrics`) — zincir/geçiş/WA başarı oranları |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

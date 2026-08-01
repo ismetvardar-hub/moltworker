@@ -8,12 +8,14 @@ import {
   Mountain,
   Network,
   Radio,
+  BarChart3,
   Bell,
   HardDrive,
   ListTodo,
   MapPin,
   Settings,
   ShieldCheck,
+  TabletSmartphone,
   Ticket,
   Users,
 } from 'lucide-react';
@@ -55,9 +57,15 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   },
   {
     id: 'olympospass',
-    label: 'OlymposPass Yönetimi',
-    description: 'Geçişler & doğrulama',
+    label: 'OlymposPass Geçiş',
+    description: 'Kart/QR · kapı · NEXUS',
     icon: Ticket,
+  },
+  {
+    id: 'field',
+    label: 'Saha Modu',
+    description: 'Tablet · offline kuyruk',
+    icon: TabletSmartphone,
   },
   {
     id: 'chef',
@@ -112,6 +120,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Sistem & Yedek',
     description: 'Health · backup · restore',
     icon: HardDrive,
+  },
+  {
+    id: 'metrics',
+    label: 'Gözlemlenebilirlik',
+    description: 'Metrikler & hata panosu',
+    icon: BarChart3,
   },
   {
     id: 'settings',

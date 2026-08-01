@@ -41,11 +41,21 @@ import {
   markRead,
   unreadCount,
 } from './notifications.js';
+import {
+  admitPass,
+  listAccessEvents,
+  listGates,
+  listHolders,
+  passStats,
+  verifyPass,
+} from './pass.js';
+import { buildMetrics } from './metrics.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
 // tesis tohumu
 listVenues();
+listHolders();
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -608,6 +618,66 @@ export function createPlatformMiddleware() {
             return;
           }
           sendJson(res, 200, { notification: n, unread: unreadCount() });
+          return;
+        }
+
+        // ── AŞAMA 13: OlymposPass geçiş motoru ────────────────────────
+        if (path === '/api/pass/holders' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { holders: listHolders(), stats: passStats() });
+          return;
+        }
+        if (path === '/api/pass/gates' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, { gates: listGates() });
+          return;
+        }
+        if (path === '/api/pass/events' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          const limit = Number(url.searchParams.get('limit') || 40);
+          sendJson(res, 200, { events: listAccessEvents(limit) });
+          return;
+        }
+        if (path === '/api/pass/verify' && req.method === 'POST') {
+          if (!requireUser(req, res)) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              sendJson(res, 200, verifyPass(body));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Doğrulama hatası',
+              });
+            }
+          })();
+          return;
+        }
+        if (path === '/api/pass/admit' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              const result = admitPass({
+                code: body.code,
+                gateId: body.gateId,
+                actor: user.username,
+              });
+              sendJson(res, 200, result);
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Geçiş kaydı başarısız',
+              });
+            }
+          })();
+          return;
+        }
+
+        // ── AŞAMA 15: Metrikler ───────────────────────────────────────
+        if (path === '/api/metrics' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, buildMetrics());
           return;
         }
 
