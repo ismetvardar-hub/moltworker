@@ -1233,6 +1233,8 @@ const BACKUP_COLLECTIONS = [
   'mall-day-rollups',
   'market-returns',
   'culture-sales',
+  'culture-crew-calls',
+  'culture-door-scans',
   'family-notes',
   'family-bookings',
   'green-readings',

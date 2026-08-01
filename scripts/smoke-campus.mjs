@@ -155,6 +155,9 @@ import {
   expireCultureHolds,
   refundCultureSale,
   settleCultureEvent,
+  scanCultureDoor,
+  callCultureCrew,
+  ackCultureCrewCall,
 } from '../server/culturescene.js';
 import {
   returnMarketRental,
@@ -342,6 +345,9 @@ setCultureStageStatus({ stage_id: 'cs_studio', status: 'ready' }, 'smoke');
 assert(cultureBoxOfficeRollup('smoke').ok, 'culture box office');
 holdCultureTicket({ event_id: culture.events[0].id, qty: 1, guest: 'expire-me' }, 'smoke');
 assert(expireCultureHolds({ force: true }, 'smoke').ok, 'culture hold expire');
+assert(scanCultureDoor({ force: true, gate: 'main' }, 'smoke').ok, 'culture door scan');
+assert(callCultureCrew({ event_id: culture.events[0].id }, 'smoke').ok, 'culture crew call');
+assert(ackCultureCrewCall({ role: 'stage' }, 'smoke').ok, 'culture crew ack');
 assert(refundCultureSale({}, 'smoke').ok, 'culture refund');
 assert(settleCultureEvent({ event_id: culture.events[0].id }, 'smoke').ok, 'culture settle');
 

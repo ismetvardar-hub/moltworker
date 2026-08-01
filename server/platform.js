@@ -6801,6 +6801,8 @@ import {
   runAgentBridgeAlertSlaSweep,
 } from './agentbridge.js';
 import {
+  ackCultureCrewCall,
+  callCultureCrew,
   confirmCultureTicket,
   createCultureEvent,
   cultureBoxOfficeRollup,
@@ -6811,6 +6813,7 @@ import {
   pulseCultureStream,
   refundCultureSale,
   releaseCultureHold,
+  scanCultureDoor,
   setCultureLive,
   setCultureStageStatus,
   settleCultureEvent,
@@ -36572,6 +36575,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, settleCultureEvent(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/culture/door/scan' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, scanCultureDoor(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/crew/call' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, callCultureCrew(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/culture/crew/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCultureCrewCall(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/sportbridge' && req.method === 'GET') {

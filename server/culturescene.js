@@ -80,6 +80,10 @@ export function cultureSceneOverview() {
   const settlements = readCollection('culture-settlements', []) || [];
   const refundList = Array.isArray(refunds) ? refunds : [];
   const settleList = Array.isArray(settlements) ? settlements : [];
+  const scans = readCollection('culture-door-scans', []) || [];
+  const crew = readCollection('culture-crew-calls', []) || [];
+  const scanList = Array.isArray(scans) ? scans : [];
+  const crewList = Array.isArray(crew) ? crew : [];
   return {
     title: 'Kültür & Sahne',
     ethos: 'Sahne ormanın sesi — bilet, yayın, sanat tek nabız.',
@@ -90,6 +94,8 @@ export function cultureSceneOverview() {
     streams: streamList.slice(0, 20),
     refunds: refundList.slice(0, 20),
     settlements: settleList.slice(0, 15),
+    door_scans: scanList.slice(0, 20),
+    crew_calls: crewList.slice(0, 15),
     summary: {
       stages_ready: stages.filter((s) => s.status === 'ready').length,
       on_sale: events.filter((e) => e.status === 'on_sale').length,
@@ -102,6 +108,9 @@ export function cultureSceneOverview() {
       open_holds: holdList.filter((h) => h.status !== 'sold' && h.status !== 'released' && h.status !== 'expired').length,
       refunds_try: refundList.reduce((s, r) => s + (Number(r.amount_try) || 0), 0),
       settlements: settleList.length,
+      door_admitted: scanList.filter((s) => s.result === 'admit').length,
+      door_denied: scanList.filter((s) => s.result === 'deny').length,
+      crew_open: crewList.filter((c) => c.status === 'open' || c.status === 'acked').length,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -529,4 +538,157 @@ export function setCultureStageStatus(input = {}, actor = 'system') {
     meta: { id: stages[idx].id },
   });
   return { ok: true, stage: stages[idx], overview: cultureSceneOverview() };
+}
+
+/** Kapı QR / bilet tarama — sold satış → admit */
+export function scanCultureDoor(input = {}, actor = 'system') {
+  const sales = readCollection('culture-sales', []) || [];
+  const saleList = Array.isArray(sales) ? sales : [];
+  let sale =
+    saleList.find((s) => s.id === input.sale_id || s.hold_id === input.hold_id) ||
+    saleList.find((s) => s.guest === input.guest && (!input.event_id || s.event_id === input.event_id));
+  if (!sale && input.force) sale = saleList.find((s) => !s.admitted_at) || saleList[0];
+  const gate = input.gate || 'main';
+  if (!sale) {
+    const deny = {
+      id: rid('cds'),
+      result: 'deny',
+      reason: 'bilet yok',
+      gate,
+      guest: input.guest || null,
+      at: new Date().toISOString(),
+      actor,
+    };
+    prependItem('culture-door-scans', deny, 400);
+    enqueueAgentJob(
+      {
+        agent: 'NEXUS',
+        title: `kapı deny · ${gate}`,
+        priority: 'high',
+        payload: { scan_id: deny.id },
+      },
+      actor,
+    );
+    return { ok: false, error: 'Bilet yok', scan: deny, overview: cultureSceneOverview() };
+  }
+  if (sale.admitted_at && !input.allow_reentry) {
+    const deny = {
+      id: rid('cds'),
+      result: 'deny',
+      reason: 'zaten giriş',
+      gate,
+      sale_id: sale.id,
+      guest: sale.guest,
+      event_id: sale.event_id,
+      at: new Date().toISOString(),
+      actor,
+    };
+    prependItem('culture-door-scans', deny, 400);
+    return { ok: false, error: 'Zaten giriş', scan: deny, overview: cultureSceneOverview() };
+  }
+  const sidx = saleList.findIndex((s) => s.id === sale.id);
+  if (sidx >= 0) {
+    saleList[sidx] = { ...saleList[sidx], admitted_at: new Date().toISOString(), gate };
+    writeCollection('culture-sales', saleList);
+    sale = saleList[sidx];
+  }
+  const scan = {
+    id: rid('cds'),
+    result: 'admit',
+    gate,
+    sale_id: sale.id,
+    event_id: sale.event_id,
+    guest: sale.guest,
+    qty: sale.qty,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-door-scans', scan, 400);
+  enqueueAgentJob(
+    {
+      agent: 'NEXUS',
+      title: `kapı admit · ${sale.guest || sale.id} · ${gate}`,
+      priority: 'normal',
+      payload: { scan_id: scan.id, sale_id: sale.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'culture.door_scan',
+    detail: `admit · ${sale.guest || sale.id} · ${gate}`,
+    meta: { id: scan.id },
+  });
+  return { ok: true, scan, sale, overview: cultureSceneOverview() };
+}
+
+/** Etkinlik ekip çağrısı — sahne/FOH/yayın rolleri */
+export function callCultureCrew(input = {}, actor = 'system') {
+  const events = ensureEvents();
+  const event =
+    events.find((e) => e.id === input.event_id) ||
+    events.find((e) => e.status === 'live' || e.status === 'on_sale') ||
+    events[0];
+  if (!event) return { ok: false, error: 'Etkinlik yok' };
+  const roles = Array.isArray(input.roles) && input.roles.length
+    ? input.roles
+    : ['stage', 'foh', 'stream'];
+  const call = {
+    id: rid('ccc'),
+    event_id: event.id,
+    title: event.title,
+    roles,
+    note: input.note || 'show call',
+    status: 'open',
+    acked: [],
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('culture-crew-calls', call, 200);
+  for (const role of roles) {
+    enqueueAgentJob(
+      {
+        agent: role === 'stream' ? 'DAZE-VISION' : 'CULTURE-AI',
+        title: `crew call · ${role} · ${event.title}`,
+        priority: 'high',
+        payload: { crew_call_id: call.id, role, event_id: event.id },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'culture.crew_call',
+    detail: `${event.title} · ${roles.join(',')}`,
+    meta: { id: call.id },
+  });
+  return { ok: true, crew_call: call, overview: cultureSceneOverview() };
+}
+
+/** Crew call ack — rol onayı */
+export function ackCultureCrewCall(input = {}, actor = 'system') {
+  const list = readCollection('culture-crew-calls', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Crew call yok' };
+  let idx = list.findIndex((c) => c.id === input.id && (c.status === 'open' || c.status === 'acked'));
+  if (idx < 0) idx = list.findIndex((c) => c.status === 'open' || c.status === 'acked');
+  if (idx < 0) return { ok: false, error: 'Açık crew call yok' };
+  const role = input.role || list[idx].roles?.[0] || 'stage';
+  const acked = Array.isArray(list[idx].acked) ? [...list[idx].acked] : [];
+  if (!acked.includes(role)) acked.push(role);
+  const done = (list[idx].roles || []).every((r) => acked.includes(r));
+  list[idx] = {
+    ...list[idx],
+    acked,
+    status: done ? 'ready' : 'acked',
+    last_ack_at: new Date().toISOString(),
+    last_ack_by: actor,
+  };
+  writeCollection('culture-crew-calls', list);
+  appendAudit({
+    actor,
+    action: 'culture.crew_ack',
+    detail: `${list[idx].title} · ${role}`,
+    meta: { id: list[idx].id, role },
+  });
+  return { ok: true, crew_call: list[idx], overview: cultureSceneOverview() };
 }

@@ -196,11 +196,55 @@ export default function CulturescenePage() {
               >
                 Event closeout
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.scanCultureDoor({ force: true, gate: 'main' }).then((r: any) => {
+                    ping(
+                      r.ok
+                        ? `Kapı admit · ${r.scan?.guest || r.sale?.guest || ''}`
+                        : r.error || 'Kapı deny',
+                    )
+                    return refresh()
+                  })
+                }
+              >
+                Kapı tarama
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api
+                    .callCultureCrew({ event_id: data.events?.[0]?.id })
+                    .then((r: any) => {
+                      ping(r.ok ? `Crew call · ${r.crew_call?.roles?.join(',')}` : r.error || 'Crew yok')
+                      return refresh()
+                    })
+                }
+              >
+                Crew call
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.ackCultureCrewCall({ role: 'stage' }).then((r: any) => {
+                    ping(r.ok ? `Crew ack · ${r.crew_call?.status}` : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Crew ack
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı
               stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0} · iade{' '}
-              {data.summary?.refunds_try ?? 0} TRY · settle {data.summary?.settlements ?? 0}
+              {data.summary?.refunds_try ?? 0} TRY · settle {data.summary?.settlements ?? 0} · kapı{' '}
+              {data.summary?.door_admitted ?? 0}/{data.summary?.door_denied ?? 0} · crew{' '}
+              {data.summary?.crew_open ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="Program">

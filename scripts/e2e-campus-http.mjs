@@ -451,6 +451,24 @@ try {
     body: { force: true },
   });
   assert(expire.res.ok && expire.data.ok !== false, 'culture hold expire');
+  const door = await req('/api/culture/door/scan', {
+    method: 'POST',
+    token,
+    body: { force: true, gate: 'main' },
+  });
+  assert(door.res.ok && door.data.ok !== false, 'culture door scan');
+  const crew = await req('/api/culture/crew/call', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1' },
+  });
+  assert(crew.res.ok && crew.data.ok !== false, 'culture crew call');
+  const crewAck = await req('/api/culture/crew/ack', {
+    method: 'POST',
+    token,
+    body: { role: 'stage' },
+  });
+  assert(crewAck.res.ok && crewAck.data.ok !== false, 'culture crew ack');
   const refund = await req('/api/culture/refund', { method: 'POST', token, body: {} });
   assert(refund.res.ok && refund.data.ok !== false, 'culture refund');
   const settleEv = await req('/api/culture/event/settle', {

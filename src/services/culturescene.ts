@@ -132,3 +132,33 @@ export async function settleCultureEvent(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function scanCultureDoor(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/door/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function callCultureCrew(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/crew/call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackCultureCrewCall(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/crew/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
