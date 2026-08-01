@@ -12,7 +12,8 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 | **OlymposPass Yönetim Paneli** | Kullanıcı geçişleri, erişim yetkileri ve kart/kod doğrulama modülü |
 | **Daze Chef (Mutfak Paneli)** | 120 sn teslim geri sayımı (2 dk kuralı → termal koruma), reçete hazırlama adımları ve HEPHAESTUS canlı stok düşüş terminali |
 | **Daze Crew (Personel Portalı)** | Saatlik kazanç hesaplayıcı (taban + performans primi), canlı görev listesi ve DAZE-CREW/SOCRATES performans-centilmenlik puanlama kartları |
-| **Daze Vision (Müşteri Portalı)** | MINT dinamik borsa fiyat grafikleri (canlı sparkline), Daze-Gift ikram simülatörü (ETHOS onaylı mesajlar) ve DAZE-VISION Yaşam Koçu modülü |
+| **Daze Vision (Müşteri Portalı)** | MINT canlı talep yoğunluğu matrisi (`/api/mint/demand`) ile dinamik borsa, Daze-Gift ikram simülatörü ve Yaşam Koçu |
+| **NEXUS IoT Komuta** | Turnike / kapı röle / RFID protokolü (`/api/nexus/*`); unlock/lock/pulse/scan; opsiyonel canlı ESP32 köprüsü |
 
 ## Kurulum
 
@@ -89,6 +90,21 @@ Tamamlanan (veya hata alan) her üretim zinciri `localStorage` içinde saklanır
 - Tek kayıt veya tüm filtre sonucu için **JSON dışa aktarma**
 - Kaydı açıp adım çıktılarını ve HERODOT kaynaklarını yeniden görüntüleme
 - "Bu zinciri üretim kartında yeniden görüntüle" ile aktif pipeline paneline geri yükleme
+
+### Dış Dünya Entegrasyonları (AŞAMA 3)
+
+Vite middleware (`server/integrations.js`):
+
+| Uç nokta | Amaç |
+|----------|------|
+| `POST /api/whatsapp/send` | REMINDER-AI — Twilio → Meta Graph → mock |
+| `GET /api/whatsapp/log` | Son gönderilen mesajlar |
+| `GET /api/mint/demand` | MINT canlı talep yoğunluğu + dinamik fiyatlar |
+| `GET /api/nexus/devices` | IoT cihaz envanteri |
+| `POST /api/nexus/command` | unlock / lock / pulse / scan / status |
+| `GET /api/nexus/events` | Protokol olay günlüğü |
+
+Daze Chef hazır/termal geçişlerinde otomatik WhatsApp; Daze Vision fiyatları MINT matrisinden akar; NEXUS sekmesinden cihaz komutları gönderilir. Anahtarlar: `.env.example`.
 
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 

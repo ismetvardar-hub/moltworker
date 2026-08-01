@@ -5,6 +5,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   Mountain,
+  Radio,
   Ticket,
   Users,
 } from 'lucide-react';
@@ -57,6 +58,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Daze Vision',
     description: 'Müşteri portalı & borsa',
     icon: HeartHandshake,
+  },
+  {
+    id: 'nexus',
+    label: 'NEXUS IoT',
+    description: 'Turnike · kapı · RFID',
+    icon: Radio,
   },
 ];
 

@@ -11,28 +11,36 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import { fetchMintDemand } from '../services/mint';
 import { uid } from '../utils/uid';
 
-// ─── MINT dinamik borsa ───────────────────────────────────────────────
+// ─── MINT dinamik borsa (canlı talep matrisi) ─────────────────────────
 
 interface MarketProduct {
+  id: string;
   name: string;
   base: number;
+  demandPct: number;
   history: number[];
 }
 
 const INITIAL_MARKET: MarketProduct[] = [
-  { name: 'Çay', base: 40, history: [40, 41, 40, 42, 43, 42, 44, 43, 42, 44] },
-  { name: 'Türk Kahvesi', base: 90, history: [90, 92, 91, 94, 93, 95, 94, 96, 95, 97] },
-  { name: 'Tost', base: 120, history: [120, 118, 121, 119, 122, 124, 123, 121, 124, 126] },
+  { id: 'cay', name: 'Çay', base: 40, demandPct: 50, history: [40, 41, 40, 42, 43, 42, 44, 43, 42, 44] },
+  {
+    id: 'kahve',
+    name: 'Türk Kahvesi',
+    base: 90,
+    demandPct: 55,
+    history: [90, 92, 91, 94, 93, 95, 94, 96, 95, 97],
+  },
+  {
+    id: 'tost',
+    name: 'Tost',
+    base: 120,
+    demandPct: 48,
+    history: [120, 118, 121, 119, 122, 124, 123, 121, 124, 126],
+  },
 ];
-
-function nextPrice(current: number, base: number): number {
-  // Yoğunluk simülasyonu: taban etrafında ±%6 bandında rastgele yürüyüş.
-  const drift = (base - current) * 0.08;
-  const noise = (Math.random() - 0.5) * base * 0.04;
-  return Math.max(base * 0.85, Math.min(base * 1.2, current + drift + noise));
-}
 
 function Sparkline({ points, rising }: { points: number[]; rising: boolean }) {
   const path = useMemo(() => {
@@ -104,23 +112,44 @@ const COACH_TIPS = [
 
 export default function DazeVisionPage() {
   const [market, setMarket] = useState<MarketProduct[]>(INITIAL_MARKET);
+  const [intensity, setIntensity] = useState(50);
+  const [intensityLabel, setIntensityLabel] = useState('Normal');
   const [guest, setGuest] = useState(GUESTS[0]);
   const [gift, setGift] = useState(GIFTS[0]);
   const [giftLog, setGiftLog] = useState<GiftRecord[]>([]);
   const [tipIndex, setTipIndex] = useState(0);
 
-  // MINT borsa güncellemesi
+  // MINT canlı talep yoğunluğu matrisi → fiyat geçmişi
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMarket((prev) =>
-        prev.map((p) => {
-          const next = nextPrice(p.history[p.history.length - 1], p.base);
-          const history = [...p.history.slice(-19), next];
-          return { ...p, history };
-        }),
-      );
-    }, 1600);
-    return () => clearInterval(timer);
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const snap = await fetchMintDemand();
+        if (cancelled) return;
+        setIntensity(snap.intensity);
+        setIntensityLabel(snap.label);
+        setMarket((prev) =>
+          prev.map((p) => {
+            const live = snap.products.find((x) => x.id === p.id || x.name === p.name);
+            if (!live) return p;
+            return {
+              ...p,
+              base: live.base,
+              demandPct: live.demandPct,
+              history: [...p.history.slice(-19), live.price],
+            };
+          }),
+        );
+      } catch {
+        /* proxy yoksa mevcut grafik korunur */
+      }
+    };
+    void tick();
+    const timer = setInterval(() => void tick(), 2000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, []);
 
   // Yaşam koçu ipuçları döngüsü
@@ -157,14 +186,27 @@ export default function DazeVisionPage() {
 
       <PanelCard
         title="Mutfak Borsası — Canlı Fiyatlar"
-        subtitle="MINT algoritması yoğunluğa göre fiyatları esnetir"
+        subtitle="MINT talep yoğunluğu matrisi (/api/mint/demand) fiyatları esnetir"
         actions={
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
             <LineChart className="size-3.5" />
-            CANLI
+            Yoğunluk {intensity}% · {intensityLabel}
           </span>
         }
       >
+        <div className="mb-4">
+          <div className="mb-1 flex justify-between text-[11px] text-slate-500">
+            <span>Sakin</span>
+            <span>Talep yoğunluğu</span>
+            <span>Yoğun</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-obsidian-700">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sky-400 via-lykia-400 to-rose-400 transition-all"
+              style={{ width: `${intensity}%` }}
+            />
+          </div>
+        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {market.map((p) => {
             const current = p.history[p.history.length - 1];
@@ -173,7 +215,7 @@ export default function DazeVisionPage() {
             const changePct = ((current - p.base) / p.base) * 100;
             return (
               <div
-                key={p.name}
+                key={p.id}
                 className="rounded-xl border border-obsidian-700 bg-obsidian-950/60 p-4"
               >
                 <div className="flex items-start justify-between">
@@ -192,7 +234,9 @@ export default function DazeVisionPage() {
                   ₺{current.toFixed(0)}
                 </p>
                 <Sparkline points={p.history} rising={rising} />
-                <p className="text-[10px] text-slate-600">taban: ₺{p.base} · MINT esnetme bandı ±%20</p>
+                <p className="text-[10px] text-slate-600">
+                  taban: ₺{p.base} · talep %{p.demandPct} · band ±%20
+                </p>
               </div>
             );
           })}

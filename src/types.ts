@@ -5,7 +5,8 @@ export type PageId =
   | 'olympospass'
   | 'chef'
   | 'crew'
-  | 'vision';
+  | 'vision'
+  | 'nexus';
 
 export type SystemHealth = 'online' | 'degraded' | 'offline' | 'unknown';
 

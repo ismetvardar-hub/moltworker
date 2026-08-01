@@ -4,12 +4,19 @@ import {
   CheckCircle2,
   ChefHat,
   ListChecks,
+  MessageCircle,
   PackageCheck,
   Snowflake,
   Terminal,
   Timer,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import {
+  buildReadyMessage,
+  buildThermalMessage,
+  sendWhatsApp,
+  type WhatsAppResult,
+} from '../services/whatsapp';
 
 /** Daze-Reminder kuralı: hazır ürün 120 saniye içinde teslim alınmalıdır. */
 const PICKUP_LIMIT_SECONDS = 120;
@@ -20,8 +27,8 @@ interface KitchenOrder {
   id: number;
   item: string;
   guest: string;
+  phone: string;
   status: OrderStatus;
-  /** 'hazir' durumunda kalan teslim süresi (sn). */
   remaining: number;
 }
 
@@ -31,9 +38,30 @@ interface RecipeStep {
 }
 
 const INITIAL_ORDERS: KitchenOrder[] = [
-  { id: 101, item: 'Izgara Köfte Menü', guest: 'Elif K.', status: 'hazir', remaining: PICKUP_LIMIT_SECONDS },
-  { id: 102, item: 'Gözleme + Ayran', guest: 'Mert D.', status: 'hazir', remaining: 74 },
-  { id: 103, item: 'Serpme Kahvaltı', guest: 'Zeynep A.', status: 'hazirlaniyor', remaining: 0 },
+  {
+    id: 101,
+    item: 'Izgara Köfte Menü',
+    guest: 'Elif K.',
+    phone: '+905551010101',
+    status: 'hazir',
+    remaining: PICKUP_LIMIT_SECONDS,
+  },
+  {
+    id: 102,
+    item: 'Gözleme + Ayran',
+    guest: 'Mert D.',
+    phone: '+905551010102',
+    status: 'hazir',
+    remaining: 74,
+  },
+  {
+    id: 103,
+    item: 'Serpme Kahvaltı',
+    guest: 'Zeynep A.',
+    phone: '+905551010103',
+    status: 'hazirlaniyor',
+    remaining: 0,
+  },
 ];
 
 const INITIAL_RECIPE: RecipeStep[] = [
@@ -123,19 +151,77 @@ function StockTerminal() {
 export default function DazeChefPage() {
   const [orders, setOrders] = useState<KitchenOrder[]>(INITIAL_ORDERS);
   const [recipe, setRecipe] = useState<RecipeStep[]>(INITIAL_RECIPE);
+  const [waLog, setWaLog] = useState<WhatsAppResult[]>([]);
+  const thermalSent = useRef<Set<number>>(new Set());
+  const readySent = useRef<Set<number>>(new Set());
 
-  // 120 sn geri sayım: süre dolan 'hazir' siparişler termal korumaya alınır.
+  const notify = async (
+    order: KitchenOrder,
+    kind: 'ready' | 'thermal',
+  ): Promise<void> => {
+    const body =
+      kind === 'ready'
+        ? buildReadyMessage(order.guest, order.item, order.id)
+        : buildThermalMessage(order.guest, order.item, order.id);
+    try {
+      const result = await sendWhatsApp({
+        to: order.phone,
+        body,
+        guest: order.guest,
+        orderId: order.id,
+        kind,
+      });
+      setWaLog((prev) => [result, ...prev].slice(0, 12));
+    } catch (err) {
+      setWaLog((prev) => [
+        {
+          ok: false,
+          live: false,
+          id: `err_${Date.now()}`,
+          provider: 'error',
+          status: 'failed',
+          body,
+          to: order.phone,
+          guest: order.guest,
+          orderId: order.id,
+          kind,
+          note: err instanceof Error ? err.message : 'Gönderim hatası',
+          at: new Date().toISOString(),
+        },
+        ...prev,
+      ].slice(0, 12));
+    }
+  };
+
+  // 120 sn geri sayım + termal korumada REMINDER-AI WhatsApp.
   useEffect(() => {
     const timer = setInterval(() => {
-      setOrders((prev) =>
-        prev.map((o) => {
+      setOrders((prev) => {
+        const next = prev.map((o) => {
           if (o.status !== 'hazir') return o;
-          if (o.remaining <= 1) return { ...o, status: 'korumada', remaining: 0 };
+          if (o.remaining <= 1) {
+            if (!thermalSent.current.has(o.id)) {
+              thermalSent.current.add(o.id);
+              void notify(o, 'thermal');
+            }
+            return { ...o, status: 'korumada' as const, remaining: 0 };
+          }
           return { ...o, remaining: o.remaining - 1 };
-        }),
-      );
+        });
+        return next;
+      });
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // İlk yüklemede hazır siparişler için "hazır" bildirimi (bir kez).
+  useEffect(() => {
+    for (const o of INITIAL_ORDERS) {
+      if (o.status === 'hazir' && !readySent.current.has(o.id)) {
+        readySent.current.add(o.id);
+        void notify(o, 'ready');
+      }
+    }
   }, []);
 
   const deliver = (id: number) => {
@@ -144,9 +230,15 @@ export default function DazeChefPage() {
 
   const markReady = (id: number) => {
     setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id ? { ...o, status: 'hazir', remaining: PICKUP_LIMIT_SECONDS } : o,
-      ),
+      prev.map((o) => {
+        if (o.id !== id) return o;
+        const updated = { ...o, status: 'hazir' as const, remaining: PICKUP_LIMIT_SECONDS };
+        if (!readySent.current.has(id)) {
+          readySent.current.add(id);
+          void notify(updated, 'ready');
+        }
+        return updated;
+      }),
     );
   };
 
@@ -164,14 +256,14 @@ export default function DazeChefPage() {
           Daze Chef — Mutfak Paneli
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Sipariş sayaçları (2 dk kuralı), reçete adımları ve HEPHAESTUS canlı stok takibi.
+          2 dk kuralı, reçete adımları, HEPHAESTUS stok ve REMINDER-AI WhatsApp bildirimleri.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <PanelCard
           title="Sipariş Teslim Sayaçları"
-          subtitle={`Daze-Reminder kuralı: hazır ürün ${PICKUP_LIMIT_SECONDS} sn içinde alınmazsa termal korumaya geçer`}
+          subtitle={`Daze-Reminder: ${PICKUP_LIMIT_SECONDS} sn içinde alınmazsa termal koruma + WhatsApp`}
           className="xl:col-span-2"
         >
           <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -193,7 +285,7 @@ export default function DazeChefPage() {
                     <div>
                       <p className="text-sm font-semibold text-slate-100">{order.item}</p>
                       <p className="text-xs text-slate-500">
-                        #{order.id} · {order.guest}
+                        #{order.id} · {order.guest} · {order.phone}
                       </p>
                     </div>
                     <span
@@ -228,7 +320,7 @@ export default function DazeChefPage() {
                     <div className="mt-3 space-y-2">
                       <p className="flex items-center gap-2 text-xs text-amber-300">
                         <Snowflake className="size-4" />
-                        2 dk doldu → ürün termal korumada. REMINDER-AI nazik bir WhatsApp gönderdi.
+                        Termal korumada · REMINDER-AI WhatsApp gönderildi
                       </p>
                       <button
                         type="button"
@@ -248,7 +340,7 @@ export default function DazeChefPage() {
                       className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
                     >
                       <CheckCircle2 className="size-4" />
-                      Hazır — Sayacı Başlat
+                      Hazır — Sayaç + WhatsApp
                     </button>
                   )}
 
@@ -305,12 +397,57 @@ export default function DazeChefPage() {
         </PanelCard>
       </div>
 
-      <PanelCard
-        title="HEPHAESTUS — Canlı Stok Düşüş Terminali"
-        subtitle="Reçete tamamlandıkça stok otomatik düşer; kritik seviyede AGORA'ya re-order sinyali gider"
-      >
-        <StockTerminal />
-      </PanelCard>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <PanelCard
+          title="HEPHAESTUS — Canlı Stok Düşüş Terminali"
+          subtitle="Kritik seviyede AGORA re-order sinyali"
+        >
+          <StockTerminal />
+        </PanelCard>
+
+        <PanelCard
+          title="REMINDER-AI — WhatsApp Bildirimleri"
+          subtitle="Twilio / Meta Graph canlı · anahtar yoksa mock simülasyon"
+          actions={
+            <span className="rounded-full bg-obsidian-800 px-3 py-1 text-xs font-medium text-slate-300">
+              <MessageCircle className="mr-1 inline size-3.5" />
+              {waLog.length} mesaj
+            </span>
+          }
+        >
+          <ul className="max-h-72 space-y-2 overflow-y-auto">
+            {waLog.length === 0 && (
+              <li className="rounded-xl border border-dashed border-obsidian-700 p-4 text-center text-xs text-slate-600">
+                Henüz bildirim yok. Sayaç başlatıldığında veya termal korumaya geçildiğinde
+                REMINDER-AI mesaj gönderir.
+              </li>
+            )}
+            {waLog.map((m) => (
+              <li
+                key={m.id}
+                className="rounded-xl border border-obsidian-700 bg-obsidian-950/60 p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-200">
+                    {m.guest ?? m.to} · #{m.orderId}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      m.live
+                        ? 'bg-emerald-500/15 text-emerald-300'
+                        : 'bg-amber-500/15 text-amber-300'
+                    }`}
+                  >
+                    {m.provider}/{m.status}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{m.body}</p>
+                {m.note && <p className="mt-1 text-[10px] text-slate-600">{m.note}</p>}
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      </div>
     </div>
   );
 }

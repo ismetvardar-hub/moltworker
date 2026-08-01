@@ -7,6 +7,7 @@ import OlymposPassPanel from './pages/OlymposPassPanel';
 import DazeChefPage from './pages/DazeChefPage';
 import DazeCrewPage from './pages/DazeCrewPage';
 import DazeVisionPage from './pages/DazeVisionPage';
+import NexusPanel from './pages/NexusPanel';
 import type { PageId } from './types';
 
 const PAGES: Record<PageId, () => React.JSX.Element> = {
@@ -17,6 +18,7 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   chef: DazeChefPage,
   crew: DazeCrewPage,
   vision: DazeVisionPage,
+  nexus: NexusPanel,
 };
 
 function pageFromHash(): PageId {
