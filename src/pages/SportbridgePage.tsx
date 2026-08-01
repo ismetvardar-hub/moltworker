@@ -78,6 +78,18 @@ export default function SportbridgePage() {
               >
                 Recovery plan
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.runSportEligibilitySweep({}).then((r: any) => {
+                    ping(`Eligibilite ${r.summary?.flagged ?? 0} bayrak`)
+                    return refresh()
+                  })
+                }
+              >
+                Eligibility sweep
+              </button>
             </div>
           </PanelCard>
           <PanelCard title="Park nabız">

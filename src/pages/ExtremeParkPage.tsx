@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import {
+  applyExtremeWeatherHold,
+  cancelExtremeReservation,
+  clearExtremeWeatherHold,
   createExtremeMaas,
   extremeWalletSpend,
   fetchExtremeOverview,
   fetchExtremeUserSpec,
   patchExtremeGear,
+  reserveExtremeSlot,
+  returnExtremeGear,
   runExtremeWeatherCheck,
   signExtremeWaiver,
 } from '../services/extremepark'
@@ -173,6 +178,30 @@ export default function ExtremeParkPage() {
                 >
                   Simüle: yağış
                 </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-amber-500/30 px-2 py-1 text-xs text-amber-100"
+                  onClick={() =>
+                    void applyExtremeWeatherHold({ force_condition: 'windy', minutes: 60 }).then((r: any) => {
+                      ping(`Hold ${r.held?.length || 0} slot`)
+                      return refresh()
+                    })
+                  }
+                >
+                  Hold 60dk
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200"
+                  onClick={() =>
+                    void clearExtremeWeatherHold({}).then((r: any) => {
+                      ping(`Hold clear ${r.cleared?.length || 0}`)
+                      return refresh()
+                    })
+                  }
+                >
+                  Hold clear
+                </button>
               </div>
               {weatherResult && (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-400">
@@ -242,20 +271,49 @@ export default function ExtremeParkPage() {
                         <div className="text-xs text-amber-300">{s.cancel_reason}</div>
                       ) : null}
                     </div>
-                    <span
-                      className={`rounded px-2 py-0.5 text-[10px] uppercase ${
-                        s.status === 'cancelled_weather'
-                          ? 'bg-amber-500/20 text-amber-200'
-                          : s.status === 'full'
-                            ? 'bg-rose-500/20 text-rose-200'
-                            : 'bg-emerald-500/20 text-emerald-200'
-                      }`}
-                    >
-                      {s.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="rounded-md bg-lykia-500/80 px-2 py-0.5 text-[10px] text-obsidian-950"
+                        onClick={() =>
+                          void reserveExtremeSlot({ user_id: userId, slot_id: s.id }).then((r: any) => {
+                            if (!r.ok) throw new Error(r.error || 'Rezervasyon başarısız')
+                            ping(`Rezerve · ${s.branch}`)
+                            return refresh()
+                          }).catch((e: Error) => setError(e.message))
+                        }
+                      >
+                        Rezerve
+                      </button>
+                      <span
+                        className={`rounded px-2 py-0.5 text-[10px] uppercase ${
+                          s.status === 'cancelled_weather'
+                            ? 'bg-amber-500/20 text-amber-200'
+                            : s.status === 'weather_hold'
+                              ? 'bg-amber-500/30 text-amber-100'
+                              : s.status === 'full'
+                                ? 'bg-rose-500/20 text-rose-200'
+                                : 'bg-emerald-500/20 text-emerald-200'
+                        }`}
+                      >
+                        {s.status}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
+              <button
+                type="button"
+                className="mt-2 rounded-md bg-obsidian-800 px-2 py-1 text-xs text-slate-300"
+                onClick={() =>
+                  void cancelExtremeReservation({ user_id: userId }).then(() => {
+                    ping('Rezervasyon iptal')
+                    return refresh()
+                  })
+                }
+              >
+                Aktif rezervasyonu iptal
+              </button>
             </PanelCard>
           </div>
 
@@ -286,6 +344,30 @@ export default function ExtremeParkPage() {
                           {st}
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] text-emerald-200"
+                        onClick={() =>
+                          void returnExtremeGear({ gear_id: g.id }).then(() => {
+                            ping('İade')
+                            return refresh()
+                          })
+                        }
+                      >
+                        iade
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md bg-rose-500/20 px-2 py-1 text-[10px] text-rose-200"
+                        onClick={() =>
+                          void returnExtremeGear({ gear_id: g.id, damaged: true }).then(() => {
+                            ping('Hasar → HEPHAESTUS')
+                            return refresh()
+                          })
+                        }
+                      >
+                        hasar
+                      </button>
                     </div>
                   </li>
                 ))}

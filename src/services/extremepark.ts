@@ -67,3 +67,53 @@ export async function patchExtremeGear(id: string, patch: Record<string, unknown
     }),
   )
 }
+
+export async function applyExtremeWeatherHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/weather-hold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearExtremeWeatherHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/weather-clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function reserveExtremeSlot(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/slot-reserve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function cancelExtremeReservation(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/slot-cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function returnExtremeGear(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/extreme/gear-return', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -34,3 +34,13 @@ export async function bridgeRecoveryPlan(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runSportEligibilitySweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/sportbridge/eligibility', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

@@ -542,3 +542,258 @@ export function extremeparkSummary() {
     overview: o,
   };
 }
+
+/** Hava hold — iptal değil; yeniden değerlendirme penceresi */
+export function applyExtremeWeatherHold(input = {}, actor = 'system') {
+  const weather = buildWeatherBrief('venue_antalya_extreme');
+  const condition = input.force_condition || weather.condition || 'windy';
+  const minutes = Number(input.minutes) || 60;
+  const slots = ensureSlots();
+  const held = [];
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    const branch = BRANCHES.find((b) => b.id === slot.branch);
+    if (!branch?.weatherSensitive) continue;
+    if (input.slot_id && slot.id !== input.slot_id) continue;
+    if (slot.status === 'cancelled_weather' || slot.status === 'full') continue;
+    if (branch.cancelOn && !branch.cancelOn.includes(condition) && !input.force) continue;
+    const until = new Date(Date.now() + minutes * 60_000).toISOString();
+    slots[i] = {
+      ...slot,
+      status: 'weather_hold',
+      hold_until: until,
+      hold_condition: condition,
+      prev_status: slot.status === 'weather_hold' ? slot.prev_status || 'open' : slot.status,
+    };
+    held.push(slots[i]);
+  }
+  writeCollection('extreme-slots', slots);
+  if (held.length) {
+    enqueueAgentJob(
+      {
+        agent: 'REMINDER-AI',
+        title: `hava hold ${minutes}dk · ${held.length} slot (${condition})`,
+        priority: 'high',
+        payload: { condition, minutes, slots: held.map((h) => h.id) },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'extreme.weather_hold',
+    detail: `${condition} · ${held.length} slot · ${minutes}dk`,
+    meta: { n: held.length, condition },
+  });
+  return { ok: true, held, minutes, condition, overview: extremeOverview() };
+}
+
+/** Hold temizle → open veya iptal */
+export function clearExtremeWeatherHold(input = {}, actor = 'system') {
+  const slots = ensureSlots();
+  const cleared = [];
+  const cancel = !!input.cancel;
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    if (slot.status !== 'weather_hold') continue;
+    if (input.slot_id && slot.id !== input.slot_id) continue;
+    if (cancel) {
+      slots[i] = {
+        ...slot,
+        status: 'cancelled_weather',
+        cancel_reason: `Hold sonrası iptal: ${slot.hold_condition || 'hava'}`,
+        cancelled_at: new Date().toISOString(),
+        hold_until: null,
+      };
+    } else {
+      slots[i] = {
+        ...slot,
+        status: slot.prev_status || 'open',
+        hold_until: null,
+        hold_condition: null,
+        prev_status: undefined,
+      };
+    }
+    cleared.push(slots[i]);
+  }
+  writeCollection('extreme-slots', slots);
+  appendAudit({
+    actor,
+    action: cancel ? 'extreme.weather_hold_cancel' : 'extreme.weather_hold_clear',
+    detail: `${cleared.length} slot`,
+    meta: { n: cleared.length, cancel },
+  });
+  return { ok: true, cleared, cancel, overview: extremeOverview() };
+}
+
+/** Slot rezervasyonu — kota + waiver */
+export function reserveExtremeSlot(input = {}, actor = 'system') {
+  const userId = input.user_id || 'guest_can';
+  const members = ensureMembers();
+  const midx = members.findIndex((m) => m.user_profile?.user_id === userId || m.id === userId);
+  if (midx < 0) return { ok: false, error: 'Üye yok' };
+  const member = members[midx];
+  if (!member.user_profile?.waiver_signed) {
+    return { ok: false, error: 'Waiver gerekli' };
+  }
+  const used = Number(member.quota_management?.weekly_used) || 0;
+  const limit = Number(member.quota_management?.weekly_slots) || 0;
+  if (limit && used >= limit) {
+    return { ok: false, error: 'Haftalık kota dolu' };
+  }
+  const slots = ensureSlots();
+  let slot =
+    slots.find((s) => s.id === input.slot_id) ||
+    slots.find((s) => (s.status === 'open' || s.status === 'available') && (s.booked || 0) < (s.capacity || 1));
+  if (!slot) return { ok: false, error: 'Müsait slot yok' };
+  if (slot.status === 'weather_hold' || slot.status === 'cancelled_weather') {
+    return { ok: false, error: `Slot ${slot.status}` };
+  }
+  const booked = (Number(slot.booked) || 0) + 1;
+  const full = booked >= (Number(slot.capacity) || 1);
+  const sidx = slots.findIndex((s) => s.id === slot.id);
+  slots[sidx] = {
+    ...slots[sidx],
+    booked,
+    status: full ? 'full' : slots[sidx].status === 'open' || !slots[sidx].status ? 'open' : slots[sidx].status,
+  };
+  writeCollection('extreme-slots', slots);
+  const reservation = {
+    id: rid('xr'),
+    slot_id: slot.id,
+    branch: slot.branch,
+    slot_start: slot.slot_start,
+    user_id: member.user_profile.user_id,
+    status: 'confirmed',
+    at: new Date().toISOString(),
+  };
+  members[midx] = {
+    ...member,
+    quota_management: {
+      ...member.quota_management,
+      weekly_used: used + 1,
+    },
+    active_reservation: {
+      branch: slot.branch,
+      slot_start: slot.slot_start,
+      slot_id: slot.id,
+      reservation_id: reservation.id,
+    },
+  };
+  writeCollection('extreme-members', members);
+  prependItem('extreme-reservations', reservation, 400);
+  enqueueAgentJob(
+    {
+      agent: 'NEXUS',
+      title: `slot reserve · ${member.user_profile.display_name} · ${slot.branch}`,
+      priority: 'normal',
+      payload: { reservation_id: reservation.id, slot_id: slot.id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'extreme.reserve',
+    detail: `${userId} · ${slot.branch} ${slot.slot_start}`,
+    meta: { id: reservation.id },
+  });
+  return {
+    ok: true,
+    reservation,
+    slot: slots[sidx],
+    user_spec: extremeUserSpec(userId),
+    overview: extremeOverview(),
+  };
+}
+
+export function cancelExtremeReservation(input = {}, actor = 'system') {
+  const userId = input.user_id || 'guest_can';
+  const members = ensureMembers();
+  const midx = members.findIndex((m) => m.user_profile?.user_id === userId || m.id === userId);
+  if (midx < 0) return { ok: false, error: 'Üye yok' };
+  const member = members[midx];
+  const slotId = input.slot_id || member.active_reservation?.slot_id;
+  const slots = ensureSlots();
+  const sidx = slots.findIndex((s) => s.id === slotId);
+  if (sidx >= 0) {
+    const booked = Math.max(0, (Number(slots[sidx].booked) || 1) - 1);
+    slots[sidx] = {
+      ...slots[sidx],
+      booked,
+      status: slots[sidx].status === 'full' ? 'open' : slots[sidx].status,
+    };
+    writeCollection('extreme-slots', slots);
+  }
+  const used = Math.max(0, (Number(member.quota_management?.weekly_used) || 1) - 1);
+  members[midx] = {
+    ...member,
+    quota_management: { ...member.quota_management, weekly_used: used },
+    active_reservation: null,
+  };
+  writeCollection('extreme-members', members);
+  const reservations = readCollection('extreme-reservations', []) || [];
+  if (Array.isArray(reservations)) {
+    const ridx = reservations.findIndex(
+      (r) => r.id === input.reservation_id || (r.user_id === userId && r.slot_id === slotId && r.status === 'confirmed'),
+    );
+    if (ridx >= 0) {
+      reservations[ridx] = { ...reservations[ridx], status: 'cancelled', cancelled_at: new Date().toISOString() };
+      writeCollection('extreme-reservations', reservations);
+    }
+  }
+  appendAudit({ actor, action: 'extreme.reserve_cancel', detail: `${userId} · ${slotId}`, meta: { slot_id: slotId } });
+  return { ok: true, user_spec: extremeUserSpec(userId), overview: extremeOverview() };
+}
+
+/** Ekipman iade / hasar — holder temizle + HEPHAESTUS */
+export function returnExtremeGear(input = {}, actor = 'system') {
+  const gear = ensureGear();
+  const idx = gear.findIndex((g) => g.id === input.gear_id || g.serial === input.gear_id || g.id === input.id);
+  if (idx < 0) return { ok: false, error: 'Ekipman yok' };
+  const item = gear[idx];
+  const damaged = !!input.damaged || input.status === 'damaged';
+  const service = !!input.service || input.status === 'service' || damaged;
+  const holder = item.holder;
+  gear[idx] = {
+    ...item,
+    status: service ? 'service' : 'ready',
+    holder: null,
+    returned_at: new Date().toISOString(),
+    return_note: input.note || (damaged ? 'hasar bildirimi' : 'iade'),
+    condition: damaged ? 'damaged' : input.condition || 'ok',
+  };
+  writeCollection('extreme-gear', gear);
+  if (holder) {
+    const members = ensureMembers();
+    const midx = members.findIndex(
+      (m) => m.user_profile?.user_id === holder || m.user_profile?.display_name === holder || m.id === holder,
+    );
+    if (midx >= 0) {
+      const qm = members[midx].quota_management || {};
+      const holds = Math.max(0, (Number(qm.gear_holds) || 1) - 1);
+      members[midx] = {
+        ...members[midx],
+        quota_management: { ...qm, gear_holds: holds },
+      };
+      writeCollection('extreme-members', members);
+    }
+  }
+  if (service) {
+    enqueueAgentJob(
+      {
+        agent: 'HEPHAESTUS',
+        title: `gear ${damaged ? 'hasar' : 'servis'} · ${item.serial}`,
+        priority: damaged ? 'high' : 'normal',
+        payload: { gear_id: item.id, damaged },
+      },
+      actor,
+    );
+  }
+  appendAudit({
+    actor,
+    action: 'extreme.gear_return',
+    detail: `${item.serial} → ${gear[idx].status}`,
+    meta: { id: item.id },
+  });
+  return { ok: true, gear: gear[idx], overview: extremeOverview() };
+}

@@ -25,7 +25,16 @@ import {
 import { agentQueueOverview, enqueueAgentJob, claimAgentJob, completeAgentJob, tickAgentQueue } from '../server/agentqueue.js';
 import { greenPulseOverview, recordGreenMeter, addGreenIncident } from '../server/greenpulse.js';
 import { campusBriefOverview, runCampusAutomations } from '../server/campusbrief.js';
-import { extremeSlotWeatherCheck } from '../server/extremepark.js';
+import {
+  extremeSlotWeatherCheck,
+  applyExtremeWeatherHold,
+  clearExtremeWeatherHold,
+  reserveExtremeSlot,
+  returnExtremeGear,
+  signExtremeWaiver,
+} from '../server/extremepark.js';
+import { runSportEligibilitySweep } from '../server/sportbridge.js';
+import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from '../server/agentfleet.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import { openMallOverview, recordMallSale } from '../server/openmall.js';
@@ -38,6 +47,7 @@ import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
 import { sportBridgeOverview, syncSlotToSession } from '../server/sportbridge.js';
+// wave-12 helpers imported above
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -140,11 +150,23 @@ assert(health.score >= 0, 'campus health');
 const sport = sportBridgeOverview();
 assert(sport.links?.length >= 1, 'sport links');
 syncSlotToSession({}, 'smoke');
+const elig = runSportEligibilitySweep({}, 'smoke');
+assert(elig.ok && elig.summary?.scanned >= 1, 'sport eligibility');
 
 const brief = campusBriefOverview('smoke');
 assert(brief.pulses?.green && brief.actions, 'campus brief');
 runCampusAutomations('smoke');
 extremeSlotWeatherCheck({ force_condition: 'windy' }, 'smoke');
+const hold = applyExtremeWeatherHold({ force_condition: 'windy', minutes: 30, force: true }, 'smoke');
+assert(hold.ok, 'weather hold');
+clearExtremeWeatherHold({}, 'smoke');
+signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
+const reserved = reserveExtremeSlot({ user_id: 'guest_ela' }, 'smoke');
+assert(reserved.ok, 'slot reserve');
+const gearRet = returnExtremeGear({ gear_id: 'xg_1' }, 'smoke');
+assert(gearRet.ok, 'gear return');
+const greenAuto = runGreenPulseAutomations({}, 'smoke');
+assert(greenAuto.ok && Array.isArray(greenAuto.actions), 'green automations');
 
 const fleet = agentFleetOverview();
 assert(fleet.summary?.total === 28, '28 core agents');

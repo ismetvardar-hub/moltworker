@@ -131,6 +131,35 @@ try {
   });
   assert(hk.res.ok, 'stay hk complete');
 
+  const hold = await req('/api/extreme/weather-hold', {
+    method: 'POST',
+    token,
+    body: { force_condition: 'windy', minutes: 30, force: true },
+  });
+  assert(hold.res.ok, 'weather hold');
+  await req('/api/extreme/weather-clear', { method: 'POST', token, body: {} });
+
+  await req('/api/extreme/waiver', { method: 'POST', token, body: { user_id: 'guest_ela' } });
+  const reserve = await req('/api/extreme/slot-reserve', {
+    method: 'POST',
+    token,
+    body: { user_id: 'guest_ela' },
+  });
+  assert(reserve.res.ok && reserve.data.ok !== false, 'slot reserve');
+
+  const gear = await req('/api/extreme/gear-return', {
+    method: 'POST',
+    token,
+    body: { gear_id: 'xg_1' },
+  });
+  assert(gear.res.ok, 'gear return');
+
+  const elig = await req('/api/sportbridge/eligibility', { method: 'POST', token, body: {} });
+  assert(elig.res.ok, 'sport eligibility');
+
+  const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
+  assert(green.res.ok, 'green automations');
+
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');
 
@@ -144,6 +173,8 @@ try {
         fleet: (await req('/api/agentfleet', { token })).data.summary?.total,
         readiness_avg: ready.data.avg,
         occupancy_pct: night.data.rollup?.occupancy_pct,
+        elig_flagged: elig.data.summary?.flagged,
+        green_actions: green.data.actions?.length,
       },
       null,
       2,

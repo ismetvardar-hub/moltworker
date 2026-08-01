@@ -69,6 +69,18 @@ export default function GreenpulsePage() {
               >
                 Saha notu
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.runGreenPulseAutomations({}).then((r: any) => {
+                    ping(`ESG playbook ${r.actions?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                ESG playbook
+              </button>
             </div>
           </PanelCard>
           <PanelCard title="Sayaçlar">

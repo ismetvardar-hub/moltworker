@@ -6671,11 +6671,16 @@ import {
 } from './netsplit3.js';
 import { buildApotheosis } from './apotheosis.js';
 import {
+  applyExtremeWeatherHold,
+  cancelExtremeReservation,
+  clearExtremeWeatherHold,
   createExtremeMaas,
   extremeOverview,
   extremeSlotWeatherCheck,
   extremeUserSpec,
   extremeWalletSpend,
+  reserveExtremeSlot,
+  returnExtremeGear,
   signExtremeWaiver,
   updateExtremeGear,
 } from './extremepark.js';
@@ -6707,9 +6712,9 @@ import { mallDayRollup, openMallOverview, recordMallSale, updateMallTenant } fro
 import { bookFamilyProgram, familyCampOverview, familyCheckIn, familyCheckOut, familyEmergencyNote } from './familycamp.js';
 import { agentBridgeOverview, agentBridgePing } from './agentbridge.js';
 import { confirmCultureTicket, createCultureEvent, cultureSceneOverview, holdCultureTicket, releaseCultureHold, setCultureLive } from './culturescene.js';
-import { bridgeRecoveryPlan, linkSportProfiles, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
+import { bridgeRecoveryPlan, linkSportProfiles, runSportEligibilitySweep, sportBridgeOverview, syncSlotToSession } from './sportbridge.js';
 import { agentQueueOverview, claimAgentJob, completeAgentJob, enqueueAgentJob, tickAgentQueue } from './agentqueue.js';
-import { addGreenIncident, greenPulseOverview, recordGreenMeter } from './greenpulse.js';
+import { addGreenIncident, greenPulseOverview, recordGreenMeter, runGreenPulseAutomations } from './greenpulse.js';
 import { campusBriefOverview, campusHealthCheck, runCampusAutomations } from './campusbrief.js';
 import { agentFleetOverview, dispatchFleetDirective, pingFleetAgent } from './agentfleet.js';
 
@@ -36371,6 +36376,49 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, extremeSlotWeatherCheck(await readBody(req), user.username));
           })();
+          return;
+        }
+
+        if (path === '/api/extreme/weather-hold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, applyExtremeWeatherHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/weather-clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearExtremeWeatherHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/slot-reserve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reserveExtremeSlot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/slot-cancel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cancelExtremeReservation(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/extreme/gear-return' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, returnExtremeGear(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge/eligibility' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSportEligibilitySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/greenpulse/automations' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGreenPulseAutomations(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/extreme/maas' && req.method === 'POST') {

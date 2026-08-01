@@ -110,3 +110,124 @@ export function addGreenIncident(input = {}, actor = 'system') {
   appendAudit({ actor, action: 'green.incident', detail: row.title, meta: { id: row.id } });
   return { ok: true, incident: row, overview: greenPulseOverview() };
 }
+
+/** Sayaç türüne göre remediation playbook */
+export function runGreenPulseAutomations(input = {}, actor = 'system') {
+  const meters = ensureMeters();
+  const incidents = readCollection('green-incidents', []) || [];
+  const actions = [];
+  const queue = readCollection('agent-jobs', []) || [];
+  const hasOpen = (agent, needle) =>
+    (Array.isArray(queue) ? queue : []).some(
+      (j) =>
+        (j.status === 'queued' || j.status === 'running') &&
+        j.agent === agent &&
+        String(j.title || '').includes(needle),
+    );
+
+  for (const m of meters) {
+    if (m.status !== 'alert' && m.status !== 'watch' && !input.force_all) continue;
+    if (m.kind === 'solar' && m.status !== 'ok') {
+      if (!hasOpen('NEXUS', 'enerji')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'NEXUS',
+            title: `enerji playbook · güneş ${m.value}/${m.target}`,
+            priority: m.status === 'alert' ? 'high' : 'normal',
+            payload: { meter_id: m.id, kind: 'solar' },
+          },
+          actor,
+        );
+        actions.push({ type: 'solar_nexus', job: r.job?.id });
+      }
+    }
+    if (m.kind === 'grid' && m.status !== 'ok') {
+      if (!hasOpen('GAIA-ESG', 'şebeke')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'GAIA-ESG',
+            title: `şebeke playbook · çekiş ${m.value}/${m.target}`,
+            priority: 'high',
+            payload: { meter_id: m.id, kind: 'grid' },
+          },
+          actor,
+        );
+        actions.push({ type: 'grid_gaia', job: r.job?.id });
+      }
+    }
+    if (m.kind === 'water' && m.status !== 'ok') {
+      if (!hasOpen('HEPHAESTUS', 'su')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'HEPHAESTUS',
+            title: `su playbook · kaçak/sulama ${m.value}${m.unit}`,
+            priority: m.status === 'alert' ? 'high' : 'normal',
+            payload: { meter_id: m.id, kind: 'water' },
+          },
+          actor,
+        );
+        actions.push({ type: 'water_heph', job: r.job?.id });
+      }
+    }
+    if (m.kind === 'waste' && m.status !== 'ok') {
+      if (!hasOpen('DAZE-CREW', 'atık')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'DAZE-CREW',
+            title: `atık playbook · ayrıştırma %${m.value}`,
+            priority: 'normal',
+            payload: { meter_id: m.id, kind: 'waste' },
+          },
+          actor,
+        );
+        actions.push({ type: 'waste_crew', job: r.job?.id });
+      }
+    }
+    if (m.kind === 'carbon' && m.status === 'alert') {
+      if (!hasOpen('GAIA-ESG', 'karbon')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'GAIA-ESG',
+            title: `karbon playbook · ${m.value} kg/misafir`,
+            priority: 'high',
+            payload: { meter_id: m.id, kind: 'carbon' },
+          },
+          actor,
+        );
+        actions.push({ type: 'carbon_gaia', job: r.job?.id });
+      }
+    }
+  }
+
+  for (const inc of (Array.isArray(incidents) ? incidents : []).slice(0, 5)) {
+    if (inc.severity === 'critical' || inc.severity === 'high') {
+      if (!hasOpen('GAIA-ESG', 'eskalasyon')) {
+        const r = enqueueAgentJob(
+          {
+            agent: 'GAIA-ESG',
+            title: `eskalasyon · ${inc.title}`,
+            priority: 'high',
+            payload: { incident_id: inc.id },
+          },
+          actor,
+        );
+        actions.push({ type: 'incident_esc', job: r.job?.id, incident: inc.id });
+      }
+    }
+  }
+
+  const run = {
+    id: rid('gpa'),
+    actions_n: actions.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('green-automations', run, 100);
+  appendAudit({
+    actor,
+    action: 'green.automations',
+    detail: `${actions.length} playbook aksiyon`,
+    meta: { n: actions.length },
+  });
+  return { ok: true, actions, run, overview: greenPulseOverview() };
+}

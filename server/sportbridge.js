@@ -5,7 +5,8 @@ import { randomBytes } from 'node:crypto';
 import { prependItem, readCollection, writeCollection } from './store.js';
 import { appendAudit } from './audit.js';
 import { extremeOverview } from './extremepark.js';
-import { athleteOsOverview, logAthleteSession, upsertAthletePlan } from './athleteos.js';
+import { athleteOsOverview, athleteReadinessRollup, logAthleteSession, upsertAthletePlan } from './athleteos.js';
+import { enqueueAgentJob } from './agentqueue.js';
 
 function rid(p) {
   return `${p}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
@@ -134,4 +135,60 @@ export function bridgeRecoveryPlan(input = {}, actor = 'system') {
     actor,
   );
   return { ok: true, plan: plan.plan, overview: sportBridgeOverview() };
+}
+
+/** Waiver / lisans / kota / readiness tarama → ajan kuyruk */
+export function runSportEligibilitySweep(input = {}, actor = 'system') {
+  const overview = sportBridgeOverview();
+  const ready = athleteReadinessRollup(actor);
+  const byAthlete = Object.fromEntries((ready.athletes || []).map((r) => [r.athlete_id, r]));
+  const flags = [];
+  const jobs = [];
+  for (const link of overview.links || []) {
+    const issues = [];
+    if (!link.waiver_ok) issues.push('waiver');
+    if (!link.license) issues.push('license');
+    const weekly = Number(link.weekly_used);
+    if (Number.isFinite(weekly) && weekly >= 5) issues.push('quota');
+    const r = byAthlete[link.athlete_id];
+    if (r && r.score < 55) issues.push('readiness');
+    if (!issues.length) continue;
+    const row = {
+      id: rid('se'),
+      link_id: link.id,
+      extreme_user: link.extreme_user,
+      athlete_id: link.athlete_id,
+      issues,
+      readiness: r?.score ?? null,
+      at: new Date().toISOString(),
+    };
+    flags.push(row);
+    prependItem('sport-eligibility', row, 200);
+    let agent = 'SPORT-BRIDGE';
+    if (issues.includes('waiver')) agent = 'DAZE-VISION';
+    else if (issues.includes('readiness')) agent = 'LIFE-COACH-AI';
+    const job = enqueueAgentJob(
+      {
+        agent,
+        title: `eligibilite · ${link.athlete_name || link.athlete_id} · ${issues.join('+')}`,
+        priority: issues.includes('readiness') || issues.includes('waiver') ? 'high' : 'normal',
+        payload: { link_id: link.id, issues, athlete_id: link.athlete_id },
+      },
+      actor,
+    );
+    jobs.push(job.job?.id);
+  }
+  appendAudit({
+    actor,
+    action: 'sport.eligibility',
+    detail: `${flags.length} bayrak · ${jobs.length} iş`,
+    meta: { flags: flags.length },
+  });
+  return {
+    ok: true,
+    flags,
+    jobs,
+    summary: { scanned: (overview.links || []).length, flagged: flags.length },
+    overview: sportBridgeOverview(),
+  };
 }

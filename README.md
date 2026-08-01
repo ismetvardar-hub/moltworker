@@ -1839,6 +1839,9 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | athlete+ | `/api/athleteos/license` · `/readiness` | Lisans + RPE/recovery readiness |
 | life+ | `/api/lifecoach/checkin` | Uzman check-in → metrik/plan |
 | stay+ | `/api/stayring/hk-complete` · `/night-rollup` | HK tamam + gece RevPAR |
+| extreme+ | `/api/extreme/weather-hold` · `/slot-reserve` · `/gear-return` | Hold · rezervasyon · iade |
+| sport+ | `/api/sportbridge/eligibility` | Waiver/lisans/readiness sweep |
+| green+ | `/api/greenpulse/automations` | ESG remediation playbook |
 
 Smoke: `npm run smoke:campus` · HTTP e2e: `npm run e2e:campus` · Yedek: `npm run backup`  
 `App.tsx`: LoginPage eager, diğer tüm sayfalar lazy.  
