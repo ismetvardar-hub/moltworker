@@ -8,7 +8,7 @@ export function buildOpenApi() {
     info: {
       title: 'LİKYA / OlymposPass Platform API',
       version: '1.0.0',
-      description: 'CEO paneli Vite middleware API yüzeyi (AŞAMA 1–39)',
+      description: 'CEO paneli Vite middleware API yüzeyi (AŞAMA 1–45)',
     },
     servers: [{ url: '/' }],
     paths: {
@@ -88,6 +88,12 @@ export function buildOpenApi() {
       '/api/audit': { get: { summary: 'Denetim günlüğü', tags: ['audit'] } },
       '/api/maintenance': { get: { summary: 'Bakım ticketları', tags: ['maintenance'] } },
       '/api/brief': { get: { summary: 'Günlük operasyon brifi', tags: ['brief'] } },
+      '/api/menu': { get: { summary: 'Menü kataloğu', tags: ['menu'] } },
+      '/api/campaigns': { get: { summary: 'Kampanyalar', tags: ['campaigns'] } },
+      '/api/i18n': { get: { summary: 'Lokalizasyon notları', tags: ['i18n'] } },
+      '/api/coldchain': { get: { summary: 'Soğuk zincir', tags: ['coldchain'] } },
+      '/api/handover': { get: { summary: 'Vardiya teslim', tags: ['handover'] } },
+      '/api/cash': { get: { summary: 'Kasa', tags: ['cash'] } },
       '/api/notifications': { get: { summary: 'Bildirimler', tags: ['notify'] } },
       '/api/events': { get: { summary: 'SSE olay akışı', tags: ['realtime'] } },
       '/api/settings': { get: { summary: 'Ayarlar', tags: ['settings'] } },

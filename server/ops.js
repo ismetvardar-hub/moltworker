@@ -51,6 +51,14 @@ const BACKUP_COLLECTIONS = [
   'tip-pool',
   'tip-entries',
   'maintenance',
+  'menu-items',
+  'campaigns',
+  'i18n-notes',
+  'coldchain-assets',
+  'coldchain-readings',
+  'handover-notes',
+  'cash-drawers',
+  'cash-entries',
   // sessions bilinçli olarak yedeğe alınabilir ama restore'da opsiyonel
   'sessions',
 ];

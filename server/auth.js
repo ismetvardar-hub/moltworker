@@ -69,6 +69,12 @@ export const ROLE_PAGES = {
     'audit',
     'maintenance',
     'brief',
+    'menu',
+    'campaigns',
+    'i18n',
+    'coldchain',
+    'handover',
+    'cash',
     'docs',
     'webhooks',
     'settings',
@@ -92,6 +98,9 @@ export const ROLE_PAGES = {
     'lostfound',
     'maintenance',
     'brief',
+    'menu',
+    'coldchain',
+    'handover',
     'docs',
   ],
   crew: [
@@ -112,6 +121,8 @@ export const ROLE_PAGES = {
     'tips',
     'maintenance',
     'brief',
+    'handover',
+    'campaigns',
   ],
 };
 

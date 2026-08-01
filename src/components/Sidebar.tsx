@@ -39,6 +39,12 @@ import {
   ScrollText,
   Wrench,
   Sunrise,
+  Utensils,
+  BadgePercent,
+  Languages,
+  Thermometer,
+  NotebookPen,
+  Wallet,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -279,6 +285,42 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'Bakım',
     description: 'Arıza / ticket kuyruğu',
     icon: Wrench,
+  },
+  {
+    id: 'menu',
+    label: 'Menü',
+    description: 'Fiyat & katalog',
+    icon: Utensils,
+  },
+  {
+    id: 'campaigns',
+    label: 'Kampanyalar',
+    description: 'Promo kodları',
+    icon: BadgePercent,
+  },
+  {
+    id: 'i18n',
+    label: 'Lokalizasyon',
+    description: 'BABEL çeviri notları',
+    icon: Languages,
+  },
+  {
+    id: 'coldchain',
+    label: 'Soğuk Zincir',
+    description: 'LOGOS sıcaklık log',
+    icon: Thermometer,
+  },
+  {
+    id: 'handover',
+    label: 'Vardiya Teslim',
+    description: 'Personel handover',
+    icon: NotebookPen,
+  },
+  {
+    id: 'cash',
+    label: 'Kasa',
+    description: 'Till hareketleri',
+    icon: Wallet,
   },
   {
     id: 'audit',

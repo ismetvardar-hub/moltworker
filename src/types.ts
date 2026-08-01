@@ -34,6 +34,12 @@ export type PageId =
   | 'audit'
   | 'maintenance'
   | 'brief'
+  | 'menu'
+  | 'campaigns'
+  | 'i18n'
+  | 'coldchain'
+  | 'handover'
+  | 'cash'
   | 'docs'
   | 'webhooks'
   | 'settings';

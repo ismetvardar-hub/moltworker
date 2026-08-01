@@ -48,6 +48,11 @@ const IMPORTANT = new Set([
   'tips.payout',
   'maintenance.create',
   'maintenance.update',
+  'menu.create',
+  'campaigns.create',
+  'coldchain.alert',
+  'handover.create',
+  'cash.out',
 ]);
 
 export function pushNotification({ actor, action, detail, meta, level }) {

@@ -38,6 +38,12 @@ import TipsPage from './pages/TipsPage';
 import AuditPage from './pages/AuditPage';
 import MaintenancePage from './pages/MaintenancePage';
 import BriefPage from './pages/BriefPage';
+import MenuPage from './pages/MenuPage';
+import CampaignsPage from './pages/CampaignsPage';
+import I18nPage from './pages/I18nPage';
+import ColdchainPage from './pages/ColdchainPage';
+import HandoverPage from './pages/HandoverPage';
+import CashPage from './pages/CashPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -84,6 +90,12 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   audit: AuditPage,
   maintenance: MaintenancePage,
   brief: BriefPage,
+  menu: MenuPage,
+  campaigns: CampaignsPage,
+  i18n: I18nPage,
+  coldchain: ColdchainPage,
+  handover: HandoverPage,
+  cash: CashPage,
   docs: DocsPage,
   webhooks: WebhooksPage,
   settings: SettingsPage,

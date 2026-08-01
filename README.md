@@ -268,6 +268,17 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **38** | Bakım / arıza ticket (`/api/maintenance`) |
 | **39** | Günlük operasyon brifi (`/api/brief`) |
 
+### Menü · Kampanya · Sahada (AŞAMA 40–45)
+
+| Aşama | Özellik |
+|-------|---------|
+| **40** | Menü kataloğu (`/api/menu`) |
+| **41** | Kampanya / promo (`/api/campaigns`) |
+| **42** | BABEL lokalizasyon notları (`/api/i18n`) |
+| **43** | LOGOS soğuk zincir (`/api/coldchain`) |
+| **44** | Vardiya teslim notları (`/api/handover`) |
+| **45** | Kasa / till (`/api/cash`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

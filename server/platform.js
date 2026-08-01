@@ -158,6 +158,34 @@ import {
   updateTicket,
 } from './maintenance.js';
 import { buildDailyBrief } from './brief.js';
+import {
+  createMenuItem,
+  listMenu,
+  menuSummary,
+  removeMenuItem,
+  updateMenuItem,
+} from './menu.js';
+import {
+  campaignsSummary,
+  createCampaign,
+  listCampaigns,
+  removeCampaign,
+  updateCampaign,
+} from './campaigns.js';
+import {
+  i18nSummary,
+  listI18nNotes,
+  removeI18nNote,
+  upsertI18nNote,
+} from './i18nNotes.js';
+import {
+  coldchainSummary,
+  listColdAssets,
+  listColdReadings,
+  logColdReading,
+} from './coldchain.js';
+import { createHandover, handoverSummary, listHandover } from './handover.js';
+import { cashSummary, postCash } from './cash.js';
 
 applySettingsToEnv();
 startJobTicker(5000);
@@ -178,6 +206,12 @@ listChecklistTemplates();
 listLostFound();
 tipSummary();
 listMaintenance();
+listMenu();
+listCampaigns();
+listI18nNotes();
+listColdAssets();
+listHandover();
+cashSummary();
 listPlaybooks();
 listInventory();
 listShifts();
@@ -1625,6 +1659,220 @@ export function createPlatformMiddleware() {
         if (path === '/api/brief' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildDailyBrief());
+          return;
+        }
+
+        // ── AŞAMA 40: Menü ────────────────────────────────────────────
+        if (path === '/api/menu' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...menuSummary(),
+            items: listMenu({
+              venueId: url.searchParams.get('venueId') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+              available: url.searchParams.get('available') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/menu' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew menü ekleyemez' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, { item: createMenuItem(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/menu/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const item = updateMenuItem(id, await readBody(req), user.username);
+            if (!item) {
+              sendJson(res, 404, { error: 'Menü kalemi bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { item });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/menu/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const item = removeMenuItem(id, user.username);
+          if (!item) {
+            sendJson(res, 404, { error: 'Menü kalemi bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, item });
+          return;
+        }
+
+        // ── AŞAMA 41: Kampanyalar ─────────────────────────────────────
+        if (path === '/api/campaigns' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...campaignsSummary(),
+            campaigns: listCampaigns({
+              status: url.searchParams.get('status') || undefined,
+              brandId: url.searchParams.get('brandId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/campaigns' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew kampanya açamaz' });
+            return;
+          }
+          void (async () => {
+            sendJson(res, 200, {
+              campaign: createCampaign(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/campaigns/') && req.method === 'PATCH') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const id = path.split('/')[3];
+            const campaign = updateCampaign(id, await readBody(req), user.username);
+            if (!campaign) {
+              sendJson(res, 404, { error: 'Kampanya bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { campaign });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/campaigns/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const campaign = removeCampaign(id, user.username);
+          if (!campaign) {
+            sendJson(res, 404, { error: 'Kampanya bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, campaign });
+          return;
+        }
+
+        // ── AŞAMA 42: Lokalizasyon notları ────────────────────────────
+        if (path === '/api/i18n' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...i18nSummary(),
+            notes: listI18nNotes({
+              locale: url.searchParams.get('locale') || undefined,
+              status: url.searchParams.get('status') || undefined,
+              module: url.searchParams.get('module') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/i18n' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, { note: upsertI18nNote(await readBody(req), user.username) });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/i18n/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const note = removeI18nNote(id, user.username);
+          if (!note) {
+            sendJson(res, 404, { error: 'Not bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { ok: true, note });
+          return;
+        }
+
+        // ── AŞAMA 43: Soğuk zincir ────────────────────────────────────
+        if (path === '/api/coldchain' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          sendJson(res, 200, {
+            ...coldchainSummary(),
+            assets: listColdAssets(),
+            readings: listColdReadings(40),
+          });
+          return;
+        }
+        if (path === '/api/coldchain' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            const reading = logColdReading(await readBody(req), user.username);
+            if (!reading) {
+              sendJson(res, 400, { error: 'Geçersiz varlık/sıcaklık' });
+              return;
+            }
+            sendJson(res, 200, { reading });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 44: Vardiya teslim ──────────────────────────────────
+        if (path === '/api/handover' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            ...handoverSummary(),
+            notes: listHandover({
+              venueId: url.searchParams.get('venueId') || undefined,
+            }),
+          });
+          return;
+        }
+        if (path === '/api/handover' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            sendJson(res, 200, {
+              note: createHandover(await readBody(req), user.username),
+            });
+          })();
+          return;
+        }
+
+        // ── AŞAMA 45: Kasa ────────────────────────────────────────────
+        if (path === '/api/cash' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, cashSummary(url.searchParams.get('venueId') || undefined));
+          return;
+        }
+        if (path === '/api/cash' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew kasa hareketi giremez' });
+            return;
+          }
+          void (async () => {
+            const result = postCash(await readBody(req), user.username);
+            if (!result) {
+              sendJson(res, 400, { error: 'Geçersiz tutar veya yetersiz bakiye' });
+              return;
+            }
+            sendJson(res, 200, result);
+          })();
           return;
         }
 
