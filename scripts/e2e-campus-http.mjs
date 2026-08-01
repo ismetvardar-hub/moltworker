@@ -153,6 +153,12 @@ try {
     '/api/artery2',
     '/api/circuit2',
     '/api/crucible',
+    '/api/apotheosis',
+    '/api/charter',
+    '/api/dominion2',
+    '/api/logos',
+    '/api/phoenix',
+    '/api/serenity2',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1469,6 +1475,72 @@ try {
   assert(cruLab.res.ok && cruLab.data.ok !== false, 'crucible lab ship');
   const cruAck = await req('/api/crucible/flag/ack', { method: 'POST', token, body: {} });
   assert(cruAck.res.ok && cruAck.data.ok !== false, 'crucible flag ack');
+
+  const apoSweep = await req('/api/apotheosis/sweep', { method: 'POST', token, body: { force: true } });
+  assert(apoSweep.res.ok && apoSweep.data.ok !== false, 'apotheosis sweep');
+  const apoBackup = await req('/api/apotheosis/backup/close', { method: 'POST', token, body: {} });
+  assert(apoBackup.res.ok && apoBackup.data.ok !== false, 'apotheosis backup');
+  const apoRun = await req('/api/apotheosis/runbook/live', { method: 'POST', token, body: {} });
+  assert(apoRun.res.ok && apoRun.data.ok !== false, 'apotheosis runbook');
+  const apoDrill = await req('/api/apotheosis/drill/close', { method: 'POST', token, body: {} });
+  assert(apoDrill.res.ok && apoDrill.data.ok !== false, 'apotheosis drill');
+  const apoAck = await req('/api/apotheosis/flag/ack', { method: 'POST', token, body: {} });
+  assert(apoAck.res.ok && apoAck.data.ok !== false, 'apotheosis ack');
+
+  const chrSweep = await req('/api/charter/sweep', { method: 'POST', token, body: { force: true } });
+  assert(chrSweep.res.ok && chrSweep.data.ok !== false, 'charter sweep');
+  const chrEthics = await req('/api/charter/ethics/close', { method: 'POST', token, body: {} });
+  assert(chrEthics.res.ok && chrEthics.data.ok !== false, 'charter ethics');
+  const chrRisk = await req('/api/charter/risk/live', { method: 'POST', token, body: {} });
+  assert(chrRisk.res.ok && chrRisk.data.ok !== false, 'charter risk');
+  const chrClaim = await req('/api/charter/claim/done', { method: 'POST', token, body: {} });
+  assert(chrClaim.res.ok && chrClaim.data.ok !== false, 'charter claim');
+  const chrAck = await req('/api/charter/flag/ack', { method: 'POST', token, body: {} });
+  assert(chrAck.res.ok && chrAck.data.ok !== false, 'charter ack');
+
+  const dm2Sweep = await req('/api/dominion2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(dm2Sweep.res.ok && dm2Sweep.data.ok !== false, 'dominion2 sweep');
+  const dm2Sup = await req('/api/dominion2/supplier/live', { method: 'POST', token, body: {} });
+  assert(dm2Sup.res.ok && dm2Sup.data.ok !== false, 'dominion2 supplier');
+  const dm2Board = await req('/api/dominion2/board/run', { method: 'POST', token, body: {} });
+  assert(dm2Board.res.ok && dm2Board.data.ok !== false, 'dominion2 board');
+  const dm2Cash = await req('/api/dominion2/cash/busy', { method: 'POST', token, body: {} });
+  assert(dm2Cash.res.ok && dm2Cash.data.ok !== false, 'dominion2 cash');
+  const dm2Ack = await req('/api/dominion2/flag/ack', { method: 'POST', token, body: {} });
+  assert(dm2Ack.res.ok && dm2Ack.data.ok !== false, 'dominion2 ack');
+
+  const logSweep = await req('/api/logos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(logSweep.res.ok && logSweep.data.ok !== false, 'logos sweep');
+  const logPilot = await req('/api/logos/pilot/live', { method: 'POST', token, body: {} });
+  assert(logPilot.res.ok && logPilot.data.ok !== false, 'logos pilot');
+  const logLearn = await req('/api/logos/learn/busy', { method: 'POST', token, body: {} });
+  assert(logLearn.res.ok && logLearn.data.ok !== false, 'logos learn');
+  const logLab = await req('/api/logos/lab/ship', { method: 'POST', token, body: {} });
+  assert(logLab.res.ok && logLab.data.ok !== false, 'logos lab');
+  const logAck = await req('/api/logos/flag/ack', { method: 'POST', token, body: {} });
+  assert(logAck.res.ok && logAck.data.ok !== false, 'logos ack');
+
+  const phxSweep = await req('/api/phoenix/sweep', { method: 'POST', token, body: { force: true } });
+  assert(phxSweep.res.ok && phxSweep.data.ok !== false, 'phoenix sweep');
+  const phxBackup = await req('/api/phoenix/backup/close', { method: 'POST', token, body: {} });
+  assert(phxBackup.res.ok && phxBackup.data.ok !== false, 'phoenix backup');
+  const phxRun = await req('/api/phoenix/runbook/live', { method: 'POST', token, body: {} });
+  assert(phxRun.res.ok && phxRun.data.ok !== false, 'phoenix runbook');
+  const phxDrill = await req('/api/phoenix/drill/close', { method: 'POST', token, body: {} });
+  assert(phxDrill.res.ok && phxDrill.data.ok !== false, 'phoenix drill');
+  const phxAck = await req('/api/phoenix/flag/ack', { method: 'POST', token, body: {} });
+  assert(phxAck.res.ok && phxAck.data.ok !== false, 'phoenix ack');
+
+  const sy2Sweep = await req('/api/serenity2/sweep', { method: 'POST', token, body: { force: true } });
+  assert(sy2Sweep.res.ok && sy2Sweep.data.ok !== false, 'serenity2 sweep');
+  const sy2Leg = await req('/api/serenity2/legacy/close', { method: 'POST', token, body: {} });
+  assert(sy2Leg.res.ok && sy2Leg.data.ok !== false, 'serenity2 legacy');
+  const sy2Quiet = await req('/api/serenity2/quiet/live', { method: 'POST', token, body: {} });
+  assert(sy2Quiet.res.ok && sy2Quiet.data.ok !== false, 'serenity2 quiet');
+  const sy2Pillow = await req('/api/serenity2/pillow/run', { method: 'POST', token, body: {} });
+  assert(sy2Pillow.res.ok && sy2Pillow.data.ok !== false, 'serenity2 pillow');
+  const sy2Ack = await req('/api/serenity2/flag/ack', { method: 'POST', token, body: {} });
+  assert(sy2Ack.res.ok && sy2Ack.data.ok !== false, 'serenity2 ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

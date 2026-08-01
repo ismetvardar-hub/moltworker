@@ -542,6 +542,25 @@ import {
   buildCrucible, runCrucibleSweep, ackCrucibleFlag, liveCruciblePilot, busyCrucibleLearn, shipCrucibleLab,
 } from '../server/crucible.js';
 import {
+  buildApotheosis, runApotheosisSweep, ackApotheosisFlag, closeApotheosisBackup, liveApotheosisRunbook, closeApotheosisDrill,
+} from '../server/apotheosis.js';
+import {
+  buildCharter, runCharterSweep, ackCharterFlag, closeCharterEthics, liveCharterRisk, doneCharterClaim,
+} from '../server/charter.js';
+import {
+  buildDominion2, runDominion2Sweep, ackDominion2Flag, liveDominion2Supplier, runDominion2Board, busyDominion2Cash,
+} from '../server/dominion2.js';
+import {
+  buildLogos, runLogosSweep, ackLogosFlag, liveLogosPilot, busyLogosLearn, shipLogosLab,
+} from '../server/logos.js';
+import {
+  buildPhoenix, runPhoenixSweep, ackPhoenixFlag, closePhoenixBackup, livePhoenixRunbook, closePhoenixDrill,
+} from '../server/phoenix.js';
+import {
+  buildSerenity2, runSerenity2Sweep, ackSerenity2Flag, closeSerenity2Legacy, liveSerenity2Quiet, runSerenity2Pillow,
+} from '../server/serenity2.js';
+
+import {
   buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
 } from '../server/beacon.js';
 import {
@@ -1468,7 +1487,49 @@ assert(busyCrucibleLearn({}, 'smoke').ok, 'crucible learn busy');
 assert(shipCrucibleLab({}, 'smoke').ok, 'crucible lab ship');
 assert(ackCrucibleFlag({}, 'smoke').ok, 'crucible flag ack');
 
-console.log('MOD131_OK');
+assert(buildApotheosis().title, 'apotheosis overview');
+assert(runApotheosisSweep({ force: true }, 'smoke').ok, 'apotheosis sweep');
+assert(closeApotheosisBackup({}, 'smoke').ok, 'apotheosis backup close');
+assert(liveApotheosisRunbook({}, 'smoke').ok, 'apotheosis runbook live');
+assert(closeApotheosisDrill({}, 'smoke').ok, 'apotheosis drill close');
+assert(ackApotheosisFlag({}, 'smoke').ok, 'apotheosis flag ack');
+
+assert(buildCharter().title, 'charter overview');
+assert(runCharterSweep({ force: true }, 'smoke').ok, 'charter sweep');
+assert(closeCharterEthics({}, 'smoke').ok, 'charter ethics close');
+assert(liveCharterRisk({}, 'smoke').ok, 'charter risk live');
+assert(doneCharterClaim({}, 'smoke').ok, 'charter claim done');
+assert(ackCharterFlag({}, 'smoke').ok, 'charter flag ack');
+
+assert(buildDominion2().title, 'dominion2 overview');
+assert(runDominion2Sweep({ force: true }, 'smoke').ok, 'dominion2 sweep');
+assert(liveDominion2Supplier({}, 'smoke').ok, 'dominion2 supplier live');
+assert(runDominion2Board({}, 'smoke').ok, 'dominion2 board run');
+assert(busyDominion2Cash({}, 'smoke').ok, 'dominion2 cash busy');
+assert(ackDominion2Flag({}, 'smoke').ok, 'dominion2 flag ack');
+
+assert(buildLogos().title, 'logos overview');
+assert(runLogosSweep({ force: true }, 'smoke').ok, 'logos sweep');
+assert(liveLogosPilot({}, 'smoke').ok, 'logos pilot live');
+assert(busyLogosLearn({}, 'smoke').ok, 'logos learn busy');
+assert(shipLogosLab({}, 'smoke').ok, 'logos lab ship');
+assert(ackLogosFlag({}, 'smoke').ok, 'logos flag ack');
+
+assert(buildPhoenix().title, 'phoenix overview');
+assert(runPhoenixSweep({ force: true }, 'smoke').ok, 'phoenix sweep');
+assert(closePhoenixBackup({}, 'smoke').ok, 'phoenix backup close');
+assert(livePhoenixRunbook({}, 'smoke').ok, 'phoenix runbook live');
+assert(closePhoenixDrill({}, 'smoke').ok, 'phoenix drill close');
+assert(ackPhoenixFlag({}, 'smoke').ok, 'phoenix flag ack');
+
+assert(buildSerenity2().title, 'serenity2 overview');
+assert(runSerenity2Sweep({ force: true }, 'smoke').ok, 'serenity2 sweep');
+assert(closeSerenity2Legacy({}, 'smoke').ok, 'serenity2 legacy close');
+assert(liveSerenity2Quiet({}, 'smoke').ok, 'serenity2 quiet live');
+assert(runSerenity2Pillow({}, 'smoke').ok, 'serenity2 pillow run');
+assert(ackSerenity2Flag({}, 'smoke').ok, 'serenity2 flag ack');
+
+console.log('MOD135_OK');
 
 console.log(
   JSON.stringify(

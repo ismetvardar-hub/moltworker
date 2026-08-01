@@ -4779,7 +4779,9 @@ import {
   auditevidenceSummary,
   updateAuditevidence,
 } from './auditevidence.js';
-import { buildCharter } from './charter.js';
+import {
+  ackCharterFlag, buildCharter, closeCharterEthics, doneCharterClaim, liveCharterRisk, runCharterSweep,
+} from './charter.js';
 import {
   createBoardresolve,
   listBoardresolve,
@@ -4864,7 +4866,9 @@ import {
   netsplitSummary,
   updateNetsplit,
 } from './netsplit.js';
-import { buildPhoenix } from './phoenix.js';
+import {
+  ackPhoenixFlag, buildPhoenix, closePhoenixBackup, closePhoenixDrill, livePhoenixRunbook, runPhoenixSweep,
+} from './phoenix.js';
 import {
   createRestorejob,
   listRestorejob,
@@ -5558,7 +5562,9 @@ import {
   sealnote2Summary,
   updateSealnote2,
 } from './sealnote2.js';
-import { buildDominion2 } from './dominion2.js';
+import {
+  ackDominion2Flag, buildDominion2, busyDominion2Cash, liveDominion2Supplier, runDominion2Board, runDominion2Sweep,
+} from './dominion2.js';
 import {
   createLegacyflag2,
   listLegacyflag2,
@@ -5643,7 +5649,9 @@ import {
   feedbackloop2Summary,
   updateFeedbackloop2,
 } from './feedbackloop2.js';
-import { buildSerenity2 } from './serenity2.js';
+import {
+  ackSerenity2Flag, buildSerenity2, closeSerenity2Legacy, liveSerenity2Quiet, runSerenity2Pillow, runSerenity2Sweep,
+} from './serenity2.js';
 import {
   createMomentmap2,
   listMomentmap2,
@@ -6777,7 +6785,9 @@ import {
   labbudget3Summary,
   updateLabbudget3,
 } from './labbudget3.js';
-import { buildLogos } from './logos.js';
+import {
+  ackLogosFlag, buildLogos, busyLogosLearn, liveLogosPilot, runLogosSweep, shipLogosLab,
+} from './logos.js';
 import {
   createIpvault3,
   listIpvault3,
@@ -6949,7 +6959,9 @@ import {
   netsplit3Summary,
   updateNetsplit3,
 } from './netsplit3.js';
-import { buildApotheosis } from './apotheosis.js';
+import {
+  ackApotheosisFlag, buildApotheosis, closeApotheosisBackup, closeApotheosisDrill, liveApotheosisRunbook, runApotheosisSweep,
+} from './apotheosis.js';
 import {
   applyExtremeWeatherHold,
   cancelExtremeReservation,
@@ -29020,6 +29032,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildCharter());
           return;
         }
+        if (path === '/api/charter/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCharterSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCharterFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter/ethics/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCharterEthics(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter/risk/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveCharterRisk(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/charter/claim/done' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, doneCharterClaim(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Phoenix OS · Phoenix (AŞAMA 826–840) ──
 
@@ -29375,6 +29417,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/phoenix' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildPhoenix());
+          return;
+        }
+        if (path === '/api/phoenix/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPhoenixSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPhoenixFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix/backup/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePhoenixBackup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix/runbook/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, livePhoenixRunbook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/phoenix/drill/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closePhoenixDrill(await readBody(req), user.username)); })();
           return;
         }
 
@@ -32443,6 +32515,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildDominion2());
           return;
         }
+        if (path === '/api/dominion2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDominion2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDominion2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion2/supplier/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveDominion2Supplier(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion2/board/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDominion2Board(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dominion2/cash/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyDominion2Cash(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Serenity OS · Serenity2 (AŞAMA 961–975) ──
 
@@ -32798,6 +32900,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/serenity2' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildSerenity2());
+          return;
+        }
+        if (path === '/api/serenity2/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSerenity2Sweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity2/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSerenity2Flag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity2/legacy/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeSerenity2Legacy(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity2/quiet/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveSerenity2Quiet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/serenity2/pillow/run' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSerenity2Pillow(await readBody(req), user.username)); })();
           return;
         }
 
@@ -37801,6 +37933,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildLogos());
           return;
         }
+        if (path === '/api/logos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLogosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/logos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLogosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/logos/pilot/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveLogosPilot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/logos/learn/busy' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, busyLogosLearn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/logos/lab/ship' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, shipLogosLab(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── Pathos OS · Pathos (AŞAMA 1171–1185) ──
 
@@ -38543,6 +38705,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/apotheosis' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildApotheosis());
+          return;
+        }
+        if (path === '/api/apotheosis/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runApotheosisSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apotheosis/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackApotheosisFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apotheosis/backup/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeApotheosisBackup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apotheosis/runbook/live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, liveApotheosisRunbook(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/apotheosis/drill/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeApotheosisDrill(await readBody(req), user.username)); })();
           return;
         }
 
