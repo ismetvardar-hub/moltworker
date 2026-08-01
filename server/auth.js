@@ -32,8 +32,8 @@ const USERS = [
 /** Rol → erişilebilir sayfalar */
 export const ROLE_PAGES = {
   ceo: [
-    'hub',
     'komuta',
+    'hub',
     'ollama',
     'ajanlar',
     'olympospass',

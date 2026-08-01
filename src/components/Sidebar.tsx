@@ -26,16 +26,16 @@ interface SidebarProps {
 
 const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof Cpu }[] = [
   {
-    id: 'hub',
-    label: 'Daze Hub',
-    description: 'Merkezi operasyon özeti',
-    icon: Network,
-  },
-  {
     id: 'komuta',
     label: 'LİKYA Komuta Merkezi',
     description: 'Sistem durumu & talimatlar',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'hub',
+    label: 'Daze Hub',
+    description: 'Merkezi operasyon özeti',
+    icon: Network,
   },
   {
     id: 'ollama',

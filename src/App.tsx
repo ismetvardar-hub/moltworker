@@ -34,16 +34,22 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   settings: SettingsPage,
 };
 
+function defaultPage(allowed: string[]): PageId {
+  if (allowed.includes('komuta')) return 'komuta';
+  if (allowed.includes('hub')) return 'hub';
+  return (allowed[0] as PageId) || 'komuta';
+}
+
 function pageFromHash(allowed: string[]): PageId {
   const hash = window.location.hash.replace('#/', '').replace('#', '');
-  if (hash in PAGES && allowed.includes(hash)) return hash as PageId;
-  return (allowed[0] as PageId) || 'hub';
+  if (hash && hash in PAGES && allowed.includes(hash)) return hash as PageId;
+  return defaultPage(allowed);
 }
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
   const [booting, setBooting] = useState(true);
-  const [page, setPage] = useState<PageId>('hub');
+  const [page, setPage] = useState<PageId>('komuta');
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +57,15 @@ export default function App() {
       const me = await fetchMe();
       if (cancelled) return;
       setUser(me);
-      if (me) setPage(pageFromHash(me.pages));
+      if (me) {
+        const pages = me.pages ?? [];
+        const next = pageFromHash(pages);
+        setPage(next);
+        // Hash yoksa varsayılan sayfayı (CEO → Komuta) URL'ye yaz
+        if (!window.location.hash.replace('#', '').trim()) {
+          window.location.hash = `/${next}`;
+        }
+      }
       setBooting(false);
     })();
     return () => {
@@ -61,14 +75,16 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
-    const onHashChange = () => setPage(pageFromHash(user.pages));
+    const pages = user.pages ?? [];
+    const onHashChange = () => setPage(pageFromHash(pages));
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [user]);
 
   const navigate = useCallback(
     (next: PageId) => {
-      if (!user?.pages.includes(next)) return;
+      const pages = user?.pages ?? [];
+      if (!pages.includes(next)) return;
       window.location.hash = `/${next}`;
       setPage(next);
     },
@@ -96,7 +112,7 @@ export default function App() {
           const u = getStoredUser();
           setUser(u);
           if (u) {
-            const first = pageFromHash(u.pages);
+            const first = defaultPage(u.pages ?? []);
             setPage(first);
             window.location.hash = `/${first}`;
           }
@@ -105,14 +121,15 @@ export default function App() {
     );
   }
 
-  const ActivePage = PAGES[page] ?? PAGES.hub;
+  const allowed = user.pages ?? [];
+  const ActivePage = PAGES[page] ?? (allowed.includes('komuta') ? PAGES.komuta : PAGES.hub);
 
   return (
     <div className="flex h-full overflow-hidden">
       <Sidebar
         active={page}
         onNavigate={navigate}
-        allowedPages={user.pages}
+        allowedPages={allowed}
         userName={user.name}
         userRole={user.role}
         onLogout={() => void handleLogout()}
