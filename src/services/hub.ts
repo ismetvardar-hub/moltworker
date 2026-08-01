@@ -10,6 +10,15 @@ export interface AuditEntry {
   meta?: Record<string, unknown>;
 }
 
+export interface HubJob {
+  id: string;
+  kind: string;
+  status: string;
+  title: string;
+  dueAt: string;
+  createdBy: string;
+}
+
 export interface HubSummary {
   archiveCount: number;
   whatsappCount: number;
@@ -17,6 +26,10 @@ export interface HubSummary {
   auditCount: number;
   settingsConfigured: number;
   settingsTotal: number;
+  jobsTotal: number;
+  jobsByStatus: Record<string, number>;
+  upcomingJobs: HubJob[];
+  readyDirectives: HubJob[];
   recentArchive: ArchiveEntry[];
   recentWhatsapp: Array<{
     id: string;
@@ -34,6 +47,7 @@ export interface HubSummary {
     detail: string;
   }>;
   recentAudit: AuditEntry[];
+  recentJobs: HubJob[];
   agentHits: Array<{ agent: string; count: number }>;
   generatedAt: string;
 }

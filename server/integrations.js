@@ -141,6 +141,8 @@ async function handleWhatsAppSend(req, res) {
 }
 
 function handleWhatsAppLog(_req, res) {
+  // Dosya deposundan tazele (zamanlanmış job'lar da buraya yazar)
+  messageLog = readWhatsapp();
   sendJson(res, 200, { messages: messageLog });
 }
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   Cpu,
+  ListTodo,
   MessageCircle,
   Network,
   RefreshCw,
@@ -79,7 +80,7 @@ export default function DazeHubPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {[
           {
             label: 'Zincir Arşivi',
@@ -98,6 +99,12 @@ export default function DazeHubPage() {
             value: summary?.nexusEventCount ?? '—',
             icon: Cpu,
             detail: 'IoT protokol günlüğü',
+          },
+          {
+            label: 'Görev Kuyruğu',
+            value: summary?.jobsTotal ?? '—',
+            icon: ListTodo,
+            detail: `${summary?.jobsByStatus?.scheduled ?? 0} zamanlanmış`,
           },
           {
             label: 'Audit',
@@ -162,6 +169,37 @@ export default function DazeHubPage() {
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <PanelCard title="Yaklaşan / Hazır Görevler" subtitle="AŞAMA 6 kuyruk">
+          <ul className="space-y-2">
+            {[
+              ...(summary?.readyDirectives ?? []).map((j) => ({ ...j, tag: 'hazır' })),
+              ...(summary?.upcomingJobs ?? []).map((j) => ({ ...j, tag: 'zamanlı' })),
+            ]
+              .slice(0, 8)
+              .map((j) => (
+                <li
+                  key={j.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-obsidian-700 bg-obsidian-950/60 px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-slate-200">{j.title}</p>
+                    <p className="font-mono text-[11px] text-slate-500">
+                      {j.kind} · {new Date(j.dueAt).toLocaleString('tr-TR')}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-lykia-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-lykia-300">
+                    {j.tag}
+                  </span>
+                </li>
+              ))}
+            {(summary?.upcomingJobs?.length ?? 0) +
+              (summary?.readyDirectives?.length ?? 0) ===
+              0 && (
+              <li className="text-sm text-slate-600">Bekleyen görev yok.</li>
+            )}
+          </ul>
+        </PanelCard>
+
         <PanelCard title="Operasyon Audit" subtitle="Son olaylar">
           <ul className="max-h-72 space-y-2 overflow-y-auto font-mono text-xs">
             {(summary?.recentAudit ?? []).length === 0 && (

@@ -146,6 +146,22 @@ Dosya tabanlı JSON depo (`server/store.js` → `data/*.json`), hafif Bearer tok
 | `GET/POST /api/settings` | Maskelenmiş ayarlar (CEO) |
 | `GET /api/audit` | Operasyon izleri |
 
+### Görev Kuyruğu (AŞAMA 6)
+
+5 sn ticker ile `dueAt` geçmiş işler otomatik çalışır.
+
+| Tür | Açıklama |
+|-----|----------|
+| `whatsapp.reminder` | Zamanlanmış REMINDER-AI mesajı |
+| `directive.queue` | Komuta talimat kuyruğu (`ready` durumu) |
+
+| Uç nokta | Amaç |
+|----------|------|
+| `GET/POST /api/jobs` | Listele / oluştur |
+| `POST /api/jobs/:id/run` | Hemen çalıştır |
+| `POST /api/jobs/:id/cancel` | İptal |
+| `POST /api/jobs/tick` | Manuel tick (CEO) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

@@ -8,6 +8,7 @@ import {
   Mountain,
   Network,
   Radio,
+  ListTodo,
   Settings,
   Ticket,
   Users,
@@ -77,6 +78,12 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
     label: 'NEXUS IoT',
     description: 'Turnike · kapı · RFID',
     icon: Radio,
+  },
+  {
+    id: 'jobs',
+    label: 'Görev Kuyruğu',
+    description: 'Hatırlatma & talimat zamanlama',
+    icon: ListTodo,
   },
   {
     id: 'settings',

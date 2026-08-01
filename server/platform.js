@@ -12,8 +12,20 @@ import {
 } from './store.js';
 import { appendAudit, readAudit } from './audit.js';
 import { applySettingsToEnv, getPublicSettings, saveSettings } from './settings.js';
+import {
+  cancelJob,
+  createJob,
+  deleteJob,
+  getJob,
+  jobsSummary,
+  listJobs,
+  runJob,
+  startJobTicker,
+  tickJobs,
+} from './jobs.js';
 
 applySettingsToEnv();
+startJobTicker(5000);
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -69,6 +81,7 @@ function hubSummary() {
     for (const a of e.agents ?? []) byAgent[a] = (byAgent[a] ?? 0) + 1;
   }
   const configuredKeys = settings.fields.filter((f) => f.configured).length;
+  const jobs = jobsSummary();
   return {
     archiveCount: archive.length,
     whatsappCount: whatsapp.length,
@@ -76,10 +89,15 @@ function hubSummary() {
     auditCount: readCollection('audit', []).length,
     settingsConfigured: configuredKeys,
     settingsTotal: settings.fields.length,
+    jobsTotal: jobs.total,
+    jobsByStatus: jobs.byStatus,
+    upcomingJobs: jobs.upcoming,
+    readyDirectives: jobs.readyDirectives,
     recentArchive: archive.slice(0, 5),
     recentWhatsapp: whatsapp.slice(0, 5),
     recentNexus: nexus.slice(0, 8),
     recentAudit: audit,
+    recentJobs: jobs.recent,
     agentHits: Object.entries(byAgent)
       .map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count)
@@ -250,6 +268,120 @@ export function platformPlugin() {
               });
             }
           })();
+          return;
+        }
+
+        // Görevler / kuyruk (AŞAMA 6)
+        if (path === '/api/jobs' && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const url = new URL(req.url ?? '', 'http://local');
+          sendJson(res, 200, {
+            jobs: listJobs({
+              status: url.searchParams.get('status') || undefined,
+              kind: url.searchParams.get('kind') || undefined,
+            }),
+            summary: jobsSummary(),
+          });
+          return;
+        }
+        if (path === '/api/jobs' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              const body = await readBody(req);
+              if (!body.kind) {
+                sendJson(res, 400, { error: 'kind zorunlu (whatsapp.reminder | directive.queue)' });
+                return;
+              }
+              if (
+                body.kind !== 'whatsapp.reminder' &&
+                body.kind !== 'directive.queue'
+              ) {
+                sendJson(res, 400, { error: 'Geçersiz kind' });
+                return;
+              }
+              // kitchen yalnızca whatsapp; crew talimat kuyruğu oluşturamaz
+              if (user.role === 'kitchen' && body.kind !== 'whatsapp.reminder') {
+                sendJson(res, 403, { error: 'Mutfak yalnızca WhatsApp hatırlatması oluşturabilir' });
+                return;
+              }
+              if (user.role === 'crew') {
+                sendJson(res, 403, { error: 'Crew rolü görev oluşturamaz' });
+                return;
+              }
+              const job = createJob({
+                kind: body.kind,
+                title: body.title,
+                payload: body.payload,
+                dueAt: body.dueAt,
+                createdBy: user.username,
+              });
+              // dueAt geçmişse hemen tick
+              if (new Date(job.dueAt).getTime() <= Date.now()) {
+                const ran = await runJob(job.id, user.username);
+                sendJson(res, 200, { job: ran });
+                return;
+              }
+              sendJson(res, 200, { job });
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Görev oluşturulamadı',
+              });
+            }
+          })();
+          return;
+        }
+        if (path === '/api/jobs/tick' && req.method === 'POST') {
+          if (!requireCeo(req, res)) return;
+          void (async () => {
+            const results = await tickJobs();
+            sendJson(res, 200, { ran: results.length, results });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/jobs/') && path.endsWith('/run') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          void (async () => {
+            const job = await runJob(id, user.username);
+            if (!job) {
+              sendJson(res, 404, { error: 'Görev bulunamadı' });
+              return;
+            }
+            sendJson(res, 200, { job });
+          })();
+          return;
+        }
+        if (path.startsWith('/api/jobs/') && path.endsWith('/cancel') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          const job = cancelJob(id, user.username);
+          if (!job) {
+            sendJson(res, 404, { error: 'Görev bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { job });
+          return;
+        }
+        if (path.startsWith('/api/jobs/') && req.method === 'GET') {
+          if (!requireUser(req, res)) return;
+          const id = path.split('/')[3];
+          const job = getJob(id);
+          if (!job) {
+            sendJson(res, 404, { error: 'Görev bulunamadı' });
+            return;
+          }
+          sendJson(res, 200, { job });
+          return;
+        }
+        if (path.startsWith('/api/jobs/') && req.method === 'DELETE') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          const id = path.split('/')[3];
+          sendJson(res, 200, { jobs: deleteJob(id) });
           return;
         }
 
