@@ -991,6 +991,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **584** | Close Book |
 | **585** | Vault checkpoint (`/api/vault`) |
 
+### Mobility OS · Convoy (AŞAMA 586–600)
+
+| Aşama | Özellik |
+|-------|---------|
+| **586** | Shuttle Lane |
+| **587** | Fleet Desk |
+| **588** | Driver Rost |
+| **589** | Fuel Card |
+| **590** | Route Plan |
+| **591** | Dispatch Board |
+| **592** | GPS Ping |
+| **593** | Vehicle Maint |
+| **594** | Valet Ops |
+| **595** | Parking Bay |
+| **596** | Transfer Job |
+| **597** | Pickup Drop |
+| **598** | Toll Pass |
+| **599** | Lane Control |
+| **600** | Convoy checkpoint (`/api/convoy`) |
+
+### Housekeeping OS · Linen (AŞAMA 601–615)
+
+| Aşama | Özellik |
+|-------|---------|
+| **601** | Room Rack |
+| **602** | HK Board |
+| **603** | Linen Room |
+| **604** | Minibar Bay |
+| **605** | Found Log |
+| **606** | Key Desk |
+| **607** | Turndown |
+| **608** | Deep Clean |
+| **609** | Inspect Room |
+| **610** | VIP Prep |
+| **611** | Out of Order |
+| **612** | Guest Request |
+| **613** | Amen Save |
+| **614** | Public Area |
+| **615** | Linen checkpoint (`/api/linen`) |
+
+### Front Office OS · Atlas (AŞAMA 616–630)
+
+| Aşama | Özellik |
+|-------|---------|
+| **616** | Night Audit |
+| **617** | Folio Desk |
+| **618** | Desk Queue |
+| **619** | Wake All |
+| **620** | Early Check |
+| **621** | Late Check |
+| **622** | Bag Store |
+| **623** | Call Sheet |
+| **624** | Arrival Board |
+| **625** | Departure Board |
+| **626** | VIP Arrive |
+| **627** | Front Log |
+| **628** | Move Ticket |
+| **629** | Concierge Job |
+| **630** | Atlas checkpoint (`/api/atlas`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

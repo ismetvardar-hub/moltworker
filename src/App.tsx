@@ -584,6 +584,51 @@ import CostcenterPage from './pages/CostcenterPage';
 import GlmapPage from './pages/GlmapPage';
 import ClosebookPage from './pages/ClosebookPage';
 import VaultPage from './pages/VaultPage';
+import ShuttlelanePage from './pages/ShuttlelanePage';
+import FleetdeskPage from './pages/FleetdeskPage';
+import DriverostPage from './pages/DriverostPage';
+import FuelcardPage from './pages/FuelcardPage';
+import RouteplanPage from './pages/RouteplanPage';
+import DispatchboardPage from './pages/DispatchboardPage';
+import GpspingPage from './pages/GpspingPage';
+import VehiclemaintPage from './pages/VehiclemaintPage';
+import ValetopsPage from './pages/ValetopsPage';
+import ParkingbayPage from './pages/ParkingbayPage';
+import TransferjobPage from './pages/TransferjobPage';
+import PickupdropPage from './pages/PickupdropPage';
+import TollpassPage from './pages/TollpassPage';
+import LanecontrolPage from './pages/LanecontrolPage';
+import ConvoyPage from './pages/ConvoyPage';
+import RoomrackPage from './pages/RoomrackPage';
+import HkboardPage from './pages/HkboardPage';
+import LinenroomPage from './pages/LinenroomPage';
+import MinibarbayPage from './pages/MinibarbayPage';
+import FoundlogPage from './pages/FoundlogPage';
+import KeydeskPage from './pages/KeydeskPage';
+import TurnupPage from './pages/TurnupPage';
+import DeepcleanPage from './pages/DeepcleanPage';
+import InspectroomPage from './pages/InspectroomPage';
+import VipprepPage from './pages/VipprepPage';
+import OutoforderPage from './pages/OutoforderPage';
+import GuestrequestPage from './pages/GuestrequestPage';
+import AmensavePage from './pages/AmensavePage';
+import PublicareaPage from './pages/PublicareaPage';
+import LinenPage from './pages/LinenPage';
+import NightauditPage from './pages/NightauditPage';
+import FoliodeskPage from './pages/FoliodeskPage';
+import DeskqueuePage from './pages/DeskqueuePage';
+import WakeallPage from './pages/WakeallPage';
+import EarlycheckPage from './pages/EarlycheckPage';
+import LatecheckPage from './pages/LatecheckPage';
+import BagstorePage from './pages/BagstorePage';
+import CallsheetPage from './pages/CallsheetPage';
+import ArrivalboardPage from './pages/ArrivalboardPage';
+import DepartureboardPage from './pages/DepartureboardPage';
+import ViparrivePage from './pages/ViparrivePage';
+import FrontlogPage from './pages/FrontlogPage';
+import MoveticketPage from './pages/MoveticketPage';
+import ConciergejobPage from './pages/ConciergejobPage';
+import AtlasPage from './pages/AtlasPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -1137,6 +1182,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   glmap: GlmapPage,
   closebook: ClosebookPage,
   vault: VaultPage,
+  shuttlelane: ShuttlelanePage,
+  fleetdesk: FleetdeskPage,
+  driverost: DriverostPage,
+  fuelcard: FuelcardPage,
+  routeplan: RouteplanPage,
+  dispatchboard: DispatchboardPage,
+  gpsping: GpspingPage,
+  vehiclemaint: VehiclemaintPage,
+  valetops: ValetopsPage,
+  parkingbay: ParkingbayPage,
+  transferjob: TransferjobPage,
+  pickupdrop: PickupdropPage,
+  tollpass: TollpassPage,
+  lanecontrol: LanecontrolPage,
+  convoy: ConvoyPage,
+  roomrack: RoomrackPage,
+  hkboard: HkboardPage,
+  linenroom: LinenroomPage,
+  minibarbay: MinibarbayPage,
+  foundlog: FoundlogPage,
+  keydesk: KeydeskPage,
+  turnup: TurnupPage,
+  deepclean: DeepcleanPage,
+  inspectroom: InspectroomPage,
+  vipprep: VipprepPage,
+  outoforder: OutoforderPage,
+  guestrequest: GuestrequestPage,
+  amensave: AmensavePage,
+  publicarea: PublicareaPage,
+  linen: LinenPage,
+  nightaudit: NightauditPage,
+  foliodesk: FoliodeskPage,
+  deskqueue: DeskqueuePage,
+  wakeall: WakeallPage,
+  earlycheck: EarlycheckPage,
+  latecheck: LatecheckPage,
+  bagstore: BagstorePage,
+  callsheet: CallsheetPage,
+  arrivalboard: ArrivalboardPage,
+  departureboard: DepartureboardPage,
+  viparrive: ViparrivePage,
+  frontlog: FrontlogPage,
+  moveticket: MoveticketPage,
+  conciergejob: ConciergejobPage,
+  atlas: AtlasPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
