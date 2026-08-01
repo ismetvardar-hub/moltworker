@@ -222,6 +222,8 @@ import {
   Unplug,
   Satellite,
   Rss,
+  Dice5,
+  Handshake,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -267,6 +269,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'mirror',
   'keystone',
   'zenith',
+  'odyssey',
 ]);
 
 interface SidebarProps {
@@ -842,6 +845,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'cashforecast', label: 'Nakit Forecast', description: 'Kısa vadeli nakit tahmini.', icon: Wallet },
   { id: 'marginwatch', label: 'Marj İzleme', description: 'Ürün / kanal marj izleme.', icon: Percent },
   { id: 'promoattr', label: 'Promo Attribution', description: 'Promosyon atıf satırları.', icon: BadgePercent },
+    { id: 'masterplan', label: 'Master Plan', description: 'Holding master plan maddeleri.', icon: MapPinned },
+  { id: 'okrrack', label: 'OKR Rack', description: 'OKR / hedef rafları.', icon: Target },
+  { id: 'roadmap', label: 'Roadmap', description: 'Ürün / tesis roadmap satırları.', icon: ListTodo },
+  { id: 'betboard', label: 'Bet Board', description: 'Stratejik bet panosu.', icon: Dice5 },
+  { id: 'portfoliorisk', label: 'Portföy Risk', description: 'Holding portföy risk satırları.', icon: Scale },
+  { id: 'captable', label: 'Cap Notes', description: 'Sermaye / ortaklık notları.', icon: FileSpreadsheet },
+  { id: 'boardmotion', label: 'Board Motion', description: 'Yönetim kurulu karar taslakları.', icon: Gavel },
+  { id: 'alliance', label: 'Alliance', description: 'Stratejik ittifak kayıtları.', icon: Handshake },
+  { id: 'expansion', label: 'Expansion', description: 'Yeni tesis / şehir genişleme.', icon: Globe },
+  { id: 'legacyarc', label: 'Legacy Arc', description: 'Uzun vadeli miras / legacy ark.', icon: Landmark },
+  { id: 'culturecode', label: 'Culture Code', description: 'Kültür kodu maddeleri.', icon: HeartHandshake },
+  { id: 'talentbet', label: 'Talent Bet', description: 'Yetenek yatırımı bahisleri.', icon: GraduationCap },
+  { id: 'moatwatch', label: 'Moat Watch', description: 'Rekabet hendek / moat izleme.', icon: Shield },
+  { id: 'northstar', label: 'North Star', description: 'Kuzey yıldızı metrik satırları.', icon: Sparkles },
+  { id: 'odyssey', label: 'Odyssey', description: 'AŞAMA 405 finale özeti.', icon: Rocket },
   { id: 'zenith', label: 'Zenith', description: 'AŞAMA 390 gelir OS özeti.', icon: MountainSnow },
   { id: 'keystone', label: 'Keystone', description: 'AŞAMA 375 komuta kumaşı özeti.', icon: Landmark },
   { id: 'mirror', label: 'Mirror', description: 'AŞAMA 360 guest twin özeti.', icon: Sparkles },

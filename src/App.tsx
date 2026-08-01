@@ -389,6 +389,21 @@ import CashforecastPage from './pages/CashforecastPage';
 import MarginwatchPage from './pages/MarginwatchPage';
 import PromoattrPage from './pages/PromoattrPage';
 import ZenithPage from './pages/ZenithPage';
+import MasterplanPage from './pages/MasterplanPage';
+import OkrrackPage from './pages/OkrrackPage';
+import RoadmapPage from './pages/RoadmapPage';
+import BetboardPage from './pages/BetboardPage';
+import PortfolioriskPage from './pages/PortfolioriskPage';
+import CaptablePage from './pages/CaptablePage';
+import BoardmotionPage from './pages/BoardmotionPage';
+import AlliancePage from './pages/AlliancePage';
+import ExpansionPage from './pages/ExpansionPage';
+import LegacyarcPage from './pages/LegacyarcPage';
+import CulturecodePage from './pages/CulturecodePage';
+import TalentbetPage from './pages/TalentbetPage';
+import MoatwatchPage from './pages/MoatwatchPage';
+import NorthstarPage from './pages/NorthstarPage';
+import OdysseyPage from './pages/OdysseyPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -747,6 +762,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   marginwatch: MarginwatchPage,
   promoattr: PromoattrPage,
   zenith: ZenithPage,
+  masterplan: MasterplanPage,
+  okrrack: OkrrackPage,
+  roadmap: RoadmapPage,
+  betboard: BetboardPage,
+  portfoliorisk: PortfolioriskPage,
+  captable: CaptablePage,
+  boardmotion: BoardmotionPage,
+  alliance: AlliancePage,
+  expansion: ExpansionPage,
+  legacyarc: LegacyarcPage,
+  culturecode: CulturecodePage,
+  talentbet: TalentbetPage,
+  moatwatch: MoatwatchPage,
+  northstar: NorthstarPage,
+  odyssey: OdysseyPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

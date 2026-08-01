@@ -731,6 +731,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **389** | Promo Attribution |
 | **390** | Zenith checkpoint (`/api/zenith`) |
 
+### Finale · Odyssey (AŞAMA 391–405)
+
+| Aşama | Özellik |
+|-------|---------|
+| **391** | Master Plan |
+| **392** | OKR Rack |
+| **393** | Roadmap |
+| **394** | Bet Board |
+| **395** | Portföy Risk |
+| **396** | Cap Notes |
+| **397** | Board Motion |
+| **398** | Alliance |
+| **399** | Expansion |
+| **400** | Legacy Arc |
+| **401** | Culture Code |
+| **402** | Talent Bet |
+| **403** | Moat Watch |
+| **404** | North Star |
+| **405** | Odyssey checkpoint (`/api/odyssey`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
