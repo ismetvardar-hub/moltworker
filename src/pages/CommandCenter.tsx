@@ -7,6 +7,8 @@ import {
   ChevronDown,
   Circle,
   Cpu,
+  ExternalLink,
+  Globe2,
   Loader2,
   Send,
   ShieldCheck,
@@ -29,7 +31,13 @@ import {
   buildStepPrompt,
   simulatedStepOutput,
 } from '../services/orchestrator';
-import { buildSearchLog, buildResearchPrompt, simulatedReport } from '../services/research';
+import {
+  buildResearchPrompt,
+  buildSearchLogLines,
+  fetchLiveSources,
+  reportFromSources,
+  type ResearchSource,
+} from '../services/research';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -90,6 +98,7 @@ const STEP_ICON: Record<PipelineStepStatus, () => React.JSX.Element> = {
 function PipelineStepView({ step, index }: { step: PipelineStep; index: number }) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const isEthos = step.assignment.agentId === 'ethos';
+  const isHerodot = step.assignment.agentId === 'herodot';
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
@@ -110,10 +119,16 @@ function PipelineStepView({ step, index }: { step: PipelineStep; index: number }
           <p className="flex items-center gap-2 text-sm font-semibold text-slate-100">
             {step.assignment.agentName}
             {isEthos && <ShieldCheck className="size-3.5 text-lykia-400" />}
+            {isHerodot && <Globe2 className="size-3.5 text-sky-400" />}
           </p>
           <p className="truncate text-[11px] text-slate-500">
             {step.assignment.subtask}
             <span className="font-mono"> · {step.engine}</span>
+            {step.searchProvider && (
+              <span className="ml-1 font-mono text-sky-400/80">
+                · {step.searchLive ? 'canlı' : 'fallback'}:{step.searchProvider}
+              </span>
+            )}
           </p>
         </div>
         {index > 0 && step.status !== 'bekliyor' && (
@@ -132,6 +147,39 @@ function PipelineStepView({ step, index }: { step: PipelineStep; index: number }
           {step.status === 'calisiyor' && (
             <span className="cursor-blink ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 bg-lykia-400" />
           )}
+        </div>
+      )}
+      {step.sources && step.sources.length > 0 && (
+        <div className="border-t border-obsidian-700/60 px-4 py-3">
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-400">
+            <Globe2 className="size-3.5" />
+            Canlı Web Kaynakları
+            {step.searchProvider && (
+              <span className="font-mono font-normal normal-case text-slate-600">
+                ({step.searchProvider}
+                {step.searchLive === false ? ' · fallback' : ''})
+              </span>
+            )}
+          </p>
+          <ul className="space-y-2">
+            {step.sources.map((s) => (
+              <li key={s.url} className="rounded-lg border border-obsidian-700 bg-obsidian-950/80 p-2.5">
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-start gap-1.5 text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
+                >
+                  <ExternalLink className="mt-0.5 size-3 shrink-0" />
+                  <span>{s.title}</span>
+                </a>
+                <p className="mt-0.5 truncate font-mono text-[10px] text-slate-600">{s.url}</p>
+                {s.snippet && (
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{s.snippet}</p>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </li>
@@ -224,12 +272,38 @@ export default function CommandCenter() {
           updateStep(i, { output: stepOut });
         };
 
-        // HERODOT: önce otonom web taraması günlüğü akar.
+        // HERODOT: canlı web proxy → kaynak günlüğü → Ollama analist raporu.
+        let liveSources: ResearchSource[] = [];
+        let searchLive = false;
         if (agentId === 'herodot') {
-          for (const line of buildSearchLog(text)) {
+          append('[HERODOT] Canlı web araması proxy\'ye iletiliyor (/api/search)…\n');
+          try {
+            const search = await fetchLiveSources(text, controller.signal);
+            liveSources = search.results;
+            searchLive = search.live;
+            updateStep(i, {
+              sources: liveSources,
+              searchProvider: search.provider,
+              searchLive: search.live,
+            });
+            for (const line of buildSearchLogLines(text, search)) {
+              if (controller.signal.aborted) break;
+              append(line + '\n');
+              await sleep(120);
+            }
+          } catch (err) {
             if (controller.signal.aborted) break;
-            append(line + '\n');
-            await sleep(280);
+            const msg = err instanceof Error ? err.message : 'Arama başarısız';
+            append(`[HERODOT] Proxy hatası: ${msg}\n`);
+            // Proxy tamamen erişilemezse boş kaynakla rapora devam et.
+            liveSources = [];
+            searchLive = false;
+            updateStep(i, {
+              sources: [],
+              searchProvider: 'offline',
+              searchLive: false,
+            });
+            append('[HERODOT] Kaynak olmadan analist çerçevesi üretilecek.\n');
           }
           append('\n');
         }
@@ -242,7 +316,7 @@ export default function CommandCenter() {
         if (aiOnline) {
           const prompt =
             agentId === 'herodot'
-              ? buildResearchPrompt(text, stepOut)
+              ? buildResearchPrompt(text, liveSources)
               : buildStepPrompt(steps[i], text, previous);
           const stepModel = resolveModel(steps[i].engine, installed, model);
           for await (const token of streamGenerate(stepModel, prompt, controller.signal)) {
@@ -250,7 +324,9 @@ export default function CommandCenter() {
           }
         } else {
           const sim =
-            agentId === 'herodot' ? simulatedReport(text) : simulatedStepOutput(agentId, text);
+            agentId === 'herodot'
+              ? reportFromSources(text, liveSources, searchLive)
+              : simulatedStepOutput(agentId, text);
           for (const part of chunked(sim, 18)) {
             if (controller.signal.aborted) break;
             append(part);

@@ -69,9 +69,16 @@ Dağıtım artık sıralı bir **üretim zinciri** olarak çalışır: her ajan�
 
 Zincir, Komuta Merkezi'ndeki **"Ajanlar Arası Üretim Zinciri"** kartında adım adım canlı akar; hangi ajanın ne zaman çıktı üretip devrettiği izlenebilir. Zincir sıralaması: istihbarat (HERODOT) → üreticiler → dönüştürücüler (BABEL) → denetçiler (ETHOS).
 
-### HERODOT — Otonom Web Araştırma Modülü
+### HERODOT — Canlı Web Araştırma Modülü (AŞAMA 1)
 
-Araştırma içeren talimatlar (örn. *"Avrupa'daki turnikesiz geçiş sistemlerini incele"*) HERODOT'a yönlendirilir. HERODOT önce kaynak kaynak akan bir web taraması günlüğü üretir, ardından bulguları **analist raporu** formatında (Öne Çıkan Bulgular · Riskler & Fırsatlar · LİKYA-1 için Öneriler) özetler. Ollama çevrimiçiyse rapor gerçek modele yazdırılır. Modül: `src/services/research.ts`.
+Araştırma içeren talimatlar (örn. *"Avrupa'daki turnikesiz geçiş sistemlerini incele"*) HERODOT'a yönlendirilir:
+
+1. Vite middleware `GET /api/search?q=...` üzerinden canlı arama yapılır (`server/search-proxy.js`)
+2. Sağlayıcı sırası: **Brave Search** (`BRAVE_SEARCH_API_KEY`) → **Tavily** (`TAVILY_API_KEY`) → **DuckDuckGo HTML** (anahtarsız) → yerleşik fallback havuz
+3. Kaynaklar (başlık, URL, snippet) Ollama'ya bağlam olarak beslenir; analist raporu üretilir
+4. Raporun altında **"Canlı Web Kaynakları"** tıklanabilir listesi gösterilir
+
+Bağımsız proxy: `npm run search-proxy` (port 8787). Anahtar örnekleri: `.env.example`.
 
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 

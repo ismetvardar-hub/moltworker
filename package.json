@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "dev:sync": "bash scripts/dev-sync.sh",
+    "search-proxy": "node server/search-proxy.js",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

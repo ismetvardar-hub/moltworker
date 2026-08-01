@@ -70,12 +70,24 @@ export interface Assignment {
 
 export type PipelineStepStatus = 'bekliyor' | 'calisiyor' | 'tamamlandi' | 'hata';
 
+/** HERODOT canlı web kaynağı (proxy /api/search sonucundan). */
+export interface WebSource {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
 /** Zincirleme akışta tek bir ajan adımı; çıktı bir sonraki adıma girdi olur. */
 export interface PipelineStep {
   assignment: Assignment;
   engine: string;
   status: PipelineStepStatus;
   output: string;
+  /** HERODOT adımında canlı web kaynakları. */
+  sources?: WebSource[];
+  /** Arama sağlayıcısı (brave / tavily / duckduckgo / fallback-pool). */
+  searchProvider?: string;
+  searchLive?: boolean;
 }
 
 export type PassTier = 'Platin' | 'Altın' | 'Gümüş' | 'Standart';

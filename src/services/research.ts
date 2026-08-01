@@ -1,88 +1,104 @@
 /**
  * HERODOT — Otonom Web Araştırma & İstihbarat Modülü.
  *
- * Tarayıcıdan gerçek arama motoru API'sine erişim (CORS/anahtar) gerektirdiği
- * için tarama aşaması simüle edilir; toplanan bulgular Ollama çevrimiçiyse
- * gerçek modele özetletilir, değilse hazır analist raporu döndürülür.
+ * Canlı arama: Vite middleware / bağımsız proxy üzerinden GET /api/search.
+ * Sağlayıcı sırası (sunucu tarafı): Brave → Tavily → DuckDuckGo → fallback havuz.
  */
 
 export interface ResearchSource {
   title: string;
   url: string;
-  finding: string;
+  snippet: string;
 }
 
-const SOURCE_POOL: ResearchSource[] = [
-  {
-    title: 'European Transit Tech Review 2026',
-    url: 'transittechreview.eu/2026-gateless-access',
-    finding: 'Turnikesiz (gateless) geçişlerde BLE + UWB hibrit doğrulama %34 büyüdü',
-  },
-  {
-    title: 'Retail & Access Weekly',
-    url: 'retailaccessweekly.com/qr-nfc-trends',
-    finding: 'QR + NFC hibrit kartlar Akdeniz turizm bölgelerinde standartlaşıyor',
-  },
-  {
-    title: 'IoT Gateways Quarterly',
-    url: 'iotgateways.io/reports/q2-2026',
-    finding: 'ESP32 tabanlı geçiş kontrolörlerinde birim maliyet %18 düştü',
-  },
-  {
-    title: 'Hospitality AI Digest',
-    url: 'hospitalityai.digest/dynamic-pricing',
-    finding: 'Yoğunluğa dayalı dinamik fiyatlama misafir memnuniyetini düşürmeden geliri %11 artırdı',
-  },
-  {
-    title: 'GDPR Watch Bulletin',
-    url: 'gdprwatch.org/biometric-access-2026',
-    finding: 'Biyometrik geçişte açık rıza + 30 gün saklama sınırı yeni içtihat haline geldi',
-  },
-];
+export interface SearchResponse {
+  query: string;
+  provider: string;
+  live: boolean;
+  results: ResearchSource[];
+  note?: string;
+  errors?: string[];
+  error?: string;
+}
 
-/** Tarama günlüğü: HERODOT'un adım adım web taraması yapıyormuş gibi akan logları. */
-export function buildSearchLog(query: string): string[] {
+/** Yerel arama proxy'sine istek atar (Vite middleware: /api/search). */
+export async function fetchLiveSources(
+  query: string,
+  signal?: AbortSignal,
+): Promise<SearchResponse> {
+  const url = `/api/search?q=${encodeURIComponent(query)}&limit=5`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) {
+    throw new Error(`Arama proxy'si HTTP ${res.status}`);
+  }
+  return (await res.json()) as SearchResponse;
+}
+
+/** Tarama günlüğü satırları — canlı kaynaklardan veya hata mesajından. */
+export function buildSearchLogLines(query: string, search: SearchResponse): string[] {
+  const mode = search.live ? 'CANLI WEB' : 'FALLBACK HAVUZ';
   const lines = [
     `[HERODOT] Otonom web taraması başlatıldı: "${query}"`,
-    '[HERODOT] Arama stratejisi: 3 dil · 5 kaynak türü · son 12 ay',
+    `[HERODOT] Sağlayıcı: ${search.provider} · mod: ${mode}`,
   ];
-  for (const s of SOURCE_POOL) {
-    lines.push(`[KAYNAK] ${s.title} — ${s.url}`);
-    lines.push(`  └─ bulgu: ${s.finding}`);
+  if (search.note) lines.push(`[HERODOT] Not: ${search.note}`);
+
+  for (const s of search.results) {
+    lines.push(`[KAYNAK] ${s.title}`);
+    lines.push(`  └─ ${s.url}`);
+    if (s.snippet) lines.push(`  └─ snippet: ${s.snippet}`);
   }
-  lines.push('[HERODOT] 5 kaynak tarandı, bulgular analiz için derlendi.');
+
+  lines.push(
+    `[HERODOT] ${search.results.length} kaynak derlendi; analist raporu için Ollama'ya besleniyor…`,
+  );
   return lines;
 }
 
 /** Bulgular derlendikten sonra modele gidecek analist raporu promptu. */
-export function buildResearchPrompt(query: string, searchLog: string): string {
+export function buildResearchPrompt(query: string, sources: ResearchSource[]): string {
+  const context = sources
+    .map(
+      (s, i) =>
+        `${i + 1}. ${s.title}\n   URL: ${s.url}\n   Özet: ${s.snippet || '(snippet yok)'}`,
+    )
+    .join('\n\n');
+
   return [
     'Sen HERODOT adlı Web Rakip İstihbaratçısı ajansın.',
     `CEO araştırma talebi: "${query}"`,
-    'Aşağıdaki tarama bulgularını kullanarak kısa bir analist raporu yaz.',
+    'Aşağıdaki CANLI web arama bulgularını kullanarak kısa bir analist raporu yaz.',
     'Format: 📊 HERODOT İSTİHBARAT RAPORU başlığı; ardından "Öne Çıkan Bulgular", "Riskler & Fırsatlar" ve "LİKYA-1 için Öneriler" bölümleri.',
-    `Tarama bulguları:\n---\n${searchLog}\n---`,
+    'Kaynak numaralarına (1, 2, …) atıf yap. Uydurma bilgi ekleme; yalnızca verilen bağlamı kullan.',
+    `Canlı web kaynakları:\n---\n${context || '(kaynak yok)'}\n---`,
   ].join('\n\n');
 }
 
-/** Ollama çevrimdışıyken gösterilen hazır analist raporu. */
-export function simulatedReport(query: string): string {
+/** Ollama çevrimdışıyken, canlı kaynaklara dayalı hazır analist raporu. */
+export function reportFromSources(query: string, sources: ResearchSource[], live: boolean): string {
+  const bullets =
+    sources.length > 0
+      ? sources
+          .slice(0, 5)
+          .map((s, i) => `• [${i + 1}] ${s.title}: ${s.snippet || s.url}`)
+          .join('\n')
+      : '• Canlı kaynak bulunamadı; genel istihbarat çerçevesi kullanıldı.';
+
   return [
     '📊 HERODOT İSTİHBARAT RAPORU',
     `Konu: ${query}`,
+    `Veri modu: ${live ? 'Canlı web araması' : 'Fallback istihbarat havuzu'}`,
     '',
     'Öne Çıkan Bulgular:',
-    '• Turnikesiz geçişte BLE + UWB hibrit doğrulama Avrupa\'da %34 büyüdü.',
-    '• QR + NFC hibrit kartlar Akdeniz turizm bölgelerinde fiilî standart.',
-    '• ESP32 tabanlı kontrolörlerde birim maliyet %18 düştü — NEXUS için fırsat.',
+    bullets,
     '',
     'Riskler & Fırsatlar:',
-    '• Biyometrik geçişte 30 gün saklama sınırı içtihatlaşıyor → VALKYRIE takibinde.',
-    '• Dinamik fiyatlama geliri %11 artırıyor → MINT algoritmasıyla uyumlu.',
+    '• Geçiş teknolojilerinde hibrit (QR/NFC/BLE) yaklaşımlar hızla yayılıyor — NEXUS uyumu kritik.',
+    '• Veri saklama ve biyometrik uyum (KVKK/GDPR) VALKYRIE takibinde tutulmalı.',
     '',
     'LİKYA-1 için Öneriler:',
-    '1. OlymposPass v2 için BLE+UWB pilotu başlatılsın (NEXUS + ATLAS).',
-    '2. Dinamik fiyat esnetmesi plaj girişlerinde A/B testine alınsın (MINT).',
-    '3. Biyometrik veri politikası 30 gün sınırına şimdiden çekilsin (VALKYRIE).',
+    '1. En güncel canlı kaynakları ARTE/KALYPSO lansman metnine dayanak olarak kullanın.',
+    '2. Teknik bulguları ATLAS + NEXUS ile OlymposPass v2 yol haritasına işleyin.',
+    '3. Uyum risklerini VALKYRIE denetim kuyruğuna ekleyin.',
   ].join('\n');
 }
