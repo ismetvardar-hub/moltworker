@@ -751,6 +751,66 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **404** | North Star |
 | **405** | Odyssey checkpoint (`/api/odyssey`) |
 
+### Coastal Ops · Tide (AŞAMA 406–420)
+
+| Aşama | Özellik |
+|-------|---------|
+| **406** | Gelgit İzleme |
+| **407** | Kumsal Ops |
+| **408** | Snorkel Bay |
+| **409** | Uçurum Yolu |
+| **410** | Camp Glow |
+| **411** | Lookout |
+| **412** | Reef Guard |
+| **413** | İskele Ops |
+| **414** | Yelken Desk |
+| **415** | Şemsiye Harita |
+| **416** | Kum Temizlik |
+| **417** | Gece Yüzme |
+| **418** | Yıldız İzleme |
+| **419** | Sahil Devriye |
+| **420** | Tide checkpoint (`/api/tide`) |
+
+### Port Logistics · Harbor (AŞAMA 421–435)
+
+| Aşama | Özellik |
+|-------|---------|
+| **421** | Liman Şeridi |
+| **422** | Rıhtım Slot |
+| **423** | Vinç Ops |
+| **424** | Konteyner |
+| **425** | Soğuk Bay |
+| **426** | Saha Hamle |
+| **427** | Liman Gate |
+| **428** | Bolt Hold |
+| **429** | Manifest |
+| **430** | Demurrage |
+| **431** | Kılavuzluk |
+| **432** | Römorkör |
+| **433** | Wharfage |
+| **434** | Stevedore |
+| **435** | Harbor checkpoint (`/api/harbor`) |
+
+### Experience Fabric · Aurora (AŞAMA 436–450)
+
+| Aşama | Özellik |
+|-------|---------|
+| **436** | Aurora Deck |
+| **437** | Işık Show |
+| **438** | Soundscape |
+| **439** | Koku Zone |
+| **440** | Mood Light |
+| **441** | Fog Scene |
+| **442** | Projection |
+| **443** | Immersive |
+| **444** | Haptic Cue |
+| **445** | Atmos Mix |
+| **446** | Guest Flow |
+| **447** | Scene Control |
+| **448** | Night Mode |
+| **449** | Dawn Mode |
+| **450** | Aurora checkpoint (`/api/aurora`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |

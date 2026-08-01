@@ -404,6 +404,51 @@ import TalentbetPage from './pages/TalentbetPage';
 import MoatwatchPage from './pages/MoatwatchPage';
 import NorthstarPage from './pages/NorthstarPage';
 import OdysseyPage from './pages/OdysseyPage';
+import TidewatchPage from './pages/TidewatchPage';
+import DuneopsPage from './pages/DuneopsPage';
+import SnorkelbayPage from './pages/SnorkelbayPage';
+import CliffpathPage from './pages/CliffpathPage';
+import CampglowPage from './pages/CampglowPage';
+import LookoutPage from './pages/LookoutPage';
+import ReefguardPage from './pages/ReefguardPage';
+import PieropsPage from './pages/PieropsPage';
+import SaildeskPage from './pages/SaildeskPage';
+import UmbrellamapPage from './pages/UmbrellamapPage';
+import SandcleanPage from './pages/SandcleanPage';
+import NightswimPage from './pages/NightswimPage';
+import StargazePage from './pages/StargazePage';
+import CoastpatrolPage from './pages/CoastpatrolPage';
+import TidePage from './pages/TidePage';
+import HarborlanePage from './pages/HarborlanePage';
+import DockslotPage from './pages/DockslotPage';
+import CraneopsPage from './pages/CraneopsPage';
+import ContainerPage from './pages/ContainerPage';
+import ColdbayPage from './pages/ColdbayPage';
+import YardmovePage from './pages/YardmovePage';
+import GatepassPage from './pages/GatepassPage';
+import BoltholdPage from './pages/BoltholdPage';
+import ManifestPage from './pages/ManifestPage';
+import DemurragePage from './pages/DemurragePage';
+import PilotagePage from './pages/PilotagePage';
+import TugassistPage from './pages/TugassistPage';
+import WharfagePage from './pages/WharfagePage';
+import StevedorePage from './pages/StevedorePage';
+import HarborPage from './pages/HarborPage';
+import AuroradeckPage from './pages/AuroradeckPage';
+import LightshowPage from './pages/LightshowPage';
+import SoundscapePage from './pages/SoundscapePage';
+import ScentzonePage from './pages/ScentzonePage';
+import MoodlightPage from './pages/MoodlightPage';
+import FogscenePage from './pages/FogscenePage';
+import ProjectionPage from './pages/ProjectionPage';
+import ImmersivePage from './pages/ImmersivePage';
+import HapticcuePage from './pages/HapticcuePage';
+import AtmosmixPage from './pages/AtmosmixPage';
+import GuestflowPage from './pages/GuestflowPage';
+import ScenectrlPage from './pages/ScenectrlPage';
+import NightmodePage from './pages/NightmodePage';
+import DawnmodePage from './pages/DawnmodePage';
+import AuroraPage from './pages/AuroraPage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -777,6 +822,51 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   moatwatch: MoatwatchPage,
   northstar: NorthstarPage,
   odyssey: OdysseyPage,
+  tidewatch: TidewatchPage,
+  duneops: DuneopsPage,
+  snorkelbay: SnorkelbayPage,
+  cliffpath: CliffpathPage,
+  campglow: CampglowPage,
+  lookout: LookoutPage,
+  reefguard: ReefguardPage,
+  pierops: PieropsPage,
+  saildesk: SaildeskPage,
+  umbrellamap: UmbrellamapPage,
+  sandclean: SandcleanPage,
+  nightswim: NightswimPage,
+  stargaze: StargazePage,
+  coastpatrol: CoastpatrolPage,
+  tide: TidePage,
+  harborlane: HarborlanePage,
+  dockslot: DockslotPage,
+  craneops: CraneopsPage,
+  container: ContainerPage,
+  coldbay: ColdbayPage,
+  yardmove: YardmovePage,
+  gatepass: GatepassPage,
+  bolthold: BoltholdPage,
+  manifest: ManifestPage,
+  demurrage: DemurragePage,
+  pilotage: PilotagePage,
+  tugassist: TugassistPage,
+  wharfage: WharfagePage,
+  stevedore: StevedorePage,
+  harbor: HarborPage,
+  auroradeck: AuroradeckPage,
+  lightshow: LightshowPage,
+  soundscape: SoundscapePage,
+  scentzone: ScentzonePage,
+  moodlight: MoodlightPage,
+  fogscene: FogscenePage,
+  projection: ProjectionPage,
+  immersive: ImmersivePage,
+  hapticcue: HapticcuePage,
+  atmosmix: AtmosmixPage,
+  guestflow: GuestflowPage,
+  scenectrl: ScenectrlPage,
+  nightmode: NightmodePage,
+  dawnmode: DawnmodePage,
+  aurora: AuroraPage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,
