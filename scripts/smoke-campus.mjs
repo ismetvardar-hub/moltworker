@@ -176,6 +176,10 @@ import {
   runMarketLowStockSweep,
   createMarketPurchaseOrder,
   receiveMarketPurchaseOrder,
+  flagMarketRentalOverdue,
+  assessMarketRentalDamage,
+  settleMarketDeposit,
+  runMarketRentalSweep,
 } from '../server/marketos.js';
 import { batchRecordGreenMeters } from '../server/greenpulse.js';
 import { mallDayRollup, settleMallTenantFnb } from '../server/openmall.js';
@@ -335,14 +339,34 @@ assert(runMallDunningSweep({ force: true }, 'smoke').ok, 'mall dunning');
 assert(generateMallCamRun({ period: '2026-08', force: true }, 'smoke').ok, 'mall cam run');
 assert(holdMallLease({ force: true }, 'smoke').ok, 'mall lease hold');
 assert(releaseMallLease({}, 'smoke').ok, 'mall lease release');
-const rented = marketOsOverview().listings.find((l) => l.status === 'rented');
-if (rented) returnMarketRental({ listing_id: rented.id }, 'smoke');
-else {
-  const liveRent = marketOsOverview().listings.find((l) => l.mode === 'rent' && l.status === 'live');
-  if (liveRent) {
-    marketCheckout({ listing_id: liveRent.id, buyer: 'smoke' }, 'smoke');
-    returnMarketRental({ listing_id: liveRent.id }, 'smoke');
-  }
+let rentListing = marketOsOverview().listings.find((l) => l.mode === 'rent' && l.status === 'live');
+if (!rentListing) {
+  const held = marketOsOverview().listings.find((l) => l.mode === 'rent');
+  if (held) restockMarketListing({ listing_id: held.id, stock: 2 }, 'smoke');
+  rentListing = marketOsOverview().listings.find((l) => l.mode === 'rent' && l.status === 'live');
+}
+assert(rentListing, 'live rent listing');
+const rentCo = marketCheckout({ listing_id: rentListing.id, buyer: 'smoke', days: 1 }, 'smoke');
+assert(rentCo.ok && rentCo.order?.due_at, 'market rent checkout due');
+assert(flagMarketRentalOverdue({ order_id: rentCo.order.id, force: true }, 'smoke').ok, 'market rental overdue');
+assert(
+  assessMarketRentalDamage(
+    { order_id: rentCo.order.id, severity: 'moderate', charge_try: 400, notes: 'smoke scratch' },
+    'smoke',
+  ).ok,
+  'market rental damage',
+);
+assert(returnMarketRental({ listing_id: rentListing.id }, 'smoke').ok, 'market rental return overdue');
+assert(
+  settleMarketDeposit({ order_id: rentCo.order.id, disposition: 'auto' }, 'smoke').ok,
+  'market deposit settle',
+);
+const rent2 = marketOsOverview().listings.find((l) => l.mode === 'rent' && l.status === 'live');
+if (rent2) {
+  marketCheckout({ listing_id: rent2.id, buyer: 'smoke', days: 1 }, 'smoke');
+  assert(runMarketRentalSweep({ force: true }, 'smoke').ok, 'market rental sweep');
+  returnMarketRental({ listing_id: rent2.id }, 'smoke');
+  settleMarketDeposit({ listing_id: rent2.id, disposition: 'refund' }, 'smoke');
 }
 const soldish = marketOsOverview().listings.find((l) => l.status !== 'live') || marketOsOverview().listings[0];
 if (soldish) restockMarketListing({ listing_id: soldish.id }, 'smoke');
@@ -375,6 +399,10 @@ advanceReturnToPlay({ athlete_id: 'ath_1', stage: 'cleared', force: true }, 'smo
 setAthleteClearance({ athlete_id: 'ath_1', status: 'cleared' }, 'smoke');
 signExtremeWaiver({ user_id: 'guest_can' }, 'smoke');
 issueAthleteLicense({ athlete_id: 'ath_1' }, 'smoke');
+// Clear leftover post-comp holds from prior runs so gate allow is deterministic
+for (let i = 0; i < 12; i++) {
+  if (!completeBridgeRecovery({ athlete_id: 'ath_1' }, 'smoke').ok) break;
+}
 const gateOk = gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke');
 assert(gateOk.ok, 'sport gate allow');
 syncSlotToSession({ extreme_user: 'guest_can' }, 'smoke');

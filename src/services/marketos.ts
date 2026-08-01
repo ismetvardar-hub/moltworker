@@ -93,3 +93,43 @@ export async function receiveMarketPurchaseOrder(body: Record<string, unknown> =
     }),
   )
 }
+
+export async function flagMarketRentalOverdue(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/marketos/rental/overdue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function assessMarketRentalDamage(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/marketos/rental/damage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function settleMarketDeposit(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/marketos/deposit/settle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runMarketRentalSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/marketos/rental/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

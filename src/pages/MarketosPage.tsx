@@ -118,9 +118,47 @@ export default function MarketosPage() {
               >
                 PO teslim
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.runMarketRentalSweep({ force: true }).then((r: any) => {
+                    ping(`Rental sweep · ${r.sweep?.flagged ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Rental sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.assessMarketRentalDamage({ severity: 'moderate', charge_try: 500 }).then((r: any) => {
+                    ping(r.ok ? `Hasar · ${r.assessment?.severity}` : r.error || 'Hasar yok')
+                    return refresh()
+                  })
+                }
+              >
+                Hasar değerlendir
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.settleMarketDeposit({ disposition: 'auto' }).then((r: any) => {
+                    ping(r.ok ? `Depozito · ${r.settlement?.disposition}` : r.error || 'Depozito yok')
+                    return refresh()
+                  })
+                }
+              >
+                Depozito kapat
+              </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Low stock {data.summary?.low_stock ?? 0} · açık PO {data.summary?.open_pos ?? 0}
+              Low stock {data.summary?.low_stock ?? 0} · açık PO {data.summary?.open_pos ?? 0} · overdue{' '}
+              {data.summary?.overdue_rentals ?? 0} · hasar {data.summary?.open_damage ?? 0} · depozito açık{' '}
+              {data.summary?.unsettled_deposits ?? 0}
             </p>
           </PanelCard>
           <PanelCard title="İlanlar">
@@ -192,19 +230,35 @@ export default function MarketosPage() {
                         Restock
                       </button>
                     )}
-                    {l.status === 'rented' && (
-                      <button
-                        type="button"
-                        className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]"
-                        onClick={() =>
-                          void api.returnMarketRental({ listing_id: l.id }).then(() => {
-                            ping('Kiralama iade')
-                            return refresh()
-                          })
-                        }
-                      >
-                        İade
-                      </button>
+                    {(l.status === 'rented' || l.status === 'overdue') && (
+                      <>
+                        {l.status === 'rented' && (
+                          <button
+                            type="button"
+                            className="rounded-md bg-rose-500/20 px-2 py-1 text-[10px] text-rose-100"
+                            onClick={() =>
+                              void api.flagMarketRentalOverdue({ listing_id: l.id, force: true }).then((r: any) => {
+                                ping(r.ok ? 'Overdue' : r.error || 'Flag yok')
+                                return refresh()
+                              })
+                            }
+                          >
+                            Overdue
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]"
+                          onClick={() =>
+                            void api.returnMarketRental({ listing_id: l.id }).then(() => {
+                              ping('Kiralama iade')
+                              return refresh()
+                            })
+                          }
+                        >
+                          İade
+                        </button>
+                      </>
                     )}
                   </span>
                 </li>

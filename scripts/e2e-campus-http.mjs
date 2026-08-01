@@ -570,6 +570,56 @@ try {
   const poRecv = await req('/api/marketos/po/receive', { method: 'POST', token, body: {} });
   assert(poRecv.res.ok && poRecv.data.ok !== false, 'market po receive');
 
+  await req('/api/marketos/restock', { method: 'POST', token, body: { listing_id: 'ml_2', stock: 3 } });
+  const rentCo = await req('/api/marketos/checkout', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_2', buyer: 'e2e', days: 1 },
+  });
+  assert(rentCo.res.ok && rentCo.data.ok !== false && rentCo.data.order?.id, 'market rent checkout');
+  const overdue = await req('/api/marketos/rental/overdue', {
+    method: 'POST',
+    token,
+    body: { order_id: rentCo.data.order.id, force: true },
+  });
+  assert(overdue.res.ok && overdue.data.ok !== false, 'market rental overdue');
+  const dmg = await req('/api/marketos/rental/damage', {
+    method: 'POST',
+    token,
+    body: { order_id: rentCo.data.order.id, severity: 'moderate', charge_try: 350 },
+  });
+  assert(dmg.res.ok && dmg.data.ok !== false, 'market rental damage');
+  const rentRet = await req('/api/marketos/return', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_2' },
+  });
+  assert(rentRet.res.ok && rentRet.data.ok !== false, 'market rental return');
+  const dep = await req('/api/marketos/deposit/settle', {
+    method: 'POST',
+    token,
+    body: { order_id: rentCo.data.order.id, disposition: 'auto' },
+  });
+  assert(dep.res.ok && dep.data.ok !== false, 'market deposit settle');
+  await req('/api/marketos/restock', { method: 'POST', token, body: { listing_id: 'ml_2', stock: 2 } });
+  await req('/api/marketos/checkout', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_2', buyer: 'e2e-sweep', days: 1 },
+  });
+  const rentSweep = await req('/api/marketos/rental/sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(rentSweep.res.ok && rentSweep.data.ok !== false, 'market rental sweep');
+  await req('/api/marketos/return', { method: 'POST', token, body: { listing_id: 'ml_2' } });
+  await req('/api/marketos/deposit/settle', {
+    method: 'POST',
+    token,
+    body: { listing_id: 'ml_2', disposition: 'refund' },
+  });
+
   const gbatch = await req('/api/greenpulse/batch', { method: 'POST', token, body: {} });
   assert(gbatch.res.ok && gbatch.data.batch, 'green batch');
 

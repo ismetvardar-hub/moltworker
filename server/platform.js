@@ -6753,8 +6753,10 @@ import {
   verifyLifeWebhookSignature,
 } from './lifecoach.js';
 import {
+  assessMarketRentalDamage,
   createMarketListing,
   createMarketPurchaseOrder,
+  flagMarketRentalOverdue,
   marketCheckout,
   marketOsOverview,
   receiveMarketPurchaseOrder,
@@ -6762,6 +6764,8 @@ import {
   restockMarketListing,
   returnMarketRental,
   runMarketLowStockSweep,
+  runMarketRentalSweep,
+  settleMarketDeposit,
   syncMarketChannel,
 } from './marketos.js';
 import {
@@ -36918,6 +36922,31 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, receiveMarketPurchaseOrder(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/marketos/rental/overdue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagMarketRentalOverdue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/rental/damage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assessMarketRentalDamage(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/deposit/settle' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, settleMarketDeposit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marketos/rental/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMarketRentalSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/greenpulse/batch' && req.method === 'POST') {
