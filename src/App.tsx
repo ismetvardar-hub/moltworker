@@ -284,6 +284,21 @@ import AccessreviewPage from './pages/AccessreviewPage';
 import VendorriskPage from './pages/VendorriskPage';
 import LegalholdPage from './pages/LegalholdPage';
 import EcospherePage from './pages/EcospherePage';
+import PresskitPage from './pages/PresskitPage';
+import InfluencerPage from './pages/InfluencerPage';
+import UgcmodPage from './pages/UgcmodPage';
+import SeoauditPage from './pages/SeoauditPage';
+import AdspendPage from './pages/AdspendPage';
+import BrandguardPage from './pages/BrandguardPage';
+import StoryboardPage from './pages/StoryboardPage';
+import LivestreamPage from './pages/LivestreamPage';
+import PodcastshowPage from './pages/PodcastshowPage';
+import NewsletterPage from './pages/NewsletterPage';
+import TagmapPage from './pages/TagmapPage';
+import SocialinboxPage from './pages/SocialinboxPage';
+import MediaembargoPage from './pages/MediaembargoPage';
+import CreativereqPage from './pages/CreativereqPage';
+import BrandpulsePage from './pages/BrandpulsePage';
 import DocsPage from './pages/DocsPage';
 import {
   fetchMe,
@@ -537,6 +552,21 @@ const PAGES: Record<PageId, () => React.JSX.Element> = {
   vendorrisk: VendorriskPage,
   legalhold: LegalholdPage,
   ecosphere: EcospherePage,
+  presskit: PresskitPage,
+  influencer: InfluencerPage,
+  ugcmod: UgcmodPage,
+  seoaudit: SeoauditPage,
+  adspend: AdspendPage,
+  brandguard: BrandguardPage,
+  storyboard: StoryboardPage,
+  livestream: LivestreamPage,
+  podcastshow: PodcastshowPage,
+  newsletter: NewsletterPage,
+  tagmap: TagmapPage,
+  socialinbox: SocialinboxPage,
+  mediaembargo: MediaembargoPage,
+  creativereq: CreativereqPage,
+  brandpulse: BrandpulsePage,
   mysteryshop: MysteryshopPage,
   partners: PartnersPage,
   shuttle: ShuttlePage,

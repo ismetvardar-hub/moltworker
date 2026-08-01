@@ -200,6 +200,11 @@ import {
   BadgeCheck,
   FileCheck2,
   Gavel,
+  Share2,
+  Video,
+  Podcast,
+  Hash,
+  PenLine,
 } from 'lucide-react';
 import type { AuthBrand } from '../services/auth';
 import type { PageId } from '../types';
@@ -238,6 +243,7 @@ const ALWAYS_VISIBLE = new Set<PageId>([
   'ledger',
   'peoplehub',
   'ecosphere',
+  'brandpulse',
 ]);
 
 interface SidebarProps {
@@ -715,6 +721,21 @@ const NAV_ITEMS: { id: PageId; label: string; description: string; icon: typeof 
   { id: 'accessreview', label: 'Erişim Gözden Geçir', description: 'Rol/erişim periyodik review.', icon: KeyRound },
   { id: 'vendorrisk', label: 'Tedarik Risk', description: 'Vendor risk skorları.', icon: TriangleAlert },
   { id: 'legalhold', label: 'Legal Hold', description: 'Hukuki saklama emirleri.', icon: Gavel },
+  { id: 'presskit', label: 'Basın Kiti', description: 'Basın varlık / kit listesi.', icon: Newspaper },
+  { id: 'influencer', label: 'Influencer', description: 'Influencer işbirlikleri.', icon: Share2 },
+  { id: 'ugcmod', label: 'UGC Moderasyon', description: 'Kullanıcı içerik onay.', icon: Images },
+  { id: 'seoaudit', label: 'SEO Denetim', description: 'SEO bulgu satırları.', icon: Search },
+  { id: 'adspend', label: 'Reklam Harcama', description: 'Medya harcama satırları.', icon: BadgePercent },
+  { id: 'brandguard', label: 'Marka Koruma', description: 'Marka ihlal / taklit izleme.', icon: ShieldCheck },
+  { id: 'storyboard', label: 'Storyboard', description: 'İçerik storyboard panosu.', icon: Clapperboard },
+  { id: 'livestream', label: 'Canlı Yayın', description: 'Livestream plan / durum.', icon: Video },
+  { id: 'podcastshow', label: 'Podcast', description: 'Podcast bölüm planı.', icon: Podcast },
+  { id: 'newsletter', label: 'Bülten', description: 'E-posta bülten kuyruğu.', icon: Mail },
+  { id: 'tagmap', label: 'Hashtag Harita', description: 'Kampanya hashtag eşlemi.', icon: Hash },
+  { id: 'socialinbox', label: 'Sosyal Inbox', description: 'Sosyal mesaj / DM kuyruğu.', icon: MessageSquareHeart },
+  { id: 'mediaembargo', label: 'Embargo', description: 'Medya embargo takvimi.', icon: Clock3 },
+  { id: 'creativereq', label: 'Kreatif Talep', description: 'ARTE / kreatif brief kuyruğu.', icon: PenLine },
+  { id: 'brandpulse', label: 'Brand Pulse', description: 'AŞAMA 300 marka özeti.', icon: Sparkles },
   { id: 'ecosphere', label: 'Ecosphere', description: 'AŞAMA 285 ESG özeti.', icon: Leaf },
   { id: 'peoplehub', label: 'People Hub', description: 'AŞAMA 270 İK özeti.', icon: Users },
   { id: 'ledger', label: 'Ledger', description: 'AŞAMA 255 finans özeti.', icon: BookMarked },

@@ -591,6 +591,26 @@ Oturumlar `data/sessions.json` içinde kalıcıdır (sunucu restart sonrası ge�
 | **284** | Legal hold |
 | **285** | Ecosphere checkpoint (`/api/ecosphere`) |
 
+### Marka · Brand Pulse (AŞAMA 286–300)
+
+| Aşama | Özellik |
+|-------|---------|
+| **286** | Basın kiti |
+| **287** | Influencer |
+| **288** | UGC moderasyon |
+| **289** | SEO denetim |
+| **290** | Reklam harcama |
+| **291** | Marka koruma |
+| **292** | Storyboard |
+| **293** | Canlı yayın |
+| **294** | Podcast |
+| **295** | Bülten |
+| **296** | Hashtag harita |
+| **297** | Sosyal inbox |
+| **298** | Embargo |
+| **299** | Kreatif talep |
+| **300** | Brand Pulse checkpoint (`/api/brandpulse`) |
+
 ### LİKYA Holding Ajan Kadrosu (28 ajan · 9 departman)
 
 | Departman | Ajanlar |
