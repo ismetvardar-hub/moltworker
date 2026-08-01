@@ -113,7 +113,14 @@ import {
   joinExtremeWaitlist,
   promoteExtremeWaitlist,
 } from '../server/extremepark.js';
-import { runSportEligibilitySweep, gateSportSlotAccess } from '../server/sportbridge.js';
+import {
+  runSportEligibilitySweep,
+  gateSportSlotAccess,
+  applySportCompetitionHold,
+  completeBridgeRecovery,
+  runSportPostCompSweep,
+  syncSlotToSession,
+} from '../server/sportbridge.js';
 import { runGreenPulseAutomations } from '../server/greenpulse.js';
 import {
   agentFleetOverview,
@@ -177,7 +184,7 @@ import { buildReadiness } from '../server/readiness.js';
 import { agentBridgeOverview, agentBridgePing } from '../server/agentbridge.js';
 import { extremeOverview } from '../server/extremepark.js';
 import { cultureSceneOverview, holdCultureTicket, createCultureEvent } from '../server/culturescene.js';
-import { sportBridgeOverview, syncSlotToSession } from '../server/sportbridge.js';
+import { sportBridgeOverview } from '../server/sportbridge.js';
 // wave-12 helpers imported above
 
 function assert(cond, msg) {
@@ -373,6 +380,11 @@ assert(gateOk.ok, 'sport gate allow');
 syncSlotToSession({ extreme_user: 'guest_can' }, 'smoke');
 const elig = runSportEligibilitySweep({}, 'smoke');
 assert(elig.ok, 'sport eligibility');
+assert(applySportCompetitionHold({ athlete_id: 'ath_1', hours: 24 }, 'smoke').ok, 'sport comp hold');
+assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block hold');
+assert(completeBridgeRecovery({ athlete_id: 'ath_1' }, 'smoke').ok, 'sport recovery close');
+assert(runSportPostCompSweep({ force: true }, 'smoke').ok, 'sport postcomp sweep');
+completeBridgeRecovery({}, 'smoke');
 reportAthleteInjury({ athlete_id: 'ath_1', body_area: 'bilek', severity: 'moderate' }, 'smoke');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can' }, 'smoke').ok === false, 'sport gate block injury');
 assert(gateSportSlotAccess({ extreme_user: 'guest_can', force: true }, 'smoke').ok, 'sport gate force');

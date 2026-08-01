@@ -445,6 +445,31 @@ try {
   assert(gate.res.ok && gate.data.status, 'sport gate');
   const elig = await req('/api/sportbridge/eligibility', { method: 'POST', token, body: {} });
   assert(elig.res.ok, 'sport eligibility');
+  const compHold = await req('/api/sportbridge/comp-hold', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1', hours: 24 },
+  });
+  assert(compHold.res.ok && compHold.data.ok !== false, 'sport comp hold');
+  const gateHold = await req('/api/sportbridge/gate', {
+    method: 'POST',
+    token,
+    body: { extreme_user: 'guest_can' },
+  });
+  assert(gateHold.res.ok && gateHold.data.ok === false, 'sport gate blocked by hold');
+  const recClose = await req('/api/sportbridge/recovery/complete', {
+    method: 'POST',
+    token,
+    body: { athlete_id: 'ath_1' },
+  });
+  assert(recClose.res.ok && recClose.data.ok !== false, 'sport recovery close');
+  const postSweep = await req('/api/sportbridge/postcomp-sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(postSweep.res.ok && postSweep.data.ok !== false, 'sport postcomp sweep');
+  await req('/api/sportbridge/recovery/complete', { method: 'POST', token, body: {} });
 
   const green = await req('/api/greenpulse/automations', { method: 'POST', token, body: {} });
   assert(green.res.ok, 'green automations');

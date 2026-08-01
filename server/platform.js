@@ -6823,10 +6823,13 @@ import {
   startCultureStream,
 } from './culturescene.js';
 import {
+  applySportCompetitionHold,
   bridgeRecoveryPlan,
+  completeBridgeRecovery,
   gateSportSlotAccess,
   linkSportProfiles,
   runSportEligibilitySweep,
+  runSportPostCompSweep,
   sportBridgeOverview,
   syncSlotToSession,
 } from './sportbridge.js';
@@ -37122,6 +37125,25 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, gateSportSlotAccess(await readBody(req), user.username)); })();
+          return;
+        }
+
+        if (path === '/api/sportbridge/comp-hold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, applySportCompetitionHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge/recovery/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeBridgeRecovery(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sportbridge/postcomp-sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSportPostCompSweep(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/greenpulse/automations' && req.method === 'POST') {

@@ -54,3 +54,33 @@ export async function gateSportSlotAccess(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function applySportCompetitionHold(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/sportbridge/comp-hold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function completeBridgeRecovery(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/sportbridge/recovery/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runSportPostCompSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/sportbridge/postcomp-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}

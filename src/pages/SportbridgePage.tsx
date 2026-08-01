@@ -105,7 +105,47 @@ export default function SportbridgePage() {
               >
                 Eligibility sweep
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.applySportCompetitionHold({ hours: 48 }).then((r: any) => {
+                    ping(r.ok ? `Post-comp hold · ${r.hold?.athlete_id}` : r.error || 'Hold yok')
+                    return refresh()
+                  })
+                }
+              >
+                Post-comp hold
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.completeBridgeRecovery({}).then((r: any) => {
+                    ping(r.ok ? 'Recovery close' : r.error || 'Close yok')
+                    return refresh()
+                  })
+                }
+              >
+                Recovery close
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runSportPostCompSweep({ force: true }).then((r: any) => {
+                    ping(`Post-comp sweep · ${r.sweep?.created ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Post-comp sweep
+              </button>
             </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Comp hold {data.summary?.competition_holds ?? 0} · recovery closeout{' '}
+              {data.summary?.recovery_closeouts ?? 0}
+            </p>
           </PanelCard>
           <PanelCard title="Park nabız">
             <dl className="grid grid-cols-2 gap-2 text-sm text-slate-300">

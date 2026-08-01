@@ -54,6 +54,10 @@ export function sportBridgeOverview() {
   const athletes = athleteOsOverview();
   const links = matchLinks(extreme, athletes);
   const gates = readCollection('sport-gate-checks', []) || [];
+  const holds = readCollection('sport-comp-holds', []) || [];
+  const holdList = Array.isArray(holds) ? holds : [];
+  const openHolds = holdList.filter((h) => h.status === 'active');
+  const recoveries = readCollection('sport-recovery-closeouts', []) || [];
   return {
     title: 'Spor Köprüsü',
     ethos: 'Park slotu → kulüp seansı · waiver → lisans · ETHOS güler.',
@@ -66,6 +70,8 @@ export function sportBridgeOverview() {
     club: athletes.summary,
     slots: (extreme.slots || []).slice(0, 12),
     gate_checks: (Array.isArray(gates) ? gates : []).slice(0, 20),
+    competition_holds: openHolds.slice(0, 20),
+    recovery_closeouts: (Array.isArray(recoveries) ? recoveries : []).slice(0, 12),
     summary: {
       linked: links.length,
       waiver_gaps: links.filter((l) => !l.waiver_ok).length,
@@ -73,6 +79,8 @@ export function sportBridgeOverview() {
       clearance_gaps: links.filter((l) => !l.clearance_ok).length,
       injured_links: links.filter((l) => l.injured).length,
       gate_blocks: (Array.isArray(gates) ? gates : []).filter((g) => g.status === 'blocked').length,
+      competition_holds: openHolds.length,
+      recovery_closeouts: Array.isArray(recoveries) ? recoveries.length : 0,
     },
     generatedAt: new Date().toISOString(),
   };
@@ -111,6 +119,13 @@ export function gateSportSlotAccess(input = {}, actor = 'system') {
   if (!link.clearance_ok) issues.push('clearance');
   if (link.injured) issues.push('injury');
   if (link.rtp_stage && link.rtp_stage !== 'cleared') issues.push('rtp');
+  const holds = readCollection('sport-comp-holds', []) || [];
+  const activeHold = (Array.isArray(holds) ? holds : []).find(
+    (h) =>
+      h.status === 'active' &&
+      (h.athlete_id === link.athlete_id || h.extreme_user === link.extreme_user),
+  );
+  if (activeHold) issues.push('post_comp_hold');
   const ready = athleteReadinessRollup(actor);
   const score = ready.athletes?.find((r) => r.athlete_id === link.athlete_id)?.score ?? null;
   if (score != null && score < (Number(input.min_readiness) || 50)) issues.push('readiness');
@@ -289,4 +304,149 @@ export function runSportEligibilitySweep(input = {}, actor = 'system') {
     summary: { scanned: (overview.links || []).length, flagged: flags.length },
     overview: sportBridgeOverview(),
   };
+}
+
+/** Yarışma sonrası hold — gate blok + recovery plan */
+export function applySportCompetitionHold(input = {}, actor = 'system') {
+  const overview = sportBridgeOverview();
+  const link =
+    (overview.links || []).find((l) => l.athlete_id === input.athlete_id) ||
+    (overview.links || []).find((l) => l.extreme_user === input.extreme_user) ||
+    (overview.links || [])[0];
+  if (!link) return { ok: false, error: 'Köprü yok' };
+  const hours = Number(input.hours) || 48;
+  const until = new Date(Date.now() + hours * 3600_000).toISOString();
+  const hold = {
+    id: rid('sch'),
+    link_id: link.id,
+    athlete_id: link.athlete_id,
+    extreme_user: link.extreme_user,
+    competition_id: input.competition_id || null,
+    reason: input.reason || 'post_competition',
+    status: 'active',
+    until,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('sport-comp-holds', hold, 200);
+  const plan = bridgeRecoveryPlan({ athlete_id: link.athlete_id, week: input.week }, actor);
+  enqueueAgentJob(
+    {
+      agent: 'SPORT-BRIDGE',
+      title: `post-comp hold · ${link.athlete_name || link.athlete_id} · ${hours}s`,
+      priority: 'high',
+      payload: { hold_id: hold.id, until },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'sport.comp_hold',
+    detail: `${link.athlete_id} · until ${until.slice(0, 10)}`,
+    meta: { id: hold.id },
+  });
+  return { ok: true, hold, plan: plan.plan, overview: sportBridgeOverview() };
+}
+
+/** Recovery closeout — hold kaldır, gate yeniden açılır */
+export function completeBridgeRecovery(input = {}, actor = 'system') {
+  const holds = readCollection('sport-comp-holds', []) || [];
+  if (!Array.isArray(holds) || !holds.length) return { ok: false, error: 'Hold yok' };
+  let idx = holds.findIndex((h) => h.id === input.id && h.status === 'active');
+  if (idx < 0) {
+    idx = holds.findIndex(
+      (h) =>
+        h.status === 'active' &&
+        (!input.athlete_id || h.athlete_id === input.athlete_id) &&
+        (!input.extreme_user || h.extreme_user === input.extreme_user),
+    );
+  }
+  if (idx < 0) return { ok: false, error: 'Aktif hold yok' };
+  holds[idx] = {
+    ...holds[idx],
+    status: 'released',
+    released_at: new Date().toISOString(),
+    released_by: actor,
+    note: input.note || 'recovery_done',
+  };
+  writeCollection('sport-comp-holds', holds);
+  const closeout = {
+    id: rid('src'),
+    hold_id: holds[idx].id,
+    athlete_id: holds[idx].athlete_id,
+    extreme_user: holds[idx].extreme_user,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('sport-recovery-closeouts', closeout, 120);
+  enqueueAgentJob(
+    {
+      agent: 'SPORT-BRIDGE',
+      title: `recovery close · ${holds[idx].athlete_id}`,
+      priority: 'normal',
+      payload: { closeout_id: closeout.id, hold_id: holds[idx].id },
+    },
+    actor,
+  );
+  appendAudit({
+    actor,
+    action: 'sport.recovery_close',
+    detail: holds[idx].athlete_id,
+    meta: { id: closeout.id },
+  });
+  return { ok: true, hold: holds[idx], closeout, overview: sportBridgeOverview() };
+}
+
+/** Yarışma kayıtlarından post-comp hold üret */
+export function runSportPostCompSweep(input = {}, actor = 'system') {
+  const comps = readCollection('athlete-competitions', []) || [];
+  const holds = readCollection('sport-comp-holds', []) || [];
+  const holdList = Array.isArray(holds) ? holds : [];
+  const today = new Date().toISOString().slice(0, 10);
+  const created = [];
+  for (const c of (Array.isArray(comps) ? comps : []).slice(0, Number(input.limit) || 20)) {
+    if (c.status !== 'registered' && c.status !== 'open' && c.clearance_status !== 'cleared') {
+      if (!input.force) continue;
+    }
+    const past = !c.date || c.date <= today || input.force;
+    if (!past) continue;
+    if (
+      holdList.some(
+        (h) =>
+          h.status === 'active' &&
+          h.athlete_id === c.athlete_id &&
+          (h.competition_id === c.id || !h.competition_id),
+      )
+    ) {
+      continue;
+    }
+    const r = applySportCompetitionHold(
+      {
+        athlete_id: c.athlete_id,
+        competition_id: c.id,
+        hours: Number(input.hours) || 48,
+        reason: 'post_comp_sweep',
+      },
+      actor,
+    );
+    if (r.ok) created.push(r.hold);
+  }
+  if (!created.length && input.force) {
+    const r = applySportCompetitionHold({ hours: 24, reason: 'force_sweep' }, actor);
+    if (r.ok) created.push(r.hold);
+  }
+  const sweep = {
+    id: rid('spcs'),
+    created: created.length,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('sport-postcomp-sweeps', sweep, 80);
+  appendAudit({
+    actor,
+    action: 'sport.postcomp_sweep',
+    detail: `${created.length} hold`,
+    meta: { id: sweep.id },
+  });
+  return { ok: true, sweep, created, overview: sportBridgeOverview() };
 }
