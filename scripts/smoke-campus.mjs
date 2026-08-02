@@ -592,6 +592,16 @@ import {
 import {
   buildOpsReport, runReportSweep, ackReportFlag, cancelReportJobs, ackReportEthos, snapshotReportAudit,
 } from '../server/report.js';
+import {
+  listCrudDomains,
+  crudopsOverview,
+  runCrudDomainSweep,
+  advanceCrudDomain,
+  healCrudDomain,
+  seedCrudDomain,
+  ackCrudDomainFlag,
+  isCrudOpsPath,
+} from '../server/crudops.js';
 
 import {
   buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
@@ -1645,6 +1655,21 @@ console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
 console.log('MOD148_OK');
+
+const crudDomains = listCrudDomains({ force: true });
+assert(crudDomains.length >= 500, 'crudops registry size');
+assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
+assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
+assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
+for (const name of ['carbonlog', 'fxrates', 'handbook', 'yieldrule', 'accessreview']) {
+  // eslint-disable-next-line no-await-in-loop
+  assert((await runCrudDomainSweep(name, { force: true }, 'smoke')).ok, `crudops sweep ${name}`);
+  assert((await advanceCrudDomain(name, {}, 'smoke')).ok, `crudops advance ${name}`);
+  assert((await healCrudDomain(name, {}, 'smoke')).ok, `crudops heal ${name}`);
+  assert((await seedCrudDomain(name, {}, 'smoke')).ok, `crudops seed ${name}`);
+  assert((await ackCrudDomainFlag(name, {}, 'smoke')).ok, `crudops ack ${name}`);
+}
+console.log('CRUDOPS_OK', crudDomains.length);
 
 console.log(
   JSON.stringify(

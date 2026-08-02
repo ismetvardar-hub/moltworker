@@ -32,6 +32,7 @@ import {
   tickJobs,
 } from './jobs.js';
 import { addSseClient, sseClientCount } from './events.js';
+import { handleCrudOpsRoute, isCrudOpsPath } from './crudops.js';
 import {
   ackReportEthos,
   ackReportFlag,
@@ -7452,6 +7453,27 @@ export function createPlatformMiddleware() {
 
         if (req.method === 'OPTIONS' && path.startsWith('/api/')) {
           sendJson(res, 204, {});
+          return;
+        }
+
+        // Generic CRUD ops for all thin list/create/update/summary domains
+        if (isCrudOpsPath(path, req.method)) {
+          void (async () => {
+            try {
+              const handled = await handleCrudOpsRoute(path, req.method, req, res, {
+                requireUser,
+                readBody,
+                sendJson,
+              });
+              if (!handled && !res.writableEnded) {
+                sendJson(res, 404, { error: 'CRUD ops route not found' });
+              }
+            } catch (err) {
+              if (!res.writableEnded) {
+                sendJson(res, 500, { error: err instanceof Error ? err.message : 'CRUD ops hata' });
+              }
+            }
+          })();
           return;
         }
 

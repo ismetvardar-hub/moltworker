@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createTransfers, fetchTransfers, patchTransfers } from '../services/transfers'
 
 export default function TransfersPage() {
@@ -29,6 +30,8 @@ export default function TransfersPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Transfer Masası</h1>
         <p className="mt-1 text-sm text-slate-400">Taksi / shuttle talepleri.</p>
       </header>
+      <CrudOpsBar domain="transfers" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createNightaudit, fetchNightaudit, patchNightaudit } from '../services/nightaudit'
 export default function NightauditPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function NightauditPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Night Audit</h1>
         <p className="mt-1 text-sm text-slate-400">Gece denetimi adımları.</p>
       </header>
+      <CrudOpsBar domain="nightaudit" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

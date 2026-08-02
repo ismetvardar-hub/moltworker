@@ -227,6 +227,7 @@ export type PageId =
   | 'whistle'
   | 'peoplehub'
   | 'carbonlog'
+  | 'crudops'
   | 'wateraudit'
   | 'airquality'
   | 'solarops'

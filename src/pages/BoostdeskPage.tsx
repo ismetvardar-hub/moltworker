@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createBoostdesk, fetchBoostdesk, patchBoostdesk } from '../services/boostdesk'
 export default function BoostdeskPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function BoostdeskPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Boost Desk</h1>
         <p className="mt-1 text-sm text-slate-400">Boost / paid amplification.</p>
       </header>
+      <CrudOpsBar domain="boostdesk" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createMoodlight, fetchMoodlight, patchMoodlight } from '../services/moodlight'
 export default function MoodlightPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function MoodlightPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Mood Light</h1>
         <p className="mt-1 text-sm text-slate-400">Ruh hali aydınlatması.</p>
       </header>
+      <CrudOpsBar domain="moodlight" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

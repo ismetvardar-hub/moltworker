@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createNoshowrisk, fetchNoshowrisk, patchNoshowrisk } from '../services/noshowrisk'
 export default function NoshowriskPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function NoshowriskPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">No-show Risk</h1>
         <p className="mt-1 text-sm text-slate-400">No-show risk skorları.</p>
       </header>
+      <CrudOpsBar domain="noshowrisk" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

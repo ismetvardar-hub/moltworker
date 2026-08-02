@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createMeetup3, fetchMeetup3, patchMeetup3 } from '../services/meetup3'
 export default function Meetup3Page() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function Meetup3Page() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Meetup</h1>
         <p className="mt-1 text-sm text-slate-400">Buluşma etkinlikleri.</p>
       </header>
+      <CrudOpsBar domain="meetup3" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

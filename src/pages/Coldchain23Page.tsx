@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createColdchain23, fetchColdchain23, patchColdchain23 } from '../services/coldchain23'
 export default function Coldchain23Page() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function Coldchain23Page() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Cold Chain+</h1>
         <p className="mt-1 text-sm text-slate-400">Soğuk zincir + izleme.</p>
       </header>
+      <CrudOpsBar domain="coldchain23" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

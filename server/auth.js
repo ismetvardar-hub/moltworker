@@ -301,6 +301,7 @@ export const ROLE_PAGES = {
     'whistle',
     'peoplehub',
     'carbonlog',
+    'crudops',
     'wateraudit',
     'airquality',
     'solarops',

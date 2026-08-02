@@ -127,6 +127,7 @@ const DEFAULT_BRANDS = [
       'ollama',
       'reports',
       'metrics',
+      'crudops',
       'ops',
       'settings',
       'inventory',

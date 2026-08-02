@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createInvoices, fetchInvoices, patchInvoices } from '../services/invoices'
 export default function InvoicesPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function InvoicesPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Fatura</h1>
         <p className="mt-1 text-sm text-slate-400">Alacak / borç fatura satırları.</p>
       </header>
+      <CrudOpsBar domain="invoices" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

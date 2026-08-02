@@ -170,6 +170,7 @@ try {
     '/api/shifts',
     '/api/checklists',
     '/api/alertrules',
+    '/api/crudops',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1653,6 +1654,23 @@ try {
   assert(alrFire.res.ok && alrFire.data.ok !== false, 'alertrules fire');
   const alrAck = await req('/api/alertrules/flag/ack', { method: 'POST', token, body: {} });
   assert(alrAck.res.ok && alrAck.data.ok !== false, 'alertrules ack');
+
+  const crudReg = await req('/api/crudops', { token });
+  assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
+  for (const domain of ['carbonlog', 'fxrates', 'handbook', 'yieldrule', 'accessreview']) {
+    const ops = await req(`/api/${domain}/ops`, { token });
+    assert(ops.res.ok && ops.data.domain === domain, `crudops ops ${domain}`);
+    const sw = await req(`/api/${domain}/sweep`, { method: 'POST', token, body: { force: true } });
+    assert(sw.res.ok && sw.data.ok !== false, `crudops sweep ${domain}`);
+    const adv = await req(`/api/${domain}/advance`, { method: 'POST', token, body: {} });
+    assert(adv.res.ok && adv.data.ok !== false, `crudops advance ${domain}`);
+    const heal = await req(`/api/${domain}/heal`, { method: 'POST', token, body: {} });
+    assert(heal.res.ok && heal.data.ok !== false, `crudops heal ${domain}`);
+    const seed = await req(`/api/${domain}/seed`, { method: 'POST', token, body: {} });
+    assert(seed.res.ok && seed.data.ok !== false, `crudops seed ${domain}`);
+    const ack = await req(`/api/${domain}/flag/ack`, { method: 'POST', token, body: {} });
+    assert(ack.res.ok && ack.data.ok !== false, `crudops ack ${domain}`);
+  }
 
   const digSweep = await req('/api/digest/sweep', { method: 'POST', token, body: { force: true } });
   assert(digSweep.res.ok && digSweep.data.ok !== false, 'digest sweep');

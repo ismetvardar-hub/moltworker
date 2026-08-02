@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createMediakit, fetchMediakit, patchMediakit } from '../services/mediakit'
 
 export default function MediakitPage() {
@@ -29,6 +30,8 @@ export default function MediakitPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Medya Kiti</h1>
         <p className="mt-1 text-sm text-slate-400">Basın / içerik varlıkları.</p>
       </header>
+      <CrudOpsBar domain="mediakit" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

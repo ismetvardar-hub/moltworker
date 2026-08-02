@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createSolaryield, fetchSolaryield, patchSolaryield } from '../services/solaryield'
 export default function SolaryieldPage() {
   const [rows, setRows] = useState<any[]>([])
@@ -24,6 +25,8 @@ export default function SolaryieldPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Solar Yield</h1>
         <p className="mt-1 text-sm text-slate-400">Güneş üretim verimi.</p>
       </header>
+      <CrudOpsBar domain="solaryield" onDone={() => void refresh()} />
+
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">

@@ -186,6 +186,7 @@ const CapextablePage = lazy(() => import('./pages/CapextablePage'));
 const CaptablePage = lazy(() => import('./pages/CaptablePage'));
 const CarbonledgerPage = lazy(() => import('./pages/CarbonledgerPage'));
 const CarbonlogPage = lazy(() => import('./pages/CarbonlogPage'));
+const CrudopsPage = lazy(() => import('./pages/CrudopsPage'));
 const Carecall2Page = lazy(() => import('./pages/Carecall2Page'));
 const Carecall3Page = lazy(() => import('./pages/Carecall3Page'));
 const CarecallPage = lazy(() => import('./pages/CarecallPage'));
@@ -1457,6 +1458,7 @@ const PAGES: Record<string, ComponentType> = {
   whistle: WhistlePage,
   peoplehub: PeoplehubPage,
   carbonlog: CarbonlogPage,
+  crudops: CrudopsPage,
   wateraudit: WaterauditPage,
   airquality: AirqualityPage,
   solarops: SolaropsPage,

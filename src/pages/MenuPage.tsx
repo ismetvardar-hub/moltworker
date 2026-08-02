@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createMenuItem, fetchMenu, updateMenuItem, type MenuItem } from '../services/menu'
 
 export default function MenuPage() {
@@ -44,6 +45,8 @@ export default function MenuPage() {
           Katalog · ort. {avgPrice.toLocaleString('tr-TR')} TRY
         </p>
       </header>
+      <CrudOpsBar domain="menu" onDone={() => void refresh()} />
+
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
