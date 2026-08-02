@@ -2443,6 +2443,14 @@ export function buildOpenApi() {
       '/api/notifications/push-seed': { post: { summary: 'Push seed notification', tags: ['notify'] } },
       '/api/events': { get: { summary: 'SSE olay akışı', tags: ['realtime'] } },
       '/api/settings': { get: { summary: 'Ayarlar', tags: ['settings'] } },
+      '/api/settings/sweep': { post: { summary: 'Settings critical/stale/jsonish sweep', tags: ['settings'] } },
+      '/api/settings/flag/ack': { post: { summary: 'Settings flag ack', tags: ['settings'] } },
+      '/api/settings/snapshot/refresh': { post: { summary: 'Refresh settings snapshot', tags: ['settings'] } },
+      '/api/settings/refresh-snapshot': { post: { summary: 'Refresh settings snapshot alias', tags: ['settings'] } },
+      '/api/settings/defaults/seed': { post: { summary: 'Seed missing settings defaults', tags: ['settings'] } },
+      '/api/settings/seed-defaults': { post: { summary: 'Seed missing settings defaults alias', tags: ['settings'] } },
+      '/api/settings/missing/flag': { post: { summary: 'Flag one missing settings key', tags: ['settings'] } },
+      '/api/settings/flag-missing-key': { post: { summary: 'Flag one missing settings key alias', tags: ['settings'] } },
     },
   };
 }

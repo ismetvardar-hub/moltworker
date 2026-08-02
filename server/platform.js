@@ -18,7 +18,16 @@ import {
   clearCollection,
 } from './store.js';
 import { appendAudit, readAudit } from './audit.js';
-import { applySettingsToEnv, getPublicSettings, saveSettings } from './settings.js';
+import {
+  ackSettingsFlag,
+  applySettingsToEnv,
+  flagMissingKey,
+  getPublicSettings,
+  refreshSettingsSnapshot,
+  runSettingsSweep,
+  saveSettings,
+  seedDefaultSettings,
+} from './settings.js';
 import {
   ackJobsFlag,
   cancelJob,
@@ -8174,6 +8183,85 @@ export function createPlatformMiddleware() {
         if (path === '/api/settings' && req.method === 'GET') {
           if (!requireCeo(req, res)) return;
           sendJson(res, 200, getPublicSettings());
+          return;
+        }
+        if (path === '/api/settings/sweep' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              sendJson(res, 200, runSettingsSweep(await readBody(req), user.username));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Settings sweep başarısız',
+              });
+            }
+          })();
+          return;
+        }
+        if (path === '/api/settings/flag/ack' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              sendJson(res, 200, ackSettingsFlag(await readBody(req), user.username));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Settings flag ack başarısız',
+              });
+            }
+          })();
+          return;
+        }
+        if (
+          (path === '/api/settings/snapshot/refresh' || path === '/api/settings/refresh-snapshot') &&
+          req.method === 'POST'
+        ) {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              sendJson(res, 200, refreshSettingsSnapshot(await readBody(req), user.username));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Settings snapshot başarısız',
+              });
+            }
+          })();
+          return;
+        }
+        if (
+          (path === '/api/settings/defaults/seed' || path === '/api/settings/seed-defaults') &&
+          req.method === 'POST'
+        ) {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              sendJson(res, 200, seedDefaultSettings(await readBody(req), user.username));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Settings defaults seed başarısız',
+              });
+            }
+          })();
+          return;
+        }
+        if (
+          (path === '/api/settings/missing/flag' || path === '/api/settings/flag-missing-key') &&
+          req.method === 'POST'
+        ) {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => {
+            try {
+              sendJson(res, 200, flagMissingKey(await readBody(req), user.username));
+            } catch (err) {
+              sendJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Settings missing key flag başarısız',
+              });
+            }
+          })();
           return;
         }
         if (path === '/api/settings' && req.method === 'POST') {

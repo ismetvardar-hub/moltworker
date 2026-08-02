@@ -180,6 +180,7 @@ try {
     '/api/checklists',
     '/api/alertrules',
     '/api/crudops',
+    '/api/settings',
     '/api/contracts',
     '/api/delivery',
     '/api/giftcards',
@@ -258,6 +259,23 @@ try {
     assert(res.ok, `${p} ${res.status}`);
     assert(data && typeof data === 'object', `${p} json`);
   }
+
+  const settingsSweep = await req('/api/settings/sweep', {
+    method: 'POST',
+    token,
+    body: { force: true },
+  });
+  assert(settingsSweep.res.ok && settingsSweep.data.ok !== false, 'settings sweep');
+  const settingsAck = await req('/api/settings/flag/ack', { method: 'POST', token, body: {} });
+  assert(settingsAck.res.ok && settingsAck.data.ok !== false, 'settings flag ack');
+  const settingsSnap = await req('/api/settings/snapshot/refresh', {
+    method: 'POST',
+    token,
+    body: { reason: 'e2e' },
+  });
+  assert(settingsSnap.res.ok && settingsSnap.data.ok !== false, 'settings snapshot refresh');
+  const settingsSeed = await req('/api/settings/defaults/seed', { method: 'POST', token, body: {} });
+  assert(settingsSeed.res.ok && settingsSeed.data.ok !== false, 'settings defaults seed');
 
   const auto = await req('/api/campusbrief/auto', { method: 'POST', token, body: {} });
   assert(auto.res.ok, 'campusbrief auto');
@@ -1778,7 +1796,7 @@ try {
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
   assert((crudReg.data.domains || []).length >= 500, 'crudops registry domains');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails', 'mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']) {
+  for (const domain of ['settings', 'lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails', 'mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }

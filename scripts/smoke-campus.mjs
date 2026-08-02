@@ -920,6 +920,14 @@ import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
 } from '../server/exports.js';
 import {
+  ackSettingsFlag,
+  flagMissingKey,
+  refreshSettingsSnapshot,
+  runSettingsSweep,
+  seedDefaultSettings,
+  settingsSummary,
+} from '../server/settings.js';
+import {
   listCrudDomains,
   crudopsOverview,
   runCrudDomainSweep,
@@ -2797,10 +2805,23 @@ console.log('MOD179_OK');
 console.log('MOD180_OK');
 console.log('MOD181_OK');
 
+const settingsOps = settingsSummary();
+assert(settingsOps.total >= 1, 'settings summary total');
+const settingsSweep = runSettingsSweep({ force: true }, 'smoke');
+assert(settingsSweep.ok && settingsSweep.sweep, 'settings sweep');
+assert(ackSettingsFlag({}, 'smoke').ok, 'settings flag ack');
+assert(refreshSettingsSnapshot({ reason: 'smoke' }, 'smoke').ok, 'settings snapshot');
+assert(seedDefaultSettings({}, 'smoke').ok, 'settings seed defaults');
+assert(flagMissingKey({ key: 'TWILIO_AUTH_TOKEN' }, 'smoke').ok, 'settings missing key flag');
+console.log('MOD182_OK');
+
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 993, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
 assert(crudopsOverview().domains?.length === crudDomains.length, 'crudops overview domains');
+assert(!crudDomains.some((d) => d.name === 'settings'), 'crudops skips thickened settings');
+assert(!isCrudOpsPath('/api/settings/sweep', 'POST'), 'crudops skips settings sweep');
+assert(!isCrudOpsPath('/api/settings/flag/ack', 'POST'), 'crudops skips settings ack');
 assert(!crudDomains.some((d) => d.name === 'brands'), 'crudops skips thickened brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
   assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);

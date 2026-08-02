@@ -13,12 +13,42 @@ export interface SettingField {
 export interface SettingsResponse {
   fields: SettingField[];
   updatedAt: string | null;
+  summary?: SettingsSummary;
+}
+
+export interface SettingsSummary {
+  title?: string;
+  total: number;
+  configured: number;
+  missing: number;
+  missingKeys?: string[];
+  stale: boolean;
+  updatedAt: string | null;
+  flags_open: number;
+  invalid_jsonish: number;
+  flags?: Array<{ id: string; key: string; text: string; level?: string; status: string }>;
+  summaryLines?: string[];
+}
+
+export interface SettingsOpsResponse {
+  ok: boolean;
+  error?: string;
+  overview?: SettingsSummary;
+  created?: Array<Record<string, unknown>>;
+  seeded?: string[];
+  flag?: Record<string, unknown>;
+  snapshot?: Record<string, unknown>;
+}
+
+async function parse<T>(res: Response, fallback: string): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error(data.error || fallback);
+  return data;
 }
 
 export async function fetchSettings(): Promise<SettingsResponse> {
   const res = await fetch('/api/settings', { headers: authHeaders() });
-  if (!res.ok) throw new Error('Ayarlar alınamadı');
-  return (await res.json()) as SettingsResponse;
+  return parse<SettingsResponse>(res, 'Ayarlar alınamadı');
 }
 
 export async function saveSettings(patch: Record<string, string>): Promise<SettingsResponse> {
@@ -27,9 +57,34 @@ export async function saveSettings(patch: Record<string, string>): Promise<Setti
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(patch),
   });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(err.error || 'Ayarlar kaydedilemedi');
-  }
-  return (await res.json()) as SettingsResponse;
+  return parse<SettingsResponse>(res, 'Ayarlar kaydedilemedi');
+}
+
+async function postSettingsOps(path: string, body: Record<string, unknown> = {}): Promise<SettingsOpsResponse> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  return parse<SettingsOpsResponse>(res, 'Settings ops başarısız');
+}
+
+export function runSettingsSweep(body: Record<string, unknown> = {}) {
+  return postSettingsOps('/api/settings/sweep', body);
+}
+
+export function ackSettingsFlag(body: Record<string, unknown> = {}) {
+  return postSettingsOps('/api/settings/flag/ack', body);
+}
+
+export function refreshSettingsSnapshot(body: Record<string, unknown> = {}) {
+  return postSettingsOps('/api/settings/snapshot/refresh', body);
+}
+
+export function seedDefaultSettings(body: Record<string, unknown> = {}) {
+  return postSettingsOps('/api/settings/defaults/seed', body);
+}
+
+export function flagMissingSettingKey(body: Record<string, unknown> = {}) {
+  return postSettingsOps('/api/settings/missing/flag', body);
 }

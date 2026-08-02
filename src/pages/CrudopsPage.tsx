@@ -56,7 +56,9 @@ export default function CrudopsPage() {
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lykia-400/80">LİKYA Holding</p>
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">CRUD Ops</h1>
-        <p className="mt-1 text-sm text-slate-400">İnce domain registry — generic sweep / advance / heal.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          İnce domain registry — kalan ince domainler bilinçli olarak generic CRUD ops kullanır.
+        </p>
       </header>
       {error && <p className="text-sm text-rose-300">{error}</p>}
       {data && (
