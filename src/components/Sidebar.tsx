@@ -372,8 +372,8 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'ollama',
-    label: 'Yerel AI (Ollama)',
-    description: 'Model servisi & durum',
+    label: 'Hibrit AI',
+    description: 'Ollama + Groq · Agent Reach',
     icon: Cpu,
   },
   {
