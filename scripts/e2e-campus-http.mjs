@@ -231,6 +231,10 @@ try {
     '/api/karaoke',
     '/api/mediakit',
     '/api/mocktails',
+    '/api/mysteryshop',
+    '/api/nightlog',
+    '/api/photoshoot',
+    '/api/vipnotes',
     '/api/otareviews',
     '/api/partners',
     '/api/promos',
@@ -1771,7 +1775,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails', 'mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3644,6 +3648,98 @@ try {
   assert(mocktails178Feature.res.ok && mocktails178Feature.data.ok !== false, 'mocktails feature drink');
   const mocktails178Ack = await req('/api/mocktails/flag/ack', { method: 'POST', token, body: {} });
   assert(mocktails178Ack.res.ok && mocktails178Ack.data.ok !== false, 'mocktails flag ack');
+
+  const mystery179Sweep = await req('/api/mysteryshop/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mystery179Sweep.res.ok && mystery179Sweep.data.ok !== false, 'mysteryshop sweep');
+  const mystery179Seed = await req('/api/mysteryshop/follow-up/seed', {
+    method: 'POST',
+    token,
+    body: { venueId: 'E2E-179 mystery follow-up' },
+  });
+  assert(mystery179Seed.res.ok && mystery179Seed.data.ok !== false, 'mysteryshop follow-up seed');
+  const mystery179Low = await req('/api/mysteryshop/low-score', {
+    method: 'POST',
+    token,
+    body: { id: mystery179Seed.data.visit?.id, score: 5 },
+  });
+  assert(mystery179Low.res.ok && mystery179Low.data.ok !== false, 'mysteryshop low score');
+  const mystery179Coach = await req('/api/mysteryshop/coach/assign', {
+    method: 'POST',
+    token,
+    body: { id: mystery179Seed.data.visit?.id },
+  });
+  assert(mystery179Coach.res.ok && mystery179Coach.data.ok !== false, 'mysteryshop assign coach');
+  const mystery179Ack = await req('/api/mysteryshop/flag/ack', { method: 'POST', token, body: {} });
+  assert(mystery179Ack.res.ok && mystery179Ack.data.ok !== false, 'mysteryshop flag ack');
+
+  const nightlog179Sweep = await req('/api/nightlog/sweep', { method: 'POST', token, body: { force: true } });
+  assert(nightlog179Sweep.res.ok && nightlog179Sweep.data.ok !== false, 'nightlog sweep');
+  const nightlog179Seed = await req('/api/nightlog/security-note/seed', {
+    method: 'POST',
+    token,
+    body: { metric: 'E2E-179 security note' },
+  });
+  assert(nightlog179Seed.res.ok && nightlog179Seed.data.ok !== false, 'nightlog security note seed');
+  const nightlog179Age = await req('/api/nightlog/incident/age', {
+    method: 'POST',
+    token,
+    body: { id: nightlog179Seed.data.entry?.id },
+  });
+  assert(nightlog179Age.res.ok && nightlog179Age.data.ok !== false, 'nightlog incident age');
+  const nightlog179Close = await req('/api/nightlog/entry/close', {
+    method: 'POST',
+    token,
+    body: { id: nightlog179Seed.data.entry?.id },
+  });
+  assert(nightlog179Close.res.ok && nightlog179Close.data.ok !== false, 'nightlog close entry');
+  const nightlog179Ack = await req('/api/nightlog/flag/ack', { method: 'POST', token, body: {} });
+  assert(nightlog179Ack.res.ok && nightlog179Ack.data.ok !== false, 'nightlog flag ack');
+
+  const photoshoot179Sweep = await req('/api/photoshoot/sweep', { method: 'POST', token, body: { force: true } });
+  assert(photoshoot179Sweep.res.ok && photoshoot179Sweep.data.ok !== false, 'photoshoot sweep');
+  const photoshoot179Seed = await req('/api/photoshoot/brand-shoot/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-179 brand shoot' },
+  });
+  assert(photoshoot179Seed.res.ok && photoshoot179Seed.data.ok !== false, 'photoshoot brand shoot seed');
+  const photoshoot179Permit = await req('/api/photoshoot/permit/pending', {
+    method: 'POST',
+    token,
+    body: { id: photoshoot179Seed.data.shoot?.id },
+  });
+  assert(photoshoot179Permit.res.ok && photoshoot179Permit.data.ok !== false, 'photoshoot permit pending');
+  const photoshoot179Approve = await req('/api/photoshoot/slot/approve', {
+    method: 'POST',
+    token,
+    body: { id: photoshoot179Seed.data.shoot?.id },
+  });
+  assert(photoshoot179Approve.res.ok && photoshoot179Approve.data.ok !== false, 'photoshoot approve slot');
+  const photoshoot179Ack = await req('/api/photoshoot/flag/ack', { method: 'POST', token, body: {} });
+  assert(photoshoot179Ack.res.ok && photoshoot179Ack.data.ok !== false, 'photoshoot flag ack');
+
+  const vipnotes179Sweep = await req('/api/vipnotes/sweep', { method: 'POST', token, body: { force: true } });
+  assert(vipnotes179Sweep.res.ok && vipnotes179Sweep.data.ok !== false, 'vipnotes sweep');
+  const vipnotes179Seed = await req('/api/vipnotes/arrival-brief/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-179 VIP arrival' },
+  });
+  assert(vipnotes179Seed.res.ok && vipnotes179Seed.data.ok !== false, 'vipnotes arrival brief seed');
+  const vipnotes179Unread = await req('/api/vipnotes/alert/unread', {
+    method: 'POST',
+    token,
+    body: { id: vipnotes179Seed.data.note?.id },
+  });
+  assert(vipnotes179Unread.res.ok && vipnotes179Unread.data.ok !== false, 'vipnotes unread alert');
+  const vipnotes179Acknowledge = await req('/api/vipnotes/acknowledge', {
+    method: 'POST',
+    token,
+    body: { id: vipnotes179Seed.data.note?.id },
+  });
+  assert(vipnotes179Acknowledge.res.ok && vipnotes179Acknowledge.data.ok !== false, 'vipnotes acknowledge');
+  const vipnotes179Ack = await req('/api/vipnotes/flag/ack', { method: 'POST', token, body: {} });
+  assert(vipnotes179Ack.res.ok && vipnotes179Ack.data.ok !== false, 'vipnotes flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

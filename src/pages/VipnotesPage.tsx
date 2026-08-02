@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createVipnotes, fetchVipnotes, patchVipnotes } from '../services/vipnotes'
+import {
+  acknowledgeVipnote,
+  ackVipnotesFlag,
+  createVipnotes,
+  fetchVipnotes,
+  markVipnotesUnreadAlert,
+  patchVipnotes,
+  runVipnotesSweep,
+  seedVipArrivalBrief,
+} from '../services/vipnotes'
 
 export default function VipnotesPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"guestName":"VIP Misafir","note":"Sessiz oda"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function VipnotesPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function VipnotesPage() {
         <p className="mt-1 text-sm text-slate-400">VIP tercih / dikkat notları.</p>
       </header>
       <CrudOpsBar domain="vipnotes" onDone={() => void refresh()} />
+      {notice && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{notice}</p>}
+      <PanelCard title="Wave 179 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runVipnotesSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Unread alert', () => markVipnotesUnreadAlert({ id: rows[0]?.id }))}>Unread VIP alert</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Acknowledge', () => acknowledgeVipnote({ id: rows[0]?.id }))}>Acknowledge</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={()=>void runOp('Seed arrival brief', () => seedVipArrivalBrief({}))}>Seed arrival brief</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackVipnotesFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
@@ -50,6 +77,7 @@ export default function VipnotesPage() {
                 <div className="text-xs text-slate-500">{r.destination||r.reason||r.until||r.charge||r.note||''}</div>
               </div>
               <div className="flex flex-wrap gap-1"><button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchVipnotes(r.id,{status:'active'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>active</button>
+                <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchVipnotes(r.id,{status:'acknowledged',read:true}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>ack</button>
                 <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchVipnotes(r.id,{status:'archived'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>archived</button></div>
             </li>
           ))}

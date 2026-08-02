@@ -788,9 +788,14 @@ import {
   updatePartners,
 } from './partners.js';
 import {
+  ackMysteryshopFlag,
+  assignMysteryshopCoach,
   createMysteryshop,
   listMysteryshop,
+  markMysteryshopLowScoreVisit,
   mysteryshopSummary,
+  runMysteryshopSweep,
+  seedMysteryshopFollowUp,
   updateMysteryshop,
 } from './mysteryshop.js';
 import {
@@ -997,15 +1002,25 @@ import {
   updateGroups,
 } from './groups.js';
 import {
+  acknowledgeVipnote,
+  ackVipnotesFlag,
   createVipnotes,
   listVipnotes,
+  markVipnotesUnreadAlert,
+  runVipnotesSweep,
+  seedVipArrivalBrief,
   vipnotesSummary,
   updateVipnotes,
 } from './vipnotes.js';
 import {
+  ackPhotoshootFlag,
+  approvePhotoshootSlot,
   createPhotoshoot,
   listPhotoshoot,
+  markPhotoshootPermitPending,
   photoshootSummary,
+  runPhotoshootSweep,
+  seedBrandShoot,
   updatePhotoshoot,
 } from './photoshoot.js';
 import {
@@ -1097,9 +1112,14 @@ import {
   updateAmenities,
 } from './amenities.js';
 import {
+  ackNightlogFlag,
+  ageNightlogOpenIncident,
+  closeNightlogEntry,
   createNightlog,
   listNightlog,
   nightlogSummary,
+  runNightlogSweep,
+  seedNightlogSecurityNote,
   updateNightlog,
 } from './nightlog.js';
 import {
@@ -12726,6 +12746,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/mysteryshop/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMysteryshopSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mysteryshop/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMysteryshopFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mysteryshop/low-score' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMysteryshopLowScoreVisit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mysteryshop/coach/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignMysteryshopCoach(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mysteryshop/follow-up/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedMysteryshopFollowUp(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/mysteryshop/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13760,6 +13810,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/vipnotes/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVipnotesSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vipnotes/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVipnotesFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vipnotes/alert/unread' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markVipnotesUnreadAlert(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vipnotes/acknowledge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, acknowledgeVipnote(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/vipnotes/arrival-brief/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipArrivalBrief(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/vipnotes/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13783,6 +13863,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPhotoshoot(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/photoshoot/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPhotoshootSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/photoshoot/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPhotoshootFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/photoshoot/permit/pending' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPhotoshootPermitPending(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/photoshoot/slot/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approvePhotoshootSlot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/photoshoot/brand-shoot/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBrandShoot(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/photoshoot/') && req.method === 'PATCH') {
@@ -14248,6 +14358,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createNightlog(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/nightlog/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runNightlogSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightlog/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackNightlogFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightlog/incident/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageNightlogOpenIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightlog/entry/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeNightlogEntry(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/nightlog/security-note/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedNightlogSecurityNote(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/nightlog/') && req.method === 'PATCH') {

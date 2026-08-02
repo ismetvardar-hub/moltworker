@@ -897,6 +897,18 @@ import {
 import {
   mocktailsSummary, runMocktailsSweep, ackMocktailsFlag, markMocktailsRecipeGap, featureMocktailDrink, seedSunsetFlight,
 } from '../server/mocktails.js';
+import {
+  mysteryshopSummary, runMysteryshopSweep, ackMysteryshopFlag, markMysteryshopLowScoreVisit, assignMysteryshopCoach, seedMysteryshopFollowUp,
+} from '../server/mysteryshop.js';
+import {
+  nightlogSummary, runNightlogSweep, ackNightlogFlag, ageNightlogOpenIncident, closeNightlogEntry, seedNightlogSecurityNote,
+} from '../server/nightlog.js';
+import {
+  photoshootSummary, runPhotoshootSweep, ackPhotoshootFlag, markPhotoshootPermitPending, approvePhotoshootSlot, seedBrandShoot,
+} from '../server/photoshoot.js';
+import {
+  vipnotesSummary, runVipnotesSweep, ackVipnotesFlag, markVipnotesUnreadAlert, acknowledgeVipnote, seedVipArrivalBrief,
+} from '../server/vipnotes.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2692,6 +2704,38 @@ assert(runMocktailsSweep({ force: true }, 'smoke').ok, 'mocktails sweep');
 assert(featureMocktailDrink({ id: smokeMocktail.drink.id }, 'smoke').ok, 'mocktails feature drink');
 assert(ackMocktailsFlag({}, 'smoke').ok, 'mocktails flag ack');
 
+assert(mysteryshopSummary().title, 'mysteryshop overview');
+const smokeMysteryshop = seedMysteryshopFollowUp({ venueId: 'Smoke 179 mystery follow-up' }, 'smoke');
+assert(smokeMysteryshop.ok, 'mysteryshop follow-up seed');
+assert(markMysteryshopLowScoreVisit({ id: smokeMysteryshop.visit.id, score: 5 }, 'smoke').ok, 'mysteryshop low score visit');
+assert(runMysteryshopSweep({ force: true }, 'smoke').ok, 'mysteryshop sweep');
+assert(assignMysteryshopCoach({ id: smokeMysteryshop.visit.id }, 'smoke').ok, 'mysteryshop assign coach');
+assert(ackMysteryshopFlag({}, 'smoke').ok, 'mysteryshop flag ack');
+
+assert(nightlogSummary().title, 'nightlog overview');
+const smokeNightlog = seedNightlogSecurityNote({ metric: 'Smoke 179 security note' }, 'smoke');
+assert(smokeNightlog.ok, 'nightlog security note seed');
+assert(ageNightlogOpenIncident({ id: smokeNightlog.entry.id }, 'smoke').ok, 'nightlog open incident aging');
+assert(runNightlogSweep({ force: true }, 'smoke').ok, 'nightlog sweep');
+assert(closeNightlogEntry({ id: smokeNightlog.entry.id }, 'smoke').ok, 'nightlog close entry');
+assert(ackNightlogFlag({}, 'smoke').ok, 'nightlog flag ack');
+
+assert(photoshootSummary().title, 'photoshoot overview');
+const smokePhotoshoot = seedBrandShoot({ guestName: 'Smoke 179 brand shoot' }, 'smoke');
+assert(smokePhotoshoot.ok, 'photoshoot brand shoot seed');
+assert(markPhotoshootPermitPending({ id: smokePhotoshoot.shoot.id }, 'smoke').ok, 'photoshoot permit pending');
+assert(runPhotoshootSweep({ force: true }, 'smoke').ok, 'photoshoot sweep');
+assert(approvePhotoshootSlot({ id: smokePhotoshoot.shoot.id }, 'smoke').ok, 'photoshoot approve slot');
+assert(ackPhotoshootFlag({}, 'smoke').ok, 'photoshoot flag ack');
+
+assert(vipnotesSummary().title, 'vipnotes overview');
+const smokeVipnote = seedVipArrivalBrief({ guestName: 'Smoke 179 VIP arrival' }, 'smoke');
+assert(smokeVipnote.ok, 'vipnotes arrival brief seed');
+assert(markVipnotesUnreadAlert({ id: smokeVipnote.note.id }, 'smoke').ok, 'vipnotes unread alert');
+assert(runVipnotesSweep({ force: true }, 'smoke').ok, 'vipnotes sweep');
+assert(acknowledgeVipnote({ id: smokeVipnote.note.id }, 'smoke').ok, 'vipnotes acknowledge');
+assert(ackVipnotesFlag({}, 'smoke').ok, 'vipnotes flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2727,9 +2771,10 @@ console.log('MOD175_OK');
 console.log('MOD176_OK');
 console.log('MOD177_OK');
 console.log('MOD178_OK');
+console.log('MOD179_OK');
 
 const crudDomains = listCrudDomains({ force: true });
-assert(crudDomains.length >= 998, 'crudops registry size');
+assert(crudDomains.length >= 994, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
 assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
@@ -2812,6 +2857,11 @@ for (const thickened178 of ['florals', 'karaoke', 'mediakit', 'mocktails']) {
   assert(!crudDomains.some((d) => d.name === thickened178), `crudops skips thickened ${thickened178}`);
   assert(!isCrudOpsPath(`/api/${thickened178}/sweep`, 'POST'), `crudops skips ${thickened178} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened178}/flag/ack`, 'POST'), `crudops skips ${thickened178} ack`);
+}
+for (const thickened179 of ['mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']) {
+  assert(!crudDomains.some((d) => d.name === thickened179), `crudops skips thickened ${thickened179}`);
+  assert(!isCrudOpsPath(`/api/${thickened179}/sweep`, 'POST'), `crudops skips ${thickened179} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened179}/flag/ack`, 'POST'), `crudops skips ${thickened179} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

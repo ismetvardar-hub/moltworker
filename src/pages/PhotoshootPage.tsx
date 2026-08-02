@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createPhotoshoot, fetchPhotoshoot, patchPhotoshoot } from '../services/photoshoot'
+import {
+  ackPhotoshootFlag,
+  approvePhotoshootSlot,
+  createPhotoshoot,
+  fetchPhotoshoot,
+  markPhotoshootPermitPending,
+  patchPhotoshoot,
+  runPhotoshootSweep,
+  seedBrandShoot,
+} from '../services/photoshoot'
 
 export default function PhotoshootPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"guestName":"Misafir","slot":"17:00"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function PhotoshootPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function PhotoshootPage() {
         <p className="mt-1 text-sm text-slate-400">Profesyonel çekim randevuları.</p>
       </header>
       <CrudOpsBar domain="photoshoot" onDone={() => void refresh()} />
+      {notice && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{notice}</p>}
+      <PanelCard title="Wave 179 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runPhotoshootSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Permit pending', () => markPhotoshootPermitPending({ id: rows[0]?.id }))}>Permit pending</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Approve slot', () => approvePhotoshootSlot({ id: rows[0]?.id }))}>Approve slot</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={()=>void runOp('Seed brand shoot', () => seedBrandShoot({}))}>Seed brand shoot</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackPhotoshootFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
@@ -50,6 +77,7 @@ export default function PhotoshootPage() {
                 <div className="text-xs text-slate-500">{r.destination||r.reason||r.until||r.charge||r.note||''}</div>
               </div>
               <div className="flex flex-wrap gap-1"><button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchPhotoshoot(r.id,{status:'booked'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>booked</button>
+                <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchPhotoshoot(r.id,{status:'approved',permitStatus:'approved'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>approved</button>
                 <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchPhotoshoot(r.id,{status:'done'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>done</button>
                 <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px] text-slate-300" onClick={()=>void patchPhotoshoot(r.id,{status:'cancelled'}).then(()=>refresh()).catch(e=>setError(String(e.message||e)))}>cancelled</button></div>
             </li>

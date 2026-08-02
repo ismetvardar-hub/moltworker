@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createNightlog, fetchNightlog, patchNightlog } from '../services/nightlog'
+import {
+  ackNightlogFlag,
+  ageNightlogOpenIncident,
+  closeNightlogEntry,
+  createNightlog,
+  fetchNightlog,
+  patchNightlog,
+  runNightlogSweep,
+  seedNightlogSecurityNote,
+} from '../services/nightlog'
 
 export default function NightlogPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"metric":"No-show","value":"2"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function NightlogPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function NightlogPage() {
         <p className="mt-1 text-sm text-slate-400">Night audit operasyon satırları.</p>
       </header>
       <CrudOpsBar domain="nightlog" onDone={() => void refresh()} />
+      {notice && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{notice}</p>}
+      <PanelCard title="Wave 179 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runNightlogSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Age incident', () => ageNightlogOpenIncident({ id: rows[0]?.id }))}>Open incident aging</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Close entry', () => closeNightlogEntry({ id: rows[0]?.id }))}>Close entry</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={()=>void runOp('Seed security note', () => seedNightlogSecurityNote({}))}>Seed security note</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackNightlogFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">
