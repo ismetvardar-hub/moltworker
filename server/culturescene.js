@@ -66,6 +66,11 @@ function ensureEvents() {
   return list;
 }
 
+function openCulturesceneFlags() {
+  const flags = readCollection('culturescene-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
 export function cultureSceneOverview() {
   const stages = ensureStages();
   const events = ensureEvents();
@@ -84,6 +89,17 @@ export function cultureSceneOverview() {
   const crew = readCollection('culture-crew-calls', []) || [];
   const scanList = Array.isArray(scans) ? scans : [];
   const crewList = Array.isArray(crew) ? crew : [];
+  const now = Date.now();
+  const staleHolds = holdList.filter((h) => {
+    if (h.status === 'sold' || h.status === 'released' || h.status === 'expired') return false;
+    const at = Date.parse(h.at || 0);
+    return Number.isFinite(at) && now - at >= 30 * 60_000;
+  });
+  const staleStreams = liveStreams.filter((s) => {
+    const at = Date.parse(s.pulsed_at || s.started_at || 0);
+    return Number.isFinite(at) && now - at >= 20 * 60_000;
+  });
+  const flags = openCulturesceneFlags();
   return {
     title: 'Kültür & Sahne',
     ethos: 'Sahne ormanın sesi — bilet, yayın, sanat tek nabız.',
@@ -96,7 +112,9 @@ export function cultureSceneOverview() {
     settlements: settleList.slice(0, 15),
     door_scans: scanList.slice(0, 20),
     crew_calls: crewList.slice(0, 15),
+    flags: flags.slice(0, 30),
     summary: {
+      flags_open: flags.length,
       stages_ready: stages.filter((s) => s.status === 'ready').length,
       on_sale: events.filter((e) => e.status === 'on_sale').length,
       live: events.filter((e) => e.status === 'live').length,
@@ -113,9 +131,104 @@ export function cultureSceneOverview() {
       crew_open: crewList.filter((c) => c.status === 'open' || c.status === 'acked').length,
       vip_sales: saleList.filter((s) => s.tier === 'vip').length,
       hold_transfers: (readCollection('culture-hold-transfers', []) || []).length,
+      stale_holds: staleHolds.length,
+      stale_streams: staleStreams.length,
     },
+    summaryLines: [
+      `Kültür ${events.length} etkinlik · hold ${holdList.length} · live ${liveStreams.length}`,
+      `Stale hold ${staleHolds.length} · stale stream ${staleStreams.length} · flag ${flags.length}`,
+    ],
     generatedAt: new Date().toISOString(),
   };
+}
+
+export function runCulturesceneSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const before = cultureSceneOverview();
+  const existing = readCollection('culturescene-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  const created = [];
+  const candidates = [];
+  const orchestration = {
+    hold_expiry: null,
+    box_office: null,
+    stream_pulse: null,
+  };
+  if ((force || (before.summary?.stale_holds || 0) > 0) && input.expire_holds !== false) {
+    orchestration.hold_expiry = expireCultureHolds({ minutes: input.minutes || 30, force }, actor);
+  }
+  if (force || input.box_office) orchestration.box_office = cultureBoxOfficeRollup(actor);
+  if ((force || (before.summary?.stale_streams || 0) > 0) && input.pulse_stream !== false) {
+    orchestration.stream_pulse = pulseCultureStream({ viewers: input.viewers }, actor);
+  }
+  const overview = cultureSceneOverview();
+  if (force || (overview.summary?.stale_holds || 0) > 0 || orchestration.hold_expiry?.ok) {
+    candidates.push({
+      key: 'culturescene_hold_backlog',
+      level: (overview.summary?.stale_holds || 0) > 0 ? 'warn' : 'info',
+      text: `Bayat/açık kültür hold ${overview.summary?.open_holds || 0}`,
+      domain: 'tickets',
+    });
+  }
+  if (force || (overview.summary?.stale_streams || 0) > 0 || (overview.summary?.streams_live || 0) > 0) {
+    candidates.push({
+      key: 'culturescene_stream_pulse',
+      level: (overview.summary?.stale_streams || 0) > 0 ? 'warn' : 'info',
+      text: `Canlı yayın ${overview.summary?.streams_live || 0} · stale ${overview.summary?.stale_streams || 0}`,
+      domain: 'stream',
+    });
+  }
+  if (force || (overview.summary?.crew_open || 0) > 0 || (overview.summary?.door_denied || 0) > 0) {
+    candidates.push({
+      key: 'culturescene_show_ops',
+      level: (overview.summary?.door_denied || 0) > 0 ? 'alert' : 'warn',
+      text: `Crew açık ${overview.summary?.crew_open || 0} · kapı deny ${overview.summary?.door_denied || 0}`,
+      domain: 'show_ops',
+    });
+  }
+  for (const c of candidates) {
+    if (openKeys.has(c.key)) continue;
+    const row = { id: rid('csf'), ...c, status: 'open', at: new Date().toISOString(), actor };
+    list.unshift(row);
+    created.push(row);
+    openKeys.add(c.key);
+  }
+  writeCollection('culturescene-flags', list.slice(0, 200));
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'CULTURE-AI',
+        title: `culturescene sweep · ${created.length} flag`,
+        priority: created.some((f) => f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id) },
+      },
+      actor,
+    );
+  }
+  const sweep = { id: rid('css'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('culturescene-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'culturescene.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, orchestration, overview: cultureSceneOverview() };
+}
+
+export function ackCulturesceneFlag(input = {}, actor = 'system') {
+  const list = readCollection('culturescene-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok — önce sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('culturescene-flags', list);
+  appendAudit({ actor, action: 'culturescene.ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: cultureSceneOverview() };
 }
 
 export function createCultureEvent(input = {}, actor = 'system') {

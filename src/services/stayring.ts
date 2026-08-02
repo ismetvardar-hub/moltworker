@@ -16,6 +16,27 @@ export async function createStayBooking(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runStayringSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackStayringFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/stayring/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function issueStayKeyless(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/stayring/keyless', {

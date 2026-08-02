@@ -60,6 +60,30 @@ export default function CulturescenePage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
+                className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runCulturesceneSweep({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Sweep · ${r.created?.length ?? 0} flag` : r.error || 'Sweep yok')
+                    return refresh()
+                  })
+                }
+              >
+                Ops sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.ackCulturesceneFlag({ note: 'ui ack' }).then((r: any) => {
+                    ping(r.ok ? `Flag ack · ${r.flag?.domain}` : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Flag ack
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
                   void api
@@ -276,6 +300,8 @@ export default function CulturescenePage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
+              Flag {data.summary?.flags_open ?? 0} · stale hold {data.summary?.stale_holds ?? 0} · stale stream{' '}
+              {data.summary?.stale_streams ?? 0} ·{' '}
               Satılan bilet {data.summary?.tickets_sold ?? 0} · açık hold {data.summary?.open_holds ?? 0} · canlı
               stream {data.summary?.streams_live ?? 0} · peak {data.summary?.viewers_peak ?? 0} · iade{' '}
               {data.summary?.refunds_try ?? 0} TRY · settle {data.summary?.settlements ?? 0} · kapı{' '}

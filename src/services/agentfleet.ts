@@ -7,6 +7,24 @@ async function parse<T>(res: Response): Promise<T> {
 export async function fetchAgentFleet() {
   return parse(await fetch('/api/agentfleet', { headers: authHeaders() }))
 }
+export async function runAgentfleetSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+export async function ackAgentfleetFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/agentfleet/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
 export async function pingFleetAgent(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/agentfleet/ping', {

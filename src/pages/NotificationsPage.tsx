@@ -3,9 +3,12 @@ import { Bell, CheckCheck, RefreshCw } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import { subscribeLiveEvents } from '../services/events';
 import {
+  ackNotificationsFlag,
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  pushSeedNotification,
+  runNotificationsSweep,
   type AppNotification,
 } from '../services/notifications';
 
@@ -13,6 +16,7 @@ export default function NotificationsPage() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -37,6 +41,11 @@ export default function NotificationsPage() {
     };
   }, [refresh]);
 
+  function ping(message: string) {
+    setFlash(message);
+    window.setTimeout(() => setFlash(null), 2800);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -54,7 +63,43 @@ export default function NotificationsPage() {
             Önemli operasyon olayları — SSE ile canlı yenilenir.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              void runNotificationsSweep({ force: true }).then((r: any) => {
+                ping(r.ok ? `Sweep · ${r.created?.length ?? 0} flag` : r.error || 'Sweep yok');
+                return refresh();
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-500/20 px-4 py-2.5 text-sm font-semibold text-amber-100"
+          >
+            Sweep
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void ackNotificationsFlag({ note: 'ui ack' }).then((r: any) => {
+                ping(r.ok ? `Flag ack · ${r.flag?.domain}` : r.error || 'Ack yok');
+                return refresh();
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/20 px-4 py-2.5 text-sm font-semibold text-emerald-100"
+          >
+            Ack flag
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void pushSeedNotification({ detail: 'UI seed bildirimi', level: 'warn' }).then(() => {
+                ping('Seed bildirimi gönderildi');
+                return refresh();
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-4 py-2.5 text-sm font-semibold text-slate-200"
+          >
+            Push seed
+          </button>
           <button
             type="button"
             onClick={() => void refresh()}
@@ -77,6 +122,11 @@ export default function NotificationsPage() {
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
           {error}
+        </div>
+      )}
+      {flash && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          {flash}
         </div>
       )}
 

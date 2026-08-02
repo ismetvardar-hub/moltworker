@@ -41,6 +41,11 @@ function ensureHk() {
   return Array.isArray(list) ? list : [];
 }
 
+function openStayringFlags() {
+  const flags = readCollection('stayring-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
 export function stayRingOverview() {
   const units = ensureUnits();
   const bookings = ensureBookings();
@@ -57,6 +62,15 @@ export function stayRingOverview() {
   const audits = readCollection('stay-night-audits', []) || [];
   const overstays = readCollection('stay-overstays', []) || [];
   const openOverstays = (Array.isArray(overstays) ? overstays : []).filter((o) => o.status === 'open');
+  const today = new Date().toISOString().slice(0, 10);
+  const agingStays = bookings.filter(
+    (b) =>
+      (b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'overstay') &&
+      bookingCheckoutDate(b) &&
+      bookingCheckoutDate(b) < today,
+  );
+  const hkBacklog = hk.filter((t) => t.status === 'open').length + units.filter((u) => u.hk === 'dirty' || u.hk === 'inspect').length;
+  const flags = openStayringFlags();
   return {
     title: 'Konaklama Halkası',
     units,
@@ -69,12 +83,17 @@ export function stayRingOverview() {
     overstays: (Array.isArray(overstays) ? overstays : []).slice(0, 20),
     folio_charges: folioList.slice(0, 30),
     folio_settlements: (Array.isArray(settlements) ? settlements : []).slice(0, 15),
+    flags: flags.slice(0, 30),
     summary: {
+      flags_open: flags.length,
       free: units.filter((u) => u.status === 'free').length,
       occupied: units.filter((u) => u.status === 'occupied').length,
       wintering: units.filter((u) => u.status === 'wintering').length,
       hold: units.filter((u) => u.status === 'hold').length,
       hk_dirty: units.filter((u) => u.hk === 'dirty' || u.hk === 'inspect').length,
+      hk_open: hk.filter((t) => t.status === 'open').length,
+      hk_backlog: hkBacklog,
+      aging_stays: agingStays.length + openOverstays.length,
       keys_active: keys.filter((k) => k.status === 'active').length,
       guest_requests_open: openReqs.length,
       folio_open: folio.open_count,
@@ -92,6 +111,10 @@ export function stayRingOverview() {
         bungalow: units.filter((u) => u.type === 'bungalow').length,
       },
     },
+    summaryLines: [
+      `Konaklama ${units.length} ünite · dolu ${units.filter((u) => u.status === 'occupied').length} · HK backlog ${hkBacklog}`,
+      `Aging stay ${agingStays.length + openOverstays.length} · folio açık ${folio.open_count} · flag ${flags.length}`,
+    ],
     generatedAt: new Date().toISOString(),
   };
 }
@@ -579,6 +602,98 @@ export function runStayNightAudit(input = {}, actor = 'system') {
     folio: folio.ok ? folio : { ok: false, error: folio.error },
     overview: stayRingOverview(),
   };
+}
+
+export function runStayringSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const overview = stayRingOverview();
+  const existing = readCollection('stayring-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  const created = [];
+  const candidates = [];
+  const orchestration = {
+    overstay: flagStayOverstay({ force: force && input.flag_overstay !== false }, actor),
+    hk: null,
+    audit: null,
+  };
+  const nextOverview = stayRingOverview();
+  if ((force || (nextOverview.summary?.hk_backlog || 0) > 0) && input.hk !== false) {
+    const dirty = (nextOverview.units || []).find((u) => u.hk === 'dirty' || u.hk === 'inspect');
+    if (dirty) orchestration.hk = createStayHkTask({ unit_id: dirty.id, kind: 'sweep_turnover' }, actor);
+  }
+  if (force || input.audit) orchestration.audit = runStayNightAudit({ nights: input.nights || 1 }, actor);
+  const finalOverview = stayRingOverview();
+  if (force || (finalOverview.summary?.aging_stays || 0) > 0 || orchestration.overstay?.ok) {
+    candidates.push({
+      key: 'stayring_aging_stays',
+      level: (finalOverview.summary?.aging_stays || 0) > 0 || orchestration.overstay?.ok ? 'alert' : 'info',
+      text: `Aging/overstay konaklama ${finalOverview.summary?.aging_stays || 0}`,
+      domain: 'aging',
+    });
+  }
+  if (force || (finalOverview.summary?.hk_backlog || 0) > 0) {
+    candidates.push({
+      key: 'stayring_hk_backlog',
+      level: (finalOverview.summary?.hk_backlog || 0) > 0 ? 'warn' : 'info',
+      text: `HK backlog ${finalOverview.summary?.hk_backlog || 0}`,
+      domain: 'housekeeping',
+    });
+  }
+  if (
+    force ||
+    (finalOverview.summary?.folio_open || 0) > 0 ||
+    (finalOverview.summary?.folio_disputes_open || 0) > 0
+  ) {
+    candidates.push({
+      key: 'stayring_folio_signals',
+      level: (finalOverview.summary?.folio_disputes_open || 0) > 0 ? 'alert' : 'warn',
+      text: `Folio açık ${finalOverview.summary?.folio_open || 0} · itiraz ${finalOverview.summary?.folio_disputes_open || 0}`,
+      domain: 'folio',
+    });
+  }
+  for (const c of candidates) {
+    if (openKeys.has(c.key)) continue;
+    const row = { id: rid('srf'), ...c, status: 'open', at: new Date().toISOString(), actor };
+    list.unshift(row);
+    created.push(row);
+    openKeys.add(c.key);
+  }
+  writeCollection('stayring-flags', list.slice(0, 200));
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'DAZE-CREW',
+        title: `stayring sweep · ${created.length} flag`,
+        priority: created.some((f) => f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id), orchestration },
+      },
+      actor,
+    );
+  }
+  const sweep = { id: rid('srs'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('stayring-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'stayring.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, orchestration, overview: stayRingOverview() };
+}
+
+export function ackStayringFlag(input = {}, actor = 'system') {
+  const list = readCollection('stayring-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok — önce sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('stayring-flags', list);
+  appendAudit({ actor, action: 'stayring.ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: stayRingOverview() };
 }
 
 /** Checkout geçmiş dolu üniteleri overstay olarak işaretle */

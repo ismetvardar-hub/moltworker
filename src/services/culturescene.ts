@@ -16,6 +16,27 @@ export async function createCultureEvent(body: Record<string, unknown> = {}) {
     }),
   )
 }
+
+export async function runCulturesceneSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackCulturesceneFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/culture/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function holdCultureTicket(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/culture/hold', {

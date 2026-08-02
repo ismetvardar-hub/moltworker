@@ -72,6 +72,30 @@ export default function StayringPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
+                className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runStayringSweep({ force: true }).then((r: any) => {
+                    ping(r.ok ? `Sweep · ${r.created?.length ?? 0} flag` : r.error || 'Sweep yok')
+                    return refresh()
+                  })
+                }
+              >
+                Ops sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.ackStayringFlag({ note: 'ui ack' }).then((r: any) => {
+                    ping(r.ok ? `Flag ack · ${r.flag?.domain}` : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Flag ack
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
                   void api.createStayBooking({ nights: 2 }).then(() => {
@@ -303,6 +327,8 @@ export default function StayringPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
+              Flag {data.summary?.flags_open ?? 0} · aging {data.summary?.aging_stays ?? 0} · HK backlog{' '}
+              {data.summary?.hk_backlog ?? 0} ·{' '}
               Açık misafir istek: {data.summary?.guest_requests_open ?? 0} · Folio açık{' '}
               {data.summary?.folio_open ?? 0} · {data.summary?.folio_balance_try?.toLocaleString?.('tr-TR') ?? 0}{' '}
               TRY · overstay {data.summary?.overstays_open ?? 0} · late {data.summary?.late_checkouts ?? 0} · dispute{' '}

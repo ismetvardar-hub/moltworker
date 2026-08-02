@@ -75,6 +75,11 @@ function ensurePresence() {
   return list;
 }
 
+function openAgentfleetFlags() {
+  const flags = readCollection('agentfleet-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
 export function agentFleetOverview() {
   const presence = ensurePresence();
   const queue = agentQueueOverview();
@@ -101,6 +106,14 @@ export function agentFleetOverview() {
   const activeShift = shiftList.find((s) => s.status === 'active') || null;
   const handoffs = readCollection('fleet-handoffs', []) || [];
   const directives = readCollection('fleet-directives', []) || [];
+  const directiveList = Array.isArray(directives) ? directives : [];
+  const flags = openAgentfleetFlags();
+  const now = Date.now();
+  const stalePresence = agents.filter((a) => {
+    if (a.status === 'parked') return false;
+    const at = Date.parse(a.last_ping || 0);
+    return !Number.isFinite(at) || now - at >= 60 * 60_000;
+  });
   return {
     title: 'LİKYA Ajan Filosu',
     master_rule: 'Centilmenlik · Naiflik · Esprili Üslup',
@@ -110,21 +123,28 @@ export function agentFleetOverview() {
     active_shift: activeShift,
     shifts: shiftList.slice(0, 15),
     handoffs: (Array.isArray(handoffs) ? handoffs : []).slice(0, 15),
-    directives: (Array.isArray(directives) ? directives : []).slice(0, 20),
+    directives: directiveList.slice(0, 20),
+    flags: flags.slice(0, 30),
     summary: {
+      flags_open: flags.length,
       total: core28.length,
       extensions: agents.filter((a) => a.extension).length,
       online: agents.filter((a) => a.status === 'online' || a.status === 'busy' || a.status === 'queued').length,
       busy: agents.filter((a) => a.status === 'busy').length,
       standby: agents.filter((a) => a.status === 'standby').length,
       parked: agents.filter((a) => a.status === 'parked').length,
+      stale_presence: stalePresence.length,
       campus_ops: agents.filter((a) => a.campus).length,
       queue_queued: queue.summary.queued,
       queue_running: queue.summary.running,
       shift_active: !!activeShift,
-      directives_open: (Array.isArray(directives) ? directives : []).filter((d) => d.status === 'open').length,
-      directives_retired: (Array.isArray(directives) ? directives : []).filter((d) => d.status === 'retired').length,
+      directives_open: directiveList.filter((d) => d.status === 'open').length,
+      directives_retired: directiveList.filter((d) => d.status === 'retired').length,
     },
+    summaryLines: [
+      `Filo ${core28.length} çekirdek · online ${agents.filter((a) => a.status === 'online' || a.status === 'busy' || a.status === 'queued').length} · park ${agents.filter((a) => a.status === 'parked').length}`,
+      `Kuyruk ${queue.summary.queued}/${queue.summary.running} · stale presence ${stalePresence.length} · flag ${flags.length}`,
+    ],
     generatedAt: new Date().toISOString(),
   };
 }
@@ -490,6 +510,96 @@ export function runFleetLoadBalance(input = {}, actor = 'system') {
     meta: { id: run.id },
   });
   return { ok: true, run, seeded, overview: agentFleetOverview() };
+}
+
+export function runAgentfleetSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const before = agentFleetOverview();
+  const existing = readCollection('agentfleet-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  const created = [];
+  const candidates = [];
+  const orchestration = {
+    unpark: unparkFleetAgents({ limit: input.limit || 40, force }, actor),
+    presence: sweepFleetPresence({ campus_only: input.campus_only !== false, force, note: 'agentfleet sweep' }, actor),
+    load_balance: null,
+  };
+  const afterPresence = agentFleetOverview();
+  if (
+    force ||
+    Number(afterPresence.summary?.queue_queued || 0) > 0 ||
+    Number(afterPresence.summary?.queue_running || 0) > 0
+  ) {
+    orchestration.load_balance = runFleetLoadBalance({ limit: input.balance_limit || 2, title: input.title }, actor);
+  }
+  const overview = agentFleetOverview();
+  if (force || (before.summary?.stale_presence || 0) > 0 || orchestration.presence?.updated > 0) {
+    candidates.push({
+      key: 'agentfleet_presence_stale',
+      level: (before.summary?.stale_presence || 0) > 0 ? 'warn' : 'info',
+      text: `Stale presence ${before.summary?.stale_presence || 0} · updated ${orchestration.presence?.updated || 0}`,
+      domain: 'presence',
+    });
+  }
+  if (force || (overview.summary?.parked || 0) > 0 || (orchestration.unpark?.unparked || []).length > 0) {
+    candidates.push({
+      key: 'agentfleet_parked_agents',
+      level: (overview.summary?.parked || 0) > 0 ? 'warn' : 'info',
+      text: `Parked ajan ${overview.summary?.parked || 0} · unpark ${(orchestration.unpark?.unparked || []).length}`,
+      domain: 'parking',
+    });
+  }
+  if (force || (overview.summary?.queue_queued || 0) > 0 || (overview.summary?.directives_open || 0) > 0) {
+    candidates.push({
+      key: 'agentfleet_dispatch_pressure',
+      level: (overview.summary?.queue_queued || 0) > 5 ? 'alert' : 'warn',
+      text: `Kuyruk ${overview.summary?.queue_queued || 0}/${overview.summary?.queue_running || 0} · direktif ${overview.summary?.directives_open || 0}`,
+      domain: 'dispatch',
+    });
+  }
+  for (const c of candidates) {
+    if (openKeys.has(c.key)) continue;
+    const row = { id: rid('aff'), ...c, status: 'open', at: new Date().toISOString(), actor };
+    list.unshift(row);
+    created.push(row);
+    openKeys.add(c.key);
+  }
+  writeCollection('agentfleet-flags', list.slice(0, 200));
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'LİKYA-1',
+        title: `agentfleet sweep · ${created.length} flag`,
+        priority: created.some((f) => f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id) },
+      },
+      actor,
+    );
+  }
+  const sweep = { id: rid('afs'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('agentfleet-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'agentfleet.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, orchestration, overview: agentFleetOverview() };
+}
+
+export function ackAgentfleetFlag(input = {}, actor = 'system') {
+  const list = readCollection('agentfleet-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok — önce sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('agentfleet-flags', list);
+  appendAudit({ actor, action: 'agentfleet.ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: agentFleetOverview() };
 }
 
 /** Aktif vardiyayı kapat (handoff olmadan) */

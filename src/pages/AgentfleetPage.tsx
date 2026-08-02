@@ -70,6 +70,30 @@ export default function AgentfleetPage() {
               />
               <button
                 type="button"
+                className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-100"
+                onClick={() =>
+                  void api.runAgentfleetSweep({ force: true, title: directive }).then((r: any) => {
+                    ping(r.ok ? `Sweep · ${r.created?.length ?? 0} flag` : r.error || 'Sweep yok')
+                    return refresh()
+                  })
+                }
+              >
+                Ops sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100"
+                onClick={() =>
+                  void api.ackAgentfleetFlag({ note: 'ui ack' }).then((r: any) => {
+                    ping(r.ok ? `Flag ack · ${r.flag?.domain}` : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Flag ack
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
                 onClick={() =>
                   void api.sweepFleetPresence({ campus_only: true }).then((r: any) => {
@@ -192,6 +216,7 @@ export default function AgentfleetPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
+              Flag {data.summary?.flags_open ?? 0} · stale presence {data.summary?.stale_presence ?? 0} ·{' '}
               Aktif vardiya {data.summary?.shift_active ? 'var' : 'yok'} · açık direktif{' '}
               {data.summary?.directives_open ?? 0} · retired {data.summary?.directives_retired ?? 0} · park{' '}
               {data.summary?.parked ?? 0}

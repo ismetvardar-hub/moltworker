@@ -49,6 +49,8 @@ import {
   settleStayFolio,
   completeStayGuestRequest,
   runStayNightAudit,
+  runStayringSweep,
+  ackStayringFlag,
   flagStayOverstay,
   resolveStayOverstay,
   scheduleStayLateCheckout,
@@ -172,8 +174,17 @@ import {
   parkFleetAgent,
   unparkFleetAgents,
   runFleetLoadBalance,
+  runAgentfleetSweep,
+  ackAgentfleetFlag,
   closeFleetShift,
 } from '../server/agentfleet.js';
+import {
+  ackNotificationsFlag,
+  markAllRead,
+  notificationsSummary,
+  runNotificationsSweep,
+  seedNotification,
+} from '../server/notifications.js';
 import { marketOsOverview, marketCheckout, syncMarketChannel, createMarketListing } from '../server/marketos.js';
 import {
   openMallOverview,
@@ -206,6 +217,8 @@ import {
 } from '../server/familycamp.js';
 import {
   confirmCultureTicket,
+  runCulturesceneSweep,
+  ackCulturesceneFlag,
   startCultureStream,
   pulseCultureStream,
   endCultureStream,
@@ -756,6 +769,8 @@ assert(settleStayFolio({ unit_id: 'su_2' }, 'smoke').ok, 'folio settle');
 assert(runStayNightAudit({}, 'smoke').ok, 'stay night audit');
 assert(flagStayOverstay({ force: true }, 'smoke').ok, 'stay overstay flag');
 assert(resolveStayOverstay({ mode: 'extend', extra_nights: 1 }, 'smoke').ok, 'stay overstay resolve');
+assert(runStayringSweep({ force: true }, 'smoke').ok, 'stayring sweep');
+assert(ackStayringFlag({}, 'smoke').ok, 'stayring flag ack');
 
 const athletes = athleteOsOverview();
 assert(athletes.athletes?.length >= 2, 'athletes');
@@ -862,6 +877,8 @@ assert(culture.events?.length >= 2, 'culture events');
 createCultureEvent({ title: 'Smoke Night', tickets_total: 50 }, 'smoke');
 const held = holdCultureTicket({ event_id: culture.events[0].id, qty: 1 }, 'smoke');
 confirmCultureTicket({ hold_id: held.hold?.id }, 'smoke');
+assert(runCulturesceneSweep({ force: true }, 'smoke').ok, 'culturescene sweep');
+assert(ackCulturesceneFlag({}, 'smoke').ok, 'culturescene flag ack');
 
 mallDayRollup('smoke');
 settleMallTenantFnb({ tenant_id: 'mt_2' }, 'smoke');
@@ -1094,6 +1111,8 @@ assert(retireFleetDirective({ reason: 'smoke retire' }, 'smoke').ok, 'fleet dire
 assert(parkFleetAgent({ agent: 'MINT', minutes: 1, reason: 'smoke park' }, 'smoke').ok, 'fleet park');
 assert(unparkFleetAgents({ force: true }, 'smoke').ok, 'fleet unpark');
 assert(runFleetLoadBalance({ limit: 2 }, 'smoke').ok, 'fleet load balance');
+assert(runAgentfleetSweep({ force: true }, 'smoke').ok, 'agentfleet sweep');
+assert(ackAgentfleetFlag({}, 'smoke').ok, 'agentfleet flag ack');
 assert(closeFleetShift({ reason: 'smoke close' }, 'smoke').ok, 'fleet shift close');
 
 const bridge = agentBridgeOverview();
@@ -1874,6 +1893,12 @@ assert(awardLoyaltyPoints({}, 'smoke').ok, 'loyalty award');
 assert(redeemLoyaltyPoints({}, 'smoke').ok, 'loyalty redeem');
 assert(ackLoyaltyFlag({}, 'smoke').ok, 'loyalty flag ack');
 
+assert(seedNotification({ detail: 'smoke notification seed', level: 'warn' }, 'smoke').ok, 'notifications seed');
+assert(runNotificationsSweep({ force: true }, 'smoke').ok, 'notifications sweep');
+assert(ackNotificationsFlag({}, 'smoke').ok, 'notifications flag ack');
+assert(markAllRead().ok, 'notifications mark all read');
+assert(notificationsSummary().summary?.total >= 1, 'notifications summary');
+
 console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
@@ -1883,6 +1908,7 @@ console.log('MOD155_OK');
 console.log('MOD156_OK');
 console.log('MOD157_OK');
 console.log('MOD158_OK');
+console.log('MOD159_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -1891,6 +1917,9 @@ assert(crudDomains.some((d) => d.name === 'venues'), 'crudops includes venues');
 assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
   assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);
+}
+for (const thickened159 of ['stayring', 'culturescene', 'agentfleet', 'notifications']) {
+  assert(!crudDomains.some((d) => d.name === thickened159), `crudops skips thickened ${thickened159}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -1922,6 +1951,15 @@ assert(!isCrudOpsPath('/api/assets/sweep', 'POST'), 'crudops skips thickened ass
 assert(!isCrudOpsPath('/api/assets/flag/ack', 'POST'), 'crudops skips assets ack');
 assert(!isCrudOpsPath('/api/valet/sweep', 'POST'), 'crudops skips thickened valet');
 assert(!isCrudOpsPath('/api/valet/flag/ack', 'POST'), 'crudops skips valet ack');
+assert(!isCrudOpsPath('/api/stayring/sweep', 'POST'), 'crudops skips thickened stayring');
+assert(!isCrudOpsPath('/api/stayring/flag/ack', 'POST'), 'crudops skips stayring ack');
+assert(!isCrudOpsPath('/api/culture/sweep', 'POST'), 'crudops skips culture prefix');
+assert(!isCrudOpsPath('/api/culturescene/sweep', 'POST'), 'crudops skips thickened culturescene');
+assert(!isCrudOpsPath('/api/culturescene/flag/ack', 'POST'), 'crudops skips culturescene ack');
+assert(!isCrudOpsPath('/api/agentfleet/sweep', 'POST'), 'crudops skips thickened agentfleet');
+assert(!isCrudOpsPath('/api/agentfleet/flag/ack', 'POST'), 'crudops skips agentfleet ack');
+assert(!isCrudOpsPath('/api/notifications/sweep', 'POST'), 'crudops skips thickened notifications');
+assert(!isCrudOpsPath('/api/notifications/flag/ack', 'POST'), 'crudops skips notifications ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

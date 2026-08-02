@@ -62,9 +62,13 @@ import {
   runOpsIntegritySweep,
 } from './ops.js';
 import {
+  ackNotificationsFlag,
   listNotifications,
   markAllRead,
   markRead,
+  notificationsSummary,
+  runNotificationsSweep,
+  seedNotification,
   unreadCount,
 } from './notifications.js';
 import {
@@ -7206,6 +7210,7 @@ import {
 } from './campuscore.js';
 import {
   autoPostStayFolio,
+  ackStayringFlag,
   checkoutStay,
   completeStayGuestRequest,
   completeStayHk,
@@ -7218,6 +7223,7 @@ import {
   postStayFolioCharge,
   resolveStayOverstay,
   revokeStayKeyless,
+  runStayringSweep,
   runStayNightAudit,
   scheduleStayLateCheckout,
   setStayWintering,
@@ -7326,6 +7332,7 @@ import {
   wakeSnoozedAgentBridgeChannels,
 } from './agentbridge.js';
 import {
+  ackCulturesceneFlag,
   ackCultureCrewCall,
   callCultureCrew,
   confirmCultureTicket,
@@ -7339,6 +7346,7 @@ import {
   pulseCultureStream,
   refundCultureSale,
   releaseCultureHold,
+  runCulturesceneSweep,
   scanCultureDoor,
   setCultureLive,
   setCultureStageStatus,
@@ -7405,6 +7413,7 @@ import {
   wakeSnoozedCampusBriefActions,
 } from './campusbrief.js';
 import {
+  ackAgentfleetFlag,
   acknowledgeFleetDirective,
   agentFleetOverview,
   closeFleetShift,
@@ -7413,6 +7422,7 @@ import {
   parkFleetAgent,
   pingFleetAgent,
   retireFleetDirective,
+  runAgentfleetSweep,
   runFleetLoadBalance,
   startFleetShift,
   sweepFleetPresence,
@@ -8109,15 +8119,37 @@ export function createPlatformMiddleware() {
           const url = new URL(req.url ?? '', 'http://local');
           const unreadOnly = url.searchParams.get('unread') === '1';
           const limit = Number(url.searchParams.get('limit') || 50);
+          const overview = notificationsSummary(limit);
           sendJson(res, 200, {
             unread: unreadCount(),
             notifications: listNotifications(limit, unreadOnly),
+            flags: overview.flags,
+            summary: overview.summary,
+            summaryLines: overview.summaryLines,
           });
           return;
         }
-        if (path === '/api/notifications/read-all' && req.method === 'POST') {
+        if ((path === '/api/notifications/read-all' || path === '/api/notifications/mark-all-read') && req.method === 'POST') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, markAllRead());
+          return;
+        }
+        if (path === '/api/notifications/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runNotificationsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/notifications/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackNotificationsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/notifications/push-seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedNotification(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/notifications/') && path.endsWith('/read') && req.method === 'POST') {
@@ -40036,6 +40068,18 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, stayRingOverview());
           return;
         }
+        if (path === '/api/stayring/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runStayringSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/stayring/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackStayringFlag(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/stayring/book' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -40476,6 +40520,18 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, cultureSceneOverview());
           return;
         }
+        if ((path === '/api/culture/sweep' || path === '/api/culturescene/sweep') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCulturesceneSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/culture/flag/ack' || path === '/api/culturescene/flag/ack') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCulturesceneFlag(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/culture/event' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -40807,6 +40863,18 @@ export function createPlatformMiddleware() {
           const u = requireUser(req, res);
           if (!u) return;
           sendJson(res, 200, agentFleetOverview());
+          return;
+        }
+        if (path === '/api/agentfleet/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAgentfleetSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/agentfleet/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAgentfleetFlag(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/agentfleet/ping' && req.method === 'POST') {

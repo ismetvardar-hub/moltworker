@@ -1903,6 +1903,38 @@ try {
   });
   assert(valet158Pickup.res.ok && valet158Pickup.data.ok !== false, 'valet pickup request');
 
+  const stay159Sweep = await req('/api/stayring/sweep', { method: 'POST', token, body: { force: true } });
+  assert(stay159Sweep.res.ok && stay159Sweep.data.ok !== false, 'stayring sweep');
+  const stay159Audit = await req('/api/stayring/night-audit', { method: 'POST', token, body: {} });
+  assert(stay159Audit.res.ok && stay159Audit.data.ok !== false, 'stayring night audit mutator');
+
+  const culture159Sweep = await req('/api/culturescene/sweep', { method: 'POST', token, body: { force: true } });
+  assert(culture159Sweep.res.ok && culture159Sweep.data.ok !== false, 'culturescene sweep');
+  const culture159Hold = await req('/api/culture/hold', {
+    method: 'POST',
+    token,
+    body: { event_id: 'ce_1', qty: 1, guest: 'e2e-159' },
+  });
+  assert(culture159Hold.res.ok && culture159Hold.data.ok !== false, 'culturescene hold mutator');
+
+  const agentfleet159Sweep = await req('/api/agentfleet/sweep', { method: 'POST', token, body: { force: true } });
+  assert(agentfleet159Sweep.res.ok && agentfleet159Sweep.data.ok !== false, 'agentfleet sweep');
+  const agentfleet159Ping = await req('/api/agentfleet/ping', {
+    method: 'POST',
+    token,
+    body: { agent: 'ETHOS', note: 'e2e-159' },
+  });
+  assert(agentfleet159Ping.res.ok && agentfleet159Ping.data.ok !== false, 'agentfleet ping mutator');
+
+  const notifications159Sweep = await req('/api/notifications/sweep', { method: 'POST', token, body: { force: true } });
+  assert(notifications159Sweep.res.ok && notifications159Sweep.data.ok !== false, 'notifications sweep');
+  const notifications159Seed = await req('/api/notifications/push-seed', {
+    method: 'POST',
+    token,
+    body: { detail: 'E2E-159 notification seed', level: 'warn' },
+  });
+  assert(notifications159Seed.res.ok && notifications159Seed.data.ok !== false, 'notifications push seed mutator');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,
