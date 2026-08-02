@@ -177,6 +177,10 @@ try {
     '/api/checklists',
     '/api/alertrules',
     '/api/crudops',
+    '/api/contracts',
+    '/api/delivery',
+    '/api/giftcards',
+    '/api/laundry',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2072,6 +2076,66 @@ try {
   assert(brief161Sweep.res.ok && brief161Sweep.data.ok !== false, 'campusbrief sweep');
   const brief161Ack = await req('/api/campusbrief/flag/ack', { method: 'POST', token, body: {} });
   assert(brief161Ack.res.ok && brief161Ack.data.ok !== false, 'campusbrief flag ack');
+
+  const contracts162Sweep = await req('/api/contracts/sweep', { method: 'POST', token, body: { force: true } });
+  assert(contracts162Sweep.res.ok && contracts162Sweep.data.ok !== false, 'contracts sweep');
+  const contracts162Seed = await req('/api/contracts/renewal/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-162 renewal', vendor: 'E2E-162 vendor' },
+  });
+  assert(contracts162Seed.res.ok && contracts162Seed.data.ok !== false, 'contracts renewal seed');
+  const contracts162Renew = await req('/api/contracts/renew', {
+    method: 'POST',
+    token,
+    body: { id: contracts162Seed.data.contract?.id, months: 6 },
+  });
+  assert(contracts162Renew.res.ok && contracts162Renew.data.ok !== false, 'contracts renew mutator');
+
+  const delivery162Sweep = await req('/api/delivery/sweep', { method: 'POST', token, body: { force: true } });
+  assert(delivery162Sweep.res.ok && delivery162Sweep.data.ok !== false, 'delivery sweep');
+  const delivery162Seed = await req('/api/delivery/pending/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-162 delivery', items: 'Test paket' },
+  });
+  assert(delivery162Seed.res.ok && delivery162Seed.data.ok !== false, 'delivery pending seed');
+  const delivery162Delivered = await req('/api/delivery/delivered', {
+    method: 'POST',
+    token,
+    body: { id: delivery162Seed.data.order?.id, courier: 'e2e-162' },
+  });
+  assert(delivery162Delivered.res.ok && delivery162Delivered.data.ok !== false, 'delivery delivered mutator');
+
+  const giftcards162Sweep = await req('/api/giftcards/sweep', { method: 'POST', token, body: { force: true } });
+  assert(giftcards162Sweep.res.ok && giftcards162Sweep.data.ok !== false, 'giftcards sweep');
+  const giftcards162Seed = await req('/api/giftcards/promo/seed', {
+    method: 'POST',
+    token,
+    body: { holder: 'E2E-162 promo', balance: 125 },
+  });
+  assert(giftcards162Seed.res.ok && giftcards162Seed.data.ok !== false, 'giftcards promo seed');
+  const giftcards162Redeem = await req('/api/giftcards/redeem', {
+    method: 'POST',
+    token,
+    body: { id: giftcards162Seed.data.card?.id, amount: 25 },
+  });
+  assert(giftcards162Redeem.res.ok && giftcards162Redeem.data.ok !== false, 'giftcards redeem mutator');
+
+  const laundry162Sweep = await req('/api/laundry/sweep', { method: 'POST', token, body: { force: true } });
+  assert(laundry162Sweep.res.ok && laundry162Sweep.data.ok !== false, 'laundry sweep');
+  const laundry162Seed = await req('/api/laundry/rush/seed', {
+    method: 'POST',
+    token,
+    body: { item: 'E2E-162 rush laundry', qty: 4 },
+  });
+  assert(laundry162Seed.res.ok && laundry162Seed.data.ok !== false, 'laundry rush seed');
+  const laundry162Ready = await req('/api/laundry/ready', {
+    method: 'POST',
+    token,
+    body: { id: laundry162Seed.data.batch?.id, rack: 'e2e-162' },
+  });
+  assert(laundry162Ready.res.ok && laundry162Ready.data.ok !== false, 'laundry ready mutator');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -511,16 +511,40 @@ import {
   createEventcal, eventcalSummary, listEventcal, updateEventcal,
 } from './eventcal.js';
 import {
-  createGiftcards, giftcardsSummary, listGiftcards, updateGiftcards,
+  ackGiftcardsFlag,
+  createGiftcards,
+  giftcardsSummary,
+  listGiftcards,
+  redeemGiftcardOps,
+  runGiftcardsSweep,
+  seedPromoGiftcard,
+  topUpGiftcardOps,
+  updateGiftcards,
 } from './giftcards.js';
 import {
-  createDelivery, deliverySummary, listDelivery, updateDelivery,
+  ackDeliveryFlag,
+  createDelivery,
+  delayDeliveryEta,
+  deliverySummary,
+  listDelivery,
+  markDeliveryDelivered,
+  runDeliverySweep,
+  seedPendingDelivery,
+  updateDelivery,
 } from './delivery.js';
 import {
   cleaningSummary, createCleaning, listCleaning, updateCleaning,
 } from './cleaning.js';
 import {
-  createLaundry, laundrySummary, listLaundry, updateLaundry,
+  ackLaundryFlag,
+  createLaundry,
+  laundrySummary,
+  listLaundry,
+  markLaundryReady,
+  returnLaundryBatch,
+  runLaundrySweep,
+  seedRushLaundryOrder,
+  updateLaundry,
 } from './laundry.js';
 import {
   createWifi, listWifi, updateWifi, wifiSummary,
@@ -535,7 +559,15 @@ import {
   budgetSummary, createBudget, listBudget, updateBudget,
 } from './budget.js';
 import {
-  contractsSummary, createContracts, listContracts, updateContracts,
+  ackContractsFlag,
+  contractsSummary,
+  createContracts,
+  listContracts,
+  renewContractOps,
+  runContractsSweep,
+  seedRenewingContract,
+  signContractOps,
+  updateContracts,
 } from './contracts.js';
 import {
   createPassstock, listPassstock, passstockSummary, updatePassstock,
@@ -10867,6 +10899,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/giftcards/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGiftcardsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/giftcards/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackGiftcardsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/giftcards/redeem' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, redeemGiftcardOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/giftcards/topup' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, topUpGiftcardOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/giftcards/promo/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPromoGiftcard(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/giftcards/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -10889,6 +10951,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createDelivery(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/delivery/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDeliverySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/delivery/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDeliveryFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/delivery/delivered' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markDeliveryDelivered(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/delivery/eta/delay' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, delayDeliveryEta(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/delivery/pending/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPendingDelivery(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/delivery/') && req.method === 'PATCH') {
@@ -10937,6 +11029,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createLaundry(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/laundry/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLaundrySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/laundry/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLaundryFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/laundry/ready' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markLaundryReady(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/laundry/return' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, returnLaundryBatch(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/laundry/rush/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedRushLaundryOrder(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/laundry/') && req.method === 'PATCH') {
@@ -11057,6 +11179,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createContracts(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/contracts/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runContractsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/contracts/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackContractsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/contracts/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewContractOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/contracts/sign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, signContractOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/contracts/renewal/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedRenewingContract(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/contracts/') && req.method === 'PATCH') {

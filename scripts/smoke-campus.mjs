@@ -693,6 +693,18 @@ import {
 import {
   vendorScoreSummary, runVendorscoreSweep, ackVendorscoreFlag, reviewVendorScore, flagVendorUnderperformance, seedVendorScore,
 } from '../server/vendorscore.js';
+import {
+  contractsSummary, runContractsSweep, ackContractsFlag, renewContractOps, signContractOps, seedRenewingContract,
+} from '../server/contracts.js';
+import {
+  deliverySummary, runDeliverySweep, ackDeliveryFlag, markDeliveryDelivered, delayDeliveryEta, seedPendingDelivery,
+} from '../server/delivery.js';
+import {
+  giftcardsSummary, runGiftcardsSweep, ackGiftcardsFlag, redeemGiftcardOps, topUpGiftcardOps, seedPromoGiftcard,
+} from '../server/giftcards.js';
+import {
+  laundrySummary, runLaundrySweep, ackLaundryFlag, markLaundryReady, returnLaundryBatch, seedRushLaundryOrder,
+} from '../server/laundry.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -1974,6 +1986,34 @@ assert(flagVendorUnderperformance({}, 'smoke').ok, 'vendorscore underperform');
 assert(runVendorscoreSweep({ force: true }, 'smoke').ok, 'vendorscore sweep');
 assert(ackVendorscoreFlag({}, 'smoke').ok, 'vendorscore flag ack');
 
+assert(contractsSummary().title, 'contracts overview');
+assert(seedRenewingContract({ title: 'Smoke 162 renewal' }, 'smoke').ok, 'contracts renewal seed');
+assert(signContractOps({}, 'smoke').ok, 'contracts sign');
+assert(renewContractOps({}, 'smoke').ok, 'contracts renew');
+assert(runContractsSweep({ force: true }, 'smoke').ok, 'contracts sweep');
+assert(ackContractsFlag({}, 'smoke').ok, 'contracts flag ack');
+
+assert(deliverySummary().title, 'delivery overview');
+assert(seedPendingDelivery({ guestName: 'Smoke 162 delivery' }, 'smoke').ok, 'delivery pending seed');
+assert(delayDeliveryEta({}, 'smoke').ok, 'delivery eta delay');
+assert(markDeliveryDelivered({}, 'smoke').ok, 'delivery delivered');
+assert(runDeliverySweep({ force: true }, 'smoke').ok, 'delivery sweep');
+assert(ackDeliveryFlag({}, 'smoke').ok, 'delivery flag ack');
+
+assert(giftcardsSummary().title, 'giftcards overview');
+assert(seedPromoGiftcard({ holder: 'Smoke 162 promo' }, 'smoke').ok, 'giftcards promo seed');
+assert(redeemGiftcardOps({ amount: 25 }, 'smoke').ok, 'giftcards redeem');
+assert(topUpGiftcardOps({ amount: 50 }, 'smoke').ok, 'giftcards topup');
+assert(runGiftcardsSweep({ force: true }, 'smoke').ok, 'giftcards sweep');
+assert(ackGiftcardsFlag({}, 'smoke').ok, 'giftcards flag ack');
+
+assert(laundrySummary().title, 'laundry overview');
+assert(seedRushLaundryOrder({ item: 'Smoke 162 rush' }, 'smoke').ok, 'laundry rush seed');
+assert(markLaundryReady({}, 'smoke').ok, 'laundry ready');
+assert(returnLaundryBatch({}, 'smoke').ok, 'laundry return');
+assert(runLaundrySweep({ force: true }, 'smoke').ok, 'laundry sweep');
+assert(ackLaundryFlag({}, 'smoke').ok, 'laundry flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -1992,6 +2032,7 @@ console.log('MOD158_OK');
 console.log('MOD159_OK');
 console.log('MOD160_OK');
 console.log('MOD161_OK');
+console.log('MOD162_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2009,6 +2050,9 @@ for (const thickened160 of ['cash', 'coldchain', 'energy', 'waste']) {
 }
 for (const thickened161 of ['webhooks', 'documents', 'vendorscore', 'campusbrief']) {
   assert(!crudDomains.some((d) => d.name === thickened161), `crudops skips thickened ${thickened161}`);
+}
+for (const thickened162 of ['contracts', 'delivery', 'giftcards', 'laundry']) {
+  assert(!crudDomains.some((d) => d.name === thickened162), `crudops skips thickened ${thickened162}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2065,6 +2109,14 @@ assert(!isCrudOpsPath('/api/vendorscore/sweep', 'POST'), 'crudops skips thickene
 assert(!isCrudOpsPath('/api/vendorscore/flag/ack', 'POST'), 'crudops skips vendorscore ack');
 assert(!isCrudOpsPath('/api/campusbrief/sweep', 'POST'), 'crudops skips thickened campusbrief');
 assert(!isCrudOpsPath('/api/campusbrief/flag/ack', 'POST'), 'crudops skips campusbrief ack');
+assert(!isCrudOpsPath('/api/contracts/sweep', 'POST'), 'crudops skips thickened contracts');
+assert(!isCrudOpsPath('/api/contracts/flag/ack', 'POST'), 'crudops skips contracts ack');
+assert(!isCrudOpsPath('/api/delivery/sweep', 'POST'), 'crudops skips thickened delivery');
+assert(!isCrudOpsPath('/api/delivery/flag/ack', 'POST'), 'crudops skips delivery ack');
+assert(!isCrudOpsPath('/api/giftcards/sweep', 'POST'), 'crudops skips thickened giftcards');
+assert(!isCrudOpsPath('/api/giftcards/flag/ack', 'POST'), 'crudops skips giftcards ack');
+assert(!isCrudOpsPath('/api/laundry/sweep', 'POST'), 'crudops skips thickened laundry');
+assert(!isCrudOpsPath('/api/laundry/flag/ack', 'POST'), 'crudops skips laundry ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

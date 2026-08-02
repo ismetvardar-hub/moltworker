@@ -13,3 +13,23 @@ export async function createGiftcards(input: Record<string, unknown>): Promise<a
 export async function patchGiftcards(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/giftcards/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(patch) }))
 }
+
+export async function runGiftcardsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/giftcards/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackGiftcardsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/giftcards/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function redeemGiftcardOps(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/giftcards/redeem', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function topUpGiftcardOps(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/giftcards/topup', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function seedPromoGiftcard(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/giftcards/promo/seed', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
