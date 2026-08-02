@@ -13,3 +13,23 @@ export async function createDive(input: Record<string, unknown>): Promise<any> {
 export async function patchDive(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/dive/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runDiveSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/dive/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackDiveFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/dive/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markDiveCertExpired(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/dive/cert/expired', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function checkInDive(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/dive/checkin', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedBoatTrip(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/dive/boat/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

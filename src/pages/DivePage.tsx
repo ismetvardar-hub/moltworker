@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createDive, fetchDive, patchDive } from '../services/dive'
+import {
+  ackDiveFlag,
+  checkInDive,
+  createDive,
+  fetchDive,
+  markDiveCertExpired,
+  patchDive,
+  runDiveSweep,
+  seedBoatTrip,
+} from '../services/dive'
 
 export default function DivePage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"activity":"Snorkel","guestName":"Misafir"})
   async function refresh() {
     try {
@@ -15,6 +25,10 @@ export default function DivePage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
@@ -33,6 +47,16 @@ export default function DivePage() {
       <CrudOpsBar domain="dive" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 168">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runDiveSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackDiveFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markDiveCertExpired({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Cert expired' : r.error || 'Cert yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Cert expired</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void checkInDive({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Dive check-in' : r.error || 'Check-in yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Check-in dive</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedBoatTrip({ guestName: 'Boat trip guest' }).then(() => { ping('Boat trip seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed boat trip</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="activity" value={String(form.activity??'')} onChange={(e)=>setForm(f=>({...f,activity:e.target.value}))} />

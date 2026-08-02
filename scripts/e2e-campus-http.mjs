@@ -201,6 +201,10 @@ try {
     '/api/banquet',
     '/api/beachbeds',
     '/api/marina',
+    '/api/hammam',
+    '/api/dive',
+    '/api/meetingrooms',
+    '/api/retail',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2584,6 +2588,98 @@ try {
   assert(marina167Clear.res.ok && marina167Clear.data.ok !== false, 'marina clear slip');
   const marina167Ack = await req('/api/marina/flag/ack', { method: 'POST', token, body: {} });
   assert(marina167Ack.res.ok && marina167Ack.data.ok !== false, 'marina flag ack');
+
+  const hammam168Sweep = await req('/api/hammam/sweep', { method: 'POST', token, body: { force: true } });
+  assert(hammam168Sweep.res.ok && hammam168Sweep.data.ok !== false, 'hammam sweep');
+  const hammam168Seed = await req('/api/hammam/couples/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-168 couples ritual' },
+  });
+  assert(hammam168Seed.res.ok && hammam168Seed.data.ok !== false, 'hammam couples ritual seed');
+  const hammam168Overrun = await req('/api/hammam/slot/overrun', {
+    method: 'POST',
+    token,
+    body: { id: hammam168Seed.data.hammam?.id },
+  });
+  assert(hammam168Overrun.res.ok && hammam168Overrun.data.ok !== false, 'hammam slot overrun');
+  const hammam168Complete = await req('/api/hammam/session/complete', {
+    method: 'POST',
+    token,
+    body: { id: hammam168Seed.data.hammam?.id },
+  });
+  assert(hammam168Complete.res.ok && hammam168Complete.data.ok !== false, 'hammam session complete');
+  const hammam168Ack = await req('/api/hammam/flag/ack', { method: 'POST', token, body: {} });
+  assert(hammam168Ack.res.ok && hammam168Ack.data.ok !== false, 'hammam flag ack');
+
+  const dive168Sweep = await req('/api/dive/sweep', { method: 'POST', token, body: { force: true } });
+  assert(dive168Sweep.res.ok && dive168Sweep.data.ok !== false, 'dive sweep');
+  const dive168Seed = await req('/api/dive/boat/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-168 boat trip' },
+  });
+  assert(dive168Seed.res.ok && dive168Seed.data.ok !== false, 'dive boat trip seed');
+  const dive168Cert = await req('/api/dive/cert/expired', {
+    method: 'POST',
+    token,
+    body: { id: dive168Seed.data.dive?.id },
+  });
+  assert(dive168Cert.res.ok && dive168Cert.data.ok !== false, 'dive cert expired');
+  const dive168Checkin = await req('/api/dive/checkin', {
+    method: 'POST',
+    token,
+    body: { id: dive168Seed.data.dive?.id },
+  });
+  assert(dive168Checkin.res.ok && dive168Checkin.data.ok !== false, 'dive check-in');
+  const dive168Ack = await req('/api/dive/flag/ack', { method: 'POST', token, body: {} });
+  assert(dive168Ack.res.ok && dive168Ack.data.ok !== false, 'dive flag ack');
+
+  const meetingrooms168Sweep = await req('/api/meetingrooms/sweep', { method: 'POST', token, body: { force: true } });
+  assert(meetingrooms168Sweep.res.ok && meetingrooms168Sweep.data.ok !== false, 'meetingrooms sweep');
+  const meetingrooms168Seed = await req('/api/meetingrooms/board/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-168 board setup' },
+  });
+  assert(meetingrooms168Seed.res.ok && meetingrooms168Seed.data.ok !== false, 'meetingrooms board setup seed');
+  const meetingrooms168Overrun = await req('/api/meetingrooms/booking/overrun', {
+    method: 'POST',
+    token,
+    body: { id: meetingrooms168Seed.data.meetingroom?.id },
+  });
+  assert(meetingrooms168Overrun.res.ok && meetingrooms168Overrun.data.ok !== false, 'meetingrooms booking overrun');
+  const meetingrooms168Release = await req('/api/meetingrooms/room/release', {
+    method: 'POST',
+    token,
+    body: { id: meetingrooms168Seed.data.meetingroom?.id },
+  });
+  assert(meetingrooms168Release.res.ok && meetingrooms168Release.data.ok !== false, 'meetingrooms room release');
+  const meetingrooms168Ack = await req('/api/meetingrooms/flag/ack', { method: 'POST', token, body: {} });
+  assert(meetingrooms168Ack.res.ok && meetingrooms168Ack.data.ok !== false, 'meetingrooms flag ack');
+
+  const retail168Sweep = await req('/api/retail/sweep', { method: 'POST', token, body: { force: true } });
+  assert(retail168Sweep.res.ok && retail168Sweep.data.ok !== false, 'retail sweep');
+  const retail168Seed = await req('/api/retail/flash-sale/seed', {
+    method: 'POST',
+    token,
+    body: { sku: 'E2E-168 flash sale' },
+  });
+  assert(retail168Seed.res.ok && retail168Seed.data.ok !== false, 'retail flash sale seed');
+  const retail168LowStock = await req('/api/retail/sku/low-stock', {
+    method: 'POST',
+    token,
+    body: { id: retail168Seed.data.retail?.id },
+  });
+  assert(retail168LowStock.res.ok && retail168LowStock.data.ok !== false, 'retail low stock sku');
+  const retail168Restock = await req('/api/retail/restock', {
+    method: 'POST',
+    token,
+    body: { id: retail168Seed.data.retail?.id },
+  });
+  assert(retail168Restock.res.ok && retail168Restock.data.ok !== false, 'retail restock');
+  const retail168Ack = await req('/api/retail/flag/ack', { method: 'POST', token, body: {} });
+  assert(retail168Ack.res.ok && retail168Ack.data.ok !== false, 'retail flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

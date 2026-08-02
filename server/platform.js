@@ -675,9 +675,14 @@ import {
   updateBadgeprint,
 } from './badgeprint.js';
 import {
+  ackMeetingroomsFlag,
   createMeetingrooms,
   listMeetingrooms,
   meetingroomsSummary,
+  markMeetingroomsBookingOverrun,
+  releaseMeetingroomRoom,
+  runMeetingroomsSweep,
+  seedBoardSetup,
   updateMeetingrooms,
 } from './meetingrooms.js';
 import {
@@ -803,9 +808,14 @@ import {
   updateMarina,
 } from './marina.js';
 import {
+  ackHammamFlag,
+  completeHammamSession,
   createHammam,
   listHammam,
   hammamSummary,
+  markHammamSlotOverrun,
+  runHammamSweep,
+  seedCouplesRitual,
   updateHammam,
 } from './hammam.js';
 import {
@@ -894,9 +904,14 @@ import {
   updatePhotoshoot,
 } from './photoshoot.js';
 import {
+  ackDiveFlag,
+  checkInDive,
   createDive,
   listDive,
   diveSummary,
+  markDiveCertExpired,
+  runDiveSweep,
+  seedBoatTrip,
   updateDive,
 } from './dive.js';
 import {
@@ -912,9 +927,14 @@ import {
   updateCinema,
 } from './cinema.js';
 import {
+  ackRetailFlag,
   createRetail,
   listRetail,
+  markRetailLowStockSku,
+  restockRetailSku,
   retailSummary,
+  runRetailSweep,
+  seedFlashSale,
   updateRetail,
 } from './retail.js';
 import {
@@ -11824,6 +11844,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/meetingrooms/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMeetingroomsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meetingrooms/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMeetingroomsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meetingrooms/booking/overrun' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMeetingroomsBookingOverrun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meetingrooms/room/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseMeetingroomRoom(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/meetingrooms/board/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBoardSetup(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/meetingrooms/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12408,6 +12458,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/hammam/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHammamSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hammam/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHammamFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hammam/slot/overrun' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markHammamSlotOverrun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hammam/session/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeHammamSession(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hammam/couples/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCouplesRitual(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/hammam/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12800,6 +12880,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/dive/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDiveSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dive/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDiveFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dive/cert/expired' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markDiveCertExpired(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dive/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInDive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dive/boat/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBoatTrip(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/dive/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12873,6 +12983,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createRetail(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/retail/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runRetailSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/retail/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackRetailFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/retail/sku/low-stock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markRetailLowStockSku(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/retail/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockRetailSku(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/retail/flash-sale/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedFlashSale(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/retail/') && req.method === 'PATCH') {

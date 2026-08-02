@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createRetail, fetchRetail, patchRetail } from '../services/retail'
+import {
+  ackRetailFlag,
+  createRetail,
+  fetchRetail,
+  markRetailLowStockSku,
+  patchRetail,
+  restockRetailSku,
+  runRetailSweep,
+  seedFlashSale,
+} from '../services/retail'
 
 export default function RetailPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"sku":"Şapka","qty":"2"})
   async function refresh() {
     try {
@@ -15,6 +25,10 @@ export default function RetailPage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
@@ -33,6 +47,16 @@ export default function RetailPage() {
       <CrudOpsBar domain="retail" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 168">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runRetailSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackRetailFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markRetailLowStockSku({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Low stock SKU' : r.error || 'Low stock yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Low stock SKU</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void restockRetailSku({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'SKU restocked' : r.error || 'Restock yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Restock</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedFlashSale({ sku: 'Flash resort tote' }).then(() => { ping('Flash sale seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed flash sale</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="sku" value={String(form.sku??'')} onChange={(e)=>setForm(f=>({...f,sku:e.target.value}))} />

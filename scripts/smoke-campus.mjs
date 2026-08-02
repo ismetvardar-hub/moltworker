@@ -765,6 +765,18 @@ import {
 import {
   marinaSummary, runMarinaSweep, ackMarinaFlag, markMarinaBerthOverdue, clearMarinaSlip, seedMarinaArrival,
 } from '../server/marina.js';
+import {
+  hammamSummary, runHammamSweep, ackHammamFlag, markHammamSlotOverrun, completeHammamSession, seedCouplesRitual,
+} from '../server/hammam.js';
+import {
+  diveSummary, runDiveSweep, ackDiveFlag, markDiveCertExpired, checkInDive, seedBoatTrip,
+} from '../server/dive.js';
+import {
+  meetingroomsSummary, runMeetingroomsSweep, ackMeetingroomsFlag, markMeetingroomsBookingOverrun, releaseMeetingroomRoom, seedBoardSetup,
+} from '../server/meetingrooms.js';
+import {
+  retailSummary, runRetailSweep, ackRetailFlag, markRetailLowStockSku, restockRetailSku, seedFlashSale,
+} from '../server/retail.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2214,6 +2226,34 @@ assert(clearMarinaSlip({}, 'smoke').ok, 'marina clear slip');
 assert(runMarinaSweep({ force: true }, 'smoke').ok, 'marina sweep');
 assert(ackMarinaFlag({}, 'smoke').ok, 'marina flag ack');
 
+assert(hammamSummary().title, 'hammam overview');
+assert(seedCouplesRitual({ guestName: 'Smoke 168 couples ritual' }, 'smoke').ok, 'hammam couples ritual seed');
+assert(markHammamSlotOverrun({}, 'smoke').ok, 'hammam slot overrun');
+assert(completeHammamSession({}, 'smoke').ok, 'hammam session complete');
+assert(runHammamSweep({ force: true }, 'smoke').ok, 'hammam sweep');
+assert(ackHammamFlag({}, 'smoke').ok, 'hammam flag ack');
+
+assert(diveSummary().title, 'dive overview');
+assert(seedBoatTrip({ guestName: 'Smoke 168 boat trip' }, 'smoke').ok, 'dive boat trip seed');
+assert(markDiveCertExpired({}, 'smoke').ok, 'dive cert expired');
+assert(checkInDive({}, 'smoke').ok, 'dive check-in');
+assert(runDiveSweep({ force: true }, 'smoke').ok, 'dive sweep');
+assert(ackDiveFlag({}, 'smoke').ok, 'dive flag ack');
+
+assert(meetingroomsSummary().title, 'meetingrooms overview');
+assert(seedBoardSetup({ title: 'Smoke 168 board setup' }, 'smoke').ok, 'meetingrooms board setup seed');
+assert(markMeetingroomsBookingOverrun({}, 'smoke').ok, 'meetingrooms booking overrun');
+assert(releaseMeetingroomRoom({}, 'smoke').ok, 'meetingrooms room release');
+assert(runMeetingroomsSweep({ force: true }, 'smoke').ok, 'meetingrooms sweep');
+assert(ackMeetingroomsFlag({}, 'smoke').ok, 'meetingrooms flag ack');
+
+assert(retailSummary().title, 'retail overview');
+assert(seedFlashSale({ sku: 'Smoke 168 flash sale' }, 'smoke').ok, 'retail flash sale seed');
+assert(markRetailLowStockSku({}, 'smoke').ok, 'retail low stock sku');
+assert(restockRetailSku({}, 'smoke').ok, 'retail restock');
+assert(runRetailSweep({ force: true }, 'smoke').ok, 'retail sweep');
+assert(ackRetailFlag({}, 'smoke').ok, 'retail flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2238,6 +2278,7 @@ console.log('MOD164_OK');
 console.log('MOD165_OK');
 console.log('MOD166_OK');
 console.log('MOD167_OK');
+console.log('MOD168_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2273,6 +2314,9 @@ for (const thickened166 of ['keycards', 'parcels', 'wakeups', 'upsell']) {
 }
 for (const thickened167 of ['breakfast', 'banquet', 'beachbeds', 'marina']) {
   assert(!crudDomains.some((d) => d.name === thickened167), `crudops skips thickened ${thickened167}`);
+}
+for (const thickened168 of ['hammam', 'dive', 'meetingrooms', 'retail']) {
+  assert(!crudDomains.some((d) => d.name === thickened168), `crudops skips thickened ${thickened168}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2377,6 +2421,14 @@ assert(!isCrudOpsPath('/api/beachbeds/sweep', 'POST'), 'crudops skips thickened 
 assert(!isCrudOpsPath('/api/beachbeds/flag/ack', 'POST'), 'crudops skips beachbeds ack');
 assert(!isCrudOpsPath('/api/marina/sweep', 'POST'), 'crudops skips thickened marina');
 assert(!isCrudOpsPath('/api/marina/flag/ack', 'POST'), 'crudops skips marina ack');
+assert(!isCrudOpsPath('/api/hammam/sweep', 'POST'), 'crudops skips thickened hammam');
+assert(!isCrudOpsPath('/api/hammam/flag/ack', 'POST'), 'crudops skips hammam ack');
+assert(!isCrudOpsPath('/api/dive/sweep', 'POST'), 'crudops skips thickened dive');
+assert(!isCrudOpsPath('/api/dive/flag/ack', 'POST'), 'crudops skips dive ack');
+assert(!isCrudOpsPath('/api/meetingrooms/sweep', 'POST'), 'crudops skips thickened meetingrooms');
+assert(!isCrudOpsPath('/api/meetingrooms/flag/ack', 'POST'), 'crudops skips meetingrooms ack');
+assert(!isCrudOpsPath('/api/retail/sweep', 'POST'), 'crudops skips thickened retail');
+assert(!isCrudOpsPath('/api/retail/flag/ack', 'POST'), 'crudops skips retail ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
