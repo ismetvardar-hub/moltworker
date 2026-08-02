@@ -844,8 +844,13 @@ import {
   runWarroomSweep,
 } from './warroom.js';
 import {
+  acceptUpsellOffer,
+  ackUpsellFlag,
+  ageUpsellPendingOffer,
   createUpsell,
   listUpsell,
+  runUpsellSweep,
+  seedLateCheckoutOffer,
   upsellSummary,
   updateUpsell,
 } from './upsell.js';
@@ -936,9 +941,14 @@ import {
   runNightlySweep,
 } from './nightly.js';
 import {
+  ackKeycardsFlag,
   createKeycards,
+  expireKeycardAccess,
   listKeycards,
   keycardsSummary,
+  reissueKeycard,
+  runKeycardsSweep,
+  seedLostKeycard,
   updateKeycards,
 } from './keycards.js';
 import {
@@ -959,15 +969,25 @@ import {
   updateBedding,
 } from './bedding.js';
 import {
+  ackWakeupsFlag,
+  completeWakeupCall,
   createWakeups,
   listWakeups,
+  markWakeupMissed,
+  runWakeupsSweep,
+  seedVipWakeup,
   wakeupsSummary,
   updateWakeups,
 } from './wakeups.js';
 import {
+  ackParcelsFlag,
+  ageParcelUndelivered,
   createParcels,
   listParcels,
+  markParcelDelivered,
   parcelsSummary,
+  runParcelsSweep,
+  seedFrontdeskParcelHold,
   updateParcels,
 } from './parcels.js';
 import {
@@ -12515,6 +12535,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/upsell/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runUpsellSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/upsell/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackUpsellFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/upsell/offer/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageUpsellPendingOffer(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/upsell/offer/accept' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, acceptUpsellOffer(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/upsell/latecheckout/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedLateCheckoutOffer(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/upsell/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12902,6 +12952,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/keycards/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKeycardsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keycards/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKeycardsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keycards/access/expire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, expireKeycardAccess(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keycards/reissue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reissueKeycard(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/keycards/lost/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedLostKeycard(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/keycards/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13007,6 +13087,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/wakeups/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWakeupsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wakeups/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWakeupsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wakeups/missed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markWakeupMissed(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wakeups/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeWakeupCall(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wakeups/vip/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipWakeup(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/wakeups/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13030,6 +13140,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createParcels(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/parcels/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runParcelsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/parcels/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackParcelsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/parcels/undelivered/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageParcelUndelivered(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/parcels/deliver' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markParcelDelivered(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/parcels/hold/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedFrontdeskParcelHold(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/parcels/') && req.method === 'PATCH') {

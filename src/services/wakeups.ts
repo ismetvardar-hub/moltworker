@@ -13,3 +13,23 @@ export async function createWakeups(input: Record<string, unknown>): Promise<any
 export async function patchWakeups(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/wakeups/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runWakeupsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/wakeups/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackWakeupsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/wakeups/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markWakeupMissed(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/wakeups/missed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function completeWakeupCall(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/wakeups/complete', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedVipWakeup(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/wakeups/vip/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

@@ -741,6 +741,18 @@ import {
 import {
   eventcalSummary, runEventcalSweep, ackEventcalFlag, flagEventcalConflict, publishEventcalEvent, seedHoldingEventcalEvent,
 } from '../server/eventcal.js';
+import {
+  keycardsSummary, runKeycardsSweep, ackKeycardsFlag, expireKeycardAccess, reissueKeycard, seedLostKeycard,
+} from '../server/keycards.js';
+import {
+  parcelsSummary, runParcelsSweep, ackParcelsFlag, ageParcelUndelivered, markParcelDelivered, seedFrontdeskParcelHold,
+} from '../server/parcels.js';
+import {
+  wakeupsSummary, runWakeupsSweep, ackWakeupsFlag, markWakeupMissed, completeWakeupCall, seedVipWakeup,
+} from '../server/wakeups.js';
+import {
+  upsellSummary, runUpsellSweep, ackUpsellFlag, ageUpsellPendingOffer, acceptUpsellOffer, seedLateCheckoutOffer,
+} from '../server/upsell.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2134,6 +2146,34 @@ assert(publishEventcalEvent({}, 'smoke').ok, 'eventcal publish');
 assert(runEventcalSweep({ force: true }, 'smoke').ok, 'eventcal sweep');
 assert(ackEventcalFlag({}, 'smoke').ok, 'eventcal flag ack');
 
+assert(keycardsSummary().title, 'keycards overview');
+assert(seedLostKeycard({ guestName: 'Smoke 166 lost card' }, 'smoke').ok, 'keycards lost seed');
+assert(expireKeycardAccess({}, 'smoke').ok, 'keycards expire access');
+assert(reissueKeycard({}, 'smoke').ok, 'keycards reissue');
+assert(runKeycardsSweep({ force: true }, 'smoke').ok, 'keycards sweep');
+assert(ackKeycardsFlag({}, 'smoke').ok, 'keycards flag ack');
+
+assert(parcelsSummary().title, 'parcels overview');
+assert(seedFrontdeskParcelHold({ guestName: 'Smoke 166 front desk' }, 'smoke').ok, 'parcels front-desk hold seed');
+assert(ageParcelUndelivered({}, 'smoke').ok, 'parcels undelivered aging');
+assert(markParcelDelivered({}, 'smoke').ok, 'parcels mark delivered');
+assert(runParcelsSweep({ force: true }, 'smoke').ok, 'parcels sweep');
+assert(ackParcelsFlag({}, 'smoke').ok, 'parcels flag ack');
+
+assert(wakeupsSummary().title, 'wakeups overview');
+assert(seedVipWakeup({ guestName: 'Smoke 166 VIP' }, 'smoke').ok, 'wakeups vip seed');
+assert(markWakeupMissed({}, 'smoke').ok, 'wakeups missed call');
+assert(completeWakeupCall({}, 'smoke').ok, 'wakeups complete');
+assert(runWakeupsSweep({ force: true }, 'smoke').ok, 'wakeups sweep');
+assert(ackWakeupsFlag({}, 'smoke').ok, 'wakeups flag ack');
+
+assert(upsellSummary().title, 'upsell overview');
+assert(seedLateCheckoutOffer({ guestName: 'Smoke 166 late checkout' }, 'smoke').ok, 'upsell late checkout seed');
+assert(ageUpsellPendingOffer({}, 'smoke').ok, 'upsell pending offer aging');
+assert(acceptUpsellOffer({}, 'smoke').ok, 'upsell accept offer');
+assert(runUpsellSweep({ force: true }, 'smoke').ok, 'upsell sweep');
+assert(ackUpsellFlag({}, 'smoke').ok, 'upsell flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2156,6 +2196,7 @@ console.log('MOD162_OK');
 console.log('MOD163_OK');
 console.log('MOD164_OK');
 console.log('MOD165_OK');
+console.log('MOD166_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2185,6 +2226,9 @@ for (const thickened164 of ['minibar', 'transfers', 'concierge', 'shuttle']) {
 }
 for (const thickened165 of ['wifi', 'kds', 'budget', 'eventcal']) {
   assert(!crudDomains.some((d) => d.name === thickened165), `crudops skips thickened ${thickened165}`);
+}
+for (const thickened166 of ['keycards', 'parcels', 'wakeups', 'upsell']) {
+  assert(!crudDomains.some((d) => d.name === thickened166), `crudops skips thickened ${thickened166}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2273,6 +2317,14 @@ assert(!isCrudOpsPath('/api/budget/sweep', 'POST'), 'crudops skips thickened bud
 assert(!isCrudOpsPath('/api/budget/flag/ack', 'POST'), 'crudops skips budget ack');
 assert(!isCrudOpsPath('/api/eventcal/sweep', 'POST'), 'crudops skips thickened eventcal');
 assert(!isCrudOpsPath('/api/eventcal/flag/ack', 'POST'), 'crudops skips eventcal ack');
+assert(!isCrudOpsPath('/api/keycards/sweep', 'POST'), 'crudops skips thickened keycards');
+assert(!isCrudOpsPath('/api/keycards/flag/ack', 'POST'), 'crudops skips keycards ack');
+assert(!isCrudOpsPath('/api/parcels/sweep', 'POST'), 'crudops skips thickened parcels');
+assert(!isCrudOpsPath('/api/parcels/flag/ack', 'POST'), 'crudops skips parcels ack');
+assert(!isCrudOpsPath('/api/wakeups/sweep', 'POST'), 'crudops skips thickened wakeups');
+assert(!isCrudOpsPath('/api/wakeups/flag/ack', 'POST'), 'crudops skips wakeups ack');
+assert(!isCrudOpsPath('/api/upsell/sweep', 'POST'), 'crudops skips thickened upsell');
+assert(!isCrudOpsPath('/api/upsell/flag/ack', 'POST'), 'crudops skips upsell ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

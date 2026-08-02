@@ -13,3 +13,23 @@ export async function createUpsell(input: Record<string, unknown>): Promise<any>
 export async function patchUpsell(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/upsell/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runUpsellSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/upsell/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackUpsellFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/upsell/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ageUpsellPendingOffer(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/upsell/offer/age', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function acceptUpsellOffer(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/upsell/offer/accept', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedLateCheckoutOffer(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/upsell/latecheckout/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

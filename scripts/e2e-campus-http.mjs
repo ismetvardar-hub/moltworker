@@ -193,6 +193,10 @@ try {
     '/api/kds',
     '/api/budget',
     '/api/eventcal',
+    '/api/keycards',
+    '/api/parcels',
+    '/api/wakeups',
+    '/api/upsell',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2392,6 +2396,98 @@ try {
   assert(eventcal165Publish.res.ok && eventcal165Publish.data.ok !== false, 'eventcal publish');
   const eventcal165Ack = await req('/api/eventcal/flag/ack', { method: 'POST', token, body: {} });
   assert(eventcal165Ack.res.ok && eventcal165Ack.data.ok !== false, 'eventcal flag ack');
+
+  const keycards166Sweep = await req('/api/keycards/sweep', { method: 'POST', token, body: { force: true } });
+  assert(keycards166Sweep.res.ok && keycards166Sweep.data.ok !== false, 'keycards sweep');
+  const keycards166Seed = await req('/api/keycards/lost/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-166 lost card' },
+  });
+  assert(keycards166Seed.res.ok && keycards166Seed.data.ok !== false, 'keycards lost seed');
+  const keycards166Expire = await req('/api/keycards/access/expire', {
+    method: 'POST',
+    token,
+    body: { id: keycards166Seed.data.keycard?.id },
+  });
+  assert(keycards166Expire.res.ok && keycards166Expire.data.ok !== false, 'keycards expire access');
+  const keycards166Reissue = await req('/api/keycards/reissue', {
+    method: 'POST',
+    token,
+    body: { id: keycards166Seed.data.keycard?.id },
+  });
+  assert(keycards166Reissue.res.ok && keycards166Reissue.data.ok !== false, 'keycards reissue');
+  const keycards166Ack = await req('/api/keycards/flag/ack', { method: 'POST', token, body: {} });
+  assert(keycards166Ack.res.ok && keycards166Ack.data.ok !== false, 'keycards flag ack');
+
+  const parcels166Sweep = await req('/api/parcels/sweep', { method: 'POST', token, body: { force: true } });
+  assert(parcels166Sweep.res.ok && parcels166Sweep.data.ok !== false, 'parcels sweep');
+  const parcels166Seed = await req('/api/parcels/hold/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-166 front desk' },
+  });
+  assert(parcels166Seed.res.ok && parcels166Seed.data.ok !== false, 'parcels hold seed');
+  const parcels166Age = await req('/api/parcels/undelivered/age', {
+    method: 'POST',
+    token,
+    body: { id: parcels166Seed.data.parcel?.id },
+  });
+  assert(parcels166Age.res.ok && parcels166Age.data.ok !== false, 'parcels undelivered aging');
+  const parcels166Deliver = await req('/api/parcels/deliver', {
+    method: 'POST',
+    token,
+    body: { id: parcels166Seed.data.parcel?.id },
+  });
+  assert(parcels166Deliver.res.ok && parcels166Deliver.data.ok !== false, 'parcels delivered');
+  const parcels166Ack = await req('/api/parcels/flag/ack', { method: 'POST', token, body: {} });
+  assert(parcels166Ack.res.ok && parcels166Ack.data.ok !== false, 'parcels flag ack');
+
+  const wakeups166Sweep = await req('/api/wakeups/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wakeups166Sweep.res.ok && wakeups166Sweep.data.ok !== false, 'wakeups sweep');
+  const wakeups166Seed = await req('/api/wakeups/vip/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-166 VIP' },
+  });
+  assert(wakeups166Seed.res.ok && wakeups166Seed.data.ok !== false, 'wakeups vip seed');
+  const wakeups166Missed = await req('/api/wakeups/missed', {
+    method: 'POST',
+    token,
+    body: { id: wakeups166Seed.data.wakeup?.id },
+  });
+  assert(wakeups166Missed.res.ok && wakeups166Missed.data.ok !== false, 'wakeups missed');
+  const wakeups166Complete = await req('/api/wakeups/complete', {
+    method: 'POST',
+    token,
+    body: { id: wakeups166Seed.data.wakeup?.id },
+  });
+  assert(wakeups166Complete.res.ok && wakeups166Complete.data.ok !== false, 'wakeups complete');
+  const wakeups166Ack = await req('/api/wakeups/flag/ack', { method: 'POST', token, body: {} });
+  assert(wakeups166Ack.res.ok && wakeups166Ack.data.ok !== false, 'wakeups flag ack');
+
+  const upsell166Sweep = await req('/api/upsell/sweep', { method: 'POST', token, body: { force: true } });
+  assert(upsell166Sweep.res.ok && upsell166Sweep.data.ok !== false, 'upsell sweep');
+  const upsell166Seed = await req('/api/upsell/latecheckout/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-166 late checkout' },
+  });
+  assert(upsell166Seed.res.ok && upsell166Seed.data.ok !== false, 'upsell late checkout seed');
+  const upsell166Age = await req('/api/upsell/offer/age', {
+    method: 'POST',
+    token,
+    body: { id: upsell166Seed.data.offer?.id },
+  });
+  assert(upsell166Age.res.ok && upsell166Age.data.ok !== false, 'upsell offer aging');
+  const upsell166Accept = await req('/api/upsell/offer/accept', {
+    method: 'POST',
+    token,
+    body: { id: upsell166Seed.data.offer?.id },
+  });
+  assert(upsell166Accept.res.ok && upsell166Accept.data.ok !== false, 'upsell accept');
+  const upsell166Ack = await req('/api/upsell/flag/ack', { method: 'POST', token, body: {} });
+  assert(upsell166Ack.res.ok && upsell166Ack.data.ok !== false, 'upsell flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
