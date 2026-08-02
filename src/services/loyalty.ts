@@ -29,8 +29,8 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-async function post(path: string, body: Record<string, unknown> = {}) {
-  return parse(
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
     await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -58,7 +58,7 @@ export async function adjustLoyalty(input: {
   reason?: string
   note?: string
 }): Promise<{ account: LoyaltyAccount; entry: LedgerEntry }> {
-  return post('/api/loyalty/adjust', input)
+  return post<{ account: LoyaltyAccount; entry: LedgerEntry }>('/api/loyalty/adjust', input)
 }
 
 export async function runLoyaltySweep(body: Record<string, unknown> = {}) {

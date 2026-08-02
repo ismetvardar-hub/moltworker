@@ -18,8 +18,8 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-async function post(path: string, body: Record<string, unknown> = {}) {
-  return parse(
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
     await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -48,7 +48,7 @@ export async function postTip(input: {
   person?: string
   venueId?: string
 }): Promise<{ pool: { balance: number }; entry: TipEntry }> {
-  return post('/api/tips', input)
+  return post<{ pool: { balance: number }; entry: TipEntry }>('/api/tips', input)
 }
 
 export async function runTipsSweep(body: Record<string, unknown> = {}) {

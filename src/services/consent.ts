@@ -19,8 +19,8 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-async function post(path: string, body: Record<string, unknown> = {}) {
-  return parse(
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
     await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -49,7 +49,7 @@ export async function recordConsent(input: {
   channel?: string
   note?: string
 }): Promise<{ consent: Consent }> {
-  return post('/api/consents', input)
+  return post<{ consent: Consent }>('/api/consents', input)
 }
 
 export async function runConsentSweep(body: Record<string, unknown> = {}) {

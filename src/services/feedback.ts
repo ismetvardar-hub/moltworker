@@ -18,8 +18,8 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-async function post(path: string, body: Record<string, unknown> = {}) {
-  return parse(
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
     await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -50,7 +50,7 @@ export async function createFeedback(input: {
   channel?: string
   venueId?: string
 }): Promise<{ feedback: Feedback }> {
-  return post('/api/feedback', input)
+  return post<{ feedback: Feedback }>('/api/feedback', input)
 }
 
 export async function runFeedbackSweep(body: Record<string, unknown> = {}) {
