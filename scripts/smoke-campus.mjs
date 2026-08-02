@@ -2775,6 +2775,7 @@ assert(ackCampusbriefFlag({}, 'smoke').ok, 'campusbrief flag ack');
 const campusHeal183 = healCampusHealth({ limit: 30 }, 'smoke');
 assert(campusHeal183.ok && campusHeal183.after.score >= campusHeal183.before.score, 'campusbrief heal');
 console.log(`MOD183_SAMPLE ${campusHeal183.before.score}->${campusHeal183.after.score}`);
+assert(campusHeal183.after.score >= 55, 'campus heal reaches degraded+');
 
 console.log('MOD141_OK');
 console.log('MOD135_OK');

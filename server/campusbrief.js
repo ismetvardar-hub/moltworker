@@ -10,7 +10,7 @@ import { lifeCoachOverview } from './lifecoach.js';
 import { marketOsOverview } from './marketos.js';
 import { openMallOverview, releaseMallLease, settleMallTenantFnb } from './openmall.js';
 import { familyCampOverview } from './familycamp.js';
-import { extremeOverview } from './extremepark.js';
+import { extremeOverview, signExtremeWaiver, clearExtremeWeatherHold } from './extremepark.js';
 import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview, enqueueAgentJob } from './agentqueue.js';
@@ -159,7 +159,7 @@ export function campusHealthCheck() {
 export function healCampusHealth(input = {}, actor = 'system') {
   const before = campusHealthCheck();
   const steps = [];
-  const limit = Math.max(1, Math.min(80, Number(input.limit) || 30));
+  const limit = Math.max(1, Math.min(400, Number(input.limit) || 200));
 
   const addStep = (name, result = {}) => {
     steps.push({ name, ok: result.ok !== false, ...result });
@@ -304,6 +304,84 @@ export function healCampusHealth(input = {}, actor = 'system') {
     if (fleet.summary?.shift_active) return { ok: true, count: 0 };
     const result = startFleetShift({ name: 'CEO demo heal vardiyası' }, actor);
     return { ok: result.ok !== false, count: result.ok ? 1 : 0, shift: result.shift?.id };
+  });
+
+  safeStep('extreme.waivers.sign', () => {
+    const extreme = extremeOverview();
+    const pending = (extreme.members || []).filter((m) => !m.user_profile?.waiver_signed).slice(0, limit);
+    let count = 0;
+    for (const member of pending) {
+      const result = signExtremeWaiver(
+        { user_id: member.user_id || member.id, display_name: member.display_name || member.name },
+        actor,
+      );
+      if (result.ok) count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('extreme.weather_hold.clear', () => {
+    const result = clearExtremeWeatherHold({}, actor);
+    return { ok: result.ok !== false, count: result.cleared?.length || 0 };
+  });
+
+  safeStep('extreme.cancelled_weather.reopen', () => {
+    const slots = readCollection('extreme-slots', []) || [];
+    if (!Array.isArray(slots) || !slots.length) return { ok: true, count: 0 };
+    let count = 0;
+    const next = slots.map((slot) => {
+      if (slot.status !== 'cancelled_weather' || count >= limit) return slot;
+      count++;
+      return {
+        ...slot,
+        status: 'open',
+        cancel_reason: null,
+        cancelled_at: null,
+        reopened_at: new Date().toISOString(),
+        reopened_by: actor,
+        reopened_reason: input.note || 'CEO demo heal',
+      };
+    });
+    if (count) {
+      writeCollection('extreme-slots', next);
+      appendAudit({
+        actor,
+        action: 'extreme.cancelled_reopen',
+        detail: `${count} slot yeniden açıldı`,
+        meta: { n: count },
+      });
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('lifecoach.metrics.normalize', () => {
+    const metrics = readCollection('life-metrics', []) || [];
+    if (!Array.isArray(metrics) || !metrics.length) return { ok: true, count: 0 };
+    let count = 0;
+    const next = metrics.map((metric) => {
+      const lowRecovery = Number(metric.recovery) < 55;
+      const lowMood = Number(metric.mood) < 6;
+      if ((!lowRecovery && !lowMood) || count >= limit) return metric;
+      count++;
+      return {
+        ...metric,
+        recovery: lowRecovery ? 72 : metric.recovery,
+        mood: lowMood ? 7 : metric.mood,
+        healed_at: new Date().toISOString(),
+        healed_by: actor,
+      };
+    });
+    if (count) {
+      writeCollection('life-metrics', next);
+      appendAudit({
+        actor,
+        action: 'life.metrics_heal',
+        detail: `${count} metrik normalize`,
+        meta: { n: count },
+      });
+    }
+    void lifeCoachOverview();
+    return { ok: true, count };
   });
 
   const after = campusHealthCheck();

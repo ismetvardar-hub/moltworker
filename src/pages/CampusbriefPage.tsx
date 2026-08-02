@@ -84,7 +84,7 @@ export default function CampusbriefPage() {
                 type="button"
                 className="rounded-lg bg-emerald-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
-                  void api.healCampusHealth({ limit: 30 }).then((r: any) => {
+                  void api.healCampusHealth({ limit: 200 }).then((r: any) => {
                     ping(`Campus iyileşti · ${r.before?.score ?? '—'} → ${r.after?.score ?? '—'}`)
                     return refresh()
                   })
