@@ -940,9 +940,14 @@ import {
   updatePayroll,
 } from './payroll.js';
 import {
+  ackFlashFlag,
   createFlash,
   listFlash,
   flashSummary,
+  markFlashStaleDeal,
+  publishFlash,
+  runFlashSweep,
+  seedMidnightSale,
   updateFlash,
 } from './flash.js';
 import {
@@ -1010,15 +1015,25 @@ import {
   updateDive,
 } from './dive.js';
 import {
+  ackBikerentFlag,
+  checkInBikerentBike,
   createBikerent,
   listBikerent,
   bikerentSummary,
+  markBikerentOverdueReturn,
+  runBikerentSweep,
+  seedCoastalRide,
   updateBikerent,
 } from './bikerent.js';
 import {
+  ackCinemaFlag,
   createCinema,
   listCinema,
   cinemaSummary,
+  markCinemaShowtimeConflict,
+  runCinemaSweep,
+  seatCinemaHouse,
+  seedPremiere,
   updateCinema,
 } from './cinema.js';
 import {
@@ -1219,9 +1234,14 @@ import {
   updatePromos,
 } from './promos.js';
 import {
+  ackDawnserviceFlag,
+  completeDawnserviceRound,
   createDawnservice,
   listDawnservice,
   dawnserviceSummary,
+  markDawnserviceMissedTray,
+  runDawnserviceSweep,
+  seedSunriseAmenity,
   updateDawnservice,
 } from './dawnservice.js';
 import {
@@ -13433,6 +13453,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/flash/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFlashSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/flash/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackFlashFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/flash/deal/stale' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markFlashStaleDeal(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/flash/publish' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishFlash(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/flash/midnight-sale/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedMidnightSale(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/flash/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13765,6 +13815,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/bikerent/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBikerentSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bikerent/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBikerentFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bikerent/overdue-return' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBikerentOverdueReturn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bikerent/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInBikerentBike(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bikerent/coastal-ride/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCoastalRide(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/bikerent/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13788,6 +13868,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createCinema(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/cinema/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCinemaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cinema/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCinemaFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cinema/showtime/conflict' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markCinemaShowtimeConflict(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cinema/seat-house' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seatCinemaHouse(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cinema/premiere/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPremiere(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/cinema/') && req.method === 'PATCH') {
@@ -14775,6 +14885,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createDawnservice(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/dawnservice/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDawnserviceSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dawnservice/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDawnserviceFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dawnservice/tray/missed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markDawnserviceMissedTray(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dawnservice/round/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeDawnserviceRound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/dawnservice/sunrise-amenity/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedSunriseAmenity(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/dawnservice/') && req.method === 'PATCH') {

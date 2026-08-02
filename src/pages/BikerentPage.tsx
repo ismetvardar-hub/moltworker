@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createBikerent, fetchBikerent, patchBikerent } from '../services/bikerent'
+import {
+  ackBikerentFlag,
+  checkInBikerentBike,
+  createBikerent,
+  fetchBikerent,
+  markBikerentOverdueReturn,
+  patchBikerent,
+  runBikerentSweep,
+  seedCoastalRide,
+} from '../services/bikerent'
 
 export default function BikerentPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"bikeNo":"BK-01","guestName":"Misafir"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function BikerentPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function BikerentPage() {
         <p className="mt-1 text-sm text-slate-400">Bisiklet kiralama.</p>
       </header>
       <CrudOpsBar domain="bikerent" onDone={() => void refresh()} />
+      {notice && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{notice}</p>}
+      <PanelCard title="Wave 177 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runBikerentSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Overdue return', () => markBikerentOverdueReturn({}))}>Overdue return</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Check-in bike', () => checkInBikerentBike({}))}>Check-in bike</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={()=>void runOp('Seed coastal ride', () => seedCoastalRide({}))}>Seed coastal ride</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackBikerentFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">

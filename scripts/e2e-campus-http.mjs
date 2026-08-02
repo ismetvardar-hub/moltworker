@@ -235,6 +235,10 @@ try {
     '/api/badgeprint',
     '/api/bands',
     '/api/bedding',
+    '/api/bikerent',
+    '/api/cinema',
+    '/api/dawnservice',
+    '/api/flash',
     '/api/qrcheckin',
     '/api/patrol',
     '/api/health',
@@ -1763,7 +1767,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3452,6 +3456,98 @@ try {
   assert(bedding176Restock.res.ok && bedding176Restock.data.ok !== false, 'bedding restock');
   const bedding176Ack = await req('/api/bedding/flag/ack', { method: 'POST', token, body: {} });
   assert(bedding176Ack.res.ok && bedding176Ack.data.ok !== false, 'bedding flag ack');
+
+  const bikerent177Sweep = await req('/api/bikerent/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bikerent177Sweep.res.ok && bikerent177Sweep.data.ok !== false, 'bikerent sweep');
+  const bikerent177Seed = await req('/api/bikerent/coastal-ride/seed', {
+    method: 'POST',
+    token,
+    body: { bikeNo: 'E2E-177-COAST' },
+  });
+  assert(bikerent177Seed.res.ok && bikerent177Seed.data.ok !== false, 'bikerent coastal ride seed');
+  const bikerent177Overdue = await req('/api/bikerent/overdue-return', {
+    method: 'POST',
+    token,
+    body: { id: bikerent177Seed.data.bike?.id },
+  });
+  assert(bikerent177Overdue.res.ok && bikerent177Overdue.data.ok !== false, 'bikerent overdue return');
+  const bikerent177Checkin = await req('/api/bikerent/checkin', {
+    method: 'POST',
+    token,
+    body: { id: bikerent177Seed.data.bike?.id },
+  });
+  assert(bikerent177Checkin.res.ok && bikerent177Checkin.data.ok !== false, 'bikerent check-in bike');
+  const bikerent177Ack = await req('/api/bikerent/flag/ack', { method: 'POST', token, body: {} });
+  assert(bikerent177Ack.res.ok && bikerent177Ack.data.ok !== false, 'bikerent flag ack');
+
+  const cinema177Sweep = await req('/api/cinema/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cinema177Sweep.res.ok && cinema177Sweep.data.ok !== false, 'cinema sweep');
+  const cinema177Seed = await req('/api/cinema/premiere/seed', {
+    method: 'POST',
+    token,
+    body: { film: 'E2E-177 premiere' },
+  });
+  assert(cinema177Seed.res.ok && cinema177Seed.data.ok !== false, 'cinema premiere seed');
+  const cinema177Conflict = await req('/api/cinema/showtime/conflict', {
+    method: 'POST',
+    token,
+    body: { id: cinema177Seed.data.show?.id },
+  });
+  assert(cinema177Conflict.res.ok && cinema177Conflict.data.ok !== false, 'cinema showtime conflict');
+  const cinema177Seat = await req('/api/cinema/seat-house', {
+    method: 'POST',
+    token,
+    body: { id: cinema177Seed.data.show?.id },
+  });
+  assert(cinema177Seat.res.ok && cinema177Seat.data.ok !== false, 'cinema seat house');
+  const cinema177Ack = await req('/api/cinema/flag/ack', { method: 'POST', token, body: {} });
+  assert(cinema177Ack.res.ok && cinema177Ack.data.ok !== false, 'cinema flag ack');
+
+  const dawn177Sweep = await req('/api/dawnservice/sweep', { method: 'POST', token, body: { force: true } });
+  assert(dawn177Sweep.res.ok && dawn177Sweep.data.ok !== false, 'dawnservice sweep');
+  const dawn177Seed = await req('/api/dawnservice/sunrise-amenity/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E177' },
+  });
+  assert(dawn177Seed.res.ok && dawn177Seed.data.ok !== false, 'dawnservice sunrise amenity seed');
+  const dawn177Missed = await req('/api/dawnservice/tray/missed', {
+    method: 'POST',
+    token,
+    body: { id: dawn177Seed.data.tray?.id },
+  });
+  assert(dawn177Missed.res.ok && dawn177Missed.data.ok !== false, 'dawnservice missed tray');
+  const dawn177Complete = await req('/api/dawnservice/round/complete', {
+    method: 'POST',
+    token,
+    body: { id: dawn177Seed.data.tray?.id },
+  });
+  assert(dawn177Complete.res.ok && dawn177Complete.data.ok !== false, 'dawnservice complete round');
+  const dawn177Ack = await req('/api/dawnservice/flag/ack', { method: 'POST', token, body: {} });
+  assert(dawn177Ack.res.ok && dawn177Ack.data.ok !== false, 'dawnservice flag ack');
+
+  const flash177Sweep = await req('/api/flash/sweep', { method: 'POST', token, body: { force: true } });
+  assert(flash177Sweep.res.ok && flash177Sweep.data.ok !== false, 'flash sweep');
+  const flash177Seed = await req('/api/flash/midnight-sale/seed', {
+    method: 'POST',
+    token,
+    body: { metric: 'E2E-177 midnight sale' },
+  });
+  assert(flash177Seed.res.ok && flash177Seed.data.ok !== false, 'flash midnight sale seed');
+  const flash177Stale = await req('/api/flash/deal/stale', {
+    method: 'POST',
+    token,
+    body: { id: flash177Seed.data.flash?.id },
+  });
+  assert(flash177Stale.res.ok && flash177Stale.data.ok !== false, 'flash stale deal');
+  const flash177Publish = await req('/api/flash/publish', {
+    method: 'POST',
+    token,
+    body: { id: flash177Seed.data.flash?.id },
+  });
+  assert(flash177Publish.res.ok && flash177Publish.data.ok !== false, 'flash publish');
+  const flash177Ack = await req('/api/flash/flag/ack', { method: 'POST', token, body: {} });
+  assert(flash177Ack.res.ok && flash177Ack.data.ok !== false, 'flash flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

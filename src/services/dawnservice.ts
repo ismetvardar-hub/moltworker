@@ -13,3 +13,23 @@ export async function createDawnservice(input: Record<string, unknown>): Promise
 export async function patchDawnservice(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/dawnservice/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+async function postDawnservice(path: string, body: Record<string, unknown> = {}) {
+  return parse(await fetch(path, { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function runDawnserviceSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postDawnservice('/api/dawnservice/sweep', body)
+}
+export async function ackDawnserviceFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postDawnservice('/api/dawnservice/flag/ack', body)
+}
+export async function markDawnserviceMissedTray(body: Record<string, unknown> = {}): Promise<any> {
+  return postDawnservice('/api/dawnservice/tray/missed', body)
+}
+export async function completeDawnserviceRound(body: Record<string, unknown> = {}): Promise<any> {
+  return postDawnservice('/api/dawnservice/round/complete', body)
+}
+export async function seedSunriseAmenity(body: Record<string, unknown> = {}): Promise<any> {
+  return postDawnservice('/api/dawnservice/sunrise-amenity/seed', body)
+}

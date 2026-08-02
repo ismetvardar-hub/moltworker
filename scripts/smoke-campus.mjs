@@ -778,6 +778,12 @@ import {
   retailSummary, runRetailSweep, ackRetailFlag, markRetailLowStockSku, restockRetailSku, seedFlashSale,
 } from '../server/retail.js';
 import {
+  bikerentSummary, runBikerentSweep, ackBikerentFlag, markBikerentOverdueReturn, checkInBikerentBike, seedCoastalRide,
+} from '../server/bikerent.js';
+import {
+  cinemaSummary, runCinemaSweep, ackCinemaFlag, markCinemaShowtimeConflict, seatCinemaHouse, seedPremiere,
+} from '../server/cinema.js';
+import {
   toursSummary, runToursSweep, ackToursFlag, markTourDepartureSoon, checkInTourGuest, seedSunsetTour,
 } from '../server/tours.js';
 import {
@@ -858,6 +864,12 @@ import {
 import {
   promosSummary, runPromosSweep, ackPromosFlag, markPromoExpiredLiveCode, pausePromo, seedFlashPromo,
 } from '../server/promos.js';
+import {
+  dawnserviceSummary, runDawnserviceSweep, ackDawnserviceFlag, markDawnserviceMissedTray, completeDawnserviceRound, seedSunriseAmenity,
+} from '../server/dawnservice.js';
+import {
+  flashSummary, runFlashSweep, ackFlashFlag, markFlashStaleDeal, publishFlash, seedMidnightSale,
+} from '../server/flash.js';
 import {
   sustainSummary, runSustainSweep, ackSustainFlag, markSustainKpiMiss, logSustainAction, seedGreenWeek,
 } from '../server/sustain.js';
@@ -2604,6 +2616,38 @@ assert(runBeddingSweep({ force: true }, 'smoke').ok, 'bedding sweep');
 assert(restockBeddingLinen({ id: smokeBedding.request.id, qty: 12 }, 'smoke').ok, 'bedding restock');
 assert(ackBeddingFlag({}, 'smoke').ok, 'bedding flag ack');
 
+assert(bikerentSummary().title, 'bikerent overview');
+const smokeBike = seedCoastalRide({ bikeNo: 'SM-177-COAST' }, 'smoke');
+assert(smokeBike.ok, 'bikerent coastal ride seed');
+assert(markBikerentOverdueReturn({ id: smokeBike.bike.id }, 'smoke').ok, 'bikerent overdue return');
+assert(runBikerentSweep({ force: true }, 'smoke').ok, 'bikerent sweep');
+assert(checkInBikerentBike({ id: smokeBike.bike.id }, 'smoke').ok, 'bikerent check-in bike');
+assert(ackBikerentFlag({}, 'smoke').ok, 'bikerent flag ack');
+
+assert(cinemaSummary().title, 'cinema overview');
+const smokeCinema = seedPremiere({ film: 'Smoke 177 premiere' }, 'smoke');
+assert(smokeCinema.ok, 'cinema premiere seed');
+assert(markCinemaShowtimeConflict({ id: smokeCinema.show.id }, 'smoke').ok, 'cinema showtime conflict');
+assert(runCinemaSweep({ force: true }, 'smoke').ok, 'cinema sweep');
+assert(seatCinemaHouse({ id: smokeCinema.show.id }, 'smoke').ok, 'cinema seat house');
+assert(ackCinemaFlag({}, 'smoke').ok, 'cinema flag ack');
+
+assert(dawnserviceSummary().title, 'dawnservice overview');
+const smokeDawn = seedSunriseAmenity({ room: 'SM177' }, 'smoke');
+assert(smokeDawn.ok, 'dawnservice sunrise amenity seed');
+assert(markDawnserviceMissedTray({ id: smokeDawn.tray.id }, 'smoke').ok, 'dawnservice missed tray');
+assert(runDawnserviceSweep({ force: true }, 'smoke').ok, 'dawnservice sweep');
+assert(completeDawnserviceRound({ id: smokeDawn.tray.id }, 'smoke').ok, 'dawnservice complete round');
+assert(ackDawnserviceFlag({}, 'smoke').ok, 'dawnservice flag ack');
+
+assert(flashSummary().title, 'flash overview');
+const smokeFlash = seedMidnightSale({ metric: 'Smoke 177 midnight sale' }, 'smoke');
+assert(smokeFlash.ok, 'flash midnight sale seed');
+assert(markFlashStaleDeal({ id: smokeFlash.flash.id }, 'smoke').ok, 'flash stale deal');
+assert(runFlashSweep({ force: true }, 'smoke').ok, 'flash sweep');
+assert(publishFlash({ id: smokeFlash.flash.id }, 'smoke').ok, 'flash publish');
+assert(ackFlashFlag({}, 'smoke').ok, 'flash flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2637,6 +2681,7 @@ console.log('MOD173_OK');
 console.log('MOD174_OK');
 console.log('MOD175_OK');
 console.log('MOD176_OK');
+console.log('MOD177_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2712,6 +2757,11 @@ for (const thickened176 of ['artwall', 'badgeprint', 'bands', 'bedding']) {
   assert(!crudDomains.some((d) => d.name === thickened176), `crudops skips thickened ${thickened176}`);
   assert(!isCrudOpsPath(`/api/${thickened176}/sweep`, 'POST'), `crudops skips ${thickened176} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened176}/flag/ack`, 'POST'), `crudops skips ${thickened176} ack`);
+}
+for (const thickened177 of ['bikerent', 'cinema', 'dawnservice', 'flash']) {
+  assert(!crudDomains.some((d) => d.name === thickened177), `crudops skips thickened ${thickened177}`);
+  assert(!isCrudOpsPath(`/api/${thickened177}/sweep`, 'POST'), `crudops skips ${thickened177} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened177}/flag/ack`, 'POST'), `crudops skips ${thickened177} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
