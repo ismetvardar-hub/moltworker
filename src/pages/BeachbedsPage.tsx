@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createBeachbeds, fetchBeachbeds, patchBeachbeds } from '../services/beachbeds'
+import {
+  ackBeachbedsFlag,
+  checkInBeachbed,
+  createBeachbeds,
+  fetchBeachbeds,
+  markBeachbedUnpaid,
+  patchBeachbeds,
+  runBeachbedsSweep,
+  seedVipCabana,
+} from '../services/beachbeds'
 
 export default function BeachbedsPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"bedNo":"S-14","guestName":"Misafir"})
   async function refresh() {
     try {
@@ -15,11 +25,15 @@ export default function BeachbedsPage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
       const payload: Record<string, unknown> = { ...form }
-      for (const k of ['qty','value','score','minutes','balance']) if (k in payload) payload[k]=Number(payload[k])||0
+      for (const k of ['qty','value','score','minutes','balance','balanceDue','amount']) if (k in payload) payload[k]=Number(payload[k])||0
       await createBeachbeds(payload)
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
@@ -33,6 +47,16 @@ export default function BeachbedsPage() {
       <CrudOpsBar domain="beachbeds" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 167">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runBeachbedsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackBeachbedsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markBeachbedUnpaid({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Daybed unpaid' : r.error || 'Unpaid yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Unpaid daybed</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void checkInBeachbed({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Checked in' : r.error || 'Check-in yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Check-in</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedVipCabana({ guestName: 'VIP cabana guest' }).then(() => { ping('VIP cabana seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed VIP cabana</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="bedNo" value={String(form.bedNo??'')} onChange={(e)=>setForm(f=>({...f,bedNo:e.target.value}))} />

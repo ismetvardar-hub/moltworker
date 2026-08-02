@@ -197,6 +197,10 @@ try {
     '/api/parcels',
     '/api/wakeups',
     '/api/upsell',
+    '/api/breakfast',
+    '/api/banquet',
+    '/api/beachbeds',
+    '/api/marina',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2488,6 +2492,98 @@ try {
   assert(upsell166Accept.res.ok && upsell166Accept.data.ok !== false, 'upsell accept');
   const upsell166Ack = await req('/api/upsell/flag/ack', { method: 'POST', token, body: {} });
   assert(upsell166Ack.res.ok && upsell166Ack.data.ok !== false, 'upsell flag ack');
+
+  const breakfast167Sweep = await req('/api/breakfast/sweep', { method: 'POST', token, body: { force: true } });
+  assert(breakfast167Sweep.res.ok && breakfast167Sweep.data.ok !== false, 'breakfast sweep');
+  const breakfast167Seed = await req('/api/breakfast/buffet/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-167 buffet rush' },
+  });
+  assert(breakfast167Seed.res.ok && breakfast167Seed.data.ok !== false, 'breakfast buffet seed');
+  const breakfast167NoShow = await req('/api/breakfast/noshow/cover', {
+    method: 'POST',
+    token,
+    body: { id: breakfast167Seed.data.breakfast?.id },
+  });
+  assert(breakfast167NoShow.res.ok && breakfast167NoShow.data.ok !== false, 'breakfast no-show covers');
+  const breakfast167Seat = await req('/api/breakfast/party/seat', {
+    method: 'POST',
+    token,
+    body: { id: breakfast167Seed.data.breakfast?.id },
+  });
+  assert(breakfast167Seat.res.ok && breakfast167Seat.data.ok !== false, 'breakfast seat party');
+  const breakfast167Ack = await req('/api/breakfast/flag/ack', { method: 'POST', token, body: {} });
+  assert(breakfast167Ack.res.ok && breakfast167Ack.data.ok !== false, 'breakfast flag ack');
+
+  const banquet167Sweep = await req('/api/banquet/sweep', { method: 'POST', token, body: { force: true } });
+  assert(banquet167Sweep.res.ok && banquet167Sweep.data.ok !== false, 'banquet sweep');
+  const banquet167Seed = await req('/api/banquet/tasting/seed', {
+    method: 'POST',
+    token,
+    body: { eventName: 'E2E-167 tasting' },
+  });
+  assert(banquet167Seed.res.ok && banquet167Seed.data.ok !== false, 'banquet tasting seed');
+  const banquet167Overdue = await req('/api/banquet/setup/overdue', {
+    method: 'POST',
+    token,
+    body: { id: banquet167Seed.data.banquet?.id },
+  });
+  assert(banquet167Overdue.res.ok && banquet167Overdue.data.ok !== false, 'banquet setup overdue');
+  const banquet167Confirm = await req('/api/banquet/event/confirm', {
+    method: 'POST',
+    token,
+    body: { id: banquet167Seed.data.banquet?.id },
+  });
+  assert(banquet167Confirm.res.ok && banquet167Confirm.data.ok !== false, 'banquet confirm');
+  const banquet167Ack = await req('/api/banquet/flag/ack', { method: 'POST', token, body: {} });
+  assert(banquet167Ack.res.ok && banquet167Ack.data.ok !== false, 'banquet flag ack');
+
+  const beachbeds167Sweep = await req('/api/beachbeds/sweep', { method: 'POST', token, body: { force: true } });
+  assert(beachbeds167Sweep.res.ok && beachbeds167Sweep.data.ok !== false, 'beachbeds sweep');
+  const beachbeds167Seed = await req('/api/beachbeds/vip-cabana/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-167 VIP cabana' },
+  });
+  assert(beachbeds167Seed.res.ok && beachbeds167Seed.data.ok !== false, 'beachbeds vip cabana seed');
+  const beachbeds167Unpaid = await req('/api/beachbeds/daybed/unpaid', {
+    method: 'POST',
+    token,
+    body: { id: beachbeds167Seed.data.bed?.id },
+  });
+  assert(beachbeds167Unpaid.res.ok && beachbeds167Unpaid.data.ok !== false, 'beachbeds unpaid daybed');
+  const beachbeds167Checkin = await req('/api/beachbeds/checkin', {
+    method: 'POST',
+    token,
+    body: { id: beachbeds167Seed.data.bed?.id },
+  });
+  assert(beachbeds167Checkin.res.ok && beachbeds167Checkin.data.ok !== false, 'beachbeds check-in');
+  const beachbeds167Ack = await req('/api/beachbeds/flag/ack', { method: 'POST', token, body: {} });
+  assert(beachbeds167Ack.res.ok && beachbeds167Ack.data.ok !== false, 'beachbeds flag ack');
+
+  const marina167Sweep = await req('/api/marina/sweep', { method: 'POST', token, body: { force: true } });
+  assert(marina167Sweep.res.ok && marina167Sweep.data.ok !== false, 'marina sweep');
+  const marina167Seed = await req('/api/marina/arrival/seed', {
+    method: 'POST',
+    token,
+    body: { vessel: 'E2E-167 arrival' },
+  });
+  assert(marina167Seed.res.ok && marina167Seed.data.ok !== false, 'marina arrival seed');
+  const marina167Overdue = await req('/api/marina/berth/overdue', {
+    method: 'POST',
+    token,
+    body: { id: marina167Seed.data.marina?.id },
+  });
+  assert(marina167Overdue.res.ok && marina167Overdue.data.ok !== false, 'marina berth overdue');
+  const marina167Clear = await req('/api/marina/slip/clear', {
+    method: 'POST',
+    token,
+    body: { id: marina167Seed.data.marina?.id },
+  });
+  assert(marina167Clear.res.ok && marina167Clear.data.ok !== false, 'marina clear slip');
+  const marina167Ack = await req('/api/marina/flag/ack', { method: 'POST', token, body: {} });
+  assert(marina167Ack.res.ok && marina167Ack.data.ok !== false, 'marina flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

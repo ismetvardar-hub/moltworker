@@ -647,9 +647,14 @@ import {
   updateKidsclub,
 } from './kidsclub.js';
 import {
+  ackBeachbedsFlag,
+  checkInBeachbed,
   createBeachbeds,
   listBeachbeds,
   beachbedsSummary,
+  markBeachbedUnpaid,
+  runBeachbedsSweep,
+  seedVipCabana,
   updateBeachbeds,
 } from './beachbeds.js';
 import {
@@ -770,9 +775,14 @@ import {
   updateFolio,
 } from './folio.js';
 import {
+  ackBanquetFlag,
+  confirmBanquetEvent,
   createBanquet,
   listBanquet,
   banquetSummary,
+  markBanquetSetupOverdue,
+  runBanquetSweep,
+  seedBanquetTasting,
   updateBanquet,
 } from './banquet.js';
 import {
@@ -782,9 +792,14 @@ import {
   updateTours,
 } from './tours.js';
 import {
+  ackMarinaFlag,
+  clearMarinaSlip,
   createMarina,
   listMarina,
   marinaSummary,
+  markMarinaBerthOverdue,
+  runMarinaSweep,
+  seedMarinaArrival,
   updateMarina,
 } from './marina.js';
 import {
@@ -909,9 +924,14 @@ import {
   updateBakery,
 } from './bakery.js';
 import {
+  ackBreakfastFlag,
   createBreakfast,
   listBreakfast,
   breakfastSummary,
+  markBreakfastNoShowCovers,
+  runBreakfastSweep,
+  seatBreakfastParty,
+  seedBuffetRush,
   updateBreakfast,
 } from './breakfast.js';
 import {
@@ -11672,6 +11692,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/beachbeds/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBeachbedsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beachbeds/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBeachbedsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beachbeds/daybed/unpaid' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBeachbedUnpaid(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beachbeds/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInBeachbed(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/beachbeds/vip-cabana/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipCabana(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/beachbeds/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12223,6 +12273,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/banquet/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBanquetSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/banquet/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBanquetFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/banquet/setup/overdue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBanquetSetupOverdue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/banquet/event/confirm' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, confirmBanquetEvent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/banquet/tasting/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBanquetTasting(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/banquet/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12271,6 +12351,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createMarina(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/marina/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMarinaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marina/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMarinaFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marina/berth/overdue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMarinaBerthOverdue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marina/slip/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearMarinaSlip(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/marina/arrival/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedMarinaArrival(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/marina/') && req.method === 'PATCH') {
@@ -12813,6 +12923,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createBreakfast(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/breakfast/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBreakfastSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/breakfast/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBreakfastFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/breakfast/noshow/cover' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBreakfastNoShowCovers(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/breakfast/party/seat' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seatBreakfastParty(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/breakfast/buffet/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBuffetRush(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/breakfast/') && req.method === 'PATCH') {

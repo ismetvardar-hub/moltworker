@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createBreakfast, fetchBreakfast, patchBreakfast } from '../services/breakfast'
+import {
+  ackBreakfastFlag,
+  createBreakfast,
+  fetchBreakfast,
+  markBreakfastNoShowCovers,
+  patchBreakfast,
+  runBreakfastSweep,
+  seatBreakfastParty,
+  seedBuffetRush,
+} from '../services/breakfast'
 
 export default function BreakfastPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"slot":"08:00","guestName":"Misafir"})
   async function refresh() {
     try {
@@ -15,11 +25,15 @@ export default function BreakfastPage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
       const payload: Record<string, unknown> = { ...form }
-      for (const k of ['qty','value','score','minutes','balance','amount','pax','seats']) if (k in payload) payload[k]=Number(payload[k])||0
+      for (const k of ['qty','value','score','minutes','balance','amount','pax','seats','covers']) if (k in payload) payload[k]=Number(payload[k])||0
       await createBreakfast(payload)
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
@@ -33,6 +47,16 @@ export default function BreakfastPage() {
       <CrudOpsBar domain="breakfast" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 167">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runBreakfastSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackBreakfastFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markBreakfastNoShowCovers({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'No-show covers' : r.error || 'No-show yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>No-show covers</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void seatBreakfastParty({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Party seated' : r.error || 'Seat yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seat party</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedBuffetRush({ guestName: 'Buffet rush party' }).then(() => { ping('Buffet rush seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed buffet rush</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="slot" value={String(form.slot??'')} onChange={(e)=>setForm(f=>({...f,slot:e.target.value}))} />

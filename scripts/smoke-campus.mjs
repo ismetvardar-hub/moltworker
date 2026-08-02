@@ -753,6 +753,18 @@ import {
 import {
   upsellSummary, runUpsellSweep, ackUpsellFlag, ageUpsellPendingOffer, acceptUpsellOffer, seedLateCheckoutOffer,
 } from '../server/upsell.js';
+import {
+  breakfastSummary, runBreakfastSweep, ackBreakfastFlag, markBreakfastNoShowCovers, seatBreakfastParty, seedBuffetRush,
+} from '../server/breakfast.js';
+import {
+  banquetSummary, runBanquetSweep, ackBanquetFlag, markBanquetSetupOverdue, confirmBanquetEvent, seedBanquetTasting,
+} from '../server/banquet.js';
+import {
+  beachbedsSummary, runBeachbedsSweep, ackBeachbedsFlag, markBeachbedUnpaid, checkInBeachbed, seedVipCabana,
+} from '../server/beachbeds.js';
+import {
+  marinaSummary, runMarinaSweep, ackMarinaFlag, markMarinaBerthOverdue, clearMarinaSlip, seedMarinaArrival,
+} from '../server/marina.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2142,7 +2154,7 @@ assert(ackBudgetFlag({}, 'smoke').ok, 'budget flag ack');
 assert(eventcalSummary().title, 'eventcal overview');
 assert(seedHoldingEventcalEvent({ title: 'Smoke 165 holding' }, 'smoke').ok, 'eventcal holding seed');
 assert(flagEventcalConflict({}, 'smoke').ok, 'eventcal conflict');
-assert(publishEventcalEvent({}, 'smoke').ok, 'eventcal publish');
+assert(publishEventcalEvent({ id: seedHoldingEventcalEvent({ title: 'Smoke 165 publish' }, 'smoke').event.id }, 'smoke').ok, 'eventcal publish');
 assert(runEventcalSweep({ force: true }, 'smoke').ok, 'eventcal sweep');
 assert(ackEventcalFlag({}, 'smoke').ok, 'eventcal flag ack');
 
@@ -2174,6 +2186,34 @@ assert(acceptUpsellOffer({}, 'smoke').ok, 'upsell accept offer');
 assert(runUpsellSweep({ force: true }, 'smoke').ok, 'upsell sweep');
 assert(ackUpsellFlag({}, 'smoke').ok, 'upsell flag ack');
 
+assert(breakfastSummary().title, 'breakfast overview');
+assert(seedBuffetRush({ guestName: 'Smoke 167 buffet rush' }, 'smoke').ok, 'breakfast buffet rush seed');
+assert(markBreakfastNoShowCovers({}, 'smoke').ok, 'breakfast no-show covers');
+assert(seatBreakfastParty({}, 'smoke').ok, 'breakfast seat party');
+assert(runBreakfastSweep({ force: true }, 'smoke').ok, 'breakfast sweep');
+assert(ackBreakfastFlag({}, 'smoke').ok, 'breakfast flag ack');
+
+assert(banquetSummary().title, 'banquet overview');
+assert(seedBanquetTasting({ eventName: 'Smoke 167 tasting' }, 'smoke').ok, 'banquet tasting seed');
+assert(markBanquetSetupOverdue({}, 'smoke').ok, 'banquet setup overdue');
+assert(confirmBanquetEvent({}, 'smoke').ok, 'banquet confirm event');
+assert(runBanquetSweep({ force: true }, 'smoke').ok, 'banquet sweep');
+assert(ackBanquetFlag({}, 'smoke').ok, 'banquet flag ack');
+
+assert(beachbedsSummary().title, 'beachbeds overview');
+assert(seedVipCabana({ guestName: 'Smoke 167 VIP cabana' }, 'smoke').ok, 'beachbeds vip cabana seed');
+assert(markBeachbedUnpaid({}, 'smoke').ok, 'beachbeds unpaid daybed');
+assert(checkInBeachbed({}, 'smoke').ok, 'beachbeds check-in');
+assert(runBeachbedsSweep({ force: true }, 'smoke').ok, 'beachbeds sweep');
+assert(ackBeachbedsFlag({}, 'smoke').ok, 'beachbeds flag ack');
+
+assert(marinaSummary().title, 'marina overview');
+assert(seedMarinaArrival({ vessel: 'Smoke 167 arrival' }, 'smoke').ok, 'marina arrival seed');
+assert(markMarinaBerthOverdue({}, 'smoke').ok, 'marina berth overdue');
+assert(clearMarinaSlip({}, 'smoke').ok, 'marina clear slip');
+assert(runMarinaSweep({ force: true }, 'smoke').ok, 'marina sweep');
+assert(ackMarinaFlag({}, 'smoke').ok, 'marina flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2197,6 +2237,7 @@ console.log('MOD163_OK');
 console.log('MOD164_OK');
 console.log('MOD165_OK');
 console.log('MOD166_OK');
+console.log('MOD167_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2229,6 +2270,9 @@ for (const thickened165 of ['wifi', 'kds', 'budget', 'eventcal']) {
 }
 for (const thickened166 of ['keycards', 'parcels', 'wakeups', 'upsell']) {
   assert(!crudDomains.some((d) => d.name === thickened166), `crudops skips thickened ${thickened166}`);
+}
+for (const thickened167 of ['breakfast', 'banquet', 'beachbeds', 'marina']) {
+  assert(!crudDomains.some((d) => d.name === thickened167), `crudops skips thickened ${thickened167}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2325,6 +2369,14 @@ assert(!isCrudOpsPath('/api/wakeups/sweep', 'POST'), 'crudops skips thickened wa
 assert(!isCrudOpsPath('/api/wakeups/flag/ack', 'POST'), 'crudops skips wakeups ack');
 assert(!isCrudOpsPath('/api/upsell/sweep', 'POST'), 'crudops skips thickened upsell');
 assert(!isCrudOpsPath('/api/upsell/flag/ack', 'POST'), 'crudops skips upsell ack');
+assert(!isCrudOpsPath('/api/breakfast/sweep', 'POST'), 'crudops skips thickened breakfast');
+assert(!isCrudOpsPath('/api/breakfast/flag/ack', 'POST'), 'crudops skips breakfast ack');
+assert(!isCrudOpsPath('/api/banquet/sweep', 'POST'), 'crudops skips thickened banquet');
+assert(!isCrudOpsPath('/api/banquet/flag/ack', 'POST'), 'crudops skips banquet ack');
+assert(!isCrudOpsPath('/api/beachbeds/sweep', 'POST'), 'crudops skips thickened beachbeds');
+assert(!isCrudOpsPath('/api/beachbeds/flag/ack', 'POST'), 'crudops skips beachbeds ack');
+assert(!isCrudOpsPath('/api/marina/sweep', 'POST'), 'crudops skips thickened marina');
+assert(!isCrudOpsPath('/api/marina/flag/ack', 'POST'), 'crudops skips marina ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
