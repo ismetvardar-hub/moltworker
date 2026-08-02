@@ -181,6 +181,10 @@ try {
     '/api/delivery',
     '/api/giftcards',
     '/api/laundry',
+    '/api/cleaning',
+    '/api/emergency',
+    '/api/folio',
+    '/api/roomstatus',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2136,6 +2140,66 @@ try {
     body: { id: laundry162Seed.data.batch?.id, rack: 'e2e-162' },
   });
   assert(laundry162Ready.res.ok && laundry162Ready.data.ok !== false, 'laundry ready mutator');
+
+  const cleaning163Sweep = await req('/api/cleaning/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cleaning163Sweep.res.ok && cleaning163Sweep.data.ok !== false, 'cleaning sweep');
+  const cleaning163Seed = await req('/api/cleaning/inspection/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E-163-CLEAN', area: 'E2E suite' },
+  });
+  assert(cleaning163Seed.res.ok && cleaning163Seed.data.ok !== false, 'cleaning inspection seed');
+  const cleaning163Clean = await req('/api/cleaning/clean', {
+    method: 'POST',
+    token,
+    body: { id: cleaning163Seed.data.task?.id },
+  });
+  assert(cleaning163Clean.res.ok && cleaning163Clean.data.ok !== false, 'cleaning mark clean');
+
+  const emergency163Sweep = await req('/api/emergency/sweep', { method: 'POST', token, body: { force: true } });
+  assert(emergency163Sweep.res.ok && emergency163Sweep.data.ok !== false, 'emergency sweep');
+  const emergency163Seed = await req('/api/emergency/drill/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-163 drill' },
+  });
+  assert(emergency163Seed.res.ok && emergency163Seed.data.ok !== false, 'emergency drill seed');
+  const emergency163Ack = await req('/api/emergency/incident/ack', {
+    method: 'POST',
+    token,
+    body: { id: emergency163Seed.data.incident?.id },
+  });
+  assert(emergency163Ack.res.ok && emergency163Ack.data.ok !== false, 'emergency incident ack');
+
+  const folio163Sweep = await req('/api/folio/sweep', { method: 'POST', token, body: { force: true } });
+  assert(folio163Sweep.res.ok && folio163Sweep.data.ok !== false, 'folio sweep');
+  const folio163Dispute = await req('/api/folio/dispute/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-163 dispute', amount: 222 },
+  });
+  assert(folio163Dispute.res.ok && folio163Dispute.data.ok !== false, 'folio dispute seed');
+  const folio163Post = await req('/api/folio/charge/post', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-163 charge', amount: 111 },
+  });
+  assert(folio163Post.res.ok && folio163Post.data.ok !== false, 'folio post charge');
+
+  const roomstatus163Sweep = await req('/api/roomstatus/sweep', { method: 'POST', token, body: { force: true } });
+  assert(roomstatus163Sweep.res.ok && roomstatus163Sweep.data.ok !== false, 'roomstatus sweep');
+  const roomstatus163Seed = await req('/api/roomstatus/blocked/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E-163-RS' },
+  });
+  assert(roomstatus163Seed.res.ok && roomstatus163Seed.data.ok !== false, 'roomstatus blocked seed');
+  const roomstatus163Ready = await req('/api/roomstatus/ready', {
+    method: 'POST',
+    token,
+    body: { id: roomstatus163Seed.data.room?.id },
+  });
+  assert(roomstatus163Ready.res.ok && roomstatus163Ready.data.ok !== false, 'roomstatus ready');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

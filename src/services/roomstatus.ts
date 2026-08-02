@@ -13,3 +13,23 @@ export async function createRoomstatus(input: Record<string, unknown>): Promise<
 export async function patchRoomstatus(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/roomstatus/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runRoomstatusSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/roomstatus/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackRoomstatusFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/roomstatus/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function setRoomstatusReady(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/roomstatus/ready', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function extendRoomstatusOoo(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/roomstatus/ooo/extend', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedBlockedRoomstatus(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/roomstatus/blocked/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

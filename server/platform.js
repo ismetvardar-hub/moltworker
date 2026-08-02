@@ -533,7 +533,15 @@ import {
   updateDelivery,
 } from './delivery.js';
 import {
-  cleaningSummary, createCleaning, listCleaning, updateCleaning,
+  ackCleaningFlag,
+  cleaningSummary,
+  createCleaning,
+  failCleaningInspection,
+  listCleaning,
+  markCleaningClean,
+  runCleaningSweep,
+  seedCleaningInspectionFail,
+  updateCleaning,
 } from './cleaning.js';
 import {
   ackLaundryFlag,
@@ -576,7 +584,15 @@ import {
   createKds, kdsSummary, listKds, updateKds,
 } from './kds.js';
 import {
-  createEmergency, emergencySummary, listEmergency, updateEmergency,
+  acknowledgeEmergencyIncident,
+  ackEmergencyFlag,
+  closeEmergencyIncident,
+  createEmergency,
+  emergencySummary,
+  listEmergency,
+  runEmergencySweep,
+  seedEmergencyDrill,
+  updateEmergency,
 } from './emergency.js';
 import {
   ackDigestFlag,
@@ -691,9 +707,14 @@ import {
   updateMinibar,
 } from './minibar.js';
 import {
+  ackFolioFlag,
   createFolio,
-  listFolio,
   folioSummary,
+  listFolio,
+  postFolioCharge,
+  runFolioSweep,
+  seedFolioDispute,
+  settleFolioBalance,
   updateFolio,
 } from './folio.js';
 import {
@@ -869,9 +890,14 @@ import {
   updateKeycards,
 } from './keycards.js';
 import {
+  ackRoomstatusFlag,
   createRoomstatus,
+  extendRoomstatusOoo,
   listRoomstatus,
   roomstatusSummary,
+  runRoomstatusSweep,
+  seedBlockedRoomstatus,
+  setRoomstatusReady,
   updateRoomstatus,
 } from './roomstatus.js';
 import {
@@ -11007,6 +11033,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/cleaning/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCleaningSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cleaning/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCleaningFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cleaning/clean' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markCleaningClean(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cleaning/inspection/fail' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, failCleaningInspection(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cleaning/inspection/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCleaningInspectionFail(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/cleaning/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11281,6 +11337,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createEmergency(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/emergency/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runEmergencySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/emergency/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEmergencyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/emergency/incident/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, acknowledgeEmergencyIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/emergency/incident/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeEmergencyIncident(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/emergency/drill/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEmergencyDrill(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/emergency/') && req.method === 'PATCH') {
@@ -11768,6 +11854,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createFolio(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/folio/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFolioSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/folio/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackFolioFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/folio/charge/post' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, postFolioCharge(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/folio/balance/settle' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, settleFolioBalance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/folio/dispute/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedFolioDispute(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/folio/') && req.method === 'PATCH') {
@@ -12517,6 +12633,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createRoomstatus(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/roomstatus/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runRoomstatusSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/roomstatus/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackRoomstatusFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/roomstatus/ready' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setRoomstatusReady(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/roomstatus/ooo/extend' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, extendRoomstatusOoo(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/roomstatus/blocked/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBlockedRoomstatus(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/roomstatus/') && req.method === 'PATCH') {

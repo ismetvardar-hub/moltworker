@@ -1,11 +1,19 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createEmergency, fetchEmergency } from '../services/emergency'
+import {
+  acknowledgeEmergencyIncident,
+  ackEmergencyFlag,
+  closeEmergencyIncident,
+  createEmergency,
+  fetchEmergency,
+  runEmergencySweep,
+  seedEmergencyDrill,
+} from '../services/emergency'
 
 export default function EmergencyPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string>>({"name":"İsim","phone":"+90","role":"role"})
 
   async function refresh() {
@@ -19,6 +27,11 @@ export default function EmergencyPage() {
   }
 
   useEffect(() => { void refresh() }, [])
+
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -40,9 +53,18 @@ export default function EmergencyPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Acil Rehber</h1>
         <p className="mt-1 text-sm text-slate-400">Acil iletişim.</p>
       </header>
-      <CrudOpsBar domain="emergency" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 163">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runEmergencySweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackEmergencyFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void acknowledgeEmergencyIncident({}).then((r: any) => { ping(r.ok ? 'Incident ack' : r.error || 'Incident yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Incident ack</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void closeEmergencyIncident({}).then((r: any) => { ping(r.ok ? 'Incident closed' : r.error || 'Close yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Close incident</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedEmergencyDrill({ title: 'Ops drill' }).then(() => { ping('Drill seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed drill</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="name" value={String(form.name ?? '')} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />

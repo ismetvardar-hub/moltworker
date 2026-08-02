@@ -1,11 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createFolio, fetchFolio, patchFolio } from '../services/folio'
+import {
+  ackFolioFlag,
+  createFolio,
+  fetchFolio,
+  patchFolio,
+  postFolioCharge,
+  runFolioSweep,
+  seedFolioDispute,
+  settleFolioBalance,
+} from '../services/folio'
 
 export default function FolioPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"guestName":"Misafir","charge":"Spa","amount":"250"})
   async function refresh() {
     try {
@@ -15,6 +24,10 @@ export default function FolioPage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
@@ -30,9 +43,18 @@ export default function FolioPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Misafir Hesap</h1>
         <p className="mt-1 text-sm text-slate-400">Folio charge post.</p>
       </header>
-      <CrudOpsBar domain="folio" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 163">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runFolioSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackFolioFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void postFolioCharge({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Posted' : r.error || 'Post yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Post charge</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void settleFolioBalance({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Settled' : r.error || 'Settle yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Settle</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedFolioDispute({ guestName: 'Ops dispute guest' }).then(() => { ping('Dispute seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed dispute</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="guestName" value={String(form.guestName??'')} onChange={(e)=>setForm(f=>({...f,guestName:e.target.value}))} />

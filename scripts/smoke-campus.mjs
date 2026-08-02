@@ -705,6 +705,18 @@ import {
 import {
   laundrySummary, runLaundrySweep, ackLaundryFlag, markLaundryReady, returnLaundryBatch, seedRushLaundryOrder,
 } from '../server/laundry.js';
+import {
+  cleaningSummary, runCleaningSweep, ackCleaningFlag, markCleaningClean, failCleaningInspection, seedCleaningInspectionFail,
+} from '../server/cleaning.js';
+import {
+  emergencySummary, runEmergencySweep, ackEmergencyFlag, acknowledgeEmergencyIncident, closeEmergencyIncident, seedEmergencyDrill,
+} from '../server/emergency.js';
+import {
+  folioSummary, runFolioSweep, ackFolioFlag, postFolioCharge, settleFolioBalance, seedFolioDispute,
+} from '../server/folio.js';
+import {
+  roomstatusSummary, runRoomstatusSweep, ackRoomstatusFlag, setRoomstatusReady, extendRoomstatusOoo, seedBlockedRoomstatus,
+} from '../server/roomstatus.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2014,6 +2026,34 @@ assert(returnLaundryBatch({}, 'smoke').ok, 'laundry return');
 assert(runLaundrySweep({ force: true }, 'smoke').ok, 'laundry sweep');
 assert(ackLaundryFlag({}, 'smoke').ok, 'laundry flag ack');
 
+assert(cleaningSummary().title, 'cleaning overview');
+assert(seedCleaningInspectionFail({ room: 'Smoke 163 clean fail' }, 'smoke').ok, 'cleaning inspection seed');
+assert(failCleaningInspection({}, 'smoke').ok, 'cleaning inspection fail');
+assert(markCleaningClean({}, 'smoke').ok, 'cleaning mark clean');
+assert(runCleaningSweep({ force: true }, 'smoke').ok, 'cleaning sweep');
+assert(ackCleaningFlag({}, 'smoke').ok, 'cleaning flag ack');
+
+assert(emergencySummary().title, 'emergency overview');
+assert(seedEmergencyDrill({ title: 'Smoke 163 drill' }, 'smoke').ok, 'emergency drill seed');
+assert(acknowledgeEmergencyIncident({}, 'smoke').ok, 'emergency incident ack');
+assert(closeEmergencyIncident({}, 'smoke').ok, 'emergency incident close');
+assert(runEmergencySweep({ force: true }, 'smoke').ok, 'emergency sweep');
+assert(ackEmergencyFlag({}, 'smoke').ok, 'emergency flag ack');
+
+assert(folioSummary().title, 'folio overview');
+assert(seedFolioDispute({ guestName: 'Smoke 163 dispute' }, 'smoke').ok, 'folio dispute seed');
+assert(postFolioCharge({ guestName: 'Smoke 163 charge', amount: 180 }, 'smoke').ok, 'folio post charge');
+assert(settleFolioBalance({}, 'smoke').ok, 'folio settle');
+assert(runFolioSweep({ force: true }, 'smoke').ok, 'folio sweep');
+assert(ackFolioFlag({}, 'smoke').ok, 'folio flag ack');
+
+assert(roomstatusSummary().title, 'roomstatus overview');
+assert(seedBlockedRoomstatus({ room: 'Smoke 163 blocked' }, 'smoke').ok, 'roomstatus blocked seed');
+assert(extendRoomstatusOoo({}, 'smoke').ok, 'roomstatus ooo extend');
+assert(setRoomstatusReady({}, 'smoke').ok, 'roomstatus ready');
+assert(runRoomstatusSweep({ force: true }, 'smoke').ok, 'roomstatus sweep');
+assert(ackRoomstatusFlag({}, 'smoke').ok, 'roomstatus flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2033,6 +2073,7 @@ console.log('MOD159_OK');
 console.log('MOD160_OK');
 console.log('MOD161_OK');
 console.log('MOD162_OK');
+console.log('MOD163_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2053,6 +2094,9 @@ for (const thickened161 of ['webhooks', 'documents', 'vendorscore', 'campusbrief
 }
 for (const thickened162 of ['contracts', 'delivery', 'giftcards', 'laundry']) {
   assert(!crudDomains.some((d) => d.name === thickened162), `crudops skips thickened ${thickened162}`);
+}
+for (const thickened163 of ['cleaning', 'emergency', 'folio', 'roomstatus']) {
+  assert(!crudDomains.some((d) => d.name === thickened163), `crudops skips thickened ${thickened163}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2117,6 +2161,14 @@ assert(!isCrudOpsPath('/api/giftcards/sweep', 'POST'), 'crudops skips thickened 
 assert(!isCrudOpsPath('/api/giftcards/flag/ack', 'POST'), 'crudops skips giftcards ack');
 assert(!isCrudOpsPath('/api/laundry/sweep', 'POST'), 'crudops skips thickened laundry');
 assert(!isCrudOpsPath('/api/laundry/flag/ack', 'POST'), 'crudops skips laundry ack');
+assert(!isCrudOpsPath('/api/cleaning/sweep', 'POST'), 'crudops skips thickened cleaning');
+assert(!isCrudOpsPath('/api/cleaning/flag/ack', 'POST'), 'crudops skips cleaning ack');
+assert(!isCrudOpsPath('/api/emergency/sweep', 'POST'), 'crudops skips thickened emergency');
+assert(!isCrudOpsPath('/api/emergency/flag/ack', 'POST'), 'crudops skips emergency ack');
+assert(!isCrudOpsPath('/api/folio/sweep', 'POST'), 'crudops skips thickened folio');
+assert(!isCrudOpsPath('/api/folio/flag/ack', 'POST'), 'crudops skips folio ack');
+assert(!isCrudOpsPath('/api/roomstatus/sweep', 'POST'), 'crudops skips thickened roomstatus');
+assert(!isCrudOpsPath('/api/roomstatus/flag/ack', 'POST'), 'crudops skips roomstatus ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
