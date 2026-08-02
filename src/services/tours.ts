@@ -13,3 +13,23 @@ export async function createTours(input: Record<string, unknown>): Promise<any> 
 export async function patchTours(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/tours/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runToursSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/tours/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackToursFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/tours/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markTourDepartureSoon(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/tours/departure/soon', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function checkInTourGuest(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/tours/checkin', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedSunsetTour(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/tours/sunset/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

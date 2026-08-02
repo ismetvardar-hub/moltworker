@@ -13,3 +13,23 @@ export async function createQrcheckin(input: Record<string, unknown>): Promise<a
 export async function patchQrcheckin(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/qrcheckin/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runQrcheckinSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/qrcheckin/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackQrcheckinFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/qrcheckin/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markQrcheckinInvalidScanSpike(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/qrcheckin/scan/invalid-spike', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function admitQrcheckinGuest(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/qrcheckin/admit', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedVipQr(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/qrcheckin/vip/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

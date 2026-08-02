@@ -205,6 +205,10 @@ try {
     '/api/dive',
     '/api/meetingrooms',
     '/api/retail',
+    '/api/tours',
+    '/api/privatechef',
+    '/api/qrcheckin',
+    '/api/patrol',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2680,6 +2684,98 @@ try {
   assert(retail168Restock.res.ok && retail168Restock.data.ok !== false, 'retail restock');
   const retail168Ack = await req('/api/retail/flag/ack', { method: 'POST', token, body: {} });
   assert(retail168Ack.res.ok && retail168Ack.data.ok !== false, 'retail flag ack');
+
+  const tours169Sweep = await req('/api/tours/sweep', { method: 'POST', token, body: { force: true } });
+  assert(tours169Sweep.res.ok && tours169Sweep.data.ok !== false, 'tours sweep');
+  const tours169Seed = await req('/api/tours/sunset/seed', {
+    method: 'POST',
+    token,
+    body: { tourName: 'E2E-169 sunset tour' },
+  });
+  assert(tours169Seed.res.ok && tours169Seed.data.ok !== false, 'tours sunset seed');
+  const tours169Soon = await req('/api/tours/departure/soon', {
+    method: 'POST',
+    token,
+    body: { id: tours169Seed.data.tour?.id },
+  });
+  assert(tours169Soon.res.ok && tours169Soon.data.ok !== false, 'tours departure soon');
+  const tours169Checkin = await req('/api/tours/checkin', {
+    method: 'POST',
+    token,
+    body: { id: tours169Seed.data.tour?.id },
+  });
+  assert(tours169Checkin.res.ok && tours169Checkin.data.ok !== false, 'tours check-in guest');
+  const tours169Ack = await req('/api/tours/flag/ack', { method: 'POST', token, body: {} });
+  assert(tours169Ack.res.ok && tours169Ack.data.ok !== false, 'tours flag ack');
+
+  const privatechef169Sweep = await req('/api/privatechef/sweep', { method: 'POST', token, body: { force: true } });
+  assert(privatechef169Sweep.res.ok && privatechef169Sweep.data.ok !== false, 'privatechef sweep');
+  const privatechef169Seed = await req('/api/privatechef/tasting/seed', {
+    method: 'POST',
+    token,
+    body: { menu: 'E2E-169 tasting menu' },
+  });
+  assert(privatechef169Seed.res.ok && privatechef169Seed.data.ok !== false, 'privatechef tasting seed');
+  const privatechef169Pending = await req('/api/privatechef/menu/pending', {
+    method: 'POST',
+    token,
+    body: { id: privatechef169Seed.data.privatechef?.id },
+  });
+  assert(privatechef169Pending.res.ok && privatechef169Pending.data.ok !== false, 'privatechef menu pending');
+  const privatechef169Confirm = await req('/api/privatechef/booking/confirm', {
+    method: 'POST',
+    token,
+    body: { id: privatechef169Seed.data.privatechef?.id },
+  });
+  assert(privatechef169Confirm.res.ok && privatechef169Confirm.data.ok !== false, 'privatechef booking confirm');
+  const privatechef169Ack = await req('/api/privatechef/flag/ack', { method: 'POST', token, body: {} });
+  assert(privatechef169Ack.res.ok && privatechef169Ack.data.ok !== false, 'privatechef flag ack');
+
+  const qrcheckin169Sweep = await req('/api/qrcheckin/sweep', { method: 'POST', token, body: { force: true } });
+  assert(qrcheckin169Sweep.res.ok && qrcheckin169Sweep.data.ok !== false, 'qrcheckin sweep');
+  const qrcheckin169Seed = await req('/api/qrcheckin/vip/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-169 VIP QR' },
+  });
+  assert(qrcheckin169Seed.res.ok && qrcheckin169Seed.data.ok !== false, 'qrcheckin vip seed');
+  const qrcheckin169Spike = await req('/api/qrcheckin/scan/invalid-spike', {
+    method: 'POST',
+    token,
+    body: { id: qrcheckin169Seed.data.qrcheckin?.id },
+  });
+  assert(qrcheckin169Spike.res.ok && qrcheckin169Spike.data.ok !== false, 'qrcheckin invalid scan spike');
+  const qrcheckin169Admit = await req('/api/qrcheckin/admit', {
+    method: 'POST',
+    token,
+    body: { id: qrcheckin169Seed.data.qrcheckin?.id },
+  });
+  assert(qrcheckin169Admit.res.ok && qrcheckin169Admit.data.ok !== false, 'qrcheckin admit guest');
+  const qrcheckin169Ack = await req('/api/qrcheckin/flag/ack', { method: 'POST', token, body: {} });
+  assert(qrcheckin169Ack.res.ok && qrcheckin169Ack.data.ok !== false, 'qrcheckin flag ack');
+
+  const patrol169Sweep = await req('/api/patrol/sweep', { method: 'POST', token, body: { force: true } });
+  assert(patrol169Sweep.res.ok && patrol169Sweep.data.ok !== false, 'patrol sweep');
+  const patrol169Seed = await req('/api/patrol/night-route/seed', {
+    method: 'POST',
+    token,
+    body: { routeName: 'E2E-169 night route' },
+  });
+  assert(patrol169Seed.res.ok && patrol169Seed.data.ok !== false, 'patrol night route seed');
+  const patrol169Missed = await req('/api/patrol/checkpoint/missed', {
+    method: 'POST',
+    token,
+    body: { id: patrol169Seed.data.patrol?.id },
+  });
+  assert(patrol169Missed.res.ok && patrol169Missed.data.ok !== false, 'patrol missed checkpoint');
+  const patrol169Complete = await req('/api/patrol/round/complete', {
+    method: 'POST',
+    token,
+    body: { id: patrol169Seed.data.patrol?.id },
+  });
+  assert(patrol169Complete.res.ok && patrol169Complete.data.ok !== false, 'patrol round complete');
+  const patrol169Ack = await req('/api/patrol/flag/ack', { method: 'POST', token, body: {} });
+  assert(patrol169Ack.res.ok && patrol169Ack.data.ok !== false, 'patrol flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -791,8 +791,13 @@ import {
   updateBanquet,
 } from './banquet.js';
 import {
+  ackToursFlag,
+  checkInTourGuest,
   createTours,
   listTours,
+  markTourDepartureSoon,
+  runToursSweep,
+  seedSunsetTour,
   toursSummary,
   updateTours,
 } from './tours.js';
@@ -837,9 +842,14 @@ import {
   updateHaccp,
 } from './haccp.js';
 import {
+  ackPatrolFlag,
+  completePatrolRound,
   createPatrol,
   listPatrol,
+  markPatrolMissedCheckpoint,
   patrolSummary,
+  runPatrolSweep,
+  seedNightRoute,
   updatePatrol,
 } from './patrol.js';
 import {
@@ -1031,9 +1041,14 @@ import {
   updateParcels,
 } from './parcels.js';
 import {
+  ackQrcheckinFlag,
+  admitQrcheckinGuest,
   createQrcheckin,
   listQrcheckin,
+  markQrcheckinInvalidScanSpike,
   qrcheckinSummary,
+  runQrcheckinSweep,
+  seedVipQr,
   updateQrcheckin,
 } from './qrcheckin.js';
 import {
@@ -1061,9 +1076,14 @@ import {
   updateFlorals,
 } from './florals.js';
 import {
+  ackPrivatechefFlag,
+  confirmPrivatechefBooking,
   createPrivatechef,
   listPrivatechef,
+  markPrivatechefMenuPending,
   privatechefSummary,
+  runPrivatechefSweep,
+  seedTastingMenu,
   updatePrivatechef,
 } from './privatechef.js';
 import {
@@ -12378,6 +12398,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/tours/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runToursSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tours/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackToursFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tours/departure/soon' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markTourDepartureSoon(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tours/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInTourGuest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tours/sunset/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedSunsetTour(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/tours/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12586,6 +12636,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPatrol(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/patrol/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPatrolSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/patrol/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPatrolFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/patrol/checkpoint/missed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPatrolMissedCheckpoint(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/patrol/round/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completePatrolRound(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/patrol/night-route/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedNightRoute(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/patrol/') && req.method === 'PATCH') {
@@ -13477,6 +13557,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/qrcheckin/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runQrcheckinSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/qrcheckin/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackQrcheckinFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/qrcheckin/scan/invalid-spike' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markQrcheckinInvalidScanSpike(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/qrcheckin/admit' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, admitQrcheckinGuest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/qrcheckin/vip/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipQr(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/qrcheckin/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13600,6 +13710,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPrivatechef(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/privatechef/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPrivatechefSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/privatechef/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPrivatechefFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/privatechef/menu/pending' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPrivatechefMenuPending(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/privatechef/booking/confirm' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, confirmPrivatechefBooking(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/privatechef/tasting/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedTastingMenu(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/privatechef/') && req.method === 'PATCH') {

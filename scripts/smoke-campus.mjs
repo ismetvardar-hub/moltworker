@@ -777,6 +777,18 @@ import {
 import {
   retailSummary, runRetailSweep, ackRetailFlag, markRetailLowStockSku, restockRetailSku, seedFlashSale,
 } from '../server/retail.js';
+import {
+  toursSummary, runToursSweep, ackToursFlag, markTourDepartureSoon, checkInTourGuest, seedSunsetTour,
+} from '../server/tours.js';
+import {
+  privatechefSummary, runPrivatechefSweep, ackPrivatechefFlag, markPrivatechefMenuPending, confirmPrivatechefBooking, seedTastingMenu,
+} from '../server/privatechef.js';
+import {
+  qrcheckinSummary, runQrcheckinSweep, ackQrcheckinFlag, markQrcheckinInvalidScanSpike, admitQrcheckinGuest, seedVipQr,
+} from '../server/qrcheckin.js';
+import {
+  patrolSummary, runPatrolSweep, ackPatrolFlag, markPatrolMissedCheckpoint, completePatrolRound, seedNightRoute,
+} from '../server/patrol.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2234,9 +2246,11 @@ assert(runHammamSweep({ force: true }, 'smoke').ok, 'hammam sweep');
 assert(ackHammamFlag({}, 'smoke').ok, 'hammam flag ack');
 
 assert(diveSummary().title, 'dive overview');
-assert(seedBoatTrip({ guestName: 'Smoke 168 boat trip' }, 'smoke').ok, 'dive boat trip seed');
-assert(markDiveCertExpired({}, 'smoke').ok, 'dive cert expired');
-assert(checkInDive({}, 'smoke').ok, 'dive check-in');
+const smokeDiveCert = seedBoatTrip({ guestName: 'Smoke 168 boat trip' }, 'smoke');
+assert(smokeDiveCert.ok, 'dive boat trip seed');
+assert(markDiveCertExpired({ id: smokeDiveCert.dive.id }, 'smoke').ok, 'dive cert expired');
+const smokeDiveCheckin = seedBoatTrip({ guestName: 'Smoke 168 check-in' }, 'smoke');
+assert(checkInDive({ id: smokeDiveCheckin.dive.id }, 'smoke').ok, 'dive check-in');
 assert(runDiveSweep({ force: true }, 'smoke').ok, 'dive sweep');
 assert(ackDiveFlag({}, 'smoke').ok, 'dive flag ack');
 
@@ -2253,6 +2267,34 @@ assert(markRetailLowStockSku({}, 'smoke').ok, 'retail low stock sku');
 assert(restockRetailSku({}, 'smoke').ok, 'retail restock');
 assert(runRetailSweep({ force: true }, 'smoke').ok, 'retail sweep');
 assert(ackRetailFlag({}, 'smoke').ok, 'retail flag ack');
+
+assert(toursSummary().title, 'tours overview');
+assert(seedSunsetTour({ tourName: 'Smoke 169 sunset tour' }, 'smoke').ok, 'tours sunset seed');
+assert(markTourDepartureSoon({}, 'smoke').ok, 'tours departure soon');
+assert(checkInTourGuest({}, 'smoke').ok, 'tours check-in guest');
+assert(runToursSweep({ force: true }, 'smoke').ok, 'tours sweep');
+assert(ackToursFlag({}, 'smoke').ok, 'tours flag ack');
+
+assert(privatechefSummary().title, 'privatechef overview');
+assert(seedTastingMenu({ menu: 'Smoke 169 tasting menu' }, 'smoke').ok, 'privatechef tasting seed');
+assert(markPrivatechefMenuPending({}, 'smoke').ok, 'privatechef menu pending');
+assert(confirmPrivatechefBooking({}, 'smoke').ok, 'privatechef booking confirm');
+assert(runPrivatechefSweep({ force: true }, 'smoke').ok, 'privatechef sweep');
+assert(ackPrivatechefFlag({}, 'smoke').ok, 'privatechef flag ack');
+
+assert(qrcheckinSummary().title, 'qrcheckin overview');
+assert(seedVipQr({ guestName: 'Smoke 169 VIP QR' }, 'smoke').ok, 'qrcheckin vip seed');
+assert(markQrcheckinInvalidScanSpike({}, 'smoke').ok, 'qrcheckin invalid scan spike');
+assert(admitQrcheckinGuest({}, 'smoke').ok, 'qrcheckin admit guest');
+assert(runQrcheckinSweep({ force: true }, 'smoke').ok, 'qrcheckin sweep');
+assert(ackQrcheckinFlag({}, 'smoke').ok, 'qrcheckin flag ack');
+
+assert(patrolSummary().title, 'patrol overview');
+assert(seedNightRoute({ routeName: 'Smoke 169 night route' }, 'smoke').ok, 'patrol night route seed');
+assert(markPatrolMissedCheckpoint({}, 'smoke').ok, 'patrol missed checkpoint');
+assert(completePatrolRound({}, 'smoke').ok, 'patrol round complete');
+assert(runPatrolSweep({ force: true }, 'smoke').ok, 'patrol sweep');
+assert(ackPatrolFlag({}, 'smoke').ok, 'patrol flag ack');
 
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
@@ -2279,6 +2321,7 @@ console.log('MOD165_OK');
 console.log('MOD166_OK');
 console.log('MOD167_OK');
 console.log('MOD168_OK');
+console.log('MOD169_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2317,6 +2360,9 @@ for (const thickened167 of ['breakfast', 'banquet', 'beachbeds', 'marina']) {
 }
 for (const thickened168 of ['hammam', 'dive', 'meetingrooms', 'retail']) {
   assert(!crudDomains.some((d) => d.name === thickened168), `crudops skips thickened ${thickened168}`);
+}
+for (const thickened169 of ['tours', 'privatechef', 'qrcheckin', 'patrol']) {
+  assert(!crudDomains.some((d) => d.name === thickened169), `crudops skips thickened ${thickened169}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2429,6 +2475,14 @@ assert(!isCrudOpsPath('/api/meetingrooms/sweep', 'POST'), 'crudops skips thicken
 assert(!isCrudOpsPath('/api/meetingrooms/flag/ack', 'POST'), 'crudops skips meetingrooms ack');
 assert(!isCrudOpsPath('/api/retail/sweep', 'POST'), 'crudops skips thickened retail');
 assert(!isCrudOpsPath('/api/retail/flag/ack', 'POST'), 'crudops skips retail ack');
+assert(!isCrudOpsPath('/api/tours/sweep', 'POST'), 'crudops skips thickened tours');
+assert(!isCrudOpsPath('/api/tours/flag/ack', 'POST'), 'crudops skips tours ack');
+assert(!isCrudOpsPath('/api/privatechef/sweep', 'POST'), 'crudops skips thickened privatechef');
+assert(!isCrudOpsPath('/api/privatechef/flag/ack', 'POST'), 'crudops skips privatechef ack');
+assert(!isCrudOpsPath('/api/qrcheckin/sweep', 'POST'), 'crudops skips thickened qrcheckin');
+assert(!isCrudOpsPath('/api/qrcheckin/flag/ack', 'POST'), 'crudops skips qrcheckin ack');
+assert(!isCrudOpsPath('/api/patrol/sweep', 'POST'), 'crudops skips thickened patrol');
+assert(!isCrudOpsPath('/api/patrol/flag/ack', 'POST'), 'crudops skips patrol ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
