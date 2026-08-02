@@ -162,6 +162,10 @@ try {
     '/api/brief',
     '/api/digest',
     '/api/report',
+    '/api/weather',
+    '/api/maintenance',
+    '/api/inventory',
+    '/api/alertrules',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1555,6 +1559,52 @@ try {
   assert(brfMnt.res.ok && brfMnt.data.ok !== false, 'brief maintenance');
   const brfAck = await req('/api/brief/flag/ack', { method: 'POST', token, body: {} });
   assert(brfAck.res.ok && brfAck.data.ok !== false, 'brief ack');
+
+  const wthSweep = await req('/api/weather/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wthSweep.res.ok && wthSweep.data.ok !== false, 'weather sweep');
+  const wthOps = await req('/api/weather/ops/refresh', { method: 'POST', token, body: {} });
+  assert(wthOps.res.ok && wthOps.data.ok !== false, 'weather ops refresh');
+  const wthHold = await req('/api/weather/advisory/hold', { method: 'POST', token, body: { hold: true } });
+  assert(wthHold.res.ok && wthHold.data.ok !== false, 'weather advisory hold');
+  const wthExt = await req('/api/weather/extreme/ack', { method: 'POST', token, body: { tip: 'e2e tip' } });
+  assert(wthExt.res.ok && wthExt.data.ok !== false, 'weather extreme');
+  const wthAck = await req('/api/weather/flag/ack', { method: 'POST', token, body: {} });
+  assert(wthAck.res.ok && wthAck.data.ok !== false, 'weather ack');
+  const wthRef = await req('/api/weather/refresh', { method: 'POST', token });
+  assert(wthRef.res.ok && wthRef.data.label, 'weather refresh legacy');
+
+  const mntSweep = await req('/api/maintenance/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mntSweep.res.ok && mntSweep.data.ok !== false, 'maintenance sweep');
+  const mntCrit = await req('/api/maintenance/critical/close', { method: 'POST', token, body: {} });
+  assert(mntCrit.res.ok && mntCrit.data.ok !== false, 'maintenance critical');
+  const mntEsc = await req('/api/maintenance/overdue/escalate', { method: 'POST', token, body: {} });
+  assert(mntEsc.res.ok && mntEsc.data.ok !== false, 'maintenance escalate');
+  const mntPrev = await req('/api/maintenance/preventive/create', { method: 'POST', token, body: {} });
+  assert(mntPrev.res.ok && mntPrev.data.ok !== false, 'maintenance preventive');
+  const mntAck = await req('/api/maintenance/flag/ack', { method: 'POST', token, body: {} });
+  assert(mntAck.res.ok && mntAck.data.ok !== false, 'maintenance ack');
+
+  const invSweep = await req('/api/inventory/sweep', { method: 'POST', token, body: { force: true } });
+  assert(invSweep.res.ok && invSweep.data.ok !== false, 'inventory sweep');
+  const invRestock = await req('/api/inventory/lows/restock', { method: 'POST', token, body: {} });
+  assert(invRestock.res.ok && invRestock.data.ok !== false, 'inventory restock');
+  const invQuar = await req('/api/inventory/sku/quarantine', { method: 'POST', token, body: {} });
+  assert(invQuar.res.ok && invQuar.data.ok !== false, 'inventory quarantine');
+  const invRecv = await req('/api/inventory/delivery/receive', { method: 'POST', token, body: {} });
+  assert(invRecv.res.ok && invRecv.data.ok !== false, 'inventory receive');
+  const invAck = await req('/api/inventory/flag/ack', { method: 'POST', token, body: {} });
+  assert(invAck.res.ok && invAck.data.ok !== false, 'inventory ack');
+
+  const alrSweep = await req('/api/alertrules/sweep', { method: 'POST', token, body: { force: true } });
+  assert(alrSweep.res.ok && alrSweep.data.ok !== false, 'alertrules sweep');
+  const alrEn = await req('/api/alertrules/enable', { method: 'POST', token, body: {} });
+  assert(alrEn.res.ok && alrEn.data.ok !== false, 'alertrules enable');
+  const alrDis = await req('/api/alertrules/disable', { method: 'POST', token, body: {} });
+  assert(alrDis.res.ok && alrDis.data.ok !== false, 'alertrules disable');
+  const alrFire = await req('/api/alertrules/fire', { method: 'POST', token, body: {} });
+  assert(alrFire.res.ok && alrFire.data.ok !== false, 'alertrules fire');
+  const alrAck = await req('/api/alertrules/flag/ack', { method: 'POST', token, body: {} });
+  assert(alrAck.res.ok && alrAck.data.ok !== false, 'alertrules ack');
 
   const digSweep = await req('/api/digest/sweep', { method: 'POST', token, body: { force: true } });
   assert(digSweep.res.ok && digSweep.data.ok !== false, 'digest sweep');

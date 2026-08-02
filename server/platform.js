@@ -100,7 +100,16 @@ import {
   removeWebhook,
 } from './webhooks.js';
 import { buildOpenApi } from './openapi.js';
-import { adjustStock, inventorySummary, listInventory } from './inventory.js';
+import {
+  ackInventoryFlag,
+  adjustStock,
+  inventorySummary,
+  listInventory,
+  quarantineInventorySku,
+  receiveInventoryDelivery,
+  restockInventoryLows,
+  runInventorySweep,
+} from './inventory.js';
 import {
   createShift,
   listShifts,
@@ -170,9 +179,14 @@ import {
 } from './lostfound.js';
 import { addTip, tipSummary } from './tips.js';
 import {
+  ackMaintenanceFlag,
+  closeCriticalMaintenance,
+  createPreventiveMaintenance,
   createTicket,
+  escalateOverdueMaintenance,
   listMaintenance,
   maintenanceSummary,
+  runMaintenanceSweep,
   updateTicket,
 } from './maintenance.js';
 import {
@@ -274,7 +288,15 @@ import {
 } from './complaints.js';
 import { createKudos, kudosSummary, listKudos } from './kudos.js';
 import { hoursSummary, listHours, updateHours } from './hours.js';
-import { buildWeatherBrief, refreshWeather } from './weather.js';
+import {
+  ackWeatherExtreme,
+  ackWeatherFlag,
+  buildWeatherBrief,
+  opsRefreshWeather,
+  refreshWeather,
+  runWeatherSweep,
+  setWeatherAdvisoryHold,
+} from './weather.js';
 import {
   ackReadinessDimension,
   buildReadiness,
@@ -867,9 +889,14 @@ import {
   updateSmsqueue,
 } from './smsqueue.js';
 import {
-  createAlertrules,
-  listAlertrules,
+  ackAlertrulesFlag,
   alertrulesSummary,
+  createAlertrules,
+  disableAlertrules,
+  enableAlertrules,
+  fireAlertrules,
+  listAlertrules,
+  runAlertrulesSweep,
   updateAlertrules,
 } from './alertrules.js';
 import {
@@ -8227,6 +8254,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/inventory/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runInventorySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/inventory/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackInventoryFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/inventory/lows/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockInventoryLows(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/inventory/sku/quarantine' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, quarantineInventorySku(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/inventory/delivery/receive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, receiveInventoryDelivery(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 24: Vardiyalar ──────────────────────────────────────
         if (path === '/api/shifts' && req.method === 'GET') {
@@ -8805,6 +8862,36 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, { ticket });
           })();
+          return;
+        }
+        if (path === '/api/maintenance/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMaintenanceSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/maintenance/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMaintenanceFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/maintenance/critical/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeCriticalMaintenance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/maintenance/overdue/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateOverdueMaintenance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/maintenance/preventive/create' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createPreventiveMaintenance(await readBody(req), user.username)); })();
           return;
         }
 
@@ -9422,6 +9509,36 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           sendJson(res, 200, refreshWeather(user.username));
+          return;
+        }
+        if (path === '/api/weather/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWeatherSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/weather/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWeatherFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/weather/ops/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, opsRefreshWeather(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/weather/advisory/hold' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setWeatherAdvisoryHold(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/weather/extreme/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWeatherExtreme(await readBody(req), user.username)); })();
           return;
         }
 
@@ -12083,6 +12200,36 @@ export function createPlatformMiddleware() {
             if (!item) { sendJson(res, 404, { error: 'Kayıt bulunamadı' }); return; }
             sendJson(res, 200, { item });
           })();
+          return;
+        }
+        if (path === '/api/alertrules/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAlertrulesSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alertrules/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAlertrulesFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alertrules/enable' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, enableAlertrules(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alertrules/disable' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, disableAlertrules(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/alertrules/fire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fireAlertrules(await readBody(req), user.username)); })();
           return;
         }
 

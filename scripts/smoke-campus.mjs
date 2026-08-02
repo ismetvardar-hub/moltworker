@@ -563,6 +563,18 @@ import {
   buildDailyBrief, runBriefSweep, ackBriefFlag, ackBriefIncidents, restockBriefInventory, closeBriefMaintenance,
 } from '../server/brief.js';
 import {
+  buildWeatherBrief, refreshWeather, runWeatherSweep, ackWeatherFlag, opsRefreshWeather, setWeatherAdvisoryHold, ackWeatherExtreme,
+} from '../server/weather.js';
+import {
+  maintenanceSummary, runMaintenanceSweep, ackMaintenanceFlag, closeCriticalMaintenance, escalateOverdueMaintenance, createPreventiveMaintenance,
+} from '../server/maintenance.js';
+import {
+  inventorySummary, runInventorySweep, ackInventoryFlag, restockInventoryLows, quarantineInventorySku, receiveInventoryDelivery,
+} from '../server/inventory.js';
+import {
+  alertrulesSummary, runAlertrulesSweep, ackAlertrulesFlag, enableAlertrules, disableAlertrules, fireAlertrules,
+} from '../server/alertrules.js';
+import {
   buildDigest, runDigestSweep, ackDigestFlag, refreshDigestReadiness, escalateDigestGap, resolveDigestGap,
 } from '../server/digest.js';
 import {
@@ -1545,6 +1557,36 @@ assert(restockBriefInventory({}, 'smoke').ok, 'brief inventory restock');
 assert(closeBriefMaintenance({}, 'smoke').ok, 'brief maintenance close');
 assert(ackBriefFlag({}, 'smoke').ok, 'brief flag ack');
 
+assert(buildWeatherBrief().title, 'weather overview');
+assert(runWeatherSweep({ force: true }, 'smoke').ok, 'weather sweep');
+assert(opsRefreshWeather({}, 'smoke').ok, 'weather ops refresh');
+assert(setWeatherAdvisoryHold({ hold: true }, 'smoke').ok, 'weather advisory hold');
+assert(setWeatherAdvisoryHold({ clear: true }, 'smoke').ok, 'weather advisory clear');
+assert(ackWeatherExtreme({ tip: 'smoke tip' }, 'smoke').ok, 'weather extreme ack');
+assert(ackWeatherFlag({}, 'smoke').ok, 'weather flag ack');
+assert(refreshWeather('smoke').label, 'weather refresh legacy');
+
+assert(maintenanceSummary().title, 'maintenance overview');
+assert(runMaintenanceSweep({ force: true }, 'smoke').ok, 'maintenance sweep');
+assert(closeCriticalMaintenance({}, 'smoke').ok, 'maintenance critical close');
+assert(escalateOverdueMaintenance({}, 'smoke').ok, 'maintenance overdue escalate');
+assert(createPreventiveMaintenance({}, 'smoke').ok, 'maintenance preventive create');
+assert(ackMaintenanceFlag({}, 'smoke').ok, 'maintenance flag ack');
+
+assert(inventorySummary().title, 'inventory overview');
+assert(runInventorySweep({ force: true }, 'smoke').ok, 'inventory sweep');
+assert(restockInventoryLows({}, 'smoke').ok, 'inventory restock lows');
+assert(quarantineInventorySku({}, 'smoke').ok, 'inventory quarantine');
+assert(receiveInventoryDelivery({}, 'smoke').ok, 'inventory receive delivery');
+assert(ackInventoryFlag({}, 'smoke').ok, 'inventory flag ack');
+
+assert(alertrulesSummary().title, 'alertrules overview');
+assert(runAlertrulesSweep({ force: true }, 'smoke').ok, 'alertrules sweep');
+assert(enableAlertrules({}, 'smoke').ok, 'alertrules enable');
+assert(disableAlertrules({}, 'smoke').ok, 'alertrules disable');
+assert(fireAlertrules({}, 'smoke').ok, 'alertrules fire');
+assert(ackAlertrulesFlag({}, 'smoke').ok, 'alertrules flag ack');
+
 assert(buildDigest().title, 'digest overview');
 assert(runDigestSweep({ force: true }, 'smoke').ok, 'digest sweep');
 assert(refreshDigestReadiness({}, 'smoke').ok, 'digest readiness refresh');
@@ -1561,6 +1603,7 @@ assert(ackReportFlag({}, 'smoke').ok, 'report flag ack');
 
 console.log('MOD141_OK');
 console.log('MOD135_OK');
+console.log('MOD144_OK');
 
 console.log(
   JSON.stringify(

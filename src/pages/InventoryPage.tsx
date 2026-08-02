@@ -1,34 +1,38 @@
 import { useEffect, useState } from 'react'
 import { Package, AlertTriangle, Plus, Minus } from 'lucide-react'
-import { adjustStock, listInventory, type StockItem, type StockMovement } from '../services/inventory'
+import PanelCard from '../components/PanelCard'
+import * as api from '../services/inventory'
+import type { StockItem, StockMovement } from '../services/inventory'
 
 export function InventoryPage() {
   const [items, setItems] = useState<StockItem[]>([])
   const [lowStock, setLowStock] = useState<StockItem[]>([])
   const [movements, setMovements] = useState<StockMovement[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState('')
+  const [flash, setFlash] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
   async function reload() {
     try {
-      const inv = await listInventory()
+      const inv = await api.listInventory()
       setItems(inv.items)
       setLowStock(inv.lowStock)
       setMovements(inv.movements)
+      setOverview(inv)
       setError('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Stok yüklenemedi')
     }
   }
 
-  useEffect(() => {
-    void reload()
-  }, [])
+  useEffect(() => { void reload() }, [])
+  function ping(m: string) { setFlash(m); window.setTimeout(() => setFlash(null), 2800) }
 
   async function onAdjust(id: string, delta: number) {
     setBusy(id)
     try {
-      await adjustStock({ id, delta, reason: delta > 0 ? 'restock' : 'use' })
+      await api.adjustStock({ id, delta, reason: delta > 0 ? 'restock' : 'use' })
       await reload()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Hareket başarısız')
@@ -40,6 +44,7 @@ export function InventoryPage() {
   return (
     <div className="space-y-6 p-6">
       <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lykia-400/80">LİKYA Holding</p>
         <h1 className="font-display text-3xl tracking-tight text-stone-100">Envanter</h1>
         <p className="mt-1 max-w-xl text-sm text-stone-400">
           HEPHAESTUS stok katmanı — kritik eşik altı ürünler ve hareketler.
@@ -49,6 +54,32 @@ export function InventoryPage() {
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
       )}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PanelCard title={overview?.title || 'Envanter ops'}>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">{(overview?.summaryLines || []).map((l: string) => (<li key={l}>{l}</li>))}</ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runInventorySweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return reload() })}>Sweep</button>
+            <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.restockInventoryLows({}).then((r: any) => { ping(`Restock ${r.restocked?.length ?? 0}`); return reload() })}>Restock lows</button>
+            <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.quarantineInventorySku({}).then((r: any) => { ping(`Quarantine ${r.quarantined?.[0] || ''}`); return reload() })}>Quarantine</button>
+            <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.receiveInventoryDelivery({}).then((r: any) => { ping(`Delivery +${r.qty ?? 0}`); return reload() })}>Receive delivery</button>
+            <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackInventoryFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return reload() })}>Flag ack</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">Flag {overview?.summary?.flags_open ?? 0} · low {overview?.summary?.low_stock ?? lowStock.length}</p>
+        </PanelCard>
+        <PanelCard title="Açık flagler">
+          <ul className="space-y-2 text-sm">
+            {(overview?.flags || []).length === 0 && <li className="text-slate-400">Açık flag yok.</li>}
+            {(overview?.flags || []).slice(0, 10).map((f: any) => (
+              <li key={f.id} className="flex items-center justify-between rounded-lg border border-obsidian-700 px-3 py-2">
+                <span><span className="text-lykia-300">[{f.level}]</span> {f.text}</span>
+                <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]" onClick={() => void api.ackInventoryFlag({ id: f.id }).then(() => { ping('Ack'); return reload() })}>Ack</button>
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      </div>
 
       {lowStock.length > 0 && (
         <section className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
@@ -90,6 +121,7 @@ export function InventoryPage() {
                   <td className="px-3 py-2">
                     {i.qty} {i.unit}
                     {i.low ? <span className="ml-2 text-xs text-amber-300">düşük</span> : null}
+                    {i.quarantined ? <span className="ml-2 text-xs text-rose-300">karantina</span> : null}
                   </td>
                   <td className="px-3 py-2 text-stone-400">{i.venueId}</td>
                   <td className="px-3 py-2">
