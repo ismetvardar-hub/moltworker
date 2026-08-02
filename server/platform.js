@@ -712,8 +712,13 @@ import {
   updateMediakit,
 } from './mediakit.js';
 import {
+  ackSustainFlag,
   createSustain,
   listSustain,
+  logSustainAction,
+  markSustainKpiMiss,
+  runSustainSweep,
+  seedGreenWeek,
   sustainSummary,
   updateSustain,
 } from './sustain.js';
@@ -762,9 +767,14 @@ import {
   updateShuttle,
 } from './shuttle.js';
 import {
+  ackPartnersFlag,
   createPartners,
   listPartners,
+  markPartnersInactive,
   partnersSummary,
+  renewPartner,
+  runPartnersSweep,
+  seedChannelDeal,
   updatePartners,
 } from './partners.js';
 import {
@@ -945,9 +955,14 @@ import {
   updateUpsell,
 } from './upsell.js';
 import {
+  ackOtareviewsFlag,
   createOtareviews,
+  draftOtareviewsReply,
   listOtareviews,
+  markOtareviewsLowScoreSpike,
   otareviewsSummary,
+  runOtareviewsSweep,
+  seedOtareviewsRecoveryOffer,
   updateOtareviews,
 } from './otareviews.js';
 import {
@@ -1173,9 +1188,14 @@ import {
   updateMocktails,
 } from './mocktails.js';
 import {
+  ackPromosFlag,
   createPromos,
   listPromos,
+  markPromoExpiredLiveCode,
+  pausePromo,
   promosSummary,
+  runPromosSweep,
+  seedFlashPromo,
   updatePromos,
 } from './promos.js';
 import {
@@ -12262,6 +12282,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/sustain/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSustainSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sustain/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSustainFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sustain/kpi/miss' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markSustainKpiMiss(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sustain/action/log' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, logSustainAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/sustain/green-week/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedGreenWeek(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/sustain/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12500,6 +12550,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPartners(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/partners/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPartnersSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/partners/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPartnersFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/partners/inactive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPartnersInactive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/partners/renew' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, renewPartner(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/partners/channel-deal/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedChannelDeal(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/partners/') && req.method === 'PATCH') {
@@ -13388,6 +13468,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createOtareviews(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/otareviews/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runOtareviewsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/otareviews/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOtareviewsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/otareviews/low-score/spike' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markOtareviewsLowScoreSpike(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/otareviews/reply/draft' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, draftOtareviewsReply(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/otareviews/recovery-offer/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedOtareviewsRecoveryOffer(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/otareviews/') && req.method === 'PATCH') {
@@ -14470,6 +14580,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPromos(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/promos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPromosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/promos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPromosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/promos/expired-live' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPromoExpiredLiveCode(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/promos/pause' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, pausePromo(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/promos/flash/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedFlashPromo(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/promos/') && req.method === 'PATCH') {

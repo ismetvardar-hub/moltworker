@@ -849,6 +849,18 @@ import {
 import {
   loungeSummary, runLoungeSweep, ackLoungeFlag, markLoungeCapacityBreach, seatLoungeGuest, seedAfternoonTea,
 } from '../server/lounge.js';
+import {
+  otareviewsSummary, runOtareviewsSweep, ackOtareviewsFlag, markOtareviewsLowScoreSpike, draftOtareviewsReply, seedOtareviewsRecoveryOffer,
+} from '../server/otareviews.js';
+import {
+  partnersSummary, runPartnersSweep, ackPartnersFlag, markPartnersInactive, renewPartner, seedChannelDeal,
+} from '../server/partners.js';
+import {
+  promosSummary, runPromosSweep, ackPromosFlag, markPromoExpiredLiveCode, pausePromo, seedFlashPromo,
+} from '../server/promos.js';
+import {
+  sustainSummary, runSustainSweep, ackSustainFlag, markSustainKpiMiss, logSustainAction, seedGreenWeek,
+} from '../server/sustain.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2516,6 +2528,38 @@ assert(runLoungeSweep({ force: true }, 'smoke').ok, 'lounge sweep');
 assert(seatLoungeGuest({ id: smokeLounge.visit.id, seat: 'SM-174' }, 'smoke').ok, 'lounge seat guest');
 assert(ackLoungeFlag({}, 'smoke').ok, 'lounge flag ack');
 
+assert(otareviewsSummary().title, 'otareviews overview');
+const smokeOta = seedOtareviewsRecoveryOffer({ guestName: 'Smoke 175 recovery' }, 'smoke');
+assert(smokeOta.ok, 'otareviews recovery offer seed');
+assert(markOtareviewsLowScoreSpike({ id: smokeOta.review.id, score: 4 }, 'smoke').ok, 'otareviews low score spike');
+assert(runOtareviewsSweep({ force: true }, 'smoke').ok, 'otareviews sweep');
+assert(draftOtareviewsReply({ id: smokeOta.review.id }, 'smoke').ok, 'otareviews reply draft');
+assert(ackOtareviewsFlag({}, 'smoke').ok, 'otareviews flag ack');
+
+assert(partnersSummary().title, 'partners overview');
+const smokePartner = seedChannelDeal({ name: 'Smoke 175 channel deal' }, 'smoke');
+assert(smokePartner.ok, 'partners channel deal seed');
+assert(markPartnersInactive({ id: smokePartner.partner.id }, 'smoke').ok, 'partners inactive');
+assert(runPartnersSweep({ force: true }, 'smoke').ok, 'partners sweep');
+assert(renewPartner({ id: smokePartner.partner.id }, 'smoke').ok, 'partners renew');
+assert(ackPartnersFlag({}, 'smoke').ok, 'partners flag ack');
+
+assert(promosSummary().title, 'promos overview');
+const smokePromo = seedFlashPromo({ code: 'SM175FLASH' }, 'smoke');
+assert(smokePromo.ok, 'promos flash seed');
+assert(markPromoExpiredLiveCode({ id: smokePromo.promo.id }, 'smoke').ok, 'promos expired live');
+assert(runPromosSweep({ force: true }, 'smoke').ok, 'promos sweep');
+assert(pausePromo({ id: smokePromo.promo.id }, 'smoke').ok, 'promos pause');
+assert(ackPromosFlag({}, 'smoke').ok, 'promos flag ack');
+
+assert(sustainSummary().title, 'sustain overview');
+const smokeSustain = seedGreenWeek({ value: 101 }, 'smoke');
+assert(smokeSustain.ok, 'sustain green week seed');
+assert(markSustainKpiMiss({ id: smokeSustain.metric.id, value: 80, target: 95 }, 'smoke').ok, 'sustain kpi miss');
+assert(runSustainSweep({ force: true }, 'smoke').ok, 'sustain sweep');
+assert(logSustainAction({ id: smokeSustain.metric.id, action: 'Smoke 175 action' }, 'smoke').ok, 'sustain action log');
+assert(ackSustainFlag({}, 'smoke').ok, 'sustain flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2547,6 +2591,7 @@ console.log('MOD171_OK');
 console.log('MOD172_OK');
 console.log('MOD173_OK');
 console.log('MOD174_OK');
+console.log('MOD175_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2612,6 +2657,11 @@ for (const thickened174 of ['fleet', 'groups', 'guestapp', 'lounge']) {
   assert(!crudDomains.some((d) => d.name === thickened174), `crudops skips thickened ${thickened174}`);
   assert(!isCrudOpsPath(`/api/${thickened174}/sweep`, 'POST'), `crudops skips ${thickened174} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened174}/flag/ack`, 'POST'), `crudops skips ${thickened174} ack`);
+}
+for (const thickened175 of ['otareviews', 'partners', 'promos', 'sustain']) {
+  assert(!crudDomains.some((d) => d.name === thickened175), `crudops skips thickened ${thickened175}`);
+  assert(!isCrudOpsPath(`/api/${thickened175}/sweep`, 'POST'), `crudops skips ${thickened175} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened175}/flag/ack`, 'POST'), `crudops skips ${thickened175} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

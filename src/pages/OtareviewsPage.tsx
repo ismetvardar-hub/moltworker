@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createOtareviews, fetchOtareviews, patchOtareviews } from '../services/otareviews'
+import {
+  ackOtareviewsFlag,
+  createOtareviews,
+  draftOtareviewsReply,
+  fetchOtareviews,
+  markOtareviewsLowScoreSpike,
+  patchOtareviews,
+  runOtareviewsSweep,
+  seedOtareviewsRecoveryOffer,
+} from '../services/otareviews'
 
 export default function OtareviewsPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"channel":"Booking","score":"9"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function OtareviewsPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setFlash(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function OtareviewsPage() {
         <p className="mt-1 text-sm text-slate-400">Booking/Tripadvisor yanıt kuyruğu.</p>
       </header>
       <CrudOpsBar domain="otareviews" onDone={() => void refresh()} />
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Wave 175 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runOtareviewsSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Low score', () => markOtareviewsLowScoreSpike({ score: 4 }))}>Low score spike</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Reply draft', () => draftOtareviewsReply({}))}>Reply draft</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={()=>void runOp('Seed recovery', () => seedOtareviewsRecoveryOffer({}))}>Seed recovery offer</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackOtareviewsFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">

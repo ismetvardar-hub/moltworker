@@ -227,6 +227,10 @@ try {
     '/api/retail',
     '/api/tours',
     '/api/privatechef',
+    '/api/otareviews',
+    '/api/partners',
+    '/api/promos',
+    '/api/sustain',
     '/api/qrcheckin',
     '/api/patrol',
     '/api/health',
@@ -1755,7 +1759,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3260,6 +3264,98 @@ try {
   assert(lounge174Seat.res.ok && lounge174Seat.data.ok !== false, 'lounge seat guest');
   const lounge174Ack = await req('/api/lounge/flag/ack', { method: 'POST', token, body: {} });
   assert(lounge174Ack.res.ok && lounge174Ack.data.ok !== false, 'lounge flag ack');
+
+  const ota175Sweep = await req('/api/otareviews/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ota175Sweep.res.ok && ota175Sweep.data.ok !== false, 'otareviews sweep');
+  const ota175Seed = await req('/api/otareviews/recovery-offer/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-175 recovery' },
+  });
+  assert(ota175Seed.res.ok && ota175Seed.data.ok !== false, 'otareviews recovery offer seed');
+  const ota175Low = await req('/api/otareviews/low-score/spike', {
+    method: 'POST',
+    token,
+    body: { id: ota175Seed.data.review?.id, score: 4 },
+  });
+  assert(ota175Low.res.ok && ota175Low.data.ok !== false, 'otareviews low score spike');
+  const ota175Draft = await req('/api/otareviews/reply/draft', {
+    method: 'POST',
+    token,
+    body: { id: ota175Seed.data.review?.id },
+  });
+  assert(ota175Draft.res.ok && ota175Draft.data.ok !== false, 'otareviews reply draft');
+  const ota175Ack = await req('/api/otareviews/flag/ack', { method: 'POST', token, body: {} });
+  assert(ota175Ack.res.ok && ota175Ack.data.ok !== false, 'otareviews flag ack');
+
+  const partners175Sweep = await req('/api/partners/sweep', { method: 'POST', token, body: { force: true } });
+  assert(partners175Sweep.res.ok && partners175Sweep.data.ok !== false, 'partners sweep');
+  const partners175Seed = await req('/api/partners/channel-deal/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-175 channel deal' },
+  });
+  assert(partners175Seed.res.ok && partners175Seed.data.ok !== false, 'partners channel deal seed');
+  const partners175Inactive = await req('/api/partners/inactive', {
+    method: 'POST',
+    token,
+    body: { id: partners175Seed.data.partner?.id },
+  });
+  assert(partners175Inactive.res.ok && partners175Inactive.data.ok !== false, 'partners inactive');
+  const partners175Renew = await req('/api/partners/renew', {
+    method: 'POST',
+    token,
+    body: { id: partners175Seed.data.partner?.id },
+  });
+  assert(partners175Renew.res.ok && partners175Renew.data.ok !== false, 'partners renew');
+  const partners175Ack = await req('/api/partners/flag/ack', { method: 'POST', token, body: {} });
+  assert(partners175Ack.res.ok && partners175Ack.data.ok !== false, 'partners flag ack');
+
+  const promos175Sweep = await req('/api/promos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(promos175Sweep.res.ok && promos175Sweep.data.ok !== false, 'promos sweep');
+  const promos175Seed = await req('/api/promos/flash/seed', {
+    method: 'POST',
+    token,
+    body: { code: 'E2E175FLASH' },
+  });
+  assert(promos175Seed.res.ok && promos175Seed.data.ok !== false, 'promos flash seed');
+  const promos175Expired = await req('/api/promos/expired-live', {
+    method: 'POST',
+    token,
+    body: { id: promos175Seed.data.promo?.id },
+  });
+  assert(promos175Expired.res.ok && promos175Expired.data.ok !== false, 'promos expired live');
+  const promos175Pause = await req('/api/promos/pause', {
+    method: 'POST',
+    token,
+    body: { id: promos175Seed.data.promo?.id },
+  });
+  assert(promos175Pause.res.ok && promos175Pause.data.ok !== false, 'promos pause');
+  const promos175Ack = await req('/api/promos/flag/ack', { method: 'POST', token, body: {} });
+  assert(promos175Ack.res.ok && promos175Ack.data.ok !== false, 'promos flag ack');
+
+  const sustain175Sweep = await req('/api/sustain/sweep', { method: 'POST', token, body: { force: true } });
+  assert(sustain175Sweep.res.ok && sustain175Sweep.data.ok !== false, 'sustain sweep');
+  const sustain175Seed = await req('/api/sustain/green-week/seed', {
+    method: 'POST',
+    token,
+    body: { value: 101 },
+  });
+  assert(sustain175Seed.res.ok && sustain175Seed.data.ok !== false, 'sustain green week seed');
+  const sustain175Miss = await req('/api/sustain/kpi/miss', {
+    method: 'POST',
+    token,
+    body: { id: sustain175Seed.data.metric?.id, value: 80, target: 95 },
+  });
+  assert(sustain175Miss.res.ok && sustain175Miss.data.ok !== false, 'sustain kpi miss');
+  const sustain175Action = await req('/api/sustain/action/log', {
+    method: 'POST',
+    token,
+    body: { id: sustain175Seed.data.metric?.id, action: 'E2E-175 action' },
+  });
+  assert(sustain175Action.res.ok && sustain175Action.data.ok !== false, 'sustain action log');
+  const sustain175Ack = await req('/api/sustain/flag/ack', { method: 'POST', token, body: {} });
+  assert(sustain175Ack.res.ok && sustain175Ack.data.ok !== false, 'sustain flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

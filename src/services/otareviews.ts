@@ -13,3 +13,23 @@ export async function createOtareviews(input: Record<string, unknown>): Promise<
 export async function patchOtareviews(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/otareviews/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+async function postOtareviews(path: string, body: Record<string, unknown> = {}) {
+  return parse(await fetch(path, { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function runOtareviewsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postOtareviews('/api/otareviews/sweep', body)
+}
+export async function ackOtareviewsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postOtareviews('/api/otareviews/flag/ack', body)
+}
+export async function markOtareviewsLowScoreSpike(body: Record<string, unknown> = {}): Promise<any> {
+  return postOtareviews('/api/otareviews/low-score/spike', body)
+}
+export async function draftOtareviewsReply(body: Record<string, unknown> = {}): Promise<any> {
+  return postOtareviews('/api/otareviews/reply/draft', body)
+}
+export async function seedOtareviewsRecoveryOffer(body: Record<string, unknown> = {}): Promise<any> {
+  return postOtareviews('/api/otareviews/recovery-offer/seed', body)
+}
