@@ -9,8 +9,11 @@ export type MenuItem = {
   venueId: string | null
   recipeId: string | null
   available: boolean
+  featured?: boolean
+  unavailableReason?: string
   tags: string[]
 }
+export type MenuFlag = { id: string; key: string; level: string; text: string; status: string }
 
 async function parse<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
@@ -18,7 +21,28 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchMenu(): Promise<{ items: MenuItem[]; available: number; avgPrice: number }> {
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchMenu(): Promise<{
+  items: MenuItem[]
+  available: number
+  unavailable?: number
+  orphanRecipe?: number
+  inactiveFeatured?: number
+  avgPrice: number
+  flags?: MenuFlag[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+}> {
   return parse(await fetch('/api/menu', { headers: authHeaders() }))
 }
 
@@ -40,4 +64,24 @@ export async function updateMenuItem(id: string, patch: Partial<MenuItem>): Prom
       body: JSON.stringify(patch),
     }),
   )
+}
+
+export async function runMenuSweep(body: Record<string, unknown> = {}) {
+  return post('/api/menu/sweep', body)
+}
+
+export async function ackMenuFlag(body: Record<string, unknown> = {}) {
+  return post('/api/menu/flag/ack', body)
+}
+
+export async function markMenuItemUnavailable(body: Record<string, unknown> = {}) {
+  return post('/api/menu/unavailable/mark', body)
+}
+
+export async function repairMenuRecipeLinks(body: Record<string, unknown> = {}) {
+  return post('/api/menu/recipe-links/repair', body)
+}
+
+export async function featureMenuItem(body: Record<string, unknown> = {}) {
+  return post('/api/menu/feature', body)
 }

@@ -213,10 +213,15 @@ import {
   seedMissingConsents,
 } from './consent.js';
 import {
+  ackAnnouncementsFlag,
+  archiveStaleAnnouncements,
   announcementsSummary,
   createAnnouncement,
   listAnnouncements,
+  publishHighPriorityAnnouncements,
   removeAnnouncement,
+  runAnnouncementsSweep,
+  seedEndingSoonAnnouncement,
   updateAnnouncement,
 } from './announcements.js';
 import {
@@ -279,10 +284,15 @@ import {
   runBriefSweep,
 } from './brief.js';
 import {
+  ackMenuFlag,
   createMenuItem,
+  featureMenuItem,
   listMenu,
+  markMenuItemUnavailable,
   menuSummary,
+  repairMenuRecipeLinks,
   removeMenuItem,
+  runMenuSweep,
   updateMenuItem,
 } from './menu.js';
 import {
@@ -324,9 +334,14 @@ import {
   logEnergyReading,
 } from './energy.js';
 import {
+  ackTrainingFlag,
+  completeTrainingAttempt,
   getQuiz,
   listAttempts,
   listQuizzes,
+  runTrainingSweep,
+  seedLowScoreTrainingAttempt,
+  startTrainingAttempt,
   submitAttempt,
   trainingSummary,
 } from './training.js';
@@ -355,8 +370,13 @@ import {
 } from './vendorscore.js';
 import { listWaste, logWaste, wasteSummary } from './waste.js';
 import {
+  ackSeatingFlag,
+  clearSeatingTable,
   createSeat,
   listSeating,
+  reserveSeatingTable,
+  runSeatingSweep,
+  seatWalkInParty,
   seatingSummary,
   updateSeat,
 } from './seating.js';
@@ -9052,6 +9072,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/announcements/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAnnouncementsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/announcements/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAnnouncementsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/announcements/publish-high-priority' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishHighPriorityAnnouncements(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/announcements/stale/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveStaleAnnouncements(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/announcements/ending-soon/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEndingSoonAnnouncement(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/announcements' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9461,6 +9511,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/menu/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMenuSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/menu/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMenuFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/menu/unavailable/mark' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMenuItemUnavailable(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/menu/recipe-links/repair' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, repairMenuRecipeLinks(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/menu/feature' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, featureMenuItem(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/menu' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9757,6 +9837,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, trainingSummary());
           return;
         }
+        if (path === '/api/training/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runTrainingSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/training/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackTrainingFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/training/attempt/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, startTrainingAttempt(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/training/attempt/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeTrainingAttempt(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/training/attempt/low-score/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedLowScoreTrainingAttempt(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/training/') && path.endsWith('/quiz') && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           const id = path.split('/')[3];
@@ -9920,6 +10030,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/seating' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, { ...seatingSummary(), tables: listSeating() });
+          return;
+        }
+        if (path === '/api/seating/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSeatingSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/seating/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSeatingFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/seating/walk-in' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seatWalkInParty(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/seating/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearSeatingTable(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/seating/reserve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reserveSeatingTable(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/seating' && req.method === 'POST') {

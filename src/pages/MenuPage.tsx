@@ -1,12 +1,23 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createMenuItem, fetchMenu, updateMenuItem, type MenuItem } from '../services/menu'
+import {
+  ackMenuFlag,
+  createMenuItem,
+  featureMenuItem,
+  fetchMenu,
+  markMenuItemUnavailable,
+  repairMenuRecipeLinks,
+  runMenuSweep,
+  updateMenuItem,
+  type MenuItem,
+} from '../services/menu'
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [avgPrice, setAvgPrice] = useState(0)
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [price, setPrice] = useState(100)
   const [category, setCategory] = useState('ana')
@@ -16,6 +27,7 @@ export default function MenuPage() {
       const data = await fetchMenu()
       setItems(data.items)
       setAvgPrice(data.avgPrice)
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Menü alınamadı')
@@ -37,6 +49,11 @@ export default function MenuPage() {
     }
   }
 
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
+
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -45,13 +62,32 @@ export default function MenuPage() {
           Katalog · ort. {avgPrice.toLocaleString('tr-TR')} TRY
         </p>
       </header>
-      <CrudOpsBar domain="menu" onDone={() => void refresh()} />
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+      <PanelCard title={overview?.title || 'Menü ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runMenuSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void markMenuItemUnavailable({}).then((r: any) => { ping(`Kapalı ${r.unavailable?.length ?? 0}`); return refresh() })}>Mark unavailable</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void repairMenuRecipeLinks({}).then((r: any) => { ping(`Repair ${r.repaired?.length ?? 0}`); return refresh() })}>Repair recipe links</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void featureMenuItem({}).then((r: any) => { ping(`Featured ${r.featured?.length ?? 0}`); return refresh() })}>Feature</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackMenuFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · orphan {overview?.orphanRecipe ?? 0} · inactive featured {overview?.inactiveFeatured ?? 0}
+        </p>
+      </PanelCard>
       <PanelCard title="Yeni kalem">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-3 md:grid-cols-4">
           <input
@@ -95,6 +131,8 @@ export default function MenuPage() {
                 <div className="text-xs text-slate-500">
                   {m.category}
                   {m.recipeId ? ` · reçete ${m.recipeId}` : ''}
+                  {m.featured ? ' · featured' : ''}
+                  {m.unavailableReason ? ` · ${m.unavailableReason}` : ''}
                 </div>
               </div>
               <button

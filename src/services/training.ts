@@ -6,11 +6,13 @@ export type Attempt = {
   id: string
   quizTitle: string
   person: string
-  score: number
-  correct: number
-  total: number
+  status?: string
+  score?: number
+  correct?: number
+  total?: number
   at: string
 }
+export type TrainingFlag = { id: string; key: string; level: string; text: string; status: string }
 
 async function parse<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
@@ -18,10 +20,28 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchTraining(): Promise<{
   quizzes: QuizSummary[]
   attempts: Attempt[]
+  attemptCount?: number
+  incompleteAttempts?: number
+  noAttemptQuizzes?: number
+  staleIncomplete?: number
   avgScore: number | null
+  flags?: TrainingFlag[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
 }> {
   return parse(await fetch('/api/training', { headers: authHeaders() }))
 }
@@ -42,4 +62,24 @@ export async function submitTrainingAttempt(input: {
       body: JSON.stringify(input),
     }),
   )
+}
+
+export async function runTrainingSweep(body: Record<string, unknown> = {}) {
+  return post('/api/training/sweep', body)
+}
+
+export async function ackTrainingFlag(body: Record<string, unknown> = {}) {
+  return post('/api/training/flag/ack', body)
+}
+
+export async function startTrainingAttempt(body: Record<string, unknown> = {}) {
+  return post('/api/training/attempt/start', body)
+}
+
+export async function completeTrainingAttempt(body: Record<string, unknown> = {}) {
+  return post('/api/training/attempt/complete', body)
+}
+
+export async function seedLowScoreTrainingAttempt(body: Record<string, unknown> = {}) {
+  return post('/api/training/attempt/low-score/seed', body)
 }

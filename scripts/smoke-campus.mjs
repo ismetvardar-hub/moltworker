@@ -574,6 +574,18 @@ import {
   inventorySummary, runInventorySweep, ackInventoryFlag, restockInventoryLows, quarantineInventorySku, receiveInventoryDelivery,
 } from '../server/inventory.js';
 import {
+  trainingSummary, runTrainingSweep, ackTrainingFlag, startTrainingAttempt, completeTrainingAttempt, seedLowScoreTrainingAttempt,
+} from '../server/training.js';
+import {
+  menuSummary, runMenuSweep, ackMenuFlag, markMenuItemUnavailable, repairMenuRecipeLinks, featureMenuItem,
+} from '../server/menu.js';
+import {
+  seatingSummary, runSeatingSweep, ackSeatingFlag, seatWalkInParty, clearSeatingTable, reserveSeatingTable,
+} from '../server/seating.js';
+import {
+  announcementsSummary, runAnnouncementsSweep, ackAnnouncementsFlag, publishHighPriorityAnnouncements, archiveStaleAnnouncements, seedEndingSoonAnnouncement,
+} from '../server/announcements.js';
+import {
   suppliersSummary, runSuppliersSweep, ackSuppliersFlag, receiveSupplierPurchaseOrder, flagOverduePurchaseOrders, seedOpenPurchaseOrder,
 } from '../server/suppliers.js';
 import {
@@ -1672,6 +1684,34 @@ assert(escalateComplaintOps({}, 'smoke').ok, 'complaints escalate');
 assert(resolveComplaintOps({}, 'smoke').ok, 'complaints resolve');
 assert(ackComplaintsFlag({}, 'smoke').ok, 'complaints flag ack');
 
+assert(trainingSummary().title, 'training overview');
+assert(runTrainingSweep({ force: true }, 'smoke').ok, 'training sweep');
+assert(startTrainingAttempt({ stale: true }, 'smoke').ok, 'training start stale');
+assert(completeTrainingAttempt({}, 'smoke').ok, 'training complete attempt');
+assert(seedLowScoreTrainingAttempt({}, 'smoke').ok, 'training low score seed');
+assert(ackTrainingFlag({}, 'smoke').ok, 'training flag ack');
+
+assert(menuSummary().title, 'menu overview');
+assert(runMenuSweep({ force: true }, 'smoke').ok, 'menu sweep');
+assert(markMenuItemUnavailable({}, 'smoke').ok, 'menu mark unavailable');
+assert(repairMenuRecipeLinks({}, 'smoke').ok, 'menu repair recipe links');
+assert(featureMenuItem({}, 'smoke').ok, 'menu feature item');
+assert(ackMenuFlag({}, 'smoke').ok, 'menu flag ack');
+
+assert(seatingSummary().title, 'seating overview');
+assert(runSeatingSweep({ force: true }, 'smoke').ok, 'seating sweep');
+assert(seatWalkInParty({ hours: 4 }, 'smoke').ok, 'seating walk-in');
+assert(clearSeatingTable({}, 'smoke').ok, 'seating clear');
+assert(reserveSeatingTable({}, 'smoke').ok, 'seating reserve');
+assert(ackSeatingFlag({}, 'smoke').ok, 'seating flag ack');
+
+assert(announcementsSummary().title, 'announcements overview');
+assert(runAnnouncementsSweep({ force: true }, 'smoke').ok, 'announcements sweep');
+assert(publishHighPriorityAnnouncements({}, 'smoke').ok, 'announcements publish high');
+assert(archiveStaleAnnouncements({}, 'smoke').ok, 'announcements archive stale');
+assert(seedEndingSoonAnnouncement({}, 'smoke').ok, 'announcements ending soon seed');
+assert(ackAnnouncementsFlag({}, 'smoke').ok, 'announcements flag ack');
+
 assert(incidentsSummary().title, 'incidents overview');
 assert(runIncidentsSweep({ force: true }, 'smoke').ok, 'incidents sweep');
 assert(ackOpenCriticalIncidents({}, 'smoke').ok, 'incidents ack critical');
@@ -1801,12 +1841,12 @@ console.log('MOD148_OK');
 console.log('MOD152_OK');
 console.log('MOD155_OK');
 console.log('MOD156_OK');
+console.log('MOD157_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
 assert(crudDomains.some((d) => d.name === 'lostfound'), 'crudops includes lostfound');
-assert(crudDomains.some((d) => d.name === 'announcements'), 'crudops includes announcements');
 assert(crudDomains.some((d) => d.name === 'venues'), 'crudops includes venues');
 assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
@@ -1822,6 +1862,14 @@ assert(!isCrudOpsPath('/api/campaigns/sweep', 'POST'), 'crudops skips thickened 
 assert(!isCrudOpsPath('/api/campaigns/flag/ack', 'POST'), 'crudops skips campaigns ack');
 assert(!isCrudOpsPath('/api/complaints/sweep', 'POST'), 'crudops skips thickened complaints');
 assert(!isCrudOpsPath('/api/complaints/flag/ack', 'POST'), 'crudops skips complaints ack');
+assert(!isCrudOpsPath('/api/training/sweep', 'POST'), 'crudops skips thickened training');
+assert(!isCrudOpsPath('/api/training/flag/ack', 'POST'), 'crudops skips training ack');
+assert(!isCrudOpsPath('/api/menu/sweep', 'POST'), 'crudops skips thickened menu');
+assert(!isCrudOpsPath('/api/menu/flag/ack', 'POST'), 'crudops skips menu ack');
+assert(!isCrudOpsPath('/api/seating/sweep', 'POST'), 'crudops skips thickened seating');
+assert(!isCrudOpsPath('/api/seating/flag/ack', 'POST'), 'crudops skips seating ack');
+assert(!isCrudOpsPath('/api/announcements/sweep', 'POST'), 'crudops skips thickened announcements');
+assert(!isCrudOpsPath('/api/announcements/flag/ack', 'POST'), 'crudops skips announcements ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

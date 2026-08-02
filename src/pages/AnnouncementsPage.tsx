@@ -1,16 +1,22 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
 import {
+  ackAnnouncementsFlag,
+  archiveStaleAnnouncements,
   createAnnouncement,
   deleteAnnouncement,
   fetchAnnouncements,
+  publishHighPriorityAnnouncements,
+  runAnnouncementsSweep,
+  seedEndingSoonAnnouncement,
   type Announcement,
 } from '../services/announcements'
 
 export default function AnnouncementsPage() {
   const [rows, setRows] = useState<Announcement[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [priority, setPriority] = useState('normal')
@@ -19,6 +25,7 @@ export default function AnnouncementsPage() {
     try {
       const data = await fetchAnnouncements()
       setRows(data.announcements)
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Duyurular alınamadı')
@@ -50,20 +57,46 @@ export default function AnnouncementsPage() {
     }
   }
 
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
+
   return (
     <div className="space-y-6 p-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Duyurular</h1>
-        <p className="mt-1 text-sm text-slate-400">Holding / marka brifing panosu.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Holding / marka brifing panosu · published {overview?.published ?? 0}
+        </p>
       </header>
-      <CrudOpsBar domain="announcements" onDone={() => void refresh()} />
-
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Duyuru ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runAnnouncementsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void publishHighPriorityAnnouncements({}).then((r: any) => { ping(`Published ${r.published?.length ?? 0}`); return refresh() })}>Publish high</button>
+          <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void archiveStaleAnnouncements({}).then((r: any) => { ping(`Archived ${r.archived?.length ?? 0}`); return refresh() })}>Archive stale</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void seedEndingSoonAnnouncement({}).then((r: any) => { ping(`Ending soon ${r.seeded?.length ?? 0}`); return refresh() })}>Seed ending soon</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackAnnouncementsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · high unpublished {overview?.unpublishedHighPriority ?? 0} · ending soon {overview?.endingSoon ?? 0}
+        </p>
+      </PanelCard>
 
       <PanelCard title="Yeni duyuru">
         <form onSubmit={(e) => void onCreate(e)} className="space-y-3">
@@ -113,7 +146,8 @@ export default function AnnouncementsPage() {
                   </div>
                   <p className="mt-1 text-sm text-slate-400">{a.body}</p>
                   <div className="mt-1 text-[11px] text-slate-600">
-                    {a.audience} · {new Date(a.createdAt).toLocaleString('tr-TR')}
+                    {a.audience} · {a.status} · {new Date(a.createdAt).toLocaleString('tr-TR')}
+                    {a.endAt ? ` · biter ${new Date(a.endAt).toLocaleDateString('tr-TR')}` : ''}
                   </div>
                 </div>
                 <button

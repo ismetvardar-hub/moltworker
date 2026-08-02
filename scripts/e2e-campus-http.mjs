@@ -167,6 +167,10 @@ try {
     '/api/weather',
     '/api/maintenance',
     '/api/inventory',
+    '/api/training',
+    '/api/menu',
+    '/api/seating',
+    '/api/announcements',
     '/api/incidents',
     '/api/reservations',
     '/api/shifts',
@@ -1830,6 +1834,38 @@ try {
   assert(expClear.res.ok && expClear.data.ok !== false, 'exports clear');
   const expAck = await req('/api/exports/flag/ack', { method: 'POST', token, body: {} });
   assert(expAck.res.ok && expAck.data.ok !== false, 'exports ack');
+
+  const trn157Sweep = await req('/api/training/sweep', { method: 'POST', token, body: { force: true } });
+  assert(trn157Sweep.res.ok && trn157Sweep.data.ok !== false, 'training sweep');
+  const trn157Low = await req('/api/training/attempt/low-score/seed', {
+    method: 'POST',
+    token,
+    body: { person: 'E2E-157' },
+  });
+  assert(trn157Low.res.ok && trn157Low.data.ok !== false, 'training low score seed');
+
+  const menu157Sweep = await req('/api/menu/sweep', { method: 'POST', token, body: { force: true } });
+  assert(menu157Sweep.res.ok && menu157Sweep.data.ok !== false, 'menu sweep');
+  const menu157Feature = await req('/api/menu/feature', { method: 'POST', token, body: {} });
+  assert(menu157Feature.res.ok && menu157Feature.data.ok !== false, 'menu feature');
+
+  const seat157Sweep = await req('/api/seating/sweep', { method: 'POST', token, body: { force: true } });
+  assert(seat157Sweep.res.ok && seat157Sweep.data.ok !== false, 'seating sweep');
+  const seat157Walk = await req('/api/seating/walk-in', {
+    method: 'POST',
+    token,
+    body: { partyName: 'E2E-157', hours: 4 },
+  });
+  assert(seat157Walk.res.ok && seat157Walk.data.ok !== false, 'seating walk-in');
+
+  const ann157Sweep = await req('/api/announcements/sweep', { method: 'POST', token, body: { force: true } });
+  assert(ann157Sweep.res.ok && ann157Sweep.data.ok !== false, 'announcements sweep');
+  const ann157Seed = await req('/api/announcements/ending-soon/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-157 ending soon' },
+  });
+  assert(ann157Seed.res.ok && ann157Seed.data.ok !== false, 'announcements ending soon seed');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
