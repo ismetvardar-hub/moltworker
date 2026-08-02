@@ -75,16 +75,29 @@ for (const domain of domains) {
       src = importLine + src;
     }
   }
-  const headerClose = src.indexOf('</header>');
-  if (headerClose < 0) {
-    skipped += 1;
-    continue;
-  }
   const hasRefresh = /async function refresh|const refresh =|function refresh\(/.test(src);
   const bar = hasRefresh
     ? `\n      <CrudOpsBar domain="${domain}" onDone={() => void refresh()} />\n`
     : `\n      <CrudOpsBar domain="${domain}" />\n`;
-  src = src.slice(0, headerClose + '</header>'.length) + bar + src.slice(headerClose + '</header>'.length);
+  let insertAt = -1;
+  let markerLen = 0;
+  const headerClose = src.indexOf('</header>');
+  if (headerClose >= 0) {
+    insertAt = headerClose;
+    markerLen = '</header>'.length;
+  } else {
+    // Pages that use a title row div instead of <header>
+    const m = src.match(/\n      <\/div>\n\n      \{error &&/);
+    if (m && m.index != null) {
+      insertAt = m.index;
+      markerLen = '\n      </div>'.length;
+    }
+  }
+  if (insertAt < 0) {
+    skipped += 1;
+    continue;
+  }
+  src = src.slice(0, insertAt + markerLen) + bar + src.slice(insertAt + markerLen);
   writeFileSync(pagePath, src);
   patched += 1;
 }
