@@ -13,3 +13,23 @@ export async function createPulse(input: Record<string, unknown>): Promise<any> 
 export async function patchPulse(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/pulse/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(patch) }))
 }
+
+export async function runPulseSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/pulse/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackPulseFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/pulse/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function markPulseStaleSignal(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/pulse/signal/stale', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function refreshPulseChannel(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/pulse/channel/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function seedCampusBeat(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/pulse/campus-beat/seed', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}

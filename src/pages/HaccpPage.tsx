@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createHaccp, fetchHaccp, patchHaccp } from '../services/haccp'
+import {
+  ackHaccpFlag,
+  createHaccp,
+  fetchHaccp,
+  logHaccpCorrective,
+  markHaccpTempBreach,
+  patchHaccp,
+  runHaccpSweep,
+  seedProbeCheck,
+} from '../services/haccp'
 
 export default function HaccpPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"checkpoint":"Soğuk oda","reading":"4C"})
   async function refresh() {
     try {
@@ -15,6 +25,10 @@ export default function HaccpPage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
@@ -33,6 +47,16 @@ export default function HaccpPage() {
       <CrudOpsBar domain="haccp" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 171">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runHaccpSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackHaccpFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markHaccpTempBreach({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Temp breach' : r.error || 'Breach yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Temp breach</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void logHaccpCorrective({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Corrective logged' : r.error || 'Corrective yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Log corrective</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedProbeCheck({ checkpoint: 'Probe check' }).then(() => { ping('Probe check seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed probe check</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="checkpoint" value={String(form.checkpoint??'')} onChange={(e)=>setForm(f=>({...f,checkpoint:e.target.value}))} />

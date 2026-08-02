@@ -13,3 +13,23 @@ export async function createHaccp(input: Record<string, unknown>): Promise<any> 
 export async function patchHaccp(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/haccp/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runHaccpSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/haccp/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackHaccpFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/haccp/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markHaccpTempBreach(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/haccp/temp/breach', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function logHaccpCorrective(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/haccp/corrective/log', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedProbeCheck(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/haccp/probe/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

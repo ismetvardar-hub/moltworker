@@ -587,7 +587,7 @@ import {
   ackContentFlag, contentSummary, createContent, listContent, markContentStaleDraft, publishContentItem, runContentSweep, seedCampaignPost, updateContent,
 } from './content.js';
 import {
-  createPulse, listPulse, pulseSummary, updatePulse,
+  ackPulseFlag, createPulse, listPulse, markPulseStaleSignal, pulseSummary, refreshPulseChannel, runPulseSweep, seedCampusBeat, updatePulse,
 } from './pulse.js';
 import {
   ackBudgetFlag,
@@ -612,7 +612,7 @@ import {
   updateContracts,
 } from './contracts.js';
 import {
-  createPassstock, listPassstock, passstockSummary, updatePassstock,
+  ackPassstockFlag, createPassstock, listPassstock, markPassstockLowWristbandStock, passstockSummary, restockPassstock, runPassstockSweep, seedEventBatch, updatePassstock,
 } from './passstock.js';
 import {
   ackKdsFlag,
@@ -846,9 +846,14 @@ import {
   updateBands,
 } from './bands.js';
 import {
+  ackHaccpFlag,
   createHaccp,
+  logHaccpCorrective,
   listHaccp,
   haccpSummary,
+  markHaccpTempBreach,
+  runHaccpSweep,
+  seedProbeCheck,
   updateHaccp,
 } from './haccp.js';
 import {
@@ -981,9 +986,14 @@ import {
   updateLateout,
 } from './lateout.js';
 import {
+  ackAmenitiesFlag,
   createAmenities,
+  fulfillAmenitiesRequest,
   listAmenities,
+  markAmenitiesRequestBacklog,
   amenitiesSummary,
+  runAmenitiesSweep,
+  seedPillowMenu,
   updateAmenities,
 } from './amenities.js';
 import {
@@ -11511,6 +11521,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/pulse/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPulseSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pulse/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPulseFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pulse/signal/stale' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPulseStaleSignal(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pulse/channel/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshPulseChannel(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/pulse/campus-beat/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCampusBeat(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/pulse/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11641,6 +11681,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createPassstock(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/passstock/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPassstockSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/passstock/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPassstockFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/passstock/wristband/low-stock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPassstockLowWristbandStock(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/passstock/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockPassstock(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/passstock/event-batch/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEventBatch(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/passstock/') && req.method === 'PATCH') {
@@ -12743,6 +12813,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/haccp/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHaccpSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/haccp/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHaccpFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/haccp/temp/breach' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markHaccpTempBreach(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/haccp/corrective/log' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, logHaccpCorrective(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/haccp/probe/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedProbeCheck(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/haccp/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13353,6 +13453,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createAmenities(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/amenities/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAmenitiesSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/amenities/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAmenitiesFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/amenities/request/backlog' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markAmenitiesRequestBacklog(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/amenities/fulfill' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fulfillAmenitiesRequest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/amenities/pillow-menu/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPillowMenu(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/amenities/') && req.method === 'PATCH') {

@@ -801,6 +801,18 @@ import {
 import {
   musicSummary, runMusicSweep, ackMusicFlag, markMusicZoneSilence, setMusicPlaylist, seedSunsetMix,
 } from '../server/music.js';
+import {
+  passstockSummary, runPassstockSweep, ackPassstockFlag, markPassstockLowWristbandStock, restockPassstock, seedEventBatch,
+} from '../server/passstock.js';
+import {
+  pulseSummary, runPulseSweep, ackPulseFlag, markPulseStaleSignal, refreshPulseChannel, seedCampusBeat,
+} from '../server/pulse.js';
+import {
+  amenitiesSummary, runAmenitiesSweep, ackAmenitiesFlag, markAmenitiesRequestBacklog, fulfillAmenitiesRequest, seedPillowMenu,
+} from '../server/amenities.js';
+import {
+  haccpSummary, runHaccpSweep, ackHaccpFlag, markHaccpTempBreach, logHaccpCorrective, seedProbeCheck,
+} from '../server/haccp.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2340,6 +2352,38 @@ assert(setMusicPlaylist({ id: smokeMusic.music.id, playlist: 'Smoke 170 sunset p
 assert(runMusicSweep({ force: true }, 'smoke').ok, 'music sweep');
 assert(ackMusicFlag({}, 'smoke').ok, 'music flag ack');
 
+assert(passstockSummary().title, 'passstock overview');
+const smokePassstock = seedEventBatch({ eventName: 'Smoke 171 event batch' }, 'smoke');
+assert(smokePassstock.ok, 'passstock event batch seed');
+assert(markPassstockLowWristbandStock({ id: smokePassstock.passstock.id }, 'smoke').ok, 'passstock low wristband stock');
+assert(restockPassstock({ id: smokePassstock.passstock.id }, 'smoke').ok, 'passstock restock');
+assert(runPassstockSweep({ force: true }, 'smoke').ok, 'passstock sweep');
+assert(ackPassstockFlag({}, 'smoke').ok, 'passstock flag ack');
+
+assert(pulseSummary().title, 'pulse overview');
+const smokePulse = seedCampusBeat({ beatName: 'Smoke 171 campus beat' }, 'smoke');
+assert(smokePulse.ok, 'pulse campus beat seed');
+assert(markPulseStaleSignal({ id: smokePulse.pulse.id }, 'smoke').ok, 'pulse stale signal');
+assert(refreshPulseChannel({ id: smokePulse.pulse.id }, 'smoke').ok, 'pulse channel refresh');
+assert(runPulseSweep({ force: true }, 'smoke').ok, 'pulse sweep');
+assert(ackPulseFlag({}, 'smoke').ok, 'pulse flag ack');
+
+assert(amenitiesSummary().title, 'amenities overview');
+const smokeAmenity = seedPillowMenu({ room: '171' }, 'smoke');
+assert(smokeAmenity.ok, 'amenities pillow menu seed');
+assert(markAmenitiesRequestBacklog({ id: smokeAmenity.amenity.id }, 'smoke').ok, 'amenities request backlog');
+assert(fulfillAmenitiesRequest({ id: smokeAmenity.amenity.id }, 'smoke').ok, 'amenities fulfill');
+assert(runAmenitiesSweep({ force: true }, 'smoke').ok, 'amenities sweep');
+assert(ackAmenitiesFlag({}, 'smoke').ok, 'amenities flag ack');
+
+assert(haccpSummary().title, 'haccp overview');
+const smokeHaccp = seedProbeCheck({ checkpoint: 'Smoke 171 probe check' }, 'smoke');
+assert(smokeHaccp.ok, 'haccp probe check seed');
+assert(markHaccpTempBreach({ id: smokeHaccp.haccp.id }, 'smoke').ok, 'haccp temp breach');
+assert(logHaccpCorrective({ id: smokeHaccp.haccp.id }, 'smoke').ok, 'haccp corrective log');
+assert(runHaccpSweep({ force: true }, 'smoke').ok, 'haccp sweep');
+assert(ackHaccpFlag({}, 'smoke').ok, 'haccp flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2367,6 +2411,7 @@ console.log('MOD167_OK');
 console.log('MOD168_OK');
 console.log('MOD169_OK');
 console.log('MOD170_OK');
+console.log('MOD171_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2412,6 +2457,11 @@ for (const thickened170 of ['venues', 'spa', 'content', 'music']) {
   assert(!crudDomains.some((d) => d.name === thickened170), `crudops skips thickened ${thickened170}`);
   assert(!isCrudOpsPath(`/api/${thickened170}/sweep`, 'POST'), `crudops skips ${thickened170} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened170}/flag/ack`, 'POST'), `crudops skips ${thickened170} ack`);
+}
+for (const thickened171 of ['passstock', 'pulse', 'amenities', 'haccp']) {
+  assert(!crudDomains.some((d) => d.name === thickened171), `crudops skips thickened ${thickened171}`);
+  assert(!isCrudOpsPath(`/api/${thickened171}/sweep`, 'POST'), `crudops skips ${thickened171} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened171}/flag/ack`, 'POST'), `crudops skips ${thickened171} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

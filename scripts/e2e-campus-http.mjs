@@ -197,6 +197,10 @@ try {
     '/api/spa',
     '/api/content',
     '/api/music',
+    '/api/passstock',
+    '/api/pulse',
+    '/api/amenities',
+    '/api/haccp',
     '/api/keycards',
     '/api/parcels',
     '/api/wakeups',
@@ -2872,6 +2876,98 @@ try {
   assert(music170Playlist.res.ok && music170Playlist.data.ok !== false, 'music playlist set');
   const music170Ack = await req('/api/music/flag/ack', { method: 'POST', token, body: {} });
   assert(music170Ack.res.ok && music170Ack.data.ok !== false, 'music flag ack');
+
+  const passstock171Sweep = await req('/api/passstock/sweep', { method: 'POST', token, body: { force: true } });
+  assert(passstock171Sweep.res.ok && passstock171Sweep.data.ok !== false, 'passstock sweep');
+  const passstock171Seed = await req('/api/passstock/event-batch/seed', {
+    method: 'POST',
+    token,
+    body: { eventName: 'E2E-171 event batch' },
+  });
+  assert(passstock171Seed.res.ok && passstock171Seed.data.ok !== false, 'passstock event batch seed');
+  const passstock171Low = await req('/api/passstock/wristband/low-stock', {
+    method: 'POST',
+    token,
+    body: { id: passstock171Seed.data.passstock?.id },
+  });
+  assert(passstock171Low.res.ok && passstock171Low.data.ok !== false, 'passstock low wristband stock');
+  const passstock171Restock = await req('/api/passstock/restock', {
+    method: 'POST',
+    token,
+    body: { id: passstock171Seed.data.passstock?.id },
+  });
+  assert(passstock171Restock.res.ok && passstock171Restock.data.ok !== false, 'passstock restock');
+  const passstock171Ack = await req('/api/passstock/flag/ack', { method: 'POST', token, body: {} });
+  assert(passstock171Ack.res.ok && passstock171Ack.data.ok !== false, 'passstock flag ack');
+
+  const pulse171Sweep = await req('/api/pulse/sweep', { method: 'POST', token, body: { force: true } });
+  assert(pulse171Sweep.res.ok && pulse171Sweep.data.ok !== false, 'pulse sweep');
+  const pulse171Seed = await req('/api/pulse/campus-beat/seed', {
+    method: 'POST',
+    token,
+    body: { beatName: 'E2E-171 campus beat' },
+  });
+  assert(pulse171Seed.res.ok && pulse171Seed.data.ok !== false, 'pulse campus beat seed');
+  const pulse171Stale = await req('/api/pulse/signal/stale', {
+    method: 'POST',
+    token,
+    body: { id: pulse171Seed.data.pulse?.id },
+  });
+  assert(pulse171Stale.res.ok && pulse171Stale.data.ok !== false, 'pulse stale signal');
+  const pulse171Refresh = await req('/api/pulse/channel/refresh', {
+    method: 'POST',
+    token,
+    body: { id: pulse171Seed.data.pulse?.id },
+  });
+  assert(pulse171Refresh.res.ok && pulse171Refresh.data.ok !== false, 'pulse channel refresh');
+  const pulse171Ack = await req('/api/pulse/flag/ack', { method: 'POST', token, body: {} });
+  assert(pulse171Ack.res.ok && pulse171Ack.data.ok !== false, 'pulse flag ack');
+
+  const amenities171Sweep = await req('/api/amenities/sweep', { method: 'POST', token, body: { force: true } });
+  assert(amenities171Sweep.res.ok && amenities171Sweep.data.ok !== false, 'amenities sweep');
+  const amenities171Seed = await req('/api/amenities/pillow-menu/seed', {
+    method: 'POST',
+    token,
+    body: { room: '171' },
+  });
+  assert(amenities171Seed.res.ok && amenities171Seed.data.ok !== false, 'amenities pillow menu seed');
+  const amenities171Backlog = await req('/api/amenities/request/backlog', {
+    method: 'POST',
+    token,
+    body: { id: amenities171Seed.data.amenity?.id },
+  });
+  assert(amenities171Backlog.res.ok && amenities171Backlog.data.ok !== false, 'amenities request backlog');
+  const amenities171Fulfill = await req('/api/amenities/fulfill', {
+    method: 'POST',
+    token,
+    body: { id: amenities171Seed.data.amenity?.id },
+  });
+  assert(amenities171Fulfill.res.ok && amenities171Fulfill.data.ok !== false, 'amenities fulfill');
+  const amenities171Ack = await req('/api/amenities/flag/ack', { method: 'POST', token, body: {} });
+  assert(amenities171Ack.res.ok && amenities171Ack.data.ok !== false, 'amenities flag ack');
+
+  const haccp171Sweep = await req('/api/haccp/sweep', { method: 'POST', token, body: { force: true } });
+  assert(haccp171Sweep.res.ok && haccp171Sweep.data.ok !== false, 'haccp sweep');
+  const haccp171Seed = await req('/api/haccp/probe/seed', {
+    method: 'POST',
+    token,
+    body: { checkpoint: 'E2E-171 probe check' },
+  });
+  assert(haccp171Seed.res.ok && haccp171Seed.data.ok !== false, 'haccp probe check seed');
+  const haccp171Breach = await req('/api/haccp/temp/breach', {
+    method: 'POST',
+    token,
+    body: { id: haccp171Seed.data.haccp?.id },
+  });
+  assert(haccp171Breach.res.ok && haccp171Breach.data.ok !== false, 'haccp temp breach');
+  const haccp171Corrective = await req('/api/haccp/corrective/log', {
+    method: 'POST',
+    token,
+    body: { id: haccp171Seed.data.haccp?.id },
+  });
+  assert(haccp171Corrective.res.ok && haccp171Corrective.data.ok !== false, 'haccp corrective log');
+  const haccp171Ack = await req('/api/haccp/flag/ack', { method: 'POST', token, body: {} });
+  assert(haccp171Ack.res.ok && haccp171Ack.data.ok !== false, 'haccp flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',
