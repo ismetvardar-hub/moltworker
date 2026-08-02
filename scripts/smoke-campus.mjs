@@ -909,6 +909,9 @@ import {
 import {
   vipnotesSummary, runVipnotesSweep, ackVipnotesFlag, markVipnotesUnreadAlert, acknowledgeVipnote, seedVipArrivalBrief,
 } from '../server/vipnotes.js';
+import {
+  brandsSummary, runBrandsSweep, ackBrandsFlag, activateBrandOps, syncBrandModules, seedBrandTenant,
+} from '../server/brands.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2736,6 +2739,14 @@ assert(runVipnotesSweep({ force: true }, 'smoke').ok, 'vipnotes sweep');
 assert(acknowledgeVipnote({ id: smokeVipnote.note.id }, 'smoke').ok, 'vipnotes acknowledge');
 assert(ackVipnotesFlag({}, 'smoke').ok, 'vipnotes flag ack');
 
+assert(brandsSummary().title, 'brands overview');
+const smokeBrand = seedBrandTenant({ name: 'Smoke 180 tenant', modules: ['hub'] }, 'smoke');
+assert(smokeBrand.ok, 'brands tenant seed');
+assert(syncBrandModules({ id: smokeBrand.brand.id, addModules: ['venues'] }, 'smoke').ok, 'brands modules sync');
+assert(activateBrandOps({ id: smokeBrand.brand.id }, 'smoke').ok, 'brands activate ops');
+assert(runBrandsSweep({ force: true }, 'smoke').ok, 'brands sweep');
+assert(ackBrandsFlag({}, 'smoke').ok, 'brands flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2772,11 +2783,12 @@ console.log('MOD176_OK');
 console.log('MOD177_OK');
 console.log('MOD178_OK');
 console.log('MOD179_OK');
+console.log('MOD180_OK');
 
 const crudDomains = listCrudDomains({ force: true });
-assert(crudDomains.length >= 994, 'crudops registry size');
+assert(crudDomains.length >= 993, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
-assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
+assert(!crudDomains.some((d) => d.name === 'brands'), 'crudops skips thickened brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
   assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);
 }
@@ -2862,6 +2874,11 @@ for (const thickened179 of ['mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']
   assert(!crudDomains.some((d) => d.name === thickened179), `crudops skips thickened ${thickened179}`);
   assert(!isCrudOpsPath(`/api/${thickened179}/sweep`, 'POST'), `crudops skips ${thickened179} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened179}/flag/ack`, 'POST'), `crudops skips ${thickened179} ack`);
+}
+for (const thickened180 of ['brands']) {
+  assert(!crudDomains.some((d) => d.name === thickened180), `crudops skips thickened ${thickened180}`);
+  assert(!isCrudOpsPath(`/api/${thickened180}/sweep`, 'POST'), `crudops skips ${thickened180} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened180}/flag/ack`, 'POST'), `crudops skips ${thickened180} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

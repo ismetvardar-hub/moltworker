@@ -5,6 +5,8 @@
 import { randomBytes } from 'node:crypto';
 import { readCollection, writeCollection, prependItem, deleteItem } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
+import { listVenues } from './venues.js';
 
 const DEFAULT_BRANDS = [
   {
@@ -1359,6 +1361,51 @@ function ensureSeed() {
   return merged;
 }
 
+function rid(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
+}
+
+function openBrandFlags() {
+  const flags = readCollection('brands-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
+function addBrandFlag(candidate, actor = 'system') {
+  const existing = readCollection('brands-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  if (openKeys.has(candidate.key)) return null;
+  const flag = { id: rid('brnf'), ...candidate, status: 'open', at: new Date().toISOString(), actor };
+  list.unshift(flag);
+  writeCollection('brands-flags', list.slice(0, 200));
+  return flag;
+}
+
+function isInactiveBrand(brand) {
+  return brand.status === 'inactive' || brand.status === 'disabled' || brand.inactiveAt;
+}
+
+function brandOpsState() {
+  const brands = listBrands();
+  const venues = listVenues();
+  const venueIds = new Set(venues.map((v) => v.id));
+  const inactiveBrands = brands.filter(isInactiveBrand);
+  const emptyModuleBrands = brands.filter((b) => !Array.isArray(b.modules) || b.modules.length === 0);
+  const orphanVenueRefs = [];
+  for (const brand of brands) {
+    for (const venueId of Array.isArray(brand.venueIds) ? brand.venueIds : []) {
+      if (!venueIds.has(venueId)) orphanVenueRefs.push({ brandId: brand.id, brandName: brand.name, venueId });
+    }
+  }
+  return {
+    brands,
+    inactiveBrands,
+    emptyModuleBrands,
+    orphanVenueRefs,
+    flags: openBrandFlags(),
+  };
+}
+
 export function listBrands() {
   return ensureSeed();
 }
@@ -1425,10 +1472,157 @@ export function removeBrand(id, actor = 'system') {
 }
 
 export function brandsSummary() {
-  const brands = listBrands();
+  const { brands, inactiveBrands, emptyModuleBrands, orphanVenueRefs, flags } = brandOpsState();
   return {
+    title: 'LIKYA Brand Ops',
+    generatedAt: new Date().toISOString(),
     total: brands.length,
     active: brands.filter((b) => b.status === 'active').length,
+    inactive: inactiveBrands.length,
+    emptyModules: emptyModuleBrands.length,
+    orphanVenueIds: orphanVenueRefs.length,
+    flags: flags.slice(0, 30),
+    summary: {
+      flags_open: flags.length,
+      total: brands.length,
+      active: brands.filter((b) => b.status === 'active').length,
+      inactive: inactiveBrands.length,
+      empty_modules: emptyModuleBrands.length,
+      orphan_venue_ids: orphanVenueRefs.length,
+    },
+    summaryLines: [
+      `Brands ${brands.length} total - active ${brands.filter((b) => b.status === 'active').length} - inactive ${inactiveBrands.length}`,
+      `Empty modules ${emptyModuleBrands.length} - orphan venueIds ${orphanVenueRefs.length} - flag ${flags.length}`,
+    ],
+    orphanVenueRefs: orphanVenueRefs.slice(0, 30),
     brands,
   };
+}
+
+export function runBrandsSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const state = brandOpsState();
+  const created = [];
+  const candidates = [];
+  if (force || state.inactiveBrands.length > 0) {
+    candidates.push({
+      key: 'brands_inactive',
+      level: state.inactiveBrands.length > 0 ? 'warn' : 'info',
+      text: `Inactive brands ${state.inactiveBrands.length}`,
+      domain: 'status',
+      brandIds: state.inactiveBrands.map((b) => b.id).slice(0, 20),
+    });
+  }
+  if (force || state.emptyModuleBrands.length > 0) {
+    candidates.push({
+      key: 'brands_empty_modules',
+      level: state.emptyModuleBrands.length > 0 ? 'warn' : 'info',
+      text: `Brands with empty modules ${state.emptyModuleBrands.length}`,
+      domain: 'modules',
+      brandIds: state.emptyModuleBrands.map((b) => b.id).slice(0, 20),
+    });
+  }
+  if (force || state.orphanVenueRefs.length > 0) {
+    candidates.push({
+      key: 'brands_orphan_venue_ids',
+      level: state.orphanVenueRefs.length > 0 ? 'warn' : 'info',
+      text: `Orphan brand venueIds ${state.orphanVenueRefs.length}`,
+      domain: 'venues',
+      refs: state.orphanVenueRefs.slice(0, 20),
+    });
+  }
+  for (const candidate of candidates) {
+    const flag = addBrandFlag(candidate, actor);
+    if (flag) created.push(flag);
+  }
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'NEXUS',
+        title: `brands sweep - ${created.length} flag`,
+        priority: created.some((f) => f.level === 'warn' || f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id) },
+      },
+      actor,
+    );
+  }
+  const sweep = { id: rid('brns'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('brands-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'brands.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, overview: brandsSummary() };
+}
+
+export function ackBrandsFlag(input = {}, actor = 'system') {
+  const list = readCollection('brands-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok - once sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Acik flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('brands-flags', list);
+  appendAudit({ actor, action: 'brands.ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: brandsSummary() };
+}
+
+export function activateBrandOps(input = {}, actor = 'system') {
+  const brands = listBrands();
+  const explicitIdx = brands.findIndex((b) => b.id === input.id || (input.name && b.name === input.name));
+  const idx = explicitIdx >= 0 ? explicitIdx : brands.findIndex((b) => b.status !== 'active');
+  if (idx < 0) return { ok: false, error: 'Aktive edilecek marka yok' };
+  brands[idx] = {
+    ...brands[idx],
+    status: 'active',
+    inactiveAt: null,
+    activatedAt: input.activatedAt || new Date().toISOString(),
+    activatedBy: actor,
+    updatedAt: new Date().toISOString(),
+  };
+  writeCollection('brands', brands);
+  appendAudit({ actor, action: 'brands.activate_ops', detail: brands[idx].name, meta: { id: brands[idx].id } });
+  return { ok: true, brand: brands[idx], overview: brandsSummary() };
+}
+
+export function syncBrandModules(input = {}, actor = 'system') {
+  const brands = listBrands();
+  const targetId = input.id || input.brandId;
+  const addModules = Array.isArray(input.modules)
+    ? input.modules
+    : Array.isArray(input.addModules)
+      ? input.addModules
+      : ['hub'];
+  const synced = [];
+  const next = brands.map((brand) => {
+    if (targetId && brand.id !== targetId) return brand;
+    const modules = Array.from(new Set([...(Array.isArray(brand.modules) ? brand.modules : []), ...addModules].filter(Boolean)));
+    if (modules.length === (brand.modules || []).length) return brand;
+    synced.push(brand.id);
+    return { ...brand, modules, updatedAt: new Date().toISOString(), modulesSyncedAt: new Date().toISOString() };
+  });
+  writeCollection('brands', next);
+  appendAudit({ actor, action: 'brands.modules_sync', detail: `${synced.length} marka`, meta: { brandIds: synced } });
+  return { ok: true, synced, overview: brandsSummary() };
+}
+
+export function seedBrandTenant(input = {}, actor = 'system') {
+  const venues = listVenues();
+  const brand = createBrand(
+    {
+      name: input.name || `Ops Tenant ${new Date().toISOString().slice(0, 10)}`,
+      shortName: input.shortName || 'OPS',
+      color: input.color || '#38bdf8',
+      modules: Array.isArray(input.modules) ? input.modules : ['hub', 'venues'],
+      venueIds: Array.isArray(input.venueIds) ? input.venueIds : venues.slice(0, 1).map((v) => v.id),
+      status: input.status || 'active',
+    },
+    actor,
+  );
+  appendAudit({ actor, action: 'brands.tenant_seed', detail: brand.name, meta: { id: brand.id } });
+  return { ok: true, brand, overview: brandsSummary() };
 }

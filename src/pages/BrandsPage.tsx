@@ -1,20 +1,34 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Building2, Plus, RefreshCw } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
-import CrudOpsBar from '../components/CrudOpsBar';
-import { createBrand, fetchBrands, type Brand } from '../services/brands';
+import {
+  ackBrandsFlag,
+  activateBrandOps,
+  createBrand,
+  fetchBrands,
+  runBrandsSweep,
+  seedBrandTenant,
+  syncBrandModules,
+  type Brand,
+  type BrandFlag,
+} from '../services/brands';
 
 export default function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [activeBrandId, setActive] = useState<string | null>(null);
+  const [flags, setFlags] = useState<BrandFlag[]>([]);
+  const [summaryLines, setSummaryLines] = useState<string[]>([]);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const data = await fetchBrands();
       setBrands(data.brands);
       setActive(data.activeBrandId);
+      setFlags(data.flags ?? []);
+      setSummaryLines(data.summaryLines ?? []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Markalar alınamadı');
@@ -34,6 +48,16 @@ export default function BrandsPage() {
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kayıt başarısız');
+    }
+  };
+
+  const runOp = async (label: string, fn: () => Promise<any>) => {
+    try {
+      const data = await fn();
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `${label} hata`);
     }
   };
 
@@ -59,7 +83,60 @@ export default function BrandsPage() {
         </button>
       </div>
 
-      <CrudOpsBar domain="brands" onDone={() => void refresh()} />
+      {notice && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          {notice}
+        </div>
+      )}
+
+      <PanelCard title="Wave 180 Marka Ops" subtitle={summaryLines.join(' · ') || 'Sweep / mutator paneli'}>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm font-medium text-obsidian-950"
+            onClick={() => void runOp('Sweep', () => runBrandsSweep({ force: true }))}
+          >
+            Sweep
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100"
+            onClick={() => void runOp('Aktive et', () => activateBrandOps({ id: brands[0]?.id }))}
+          >
+            Aktive et
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+            onClick={() => void runOp('Modül sync', () => syncBrandModules({ id: brands[0]?.id, addModules: ['hub'] }))}
+          >
+            Modül sync
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+            onClick={() => void runOp('Tenant seed', () => seedBrandTenant({ name: 'Ops Tenant' }))}
+          >
+            Tenant seed
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200"
+            onClick={() => void runOp('Flag ack', () => ackBrandsFlag({ note: 'ui ack' }))}
+          >
+            Flag ack
+          </button>
+        </div>
+        {flags.length > 0 && (
+          <ul className="mt-3 space-y-1 text-xs text-slate-400">
+            {flags.slice(0, 3).map((flag) => (
+              <li key={flag.id}>
+                <span className="font-semibold text-slate-300">{flag.level}</span> · {flag.text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </PanelCard>
 
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">

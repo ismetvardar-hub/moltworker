@@ -10,12 +10,28 @@ export interface Brand {
   status?: string;
 }
 
+export interface BrandFlag {
+  id: string;
+  key: string;
+  level: string;
+  text: string;
+  domain: string;
+  status: string;
+  at?: string;
+}
+
 export async function fetchBrands(): Promise<{
   brands: Brand[];
   mine: Brand[];
   activeBrandId: string | null;
   total: number;
   active: number;
+  inactive?: number;
+  emptyModules?: number;
+  orphanVenueIds?: number;
+  flags?: BrandFlag[];
+  summary?: Record<string, number>;
+  summaryLines?: string[];
 }> {
   const res = await fetch('/api/brands', { headers: authHeaders() });
   if (!res.ok) throw new Error('Markalar alınamadı');
@@ -25,6 +41,12 @@ export async function fetchBrands(): Promise<{
     activeBrandId: string | null;
     total: number;
     active: number;
+    inactive?: number;
+    emptyModules?: number;
+    orphanVenueIds?: number;
+    flags?: BrandFlag[];
+    summary?: Record<string, number>;
+    summaryLines?: string[];
   };
 }
 
@@ -49,4 +71,35 @@ export async function createBrand(input: Partial<Brand>): Promise<Brand> {
   if (!res.ok) throw new Error('Marka oluşturulamadı');
   const data = (await res.json()) as { brand: Brand };
   return data.brand;
+}
+
+async function postBrandOps(path: string, body: Record<string, unknown> = {}): Promise<any> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+export async function runBrandsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postBrandOps('/api/brands/sweep', body);
+}
+
+export async function ackBrandsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postBrandOps('/api/brands/flag/ack', body);
+}
+
+export async function activateBrandOps(body: Record<string, unknown> = {}): Promise<any> {
+  return postBrandOps('/api/brands/ops/activate', body);
+}
+
+export async function syncBrandModules(body: Record<string, unknown> = {}): Promise<any> {
+  return postBrandOps('/api/brands/modules/sync', body);
+}
+
+export async function seedBrandTenant(body: Record<string, unknown> = {}): Promise<any> {
+  return postBrandOps('/api/brands/tenant/seed', body);
 }

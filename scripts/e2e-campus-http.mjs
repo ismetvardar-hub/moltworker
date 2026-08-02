@@ -165,6 +165,7 @@ try {
     '/api/metrics',
     '/api/exports',
     '/api/venues',
+    '/api/brands',
     '/api/weather',
     '/api/maintenance',
     '/api/inventory',
@@ -2843,6 +2844,29 @@ try {
   assert(venues170Activate.res.ok && venues170Activate.data.ok !== false, 'venues activate');
   const venues170Ack = await req('/api/venues/flag/ack', { method: 'POST', token, body: {} });
   assert(venues170Ack.res.ok && venues170Ack.data.ok !== false, 'venues flag ack');
+
+  const brands180Sweep = await req('/api/brands/sweep', { method: 'POST', token, body: { force: true } });
+  assert(brands180Sweep.res.ok && brands180Sweep.data.ok !== false, 'brands sweep');
+  const brands180Seed = await req('/api/brands/tenant/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-180 tenant', modules: ['hub'] },
+  });
+  assert(brands180Seed.res.ok && brands180Seed.data.ok !== false, 'brands tenant seed');
+  const brands180Sync = await req('/api/brands/modules/sync', {
+    method: 'POST',
+    token,
+    body: { id: brands180Seed.data.brand?.id, addModules: ['venues'] },
+  });
+  assert(brands180Sync.res.ok && brands180Sync.data.ok !== false, 'brands modules sync');
+  const brands180Activate = await req('/api/brands/ops/activate', {
+    method: 'POST',
+    token,
+    body: { id: brands180Seed.data.brand?.id },
+  });
+  assert(brands180Activate.res.ok && brands180Activate.data.ok !== false, 'brands activate ops');
+  const brands180Ack = await req('/api/brands/flag/ack', { method: 'POST', token, body: {} });
+  assert(brands180Ack.res.ok && brands180Ack.data.ok !== false, 'brands flag ack');
 
   const spa170Sweep = await req('/api/spa/sweep', { method: 'POST', token, body: { force: true } });
   assert(spa170Sweep.res.ok && spa170Sweep.data.ok !== false, 'spa sweep');

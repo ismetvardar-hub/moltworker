@@ -93,12 +93,17 @@ import {
   snapshotMetrics,
 } from './metrics.js';
 import {
+  ackBrandsFlag,
+  activateBrandOps,
   brandsForRole,
   brandsSummary,
   createBrand,
   getBrand,
   listBrands,
   removeBrand,
+  runBrandsSweep,
+  seedBrandTenant,
+  syncBrandModules,
   updateBrand,
 } from './brands.js';
 import {
@@ -8725,6 +8730,36 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, { user: updated });
           })();
+          return;
+        }
+        if (path === '/api/brands/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBrandsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brands/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBrandsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brands/ops/activate' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, activateBrandOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brands/modules/sync' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, syncBrandModules(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brands/tenant/seed' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedBrandTenant(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/brands' && req.method === 'POST') {
