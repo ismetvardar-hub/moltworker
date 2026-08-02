@@ -25,10 +25,25 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchColdchain(): Promise<{
   assets: ColdAsset[]
   readings: ColdReading[]
   recentAlerts: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+  missingReadings?: number
 }> {
   return parse(await fetch('/api/coldchain', { headers: authHeaders() }))
 }
@@ -45,4 +60,24 @@ export async function logCold(input: {
       body: JSON.stringify(input),
     }),
   )
+}
+
+export async function runColdchainSweep(body: Record<string, unknown> = {}) {
+  return post('/api/coldchain/sweep', body)
+}
+
+export async function ackColdchainFlag(body: Record<string, unknown> = {}) {
+  return post('/api/coldchain/flag/ack', body)
+}
+
+export async function recordColdchainReading(body: Record<string, unknown> = {}) {
+  return post('/api/coldchain/reading', body)
+}
+
+export async function flagColdchainBreach(body: Record<string, unknown> = {}) {
+  return post('/api/coldchain/breach/flag', body)
+}
+
+export async function seedColdchainProbe(body: Record<string, unknown> = {}) {
+  return post('/api/coldchain/probe/seed', body)
 }

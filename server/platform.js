@@ -323,13 +323,26 @@ import {
   upsertI18nNote,
 } from './i18nNotes.js';
 import {
+  ackColdchainFlag,
   coldchainSummary,
+  flagColdchainBreach,
   listColdAssets,
   listColdReadings,
   logColdReading,
+  recordColdchainReading,
+  runColdchainSweep,
+  seedColdchainProbe,
 } from './coldchain.js';
 import { createHandover, handoverSummary, listHandover } from './handover.js';
-import { cashSummary, postCash } from './cash.js';
+import {
+  ackCashFlag,
+  cashSummary,
+  flagCashImbalance,
+  postCash,
+  postCashEntry,
+  runCashSweep,
+  seedCashDailyClose,
+} from './cash.js';
 import {
   ackAssetsFlag,
   assignAssetOwner,
@@ -342,10 +355,15 @@ import {
   updateAsset,
 } from './assets.js';
 import {
+  ackEnergyFlag,
   energySummary,
+  flagEnergySpike,
   listEnergyReadings,
   listMeters,
   logEnergyReading,
+  recordEnergyReading,
+  runEnergySweep,
+  seedEnergyMeter,
 } from './energy.js';
 import {
   ackTrainingFlag,
@@ -387,7 +405,16 @@ import {
   upsertVendorScore,
   vendorScoreSummary,
 } from './vendorscore.js';
-import { listWaste, logWaste, wasteSummary } from './waste.js';
+import {
+  ackWasteFlag,
+  flagWasteOverage,
+  listWaste,
+  logWaste,
+  recordWasteLog,
+  runWasteSweep,
+  seedWasteCategory,
+  wasteSummary,
+} from './waste.js';
 import {
   ackSeatingFlag,
   clearSeatingTable,
@@ -9791,6 +9818,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/coldchain/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runColdchainSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/coldchain/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackColdchainFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/coldchain/reading' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordColdchainReading(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/coldchain/breach/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagColdchainBreach(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/coldchain/probe/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedColdchainProbe(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/coldchain' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9833,6 +9890,40 @@ export function createPlatformMiddleware() {
           if (!requireUser(req, res)) return;
           const url = new URL(req.url ?? '', 'http://local');
           sendJson(res, 200, cashSummary(url.searchParams.get('venueId') || undefined));
+          return;
+        }
+        if (path === '/api/cash/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCashSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cash/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCashFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cash/entry' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          if (user.role === 'crew') {
+            sendJson(res, 403, { error: 'Crew kasa hareketi giremez' });
+            return;
+          }
+          void (async () => { sendJson(res, 200, postCashEntry(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cash/imbalance/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagCashImbalance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/cash/daily-close/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCashDailyClose(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/cash' && req.method === 'POST') {
@@ -9927,6 +10018,36 @@ export function createPlatformMiddleware() {
             meters: listMeters(),
             readings: listEnergyReadings(40),
           });
+          return;
+        }
+        if (path === '/api/energy/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runEnergySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/energy/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEnergyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/energy/reading' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordEnergyReading(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/energy/spike/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagEnergySpike(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/energy/meter/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEnergyMeter(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/energy' && req.method === 'POST') {
@@ -10157,6 +10278,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/waste' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, wasteSummary());
+          return;
+        }
+        if (path === '/api/waste/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWasteSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waste/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWasteFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waste/log' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordWasteLog(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waste/overage/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagWasteOverage(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waste/category/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedWasteCategory(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/waste' && req.method === 'POST') {

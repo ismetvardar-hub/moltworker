@@ -18,11 +18,28 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchCash(): Promise<{
   drawer: { venueId: string; balance: number; currency: string }
   todayIn: number
   todayOut: number
   entries: CashEntry[]
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+  imbalances?: number
+  largeDrops?: number
+  missingDailyClose?: number
 }> {
   return parse(await fetch('/api/cash', { headers: authHeaders() }))
 }
@@ -41,4 +58,24 @@ export async function postCash(input: {
       body: JSON.stringify(input),
     }),
   )
+}
+
+export async function runCashSweep(body: Record<string, unknown> = {}) {
+  return post('/api/cash/sweep', body)
+}
+
+export async function ackCashFlag(body: Record<string, unknown> = {}) {
+  return post('/api/cash/flag/ack', body)
+}
+
+export async function postCashEntry(body: Record<string, unknown> = {}) {
+  return post('/api/cash/entry', body)
+}
+
+export async function flagCashImbalance(body: Record<string, unknown> = {}) {
+  return post('/api/cash/imbalance/flag', body)
+}
+
+export async function seedCashDailyClose(body: Record<string, unknown> = {}) {
+  return post('/api/cash/daily-close/seed', body)
 }

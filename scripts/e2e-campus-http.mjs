@@ -1935,6 +1935,66 @@ try {
   });
   assert(notifications159Seed.res.ok && notifications159Seed.data.ok !== false, 'notifications push seed mutator');
 
+  const cash160Sweep = await req('/api/cash/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cash160Sweep.res.ok && cash160Sweep.data.ok !== false, 'cash sweep');
+  const cash160Entry = await req('/api/cash/entry', {
+    method: 'POST',
+    token,
+    body: { amount: 250, kind: 'in', note: 'e2e-160' },
+  });
+  assert(cash160Entry.res.ok && cash160Entry.data.ok !== false, 'cash entry mutator');
+  const cash160Seed = await req('/api/cash/daily-close/seed', {
+    method: 'POST',
+    token,
+    body: { varianceTry: 125 },
+  });
+  assert(cash160Seed.res.ok && cash160Seed.data.ok !== false, 'cash daily close seed');
+
+  const cold160Sweep = await req('/api/coldchain/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cold160Sweep.res.ok && cold160Sweep.data.ok !== false, 'coldchain sweep');
+  const cold160Breach = await req('/api/coldchain/breach/flag', {
+    method: 'POST',
+    token,
+    body: { note: 'e2e-160 breach' },
+  });
+  assert(cold160Breach.res.ok && cold160Breach.data.ok !== false, 'coldchain breach flag');
+  const cold160Probe = await req('/api/coldchain/probe/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-160 probe' },
+  });
+  assert(cold160Probe.res.ok && cold160Probe.data.ok !== false, 'coldchain probe seed');
+
+  const energy160Sweep = await req('/api/energy/sweep', { method: 'POST', token, body: { force: true } });
+  assert(energy160Sweep.res.ok && energy160Sweep.data.ok !== false, 'energy sweep');
+  const energy160Spike = await req('/api/energy/spike/flag', {
+    method: 'POST',
+    token,
+    body: { note: 'e2e-160 spike' },
+  });
+  assert(energy160Spike.res.ok && energy160Spike.data.ok !== false, 'energy spike flag');
+  const energy160Meter = await req('/api/energy/meter/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-160 meter' },
+  });
+  assert(energy160Meter.res.ok && energy160Meter.data.ok !== false, 'energy meter seed');
+
+  const waste160Sweep = await req('/api/waste/sweep', { method: 'POST', token, body: { force: true } });
+  assert(waste160Sweep.res.ok && waste160Sweep.data.ok !== false, 'waste sweep');
+  const waste160Overage = await req('/api/waste/overage/flag', {
+    method: 'POST',
+    token,
+    body: { item: 'E2E-160 waste', qty: 12, costTry: 750 },
+  });
+  assert(waste160Overage.res.ok && waste160Overage.data.ok !== false, 'waste overage flag');
+  const waste160Category = await req('/api/waste/category/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-160 category' },
+  });
+  assert(waste160Category.res.ok && waste160Category.data.ok !== false, 'waste category seed');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,

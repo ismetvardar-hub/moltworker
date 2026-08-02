@@ -6,20 +6,38 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
 export async function fetchWaste(): Promise<any> {
   return parse(await fetch('/api/waste', { headers: authHeaders() }))
 }
 
 export async function createWaste(input: Record<string, unknown>): Promise<any> {
-  return parse(await fetch('/api/waste', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(input),
-  }))
+  return post('/api/waste', input)
 }
 
+export async function runWasteSweep(body: Record<string, unknown> = {}) {
+  return post('/api/waste/sweep', body)
+}
 
+export async function ackWasteFlag(body: Record<string, unknown> = {}) {
+  return post('/api/waste/flag/ack', body)
+}
 
+export async function recordWasteLog(body: Record<string, unknown> = {}) {
+  return post('/api/waste/log', body)
+}
 
+export async function flagWasteOverage(body: Record<string, unknown> = {}) {
+  return post('/api/waste/overage/flag', body)
+}
 
-
+export async function seedWasteCategory(body: Record<string, unknown> = {}) {
+  return post('/api/waste/category/seed', body)
+}

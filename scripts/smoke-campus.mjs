@@ -608,6 +608,18 @@ import {
   valetSummary, runValetSweep, ackValetFlag, requestValetPickup, deliverValetVehicle, seedLongParkedValetTicket,
 } from '../server/valet.js';
 import {
+  cashSummary, runCashSweep, ackCashFlag, postCashEntry, flagCashImbalance, seedCashDailyClose,
+} from '../server/cash.js';
+import {
+  coldchainSummary, runColdchainSweep, ackColdchainFlag, recordColdchainReading, flagColdchainBreach, seedColdchainProbe,
+} from '../server/coldchain.js';
+import {
+  energySummary, runEnergySweep, ackEnergyFlag, recordEnergyReading, flagEnergySpike, seedEnergyMeter,
+} from '../server/energy.js';
+import {
+  wasteSummary, runWasteSweep, ackWasteFlag, recordWasteLog, flagWasteOverage, seedWasteCategory,
+} from '../server/waste.js';
+import {
   announcementsSummary, runAnnouncementsSweep, ackAnnouncementsFlag, publishHighPriorityAnnouncements, archiveStaleAnnouncements, seedEndingSoonAnnouncement,
 } from '../server/announcements.js';
 import {
@@ -1771,6 +1783,34 @@ assert(requestValetPickup({ minutes: 20 }, 'smoke').ok, 'valet pickup request');
 assert(deliverValetVehicle({}, 'smoke').ok, 'valet deliver');
 assert(ackValetFlag({}, 'smoke').ok, 'valet flag ack');
 
+assert(cashSummary().title, 'cash overview');
+assert(runCashSweep({ force: true }, 'smoke').ok, 'cash sweep');
+assert(postCashEntry({ amount: 250, kind: 'in' }, 'smoke').ok, 'cash post entry');
+assert(flagCashImbalance({ varianceTry: 125 }, 'smoke').ok, 'cash flag imbalance');
+assert(seedCashDailyClose({ varianceTry: 125 }, 'smoke').ok, 'cash daily close seed');
+assert(ackCashFlag({}, 'smoke').ok, 'cash flag ack');
+
+assert(coldchainSummary().title, 'coldchain overview');
+assert(runColdchainSweep({ force: true }, 'smoke').ok, 'coldchain sweep');
+assert(recordColdchainReading({}, 'smoke').ok, 'coldchain reading');
+assert(flagColdchainBreach({}, 'smoke').ok, 'coldchain flag breach');
+assert(seedColdchainProbe({}, 'smoke').ok, 'coldchain probe seed');
+assert(ackColdchainFlag({}, 'smoke').ok, 'coldchain flag ack');
+
+assert(energySummary().title, 'energy overview');
+assert(runEnergySweep({ force: true }, 'smoke').ok, 'energy sweep');
+assert(recordEnergyReading({ value: 100 }, 'smoke').ok, 'energy reading');
+assert(flagEnergySpike({}, 'smoke').ok, 'energy flag spike');
+assert(seedEnergyMeter({}, 'smoke').ok, 'energy meter seed');
+assert(ackEnergyFlag({}, 'smoke').ok, 'energy flag ack');
+
+assert(wasteSummary().title, 'waste overview');
+assert(runWasteSweep({ force: true }, 'smoke').ok, 'waste sweep');
+assert(recordWasteLog({}, 'smoke').ok, 'waste log');
+assert(flagWasteOverage({}, 'smoke').ok, 'waste flag overage');
+assert(seedWasteCategory({}, 'smoke').ok, 'waste category seed');
+assert(ackWasteFlag({}, 'smoke').ok, 'waste flag ack');
+
 assert(incidentsSummary().title, 'incidents overview');
 assert(runIncidentsSweep({ force: true }, 'smoke').ok, 'incidents sweep');
 assert(ackOpenCriticalIncidents({}, 'smoke').ok, 'incidents ack critical');
@@ -1909,6 +1949,7 @@ console.log('MOD156_OK');
 console.log('MOD157_OK');
 console.log('MOD158_OK');
 console.log('MOD159_OK');
+console.log('MOD160_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -1920,6 +1961,9 @@ for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
 }
 for (const thickened159 of ['stayring', 'culturescene', 'agentfleet', 'notifications']) {
   assert(!crudDomains.some((d) => d.name === thickened159), `crudops skips thickened ${thickened159}`);
+}
+for (const thickened160 of ['cash', 'coldchain', 'energy', 'waste']) {
+  assert(!crudDomains.some((d) => d.name === thickened160), `crudops skips thickened ${thickened160}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -1960,6 +2004,14 @@ assert(!isCrudOpsPath('/api/agentfleet/sweep', 'POST'), 'crudops skips thickened
 assert(!isCrudOpsPath('/api/agentfleet/flag/ack', 'POST'), 'crudops skips agentfleet ack');
 assert(!isCrudOpsPath('/api/notifications/sweep', 'POST'), 'crudops skips thickened notifications');
 assert(!isCrudOpsPath('/api/notifications/flag/ack', 'POST'), 'crudops skips notifications ack');
+assert(!isCrudOpsPath('/api/cash/sweep', 'POST'), 'crudops skips thickened cash');
+assert(!isCrudOpsPath('/api/cash/flag/ack', 'POST'), 'crudops skips cash ack');
+assert(!isCrudOpsPath('/api/coldchain/sweep', 'POST'), 'crudops skips thickened coldchain');
+assert(!isCrudOpsPath('/api/coldchain/flag/ack', 'POST'), 'crudops skips coldchain ack');
+assert(!isCrudOpsPath('/api/energy/sweep', 'POST'), 'crudops skips thickened energy');
+assert(!isCrudOpsPath('/api/energy/flag/ack', 'POST'), 'crudops skips energy ack');
+assert(!isCrudOpsPath('/api/waste/sweep', 'POST'), 'crudops skips thickened waste');
+assert(!isCrudOpsPath('/api/waste/flag/ack', 'POST'), 'crudops skips waste ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

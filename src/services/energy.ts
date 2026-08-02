@@ -17,7 +17,26 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchEnergy(): Promise<{ meters: Meter[]; readings: EnergyReading[] }> {
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchEnergy(): Promise<{
+  meters: Meter[]
+  readings: EnergyReading[]
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+  spikes?: number
+  missingReadings?: number
+}> {
   return parse(await fetch('/api/energy', { headers: authHeaders() }))
 }
 
@@ -33,4 +52,24 @@ export async function logEnergy(input: {
       body: JSON.stringify(input),
     }),
   )
+}
+
+export async function runEnergySweep(body: Record<string, unknown> = {}) {
+  return post('/api/energy/sweep', body)
+}
+
+export async function ackEnergyFlag(body: Record<string, unknown> = {}) {
+  return post('/api/energy/flag/ack', body)
+}
+
+export async function recordEnergyReading(body: Record<string, unknown> = {}) {
+  return post('/api/energy/reading', body)
+}
+
+export async function flagEnergySpike(body: Record<string, unknown> = {}) {
+  return post('/api/energy/spike/flag', body)
+}
+
+export async function seedEnergyMeter(body: Record<string, unknown> = {}) {
+  return post('/api/energy/meter/seed', body)
 }
