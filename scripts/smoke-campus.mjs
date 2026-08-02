@@ -243,6 +243,8 @@ import {
   ackReadinessDimension,
   escalateReadinessGap,
   resolveReadinessGap,
+  runReadinessSweep,
+  ackReadinessFlag,
 } from '../server/readiness.js';
 import {
   buildCognisphere,
@@ -592,6 +594,12 @@ import {
 import {
   buildOpsReport, runReportSweep, ackReportFlag, cancelReportJobs, ackReportEthos, snapshotReportAudit,
 } from '../server/report.js';
+import {
+  buildMetrics, runMetricsSweep, ackMetricsFlag, snapshotMetrics, purgeFailedJobs, ackEthosFails,
+} from '../server/metrics.js';
+import {
+  buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
+} from '../server/exports.js';
 import {
   listCrudDomains,
   crudopsOverview,
@@ -1651,10 +1659,36 @@ assert(ackReportEthos({}, 'smoke').ok, 'report ethos ack');
 assert(snapshotReportAudit({}, 'smoke').ok, 'report audit snapshot');
 assert(ackReportFlag({}, 'smoke').ok, 'report flag ack');
 
+const met = buildMetrics();
+assert(met.title, 'metrics overview');
+assert(runMetricsSweep({ force: true }, 'smoke').ok, 'metrics sweep');
+assert(snapshotMetrics({}, 'smoke').ok, 'metrics snapshot');
+assert(purgeFailedJobs({}, 'smoke').ok, 'metrics jobs purge');
+assert(ackEthosFails({}, 'smoke').ok, 'metrics ethos ack');
+assert(ackMetricsFlag({}, 'smoke').ok, 'metrics flag ack');
+
+const exp = buildExportsHub();
+assert(exp.title && Array.isArray(exp.catalog), 'exports hub');
+assert(buildExport(exp.catalog[0]?.id || 'guests')?.csv, 'exports csv key');
+assert(runExportsSweep({ force: true }, 'smoke').ok, 'exports sweep');
+assert(runExportsSnapshot({}, 'smoke').ok, 'exports snapshot');
+assert(exportAllCatalog({ sample: true }, 'smoke').ok, 'exports catalog export');
+assert(clearExportsRuns({}, 'smoke').ok, 'exports runs clear');
+assert(ackExportsFlag({}, 'smoke').ok, 'exports flag ack');
+
+const rdy = buildReadiness();
+assert(rdy.title || rdy.overall != null, 'readiness overview');
+assert(runReadinessSweep({ force: true }, 'smoke').ok, 'readiness sweep');
+assert(refreshReadinessSnapshot({}, 'smoke').ok, 'readiness snapshot');
+assert(escalateReadinessGap({}, 'smoke').ok, 'readiness escalate');
+assert(resolveReadinessGap({}, 'smoke').ok, 'readiness gap resolve');
+assert(ackReadinessFlag({}, 'smoke').ok, 'readiness flag ack');
+
 console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
 console.log('MOD148_OK');
+console.log('MOD152_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 500, 'crudops registry size');

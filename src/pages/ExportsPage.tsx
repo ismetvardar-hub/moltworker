@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import * as api from '../services/exports'
 import {
   downloadExport,
   fetchExportCatalog,
@@ -8,19 +9,30 @@ import {
 
 export default function ExportsPage() {
   const [catalog, setCatalog] = useState<ExportCatalogItem[]>([])
+  const [hub, setHub] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
+
+  async function refresh() {
+    try {
+      const data = await fetchExportCatalog()
+      setCatalog(data.catalog || [])
+      setHub(data)
+      setError(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Katalog alınamadı')
+    }
+  }
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const data = await fetchExportCatalog()
-        setCatalog(data.catalog)
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Katalog alınamadı')
-      }
-    })()
+    void refresh()
   }, [])
+
+  function ping(m: string) {
+    setFlash(m)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onDownload(id: string) {
     setBusy(id)
@@ -47,6 +59,31 @@ export default function ExportsPage() {
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
+      )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      {hub && (
+        <PanelCard title={hub.title || 'Export ops'}>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+            {(hub.summaryLines || []).map((l: string) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runExportsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+            <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.runExportsSnapshot({}).then((r: any) => { ping(`Snapshot ${r.snapshot?.id ? 'ok' : '—'}`); return refresh() })}>Snapshot</button>
+            <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.exportAllCatalog({ sample: true }).then((r: any) => { ping(`Runs +${r.runs?.length ?? 0}`); return refresh() })}>Export all</button>
+            <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.clearExportsRuns({}).then((r: any) => { ping(`Cleared ${r.cleared ?? 0}`); return refresh() })}>Clear runs</button>
+            <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackExportsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Flag {hub.summary?.flags_open ?? 0} · katalog {hub.summary?.catalog_size ?? catalog.length} · run {hub.summary?.runs ?? 0}
+          </p>
+        </PanelCard>
       )}
 
       <PanelCard title={`Katalog (${catalog.length})`}>

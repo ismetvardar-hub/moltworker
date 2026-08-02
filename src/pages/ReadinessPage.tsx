@@ -38,11 +38,30 @@ export default function ReadinessPage() {
       )}
       {data && (
         <>
-          <PanelCard title={`Skor ${data.overall} · ${data.grade}`}>
+          <PanelCard title={data.title || `Skor ${data.overall} · ${data.grade}`}>
+            {(data.summaryLines || []).length > 0 && (
+              <ul className="mb-3 list-disc space-y-1 pl-5 text-sm text-slate-300">
+                {(data.summaryLines || []).map((l: string) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+            )}
             <div className="mb-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.runReadinessSweep({ force: true }).then((r: any) => {
+                    ping(`Sweep +${r.created?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
                 onClick={() =>
                   void api.refreshReadinessSnapshot({ note: 'ops snapshot' }).then((r: any) => {
                     ping(`Snapshot · ${r.snapshot?.overall}`)
@@ -54,7 +73,7 @@ export default function ReadinessPage() {
               </button>
               <button
                 type="button"
-                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                className="rounded-lg bg-teal-500/20 px-3 py-2 text-sm text-teal-100"
                 onClick={() =>
                   void api.setReadinessThreshold({ warn: 72, alert: 58, critical: 42 }).then((r: any) => {
                     ping(`Eşik warn ${r.thresholds?.warn}`)
@@ -100,6 +119,18 @@ export default function ReadinessPage() {
               >
                 Boyut ack
               </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-700 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.ackReadinessFlag({}).then((r: any) => {
+                    ping(r.ok ? 'Flag ack' : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Flag ack
+              </button>
             </div>
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
               {(data.dimensions || []).map((d: any) => (
@@ -130,9 +161,9 @@ export default function ReadinessPage() {
               ))}
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              Warn {data.summary?.dims_warn ?? 0} · alert {data.summary?.dims_alert ?? 0} · gap{' '}
-              {data.summary?.gaps_open ?? 0} · snapshot {data.summary?.snapshots ?? 0} · eşik warn{' '}
-              {data.thresholds?.warn ?? 70}
+              Flag {data.summary?.flags_open ?? 0} · warn {data.summary?.dims_warn ?? 0} · alert{' '}
+              {data.summary?.dims_alert ?? 0} · gap {data.summary?.gaps_open ?? 0} · snapshot{' '}
+              {data.summary?.snapshots ?? 0} · eşik warn {data.thresholds?.warn ?? 70}
             </p>
             {data.signals?.campusScore != null && (
               <p className="mt-1 text-xs text-slate-500">

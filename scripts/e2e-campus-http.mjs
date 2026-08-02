@@ -162,6 +162,8 @@ try {
     '/api/brief',
     '/api/digest',
     '/api/report',
+    '/api/metrics',
+    '/api/exports',
     '/api/weather',
     '/api/maintenance',
     '/api/inventory',
@@ -699,6 +701,8 @@ try {
   const cogAck = await req('/api/cognisphere/flag/ack', { method: 'POST', token, body: {} });
   assert(cogAck.res.ok && cogAck.data.ok !== false, 'cognisphere flag ack');
 
+  const rdySweep = await req('/api/readiness/sweep', { method: 'POST', token, body: { force: true } });
+  assert(rdySweep.res.ok && rdySweep.data.ok !== false, 'readiness sweep');
   const readySnap = await req('/api/readiness/snapshot', {
     method: 'POST',
     token,
@@ -725,6 +729,8 @@ try {
   assert(readyEsc.res.ok && readyEsc.data.ok !== false, 'readiness escalate');
   const readyGap = await req('/api/readiness/gap/resolve', { method: 'POST', token, body: {} });
   assert(readyGap.res.ok && readyGap.data.ok !== false, 'readiness gap resolve');
+  const rdyAck = await req('/api/readiness/flag/ack', { method: 'POST', token, body: {} });
+  assert(rdyAck.res.ok && rdyAck.data.ok !== false, 'readiness flag ack');
 
   const opsInt = await req('/api/ops/integrity', { method: 'POST', token, body: { force: true } });
   assert(opsInt.res.ok && opsInt.data.ok !== false, 'ops integrity');
@@ -1693,6 +1699,28 @@ try {
   assert(rptSnap.res.ok && rptSnap.data.ok !== false, 'report snapshot');
   const rptAck = await req('/api/report/flag/ack', { method: 'POST', token, body: {} });
   assert(rptAck.res.ok && rptAck.data.ok !== false, 'report ack');
+
+  const metSweep = await req('/api/metrics/sweep', { method: 'POST', token, body: { force: true } });
+  assert(metSweep.res.ok && metSweep.data.ok !== false, 'metrics sweep');
+  const metSnap = await req('/api/metrics/snapshot', { method: 'POST', token, body: {} });
+  assert(metSnap.res.ok && metSnap.data.ok !== false, 'metrics snapshot');
+  const metPurge = await req('/api/metrics/jobs/purge', { method: 'POST', token, body: {} });
+  assert(metPurge.res.ok && metPurge.data.ok !== false, 'metrics jobs purge');
+  const metEthos = await req('/api/metrics/ethos/ack', { method: 'POST', token, body: {} });
+  assert(metEthos.res.ok && metEthos.data.ok !== false, 'metrics ethos');
+  const metAck = await req('/api/metrics/flag/ack', { method: 'POST', token, body: {} });
+  assert(metAck.res.ok && metAck.data.ok !== false, 'metrics ack');
+
+  const expSweep = await req('/api/exports/sweep', { method: 'POST', token, body: { force: true } });
+  assert(expSweep.res.ok && expSweep.data.ok !== false, 'exports sweep');
+  const expSnap = await req('/api/exports/snapshot', { method: 'POST', token, body: {} });
+  assert(expSnap.res.ok && expSnap.data.ok !== false, 'exports snapshot');
+  const expAll = await req('/api/exports/catalog/export', { method: 'POST', token, body: { sample: true } });
+  assert(expAll.res.ok && expAll.data.ok !== false, 'exports catalog');
+  const expClear = await req('/api/exports/runs/clear', { method: 'POST', token, body: {} });
+  assert(expClear.res.ok && expClear.data.ok !== false, 'exports clear');
+  const expAck = await req('/api/exports/flag/ack', { method: 'POST', token, body: {} });
+  assert(expAck.res.ok && expAck.data.ok !== false, 'exports ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

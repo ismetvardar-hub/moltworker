@@ -12,7 +12,15 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchExportCatalog(): Promise<{ catalog: ExportCatalogItem[] }> {
+export async function fetchExportCatalog(): Promise<{
+  catalog: ExportCatalogItem[]
+  title?: string
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  flags?: Array<{ id: string; key?: string; level?: string; text?: string }>
+  runs?: unknown[]
+  snapshots?: unknown[]
+}> {
   return parse(await fetch('/api/exports', { headers: authHeaders() }))
 }
 
@@ -34,4 +42,54 @@ export async function downloadExport(id: string): Promise<void> {
   a.click()
   a.remove()
   URL.revokeObjectURL(url)
+}
+
+export async function runExportsSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/exports/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackExportsFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/exports/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function runExportsSnapshot(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/exports/snapshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function exportAllCatalog(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/exports/catalog/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function clearExportsRuns(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/exports/runs/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
 }

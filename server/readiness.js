@@ -187,6 +187,9 @@ export function buildReadiness() {
   const gapList = Array.isArray(gaps) ? gaps : [];
   const openGaps = gapList.filter((g) => g.status === 'open');
   const snapshots = readCollection('readiness-snapshots', []) || [];
+  const flags = readCollection('readiness-flags', []) || [];
+  const flagList = Array.isArray(flags) ? flags : [];
+  const openFlags = flagList.filter((f) => f.status === 'open');
 
   const enriched = dimensions.map((d) => {
     let level = 'ok';
@@ -201,14 +204,19 @@ export function buildReadiness() {
     };
   });
 
+  const dimsWarn = enriched.filter((d) => d.level === 'warn').length;
+  const dimsAlert = enriched.filter((d) => d.level === 'alert' || d.level === 'critical').length;
+
   return {
     overall,
     grade,
     generatedAt: new Date().toISOString(),
+    title: 'LİKYA Hazırlık Skoru',
     dimensions: enriched,
     thresholds,
     gaps: openGaps.slice(0, 20),
     snapshots: (Array.isArray(snapshots) ? snapshots : []).slice(0, 10),
+    flags: openFlags.slice(0, 30),
     campus,
     signals: {
       lowStock: inv.lowStock,
@@ -230,12 +238,18 @@ export function buildReadiness() {
     summary: {
       overall,
       grade,
-      dims_warn: enriched.filter((d) => d.level === 'warn').length,
-      dims_alert: enriched.filter((d) => d.level === 'alert' || d.level === 'critical').length,
+      flags_open: openFlags.length,
+      dims_warn: dimsWarn,
+      dims_alert: dimsAlert,
       dims_acked: enriched.filter((d) => d.acked).length,
       gaps_open: openGaps.length,
       snapshots: Array.isArray(snapshots) ? snapshots.length : 0,
     },
+    summaryLines: [
+      `Skor ${overall} · ${grade}`,
+      `Warn ${dimsWarn} · alert ${dimsAlert} · gap ${openGaps.length}`,
+      `Readiness flag ${openFlags.length} açık`,
+    ],
   };
 }
 
@@ -384,4 +398,84 @@ export function resolveReadinessGap(input = {}, actor = 'system') {
     meta: { id: list[idx].id },
   });
   return { ok: true, gap: list[idx], overview: buildReadiness() };
+}
+
+export function runReadinessSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const o = buildReadiness();
+  const existing = readCollection('readiness-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  const created = [];
+  const candidates = [];
+  const grade = o.grade || o.summary?.grade;
+  if (force || grade === 'D' || grade === 'C' || (o.overall ?? 100) < 70) {
+    candidates.push({
+      key: 'score',
+      level: grade === 'D' || (o.overall ?? 100) < 55 ? 'alert' : 'warn',
+      text: `Hazırlık ${o.overall ?? 0}/${grade || '?'}`,
+      domain: 'score',
+    });
+  }
+  if (force || (o.summary?.dims_alert || 0) > 0 || (o.summary?.gaps_open || 0) > 0) {
+    candidates.push({
+      key: 'gaps',
+      level: 'alert',
+      text: `Alert boyut ${o.summary?.dims_alert || 0} · gap ${o.summary?.gaps_open || 0}`,
+      domain: 'gaps',
+    });
+  }
+  if (force || (o.summary?.dims_warn || 0) > 0) {
+    candidates.push({
+      key: 'warn',
+      level: 'info',
+      text: `Warn boyut ${o.summary?.dims_warn || 0}`,
+      domain: 'dims',
+    });
+  }
+  if (force && !candidates.length) {
+    candidates.push({ key: 'heartbeat', level: 'info', text: 'Readiness heartbeat OK', domain: 'system' });
+  }
+  for (const c of candidates) {
+    if (openKeys.has(c.key)) continue;
+    const row = { id: rid('rdf'), ...c, status: 'open', at: new Date().toISOString(), actor };
+    list.unshift(row);
+    created.push(row);
+    openKeys.add(c.key);
+  }
+  writeCollection('readiness-flags', list.slice(0, 200));
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'LİKYA-1',
+        title: `readiness sweep · ${created.length} flag`,
+        priority: created.some((f) => f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id) },
+      },
+      actor,
+    );
+  }
+  const sweep = { id: rid('rdsweep'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('readiness-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'readiness.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, overview: buildReadiness() };
+}
+
+export function ackReadinessFlag(input = {}, actor = 'system') {
+  const list = readCollection('readiness-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok — önce sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('readiness-flags', list);
+  appendAudit({ actor, action: 'readiness.flag_ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: buildReadiness() };
 }

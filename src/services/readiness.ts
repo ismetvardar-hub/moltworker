@@ -10,6 +10,26 @@ export async function fetchReadiness(): Promise<any> {
   return parse(await fetch('/api/readiness', { headers: authHeaders() }))
 }
 
+export async function runReadinessSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/readiness/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackReadinessFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/readiness/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function refreshReadinessSnapshot(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/readiness/snapshot', {

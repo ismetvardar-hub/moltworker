@@ -75,7 +75,14 @@ import {
   passStats,
   verifyPass,
 } from './pass.js';
-import { buildMetrics } from './metrics.js';
+import {
+  ackEthosFails,
+  ackMetricsFlag,
+  buildMetrics,
+  purgeFailedJobs,
+  runMetricsSweep,
+  snapshotMetrics,
+} from './metrics.js';
 import {
   brandsForRole,
   brandsSummary,
@@ -163,7 +170,16 @@ import {
   updatePurchaseOrder,
 } from './suppliers.js';
 import { createFeedback, feedbackSummary, listFeedback } from './feedback.js';
-import { buildExport, listExportCatalog } from './exports.js';
+import {
+  ackExportsFlag,
+  buildExport,
+  buildExportsHub,
+  clearExportsRuns,
+  exportAllCatalog,
+  listExportCatalog,
+  runExportsSnapshot,
+  runExportsSweep,
+} from './exports.js';
 import { consentSummary, listConsents, recordConsent } from './consent.js';
 import {
   announcementsSummary,
@@ -320,10 +336,12 @@ import {
 } from './weather.js';
 import {
   ackReadinessDimension,
+  ackReadinessFlag,
   buildReadiness,
   escalateReadinessGap,
   refreshReadinessSnapshot,
   resolveReadinessGap,
+  runReadinessSweep,
   setReadinessThreshold,
 } from './readiness.js';
 
@@ -8061,6 +8079,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildMetrics());
           return;
         }
+        if (path === '/api/metrics/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMetricsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/metrics/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMetricsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/metrics/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, snapshotMetrics(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/metrics/jobs/purge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, purgeFailedJobs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/metrics/ethos/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEthosFails(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 16: Markalar ────────────────────────────────────────
         if (path === '/api/brands' && req.method === 'GET') {
@@ -8700,7 +8748,37 @@ export function createPlatformMiddleware() {
         // ── AŞAMA 30: CSV export ──────────────────────────────────────
         if (path === '/api/exports' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
-          sendJson(res, 200, { catalog: listExportCatalog() });
+          sendJson(res, 200, buildExportsHub());
+          return;
+        }
+        if (path === '/api/exports/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runExportsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/exports/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackExportsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/exports/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runExportsSnapshot(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/exports/catalog/export' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, exportAllCatalog(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/exports/runs/clear' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, clearExportsRuns(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/exports/') && req.method === 'GET') {
@@ -9708,6 +9786,18 @@ export function createPlatformMiddleware() {
         if (path === '/api/readiness' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildReadiness());
+          return;
+        }
+        if (path === '/api/readiness/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runReadinessSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/readiness/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackReadinessFlag(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/readiness/snapshot' && req.method === 'POST') {

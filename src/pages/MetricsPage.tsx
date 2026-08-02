@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Activity, BarChart3, RefreshCw } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import * as api from '../services/metrics';
 import { fetchMetrics, type MetricsReport } from '../services/metrics';
 
 function Stat({
@@ -24,6 +25,7 @@ function Stat({
 export default function MetricsPage() {
   const [m, setM] = useState<MetricsReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -39,6 +41,11 @@ export default function MetricsPage() {
     const t = setInterval(() => void refresh(), 6000);
     return () => clearInterval(t);
   }, [refresh]);
+
+  function ping(msg: string) {
+    setFlash(msg);
+    window.setTimeout(() => setFlash(null), 2800);
+  }
 
   return (
     <div className="space-y-6">
@@ -66,6 +73,31 @@ export default function MetricsPage() {
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
           {error}
         </div>
+      )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      {m && (
+        <PanelCard title={m.title || 'Ops'}>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+            {(m.summaryLines || []).map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runMetricsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh(); })}>Sweep</button>
+            <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.snapshotMetrics({}).then((r: any) => { ping(`Snapshot ${r.snapshot?.id ? 'ok' : '—'}`); return refresh(); })}>Snapshot</button>
+            <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.purgeFailedJobs({}).then((r: any) => { ping(`Purge ${r.cancelled?.length ?? 0}`); return refresh(); })}>Jobs purge</button>
+            <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.ackEthosFails({}).then((r: any) => { ping(r.ok ? 'ETHOS ack' : r.error || 'Ack yok'); return refresh(); })}>ETHOS ack</button>
+            <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackMetricsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh(); })}>Flag ack</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Flag {(m.summary as any)?.flags_open ?? 0} · ETHOS fail {m.chain?.ethosFail ?? 0} · fail jobs {m.jobs?.failed ?? 0}
+          </p>
+        </PanelCard>
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
