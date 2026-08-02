@@ -18,6 +18,45 @@ export async function createDocuments(input: Record<string, unknown>): Promise<a
   }))
 }
 
+export async function runDocumentsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/documents/sweep', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
+export async function ackDocumentsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/documents/flag/ack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
+export async function reviseDocumentVersion(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/documents/revise', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
+export async function flagDocumentReview(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/documents/review/flag', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
+export async function seedPolicyDocument(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/documents/policy/seed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
 
 
 

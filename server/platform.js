@@ -110,10 +110,16 @@ import {
 } from './guests.js';
 import { createPlaybook, listPlaybooks, removePlaybook } from './playbooks.js';
 import {
+  ackWebhooksFlag,
   createWebhook,
   listDeliveries,
   listWebhooks,
+  recordWebhookProbeDelivery,
   removeWebhook,
+  runWebhooksSweep,
+  seedWebhookHook,
+  toggleWebhookActive,
+  webhooksSummary,
 } from './webhooks.js';
 import { buildOpenApi } from './openapi.js';
 import {
@@ -395,13 +401,23 @@ import {
   updateMusicRequest,
 } from './music.js';
 import {
+  ackDocumentsFlag,
   createDocument,
   documentsSummary,
+  flagDocumentReview,
   listDocuments,
   removeDocument,
+  reviseDocumentVersion,
+  runDocumentsSweep,
+  seedPolicyDocument,
 } from './documents.js';
 import {
+  ackVendorscoreFlag,
+  flagVendorUnderperformance,
   listVendorScores,
+  reviewVendorScore,
+  runVendorscoreSweep,
+  seedVendorScore,
   upsertVendorScore,
   vendorScoreSummary,
 } from './vendorscore.js';
@@ -7428,13 +7444,18 @@ import {
 } from './greenpulse.js';
 import {
   ackCampusBriefAction,
+  ackCampusbriefFlag,
+  ageCampusBriefActions,
   assignCampusBriefAction,
   campusBriefOverview,
   campusHealthCheck,
   dismissCampusBriefAction,
   escalateCampusBriefAction,
+  flagCampusbriefHealth,
   publishCampusBriefDigest,
   runCampusAutomations,
+  runCampusbriefSweep,
+  seedCampusbriefAction,
   snoozeCampusBriefAction,
   syncCampusBriefActions,
   wakeSnoozedCampusBriefActions,
@@ -8470,6 +8491,7 @@ export function createPlatformMiddleware() {
         if (path === '/api/webhooks' && req.method === 'GET') {
           if (!requireCeo(req, res)) return;
           sendJson(res, 200, {
+            ...webhooksSummary(),
             webhooks: listWebhooks(),
             deliveries: listDeliveries(30),
           });
@@ -8488,6 +8510,36 @@ export function createPlatformMiddleware() {
               });
             }
           })();
+          return;
+        }
+        if (path === '/api/webhooks/sweep' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWebhooksSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/webhooks/flag/ack' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWebhooksFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/webhooks/delivery/probe' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordWebhookProbeDelivery(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/webhooks/active/toggle' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, toggleWebhookActive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/webhooks/seed' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedWebhookHook(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/webhooks/') && req.method === 'DELETE') {
@@ -10245,6 +10297,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/documents/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDocumentsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/documents/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDocumentsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/documents/revise' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reviseDocumentVersion(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/documents/review/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagDocumentReview(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/documents/policy/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPolicyDocument(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/documents/') && req.method === 'DELETE') {
           const user = requireCeo(req, res);
           if (!user) return;
@@ -10271,6 +10353,36 @@ export function createPlatformMiddleware() {
               score: upsertVendorScore(await readBody(req), user.username),
             });
           })();
+          return;
+        }
+        if ((path === '/api/vendorscore/sweep' || path === '/api/vendor-scores/sweep') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVendorscoreSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/vendorscore/flag/ack' || path === '/api/vendor-scores/flag/ack') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVendorscoreFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/vendorscore/review' || path === '/api/vendor-scores/review') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reviewVendorScore(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/vendorscore/underperform' || path === '/api/vendor-scores/underperform') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagVendorUnderperformance(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/vendorscore/seed' || path === '/api/vendor-scores/seed') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVendorScore(await readBody(req), user.username)); })();
           return;
         }
 
@@ -40923,6 +41035,18 @@ export function createPlatformMiddleware() {
           void (async () => { sendJson(res, 200, wakeSnoozedAgentJobs(await readBody(req), user.username)); })();
           return;
         }
+        if (path === '/api/campusbrief/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCampusbriefSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCampusbriefFlag(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/campusbrief/actions' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -40964,6 +41088,24 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, dismissCampusBriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageCampusBriefActions(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/actions/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCampusbriefAction(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campusbrief/health/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagCampusbriefHealth(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campusbrief/publish' && req.method === 'POST') {

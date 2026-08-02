@@ -28,6 +28,15 @@ function hasOpenJob(agent, titleIncludes) {
   );
 }
 
+function rid(p) {
+  return `${p}_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 6)}`;
+}
+
+function openCampusbriefFlags() {
+  const flags = readCollection('campusbrief-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
 /** Çapraz otomasyon: hava / ESG / HK / F&B → ajan kuyruğu */
 export function runCampusAutomations(actor = 'system') {
   const actions = [];
@@ -131,6 +140,7 @@ export function campusHealthCheck() {
   const brief = campusBriefOverview('health');
   const alerts = (brief.actions || []).filter((a) => a.level === 'alert').length;
   const warns = (brief.actions || []).filter((a) => a.level === 'warn').length;
+  const flags = openCampusbriefFlags();
   const score = Math.max(0, 100 - alerts * 15 - warns * 5);
   const status = score >= 80 ? 'healthy' : score >= 55 ? 'degraded' : 'unhealthy';
   return {
@@ -138,6 +148,7 @@ export function campusHealthCheck() {
     score,
     alerts,
     warns,
+    flags_open: flags.length,
     actions: brief.actions,
     pulses: brief.pulses,
     generatedAt: new Date().toISOString(),
@@ -228,6 +239,7 @@ export function campusBriefOverview(actor = 'system') {
   const openRegister = regList.filter((a) => a.status === 'open' || a.status === 'assigned');
   const snoozedRegister = regList.filter((a) => a.status === 'snoozed');
   const digests = readCollection('campus-brief-digests', []) || [];
+  const flags = openCampusbriefFlags();
 
   return {
     title: 'CEO Kampüs Brifi',
@@ -236,6 +248,7 @@ export function campusBriefOverview(actor = 'system') {
     actions,
     register: [...openRegister, ...snoozedRegister].slice(0, 40),
     digests: (Array.isArray(digests) ? digests : []).slice(0, 10),
+    flags: flags.slice(0, 30),
     pulses: {
       campus: campus.summary,
       stay: stay.summary,
@@ -261,7 +274,12 @@ export function campusBriefOverview(actor = 'system') {
       register_snoozed: snoozedRegister.length,
       register_escalated: regList.filter((a) => a.escalated).length,
       digests: Array.isArray(digests) ? digests.length : 0,
+      flags_open: flags.length,
     },
+    summaryLines: [
+      `Türetilmiş aksiyon ${actions.length} · kayıt açık ${openRegister.filter((a) => a.status === 'open').length}`,
+      `Atanmış ${openRegister.filter((a) => a.status === 'assigned').length} · snooze ${snoozedRegister.length} · flag ${flags.length}`,
+    ],
     generatedAt: new Date().toISOString(),
     actor,
   };
@@ -535,4 +553,205 @@ export function publishCampusBriefDigest(actor = 'system') {
     meta: { id: digest.id },
   });
   return { ok: true, digest, overview: campusBriefOverview(actor) };
+}
+
+function addCampusbriefFlag(candidate, actor = 'system') {
+  const existing = readCollection('campusbrief-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  if (openKeys.has(candidate.key)) return null;
+  const flag = { id: rid('cbf'), ...candidate, status: 'open', at: new Date().toISOString(), actor };
+  list.unshift(flag);
+  writeCollection('campusbrief-flags', list.slice(0, 200));
+  return flag;
+}
+
+/** Mutator — seed a persistent CEO brief action for ops drills. */
+export function seedCampusbriefAction(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  const actions = Array.isArray(list) ? list : [];
+  const row = {
+    id: rid('cba'),
+    level: input.level || 'warn',
+    text: input.text || 'Ops seed brif aksiyon',
+    href: input.href || 'campuscore',
+    status: input.status || 'open',
+    owner: input.owner || null,
+    at: input.at || new Date().toISOString(),
+    actor,
+  };
+  actions.unshift(row);
+  writeCollection('campus-brief-actions', actions.slice(0, 200));
+  appendAudit({ actor, action: 'campusbrief.seed_action', detail: row.text, meta: { id: row.id } });
+  return { ok: true, action: row, overview: campusBriefOverview(actor) };
+}
+
+/** Mutator — escalate aging open/assigned brief actions and enqueue owner follow-up. */
+export function ageCampusBriefActions(input = {}, actor = 'system') {
+  const list = readCollection('campus-brief-actions', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: true, aged: [], overview: campusBriefOverview(actor) };
+  const limit = Math.max(1, Math.min(80, Number(input.limit) || 20));
+  const staleHours = Math.max(0, Number(input.stale_hours ?? input.staleHours ?? 12));
+  const force = !!input.force;
+  const cutoff = Date.now() - staleHours * 60 * 60_000;
+  const aged = [];
+  for (let i = 0; i < list.length && aged.length < limit; i++) {
+    const a = list[i];
+    if (!['open', 'assigned'].includes(a.status)) continue;
+    if (a.escalated && !force) continue;
+    const at = Date.parse(a.at || a.assigned_at || 0);
+    if (!force && Number.isFinite(at) && at > cutoff) continue;
+    const owner = input.owner || a.owner || 'LİKYA-1';
+    list[i] = {
+      ...a,
+      level: 'alert',
+      status: 'assigned',
+      owner,
+      escalated: true,
+      aging: true,
+      aged_at: new Date().toISOString(),
+      aged_by: actor,
+      aging_reason: input.reason || `>${staleHours}h`,
+      snooze_until: null,
+    };
+    aged.push(list[i]);
+    enqueueAgentJob(
+      {
+        agent: owner,
+        title: `brif aging · ${list[i].text}`,
+        priority: 'high',
+        payload: { action_id: list[i].id, href: list[i].href, aging: true },
+      },
+      actor,
+    );
+  }
+  if (aged.length) {
+    writeCollection('campus-brief-actions', list);
+    appendAudit({
+      actor,
+      action: 'campusbrief.age_actions',
+      detail: `${aged.length} aksiyon aging`,
+      meta: { n: aged.length },
+    });
+  }
+  return { ok: true, aged, overview: campusBriefOverview(actor) };
+}
+
+/** Mutator — convert current health state into a campusbrief flag. */
+export function flagCampusbriefHealth(input = {}, actor = 'system') {
+  const health = campusHealthCheck();
+  const flag = addCampusbriefFlag(
+    {
+      key: input.key || `campusbrief_health_${health.status}`,
+      level: input.level || (health.status === 'healthy' ? 'info' : health.status === 'degraded' ? 'warn' : 'alert'),
+      text: input.text || `Campus health ${health.status} · skor ${health.score}`,
+      domain: 'health',
+      score: health.score,
+      status: health.status,
+    },
+    actor,
+  );
+  appendAudit({ actor, action: 'campusbrief.flag_health', detail: health.status, meta: { flagId: flag?.id } });
+  return { ok: true, flag, health, overview: campusBriefOverview(actor) };
+}
+
+export function runCampusbriefSweep(input = {}, actor = 'system') {
+  const woken = wakeSnoozedCampusBriefActions({ limit: input.limit || 40, force: !!input.force_wake }, actor);
+  const synced = syncCampusBriefActions(actor);
+  const automations = input.skipAutomations ? { ok: true, actions: [] } : runCampusAutomations(actor);
+  const aging = ageCampusBriefActions(
+    {
+      stale_hours: input.stale_hours ?? input.staleHours ?? 12,
+      force: !!input.force,
+      limit: input.limit || 20,
+      reason: input.reason || 'sweep',
+    },
+    actor,
+  );
+  const health = campusHealthCheck();
+  const overview = campusBriefOverview(actor);
+  const created = [];
+  const candidates = [];
+  if (input.force || health.status !== 'healthy') {
+    candidates.push({
+      key: `campusbrief_health_${health.status}`,
+      level: health.status === 'unhealthy' ? 'alert' : health.status === 'degraded' ? 'warn' : 'info',
+      text: `Campus health ${health.status} · skor ${health.score}`,
+      domain: 'health',
+      score: health.score,
+    });
+  }
+  if (input.force || (overview.summary?.register_open || 0) > 0) {
+    candidates.push({
+      key: 'campusbrief_register_open',
+      level: (overview.summary?.register_open || 0) > 5 ? 'warn' : 'info',
+      text: `Brif açık kayıt ${overview.summary?.register_open || 0}`,
+      domain: 'actions',
+    });
+  }
+  if (input.force || (aging.aged?.length || 0) > 0) {
+    candidates.push({
+      key: 'campusbrief_action_aging',
+      level: (aging.aged?.length || 0) > 0 ? 'alert' : 'info',
+      text: `Aging brif aksiyon ${aging.aged?.length || 0}`,
+      domain: 'aging',
+    });
+  }
+  for (const c of candidates) {
+    const flag = addCampusbriefFlag(c, actor);
+    if (flag) created.push(flag);
+  }
+  if (created.length) {
+    enqueueAgentJob(
+      {
+        agent: 'LİKYA-1',
+        title: `campusbrief sweep · ${created.length} flag`,
+        priority: created.some((f) => f.level === 'alert') ? 'high' : 'normal',
+        payload: { flag_ids: created.map((f) => f.id), health: health.status },
+      },
+      actor,
+    );
+  }
+  const sweep = {
+    id: rid('cbs'),
+    created: created.length,
+    woken: woken.woken?.length || 0,
+    synced: synced.created?.length || 0,
+    automations: automations.actions?.length || 0,
+    aged: aging.aged?.length || 0,
+    health: health.status,
+    score: health.score,
+    at: new Date().toISOString(),
+    actor,
+  };
+  prependItem('campusbrief-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'campusbrief.sweep', detail: `${created.length} flag · ${health.status}`, meta: { id: sweep.id } });
+  return {
+    ok: true,
+    sweep,
+    created,
+    health,
+    automations,
+    aging,
+    overview: campusBriefOverview(actor),
+  };
+}
+
+export function ackCampusbriefFlag(input = {}, actor = 'system') {
+  const list = readCollection('campusbrief-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok — önce sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Açık flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('campusbrief-flags', list);
+  appendAudit({ actor, action: 'campusbrief.ack_flag', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: campusBriefOverview(actor) };
 }

@@ -2,9 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { Plus, RefreshCw, Trash2, Webhook } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import {
+  ackWebhooksFlag,
   createWebhook,
   deleteWebhook,
   fetchWebhooks,
+  probeWebhookDelivery,
+  runWebhooksSweep,
+  seedWebhookHook,
+  toggleWebhookActive,
   type Webhook as Wh,
   type WebhookDelivery,
 } from '../services/webhooks';
@@ -25,6 +30,7 @@ export default function WebhooksPage() {
   const [url, setUrl] = useState('https://example.com/likya-hook');
   const [events, setEvents] = useState<string[]>(['pass.admit', 'archive.save']);
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -45,6 +51,11 @@ export default function WebhooksPage() {
     setEvents((prev) =>
       prev.includes(ev) ? prev.filter((x) => x !== ev) : [...prev, ev],
     );
+  };
+
+  const ping = (message: string) => {
+    setFlash(message);
+    window.setTimeout(() => setFlash(null), 2600);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -84,6 +95,76 @@ export default function WebhooksPage() {
           {error}
         </div>
       )}
+      {flash && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          {flash}
+        </div>
+      )}
+
+      <PanelCard title="Ops toolbar" subtitle="Wave 161">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+            onClick={() =>
+              void runWebhooksSweep({ force: true }).then((r: any) => {
+                ping(`Sweep +${r.created?.length ?? 0}`);
+                return refresh();
+              })
+            }
+          >
+            Sweep
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+            onClick={() =>
+              void ackWebhooksFlag({}).then((r: any) => {
+                ping(r.ok ? 'Flag ack' : r.error || 'Ack yok');
+                return refresh();
+              })
+            }
+          >
+            Flag ack
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+            onClick={() =>
+              void probeWebhookDelivery({ status: 202 }).then(() => {
+                ping('Probe delivery');
+                return refresh();
+              })
+            }
+          >
+            Probe delivery
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+            onClick={() =>
+              void seedWebhookHook({}).then(() => {
+                ping('Seed hook');
+                return refresh();
+              })
+            }
+          >
+            Seed hook
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+            onClick={() =>
+              void toggleWebhookActive({ id: hooks[0]?.id }).then((r: any) => {
+                ping(r.ok ? 'Toggle active' : r.error || 'Toggle yok');
+                return refresh();
+              })
+            }
+          >
+            Toggle active
+          </button>
+        </div>
+      </PanelCard>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <PanelCard title="Yeni Webhook" subtitle="CEO">

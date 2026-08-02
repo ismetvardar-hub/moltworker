@@ -1995,6 +1995,84 @@ try {
   });
   assert(waste160Category.res.ok && waste160Category.data.ok !== false, 'waste category seed');
 
+  const webhook161Seed = await req('/api/webhooks/seed', {
+    method: 'POST',
+    token,
+    body: { url: `https://example.com/e2e-161-${Date.now()}` },
+  });
+  assert(webhook161Seed.res.ok && webhook161Seed.data.ok !== false, 'webhooks seed');
+  const webhook161Probe = await req('/api/webhooks/delivery/probe', {
+    method: 'POST',
+    token,
+    body: { status: 202 },
+  });
+  assert(webhook161Probe.res.ok && webhook161Probe.data.ok !== false, 'webhooks probe');
+  const webhook161Sweep = await req('/api/webhooks/sweep', { method: 'POST', token, body: { force: true } });
+  assert(webhook161Sweep.res.ok && webhook161Sweep.data.ok !== false, 'webhooks sweep');
+  const webhook161Ack = await req('/api/webhooks/flag/ack', { method: 'POST', token, body: {} });
+  assert(webhook161Ack.res.ok && webhook161Ack.data.ok !== false, 'webhooks flag ack');
+
+  const docs161Seed = await req('/api/documents/policy/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-161 policy' },
+  });
+  assert(docs161Seed.res.ok && docs161Seed.data.ok !== false, 'documents policy seed');
+  const docs161Revise = await req('/api/documents/revise', {
+    method: 'POST',
+    token,
+    body: { id: docs161Seed.data.document?.id, version: '1.0.e2e' },
+  });
+  assert(docs161Revise.res.ok && docs161Revise.data.ok !== false, 'documents revise');
+  const docs161Flag = await req('/api/documents/review/flag', {
+    method: 'POST',
+    token,
+    body: { id: docs161Seed.data.document?.id },
+  });
+  assert(docs161Flag.res.ok && docs161Flag.data.ok !== false, 'documents review flag');
+  const docs161Sweep = await req('/api/documents/sweep', { method: 'POST', token, body: { force: true } });
+  assert(docs161Sweep.res.ok && docs161Sweep.data.ok !== false, 'documents sweep');
+  const docs161Ack = await req('/api/documents/flag/ack', { method: 'POST', token, body: {} });
+  assert(docs161Ack.res.ok && docs161Ack.data.ok !== false, 'documents flag ack');
+
+  const vendor161Seed = await req('/api/vendorscore/seed', {
+    method: 'POST',
+    token,
+    body: { supplierName: 'E2E-161 vendor' },
+  });
+  assert(vendor161Seed.res.ok && vendor161Seed.data.ok !== false, 'vendorscore seed');
+  const vendor161Review = await req('/api/vendorscore/review', {
+    method: 'POST',
+    token,
+    body: { id: vendor161Seed.data.score?.id, note: 'e2e review' },
+  });
+  assert(vendor161Review.res.ok && vendor161Review.data.ok !== false, 'vendorscore review');
+  const vendor161Under = await req('/api/vendorscore/underperform', {
+    method: 'POST',
+    token,
+    body: { supplierId: vendor161Seed.data.score?.supplierId },
+  });
+  assert(vendor161Under.res.ok && vendor161Under.data.ok !== false, 'vendorscore underperform');
+  const vendor161Sweep = await req('/api/vendorscore/sweep', { method: 'POST', token, body: { force: true } });
+  assert(vendor161Sweep.res.ok && vendor161Sweep.data.ok !== false, 'vendorscore sweep');
+  const vendor161Ack = await req('/api/vendorscore/flag/ack', { method: 'POST', token, body: {} });
+  assert(vendor161Ack.res.ok && vendor161Ack.data.ok !== false, 'vendorscore flag ack');
+
+  const brief161Seed = await req('/api/campusbrief/actions/seed', {
+    method: 'POST',
+    token,
+    body: { text: 'E2E-161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() },
+  });
+  assert(brief161Seed.res.ok && brief161Seed.data.ok !== false, 'campusbrief action seed');
+  const brief161Age = await req('/api/campusbrief/actions/age', { method: 'POST', token, body: { force: true } });
+  assert(brief161Age.res.ok && brief161Age.data.ok !== false, 'campusbrief action age');
+  const brief161Health = await req('/api/campusbrief/health/flag', { method: 'POST', token, body: {} });
+  assert(brief161Health.res.ok && brief161Health.data.ok !== false, 'campusbrief health flag');
+  const brief161Sweep = await req('/api/campusbrief/sweep', { method: 'POST', token, body: { force: true } });
+  assert(brief161Sweep.res.ok && brief161Sweep.data.ok !== false, 'campusbrief sweep');
+  const brief161Ack = await req('/api/campusbrief/flag/ack', { method: 'POST', token, body: {} });
+  assert(brief161Ack.res.ok && brief161Ack.data.ok !== false, 'campusbrief flag ack');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,

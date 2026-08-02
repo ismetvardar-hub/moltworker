@@ -126,6 +126,11 @@ import {
   wakeSnoozedCampusBriefActions,
   dismissCampusBriefAction,
   publishCampusBriefDigest,
+  runCampusbriefSweep,
+  ackCampusbriefFlag,
+  ageCampusBriefActions,
+  seedCampusbriefAction,
+  flagCampusbriefHealth,
 } from '../server/campusbrief.js';
 import {
   extremeSlotWeatherCheck,
@@ -679,6 +684,15 @@ import {
 import {
   loyaltySummary, runLoyaltySweep, ackLoyaltyFlag, awardLoyaltyPoints, redeemLoyaltyPoints,
 } from '../server/loyalty.js';
+import {
+  webhooksSummary, runWebhooksSweep, ackWebhooksFlag, seedWebhookHook, toggleWebhookActive, recordWebhookProbeDelivery,
+} from '../server/webhooks.js';
+import {
+  documentsSummary, runDocumentsSweep, ackDocumentsFlag, reviseDocumentVersion, flagDocumentReview, seedPolicyDocument,
+} from '../server/documents.js';
+import {
+  vendorScoreSummary, runVendorscoreSweep, ackVendorscoreFlag, reviewVendorScore, flagVendorUnderperformance, seedVendorScore,
+} from '../server/vendorscore.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -1939,6 +1953,33 @@ assert(ackNotificationsFlag({}, 'smoke').ok, 'notifications flag ack');
 assert(markAllRead().ok, 'notifications mark all read');
 assert(notificationsSummary().summary?.total >= 1, 'notifications summary');
 
+assert(webhooksSummary().title, 'webhooks overview');
+assert(seedWebhookHook({ url: `https://example.com/smoke-161-${Date.now()}` }, 'smoke').ok, 'webhooks seed');
+assert(recordWebhookProbeDelivery({ status: 202 }, 'smoke').ok, 'webhooks probe');
+assert(toggleWebhookActive({}, 'smoke').ok, 'webhooks toggle');
+assert(runWebhooksSweep({ force: true }, 'smoke').ok, 'webhooks sweep');
+assert(ackWebhooksFlag({}, 'smoke').ok, 'webhooks flag ack');
+
+assert(documentsSummary().title, 'documents overview');
+assert(seedPolicyDocument({ title: 'Smoke 161 policy' }, 'smoke').ok, 'documents policy seed');
+assert(reviseDocumentVersion({}, 'smoke').ok, 'documents revise');
+assert(flagDocumentReview({}, 'smoke').ok, 'documents review flag');
+assert(runDocumentsSweep({ force: true }, 'smoke').ok, 'documents sweep');
+assert(ackDocumentsFlag({}, 'smoke').ok, 'documents flag ack');
+
+assert(vendorScoreSummary().title, 'vendorscore overview');
+assert(seedVendorScore({ supplierName: 'Smoke 161 vendor' }, 'smoke').ok, 'vendorscore seed');
+assert(reviewVendorScore({}, 'smoke').ok, 'vendorscore review');
+assert(flagVendorUnderperformance({}, 'smoke').ok, 'vendorscore underperform');
+assert(runVendorscoreSweep({ force: true }, 'smoke').ok, 'vendorscore sweep');
+assert(ackVendorscoreFlag({}, 'smoke').ok, 'vendorscore flag ack');
+
+assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
+assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
+assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
+assert(runCampusbriefSweep({ force: true }, 'smoke').ok, 'campusbrief sweep');
+assert(ackCampusbriefFlag({}, 'smoke').ok, 'campusbrief flag ack');
+
 console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
@@ -1950,6 +1991,7 @@ console.log('MOD157_OK');
 console.log('MOD158_OK');
 console.log('MOD159_OK');
 console.log('MOD160_OK');
+console.log('MOD161_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -1964,6 +2006,9 @@ for (const thickened159 of ['stayring', 'culturescene', 'agentfleet', 'notificat
 }
 for (const thickened160 of ['cash', 'coldchain', 'energy', 'waste']) {
   assert(!crudDomains.some((d) => d.name === thickened160), `crudops skips thickened ${thickened160}`);
+}
+for (const thickened161 of ['webhooks', 'documents', 'vendorscore', 'campusbrief']) {
+  assert(!crudDomains.some((d) => d.name === thickened161), `crudops skips thickened ${thickened161}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2012,6 +2057,14 @@ assert(!isCrudOpsPath('/api/energy/sweep', 'POST'), 'crudops skips thickened ene
 assert(!isCrudOpsPath('/api/energy/flag/ack', 'POST'), 'crudops skips energy ack');
 assert(!isCrudOpsPath('/api/waste/sweep', 'POST'), 'crudops skips thickened waste');
 assert(!isCrudOpsPath('/api/waste/flag/ack', 'POST'), 'crudops skips waste ack');
+assert(!isCrudOpsPath('/api/webhooks/sweep', 'POST'), 'crudops skips thickened webhooks');
+assert(!isCrudOpsPath('/api/webhooks/flag/ack', 'POST'), 'crudops skips webhooks ack');
+assert(!isCrudOpsPath('/api/documents/sweep', 'POST'), 'crudops skips thickened documents');
+assert(!isCrudOpsPath('/api/documents/flag/ack', 'POST'), 'crudops skips documents ack');
+assert(!isCrudOpsPath('/api/vendorscore/sweep', 'POST'), 'crudops skips thickened vendorscore');
+assert(!isCrudOpsPath('/api/vendorscore/flag/ack', 'POST'), 'crudops skips vendorscore ack');
+assert(!isCrudOpsPath('/api/campusbrief/sweep', 'POST'), 'crudops skips thickened campusbrief');
+assert(!isCrudOpsPath('/api/campusbrief/flag/ack', 'POST'), 'crudops skips campusbrief ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

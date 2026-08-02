@@ -21,6 +21,12 @@ export interface WebhookDelivery {
   error: string | null;
 }
 
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
 export async function fetchWebhooks(): Promise<{
   webhooks: Webhook[];
   deliveries: WebhookDelivery[];
@@ -54,4 +60,54 @@ export async function deleteWebhook(id: string): Promise<void> {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Silinemedi');
+}
+
+export async function runWebhooksSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/webhooks/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function ackWebhooksFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/webhooks/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function probeWebhookDelivery(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/webhooks/delivery/probe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function toggleWebhookActive(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/webhooks/active/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+export async function seedWebhookHook(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/webhooks/seed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
 }

@@ -72,6 +72,30 @@ export default function CampusbriefPage() {
                 type="button"
                 className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
+                  void api.runCampusbriefSweep({ force: true }).then((r: any) => {
+                    ping(`Sweep +${r.created?.length ?? 0} · ${r.health?.status ?? '—'}`)
+                    return refresh()
+                  })
+                }
+              >
+                Sweep
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
+                onClick={() =>
+                  void api.ackCampusbriefFlag({}).then((r: any) => {
+                    ping(r.ok ? 'Flag ack' : r.error || 'Ack yok')
+                    return refresh()
+                  })
+                }
+              >
+                Flag ack
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
                   void api.runCampusAutomations().then((r: any) => {
                     ping(`Otomasyon ${r.actions?.length ?? 0}`)
                     return refresh()
@@ -127,6 +151,42 @@ export default function CampusbriefPage() {
                 }
               >
                 Snooze wake
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100"
+                onClick={() =>
+                  void api.ageCampusBriefActions({ force: true }).then((r: any) => {
+                    ping(`Aging ${r.aged?.length ?? 0}`)
+                    return refresh()
+                  })
+                }
+              >
+                Aging
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100"
+                onClick={() =>
+                  void api.seedCampusbriefAction({ text: 'Ops seed brif aksiyon' }).then(() => {
+                    ping('Aksiyon seed')
+                    return refresh()
+                  })
+                }
+              >
+                Aksiyon seed
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100"
+                onClick={() =>
+                  void api.flagCampusbriefHealth({}).then((r: any) => {
+                    ping(r.ok ? 'Health flag' : r.error || 'Health flag yok')
+                    return refresh()
+                  })
+                }
+              >
+                Health flag
               </button>
             </div>
             {(data.register || []).length > 0 && (

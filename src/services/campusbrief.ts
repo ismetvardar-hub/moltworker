@@ -17,12 +17,62 @@ export async function runCampusAutomations() {
   )
 }
 
+export async function runCampusbriefSweep(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function ackCampusbriefFlag(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/flag/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function syncCampusBriefActions() {
   return parse(
     await fetch('/api/campusbrief/actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: '{}',
+    }),
+  )
+}
+
+export async function ageCampusBriefActions(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/age', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function seedCampusbriefAction(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/actions/seed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function flagCampusbriefHealth(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/health/flag', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
     }),
   )
 }
