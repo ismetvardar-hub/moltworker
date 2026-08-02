@@ -583,6 +583,18 @@ import {
   seatingSummary, runSeatingSweep, ackSeatingFlag, seatWalkInParty, clearSeatingTable, reserveSeatingTable,
 } from '../server/seating.js';
 import {
+  lostFoundSummary, runLostfoundSweep, ackLostfoundFlag, returnLostFoundItem, relocateLostFoundItem, seedAgingLostFoundItem,
+} from '../server/lostfound.js';
+import {
+  waitlistSummary, runWaitlistSweep, ackWaitlistFlag, seatWaitlistEntry, abandonWaitlistEntry, seedAgingWaitlistEntry,
+} from '../server/waitlist.js';
+import {
+  assetsSummary, runAssetsSweep, ackAssetsFlag, scheduleAssetMaintenance, bringAssetOnline, assignAssetOwner,
+} from '../server/assets.js';
+import {
+  valetSummary, runValetSweep, ackValetFlag, requestValetPickup, deliverValetVehicle, seedLongParkedValetTicket,
+} from '../server/valet.js';
+import {
   announcementsSummary, runAnnouncementsSweep, ackAnnouncementsFlag, publishHighPriorityAnnouncements, archiveStaleAnnouncements, seedEndingSoonAnnouncement,
 } from '../server/announcements.js';
 import {
@@ -1712,6 +1724,34 @@ assert(archiveStaleAnnouncements({}, 'smoke').ok, 'announcements archive stale')
 assert(seedEndingSoonAnnouncement({}, 'smoke').ok, 'announcements ending soon seed');
 assert(ackAnnouncementsFlag({}, 'smoke').ok, 'announcements flag ack');
 
+assert(lostFoundSummary().title, 'lostfound overview');
+assert(runLostfoundSweep({ force: true }, 'smoke').ok, 'lostfound sweep');
+assert(seedAgingLostFoundItem({ missingLocation: true }, 'smoke').ok, 'lostfound aging seed');
+assert(relocateLostFoundItem({}, 'smoke').ok, 'lostfound relocate');
+assert(returnLostFoundItem({ claimant: 'Smoke Claimant' }, 'smoke').ok, 'lostfound return');
+assert(ackLostfoundFlag({}, 'smoke').ok, 'lostfound flag ack');
+
+assert(waitlistSummary().title, 'waitlist overview');
+assert(runWaitlistSweep({ force: true }, 'smoke').ok, 'waitlist sweep');
+assert(seedAgingWaitlistEntry({}, 'smoke').ok, 'waitlist aging seed');
+assert(seatWaitlistEntry({ tableId: 'tbl_smoke' }, 'smoke').ok, 'waitlist seat');
+assert(abandonWaitlistEntry({}, 'smoke').ok, 'waitlist abandon');
+assert(ackWaitlistFlag({}, 'smoke').ok, 'waitlist flag ack');
+
+assert(assetsSummary().title, 'assets overview');
+assert(runAssetsSweep({ force: true }, 'smoke').ok, 'assets sweep');
+assert(scheduleAssetMaintenance({ assignee: 'HEPHAESTUS' }, 'smoke').ok, 'assets maintenance schedule');
+assert(bringAssetOnline({}, 'smoke').ok, 'assets bring online');
+assert(assignAssetOwner({ assignee: 'Ops owner' }, 'smoke').ok, 'assets assign owner');
+assert(ackAssetsFlag({}, 'smoke').ok, 'assets flag ack');
+
+assert(valetSummary().title, 'valet overview');
+assert(runValetSweep({ force: true }, 'smoke').ok, 'valet sweep');
+assert(seedLongParkedValetTicket({}, 'smoke').ok, 'valet long parked seed');
+assert(requestValetPickup({ minutes: 20 }, 'smoke').ok, 'valet pickup request');
+assert(deliverValetVehicle({}, 'smoke').ok, 'valet deliver');
+assert(ackValetFlag({}, 'smoke').ok, 'valet flag ack');
+
 assert(incidentsSummary().title, 'incidents overview');
 assert(runIncidentsSweep({ force: true }, 'smoke').ok, 'incidents sweep');
 assert(ackOpenCriticalIncidents({}, 'smoke').ok, 'incidents ack critical');
@@ -1842,13 +1882,16 @@ console.log('MOD152_OK');
 console.log('MOD155_OK');
 console.log('MOD156_OK');
 console.log('MOD157_OK');
+console.log('MOD158_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
-assert(crudDomains.some((d) => d.name === 'lostfound'), 'crudops includes lostfound');
 assert(crudDomains.some((d) => d.name === 'venues'), 'crudops includes venues');
 assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
+for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
+  assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);
+}
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
 assert(!isCrudOpsPath('/api/kudos/sweep', 'POST'), 'crudops skips thickened kudos');
@@ -1870,6 +1913,15 @@ assert(!isCrudOpsPath('/api/seating/sweep', 'POST'), 'crudops skips thickened se
 assert(!isCrudOpsPath('/api/seating/flag/ack', 'POST'), 'crudops skips seating ack');
 assert(!isCrudOpsPath('/api/announcements/sweep', 'POST'), 'crudops skips thickened announcements');
 assert(!isCrudOpsPath('/api/announcements/flag/ack', 'POST'), 'crudops skips announcements ack');
+assert(!isCrudOpsPath('/api/lostfound/sweep', 'POST'), 'crudops skips thickened lostfound');
+assert(!isCrudOpsPath('/api/lostfound/flag/ack', 'POST'), 'crudops skips lostfound ack');
+assert(!isCrudOpsPath('/api/lost-found/sweep', 'POST'), 'crudops skips lost-found prefix');
+assert(!isCrudOpsPath('/api/waitlist/sweep', 'POST'), 'crudops skips thickened waitlist');
+assert(!isCrudOpsPath('/api/waitlist/flag/ack', 'POST'), 'crudops skips waitlist ack');
+assert(!isCrudOpsPath('/api/assets/sweep', 'POST'), 'crudops skips thickened assets');
+assert(!isCrudOpsPath('/api/assets/flag/ack', 'POST'), 'crudops skips assets ack');
+assert(!isCrudOpsPath('/api/valet/sweep', 'POST'), 'crudops skips thickened valet');
+assert(!isCrudOpsPath('/api/valet/flag/ack', 'POST'), 'crudops skips valet ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

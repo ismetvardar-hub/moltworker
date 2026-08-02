@@ -16,7 +16,29 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchAssets(): Promise<{ assets: Asset[]; online: number; maintenance: number }> {
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchAssets(): Promise<{
+  assets: Asset[]
+  total: number
+  online: number
+  maintenance: number
+  maintenanceDue?: number
+  offline?: number
+  missingAssignee?: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+}> {
   return parse(await fetch('/api/assets', { headers: authHeaders() }))
 }
 
@@ -38,4 +60,24 @@ export async function updateAsset(id: string, patch: Partial<Asset>): Promise<{ 
       body: JSON.stringify(patch),
     }),
   )
+}
+
+export async function runAssetsSweep(body: Record<string, unknown> = {}) {
+  return post('/api/assets/sweep', body)
+}
+
+export async function ackAssetsFlag(body: Record<string, unknown> = {}) {
+  return post('/api/assets/flag/ack', body)
+}
+
+export async function scheduleAssetMaintenance(body: Record<string, unknown> = {}) {
+  return post('/api/assets/maintenance/schedule', body)
+}
+
+export async function bringAssetOnline(body: Record<string, unknown> = {}) {
+  return post('/api/assets/online', body)
+}
+
+export async function assignAssetOwner(body: Record<string, unknown> = {}) {
+  return post('/api/assets/owner/assign', body)
 }

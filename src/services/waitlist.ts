@@ -6,6 +6,14 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
 export async function fetchWaitlist(): Promise<any> {
   return parse(await fetch('/api/waitlist', { headers: authHeaders() }))
 }
@@ -26,6 +34,22 @@ export async function patchWaitlist(id: string, patch: Record<string, unknown>):
   }))
 }
 
+export async function runWaitlistSweep(body: Record<string, unknown> = {}) {
+  return post('/api/waitlist/sweep', body)
+}
 
+export async function ackWaitlistFlag(body: Record<string, unknown> = {}) {
+  return post('/api/waitlist/flag/ack', body)
+}
 
+export async function seatWaitlistEntry(body: Record<string, unknown> = {}) {
+  return post('/api/waitlist/seat', body)
+}
 
+export async function abandonWaitlistEntry(body: Record<string, unknown> = {}) {
+  return post('/api/waitlist/abandon', body)
+}
+
+export async function seedAgingWaitlistEntry(body: Record<string, unknown> = {}) {
+  return post('/api/waitlist/aging/seed', body)
+}

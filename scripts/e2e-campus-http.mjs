@@ -1867,6 +1867,42 @@ try {
   });
   assert(ann157Seed.res.ok && ann157Seed.data.ok !== false, 'announcements ending soon seed');
 
+  const lost158Sweep = await req('/api/lost-found/sweep', { method: 'POST', token, body: { force: true } });
+  assert(lost158Sweep.res.ok && lost158Sweep.data.ok !== false, 'lostfound sweep');
+  const lost158Seed = await req('/api/lost-found/aging/seed', {
+    method: 'POST',
+    token,
+    body: { item: 'E2E-158 lost item', missingLocation: true },
+  });
+  assert(lost158Seed.res.ok && lost158Seed.data.ok !== false, 'lostfound aging seed');
+
+  const wait158Sweep = await req('/api/waitlist/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wait158Sweep.res.ok && wait158Sweep.data.ok !== false, 'waitlist sweep');
+  const wait158Seat = await req('/api/waitlist/seat', {
+    method: 'POST',
+    token,
+    body: { tableId: 'tbl_e2e_158', tableLabel: 'E2E-158' },
+  });
+  assert(wait158Seat.res.ok && wait158Seat.data.ok !== false, 'waitlist seat');
+
+  const asset158Sweep = await req('/api/assets/sweep', { method: 'POST', token, body: { force: true } });
+  assert(asset158Sweep.res.ok && asset158Sweep.data.ok !== false, 'assets sweep');
+  const asset158Maint = await req('/api/assets/maintenance/schedule', {
+    method: 'POST',
+    token,
+    body: { assignee: 'E2E-158' },
+  });
+  assert(asset158Maint.res.ok && asset158Maint.data.ok !== false, 'assets maintenance schedule');
+
+  const valet158Sweep = await req('/api/valet/sweep', { method: 'POST', token, body: { force: true } });
+  assert(valet158Sweep.res.ok && valet158Sweep.data.ok !== false, 'valet sweep');
+  const valet158Pickup = await req('/api/valet/pickup/request', {
+    method: 'POST',
+    token,
+    body: { pickupBay: 'e2e-158', minutes: 20 },
+  });
+  assert(valet158Pickup.res.ok && valet158Pickup.data.ok !== false, 'valet pickup request');
+
   await req('/api/athleteos/clearance', {
     method: 'POST',
     token,

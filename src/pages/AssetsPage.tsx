@@ -1,12 +1,23 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createAsset, fetchAssets, updateAsset, type Asset } from '../services/assets'
+import {
+  ackAssetsFlag,
+  assignAssetOwner,
+  bringAssetOnline,
+  createAsset,
+  fetchAssets,
+  runAssetsSweep,
+  scheduleAssetMaintenance,
+  updateAsset,
+  type Asset,
+} from '../services/assets'
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([])
   const [stats, setStats] = useState({ online: 0, maintenance: 0 })
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [category, setCategory] = useState('general')
 
@@ -15,6 +26,7 @@ export default function AssetsPage() {
       const data = await fetchAssets()
       setAssets(data.assets)
       setStats({ online: data.online, maintenance: data.maintenance })
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Varlıklar alınamadı')
@@ -36,6 +48,11 @@ export default function AssetsPage() {
     }
   }
 
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
+
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -44,13 +61,32 @@ export default function AssetsPage() {
           Online {stats.online} · bakım {stats.maintenance}
         </p>
       </header>
-      <CrudOpsBar domain="assets" onDone={() => void refresh()} />
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+      <PanelCard title={overview?.title || 'Varlık ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runAssetsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void scheduleAssetMaintenance({ assignee: 'HEPHAESTUS' }).then((r: any) => { ping(`Scheduled ${r.scheduled?.length ?? 0}`); return refresh() })}>Schedule maintenance</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void bringAssetOnline({}).then((r: any) => { ping(`Online ${r.online?.length ?? 0}`); return refresh() })}>Bring online</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void assignAssetOwner({ assignee: 'Ops owner' }).then((r: any) => { ping(`Assigned ${r.assigned?.length ?? 0}`); return refresh() })}>Assign owner</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackAssetsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · due {overview?.maintenanceDue ?? 0} · offline {overview?.offline ?? 0} · assignee eksik {overview?.missingAssignee ?? 0}
+        </p>
+      </PanelCard>
       <PanelCard title="Yeni varlık">
         <form onSubmit={(e) => void onCreate(e)} className="flex flex-wrap gap-3">
           <input

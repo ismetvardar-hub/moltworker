@@ -1,9 +1,13 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
 import {
+  ackLostfoundFlag,
   createLostFound,
   fetchLostFound,
+  relocateLostFoundItem,
+  returnLostFoundItem,
+  runLostfoundSweep,
+  seedAgingLostFoundItem,
   updateLostFound,
   type LostFoundItem,
 } from '../services/lostfound'
@@ -11,7 +15,9 @@ import {
 export default function LostFoundPage() {
   const [items, setItems] = useState<LostFoundItem[]>([])
   const [stats, setStats] = useState({ stored: 0, returned: 0 })
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [item, setItem] = useState('')
   const [location, setLocation] = useState('')
 
@@ -20,6 +26,7 @@ export default function LostFoundPage() {
       const data = await fetchLostFound()
       setItems(data.items)
       setStats({ stored: data.stored, returned: data.returned })
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Liste alınamadı')
@@ -42,6 +49,11 @@ export default function LostFoundPage() {
     }
   }
 
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
+
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -50,14 +62,33 @@ export default function LostFoundPage() {
           Depoda {stats.stored} · iade {stats.returned}
         </p>
       </header>
-      <CrudOpsBar domain="lostfound" onDone={() => void refresh()} />
-
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Kayıp eşya ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runLostfoundSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void returnLostFoundItem({ claimant: 'Ops claimant' }).then((r: any) => { ping(`Returned ${r.returned?.length ?? 0}`); return refresh() })}>Return item</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void relocateLostFoundItem({ location: 'Lost&Found raf A1' }).then((r: any) => { ping(`Relocated ${r.relocated?.length ?? 0}`); return refresh() })}>Relocate</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void seedAgingLostFoundItem({ missingLocation: true }).then((r: any) => { ping(r.item ? 'Aging seed' : 'Seed yok'); return refresh() })}>Seed aging</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackLostfoundFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · konumsuz {overview?.missingLocation ?? 0} · uzun depoda {overview?.storedTooLong ?? 0}
+        </p>
+      </PanelCard>
 
       <PanelCard title="Yeni kayıt">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-3 md:grid-cols-3">

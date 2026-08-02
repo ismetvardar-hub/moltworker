@@ -250,9 +250,14 @@ import {
   toggleChecklistItem,
 } from './checklists.js';
 import {
+  ackLostfoundFlag,
   createLostFound,
   listLostFound,
   lostFoundSummary,
+  relocateLostFoundItem,
+  returnLostFoundItem,
+  runLostfoundSweep,
+  seedAgingLostFoundItem,
   updateLostFound,
 } from './lostfound.js';
 import {
@@ -322,9 +327,14 @@ import {
 import { createHandover, handoverSummary, listHandover } from './handover.js';
 import { cashSummary, postCash } from './cash.js';
 import {
+  ackAssetsFlag,
+  assignAssetOwner,
   assetsSummary,
+  bringAssetOnline,
   createAsset,
   listAssets,
+  runAssetsSweep,
+  scheduleAssetMaintenance,
   updateAsset,
 } from './assets.js';
 import {
@@ -346,8 +356,13 @@ import {
   trainingSummary,
 } from './training.js';
 import {
+  ackValetFlag,
   createValet,
+  deliverValetVehicle,
   listValet,
+  requestValetPickup,
+  runValetSweep,
+  seedLongParkedValetTicket,
   updateValet,
   valetSummary,
 } from './valet.js';
@@ -381,8 +396,13 @@ import {
   updateSeat,
 } from './seating.js';
 import {
+  abandonWaitlistEntry,
+  ackWaitlistFlag,
   createWaitlistEntry,
   listWaitlist,
+  runWaitlistSweep,
+  seatWaitlistEntry,
+  seedAgingWaitlistEntry,
   updateWaitlist,
   waitlistSummary,
 } from './waitlist.js';
@@ -9319,6 +9339,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/lost-found/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLostfoundSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lost-found/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLostfoundFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lost-found/return' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, returnLostFoundItem(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lost-found/relocate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, relocateLostFoundItem(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lost-found/aging/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedAgingLostFoundItem(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/lost-found' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9784,6 +9834,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/assets/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAssetsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/assets/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAssetsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/assets/maintenance/schedule' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, scheduleAssetMaintenance(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/assets/online' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, bringAssetOnline(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/assets/owner/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignAssetOwner(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/assets' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9908,6 +9988,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/valet' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, { ...valetSummary(), tickets: listValet() });
+          return;
+        }
+        if (path === '/api/valet/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runValetSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/valet/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackValetFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/valet/pickup/request' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, requestValetPickup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/valet/deliver' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, deliverValetVehicle(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/valet/long-parked/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedLongParkedValetTicket(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/valet' && req.method === 'POST') {
@@ -10088,6 +10198,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/waitlist' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, { ...waitlistSummary(), entries: listWaitlist() });
+          return;
+        }
+        if (path === '/api/waitlist/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWaitlistSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waitlist/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWaitlistFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waitlist/seat' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seatWaitlistEntry(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waitlist/abandon' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, abandonWaitlistEntry(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/waitlist/aging/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedAgingWaitlistEntry(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/waitlist' && req.method === 'POST') {

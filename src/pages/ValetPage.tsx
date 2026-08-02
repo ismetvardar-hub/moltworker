@@ -1,17 +1,28 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { fetchValet, createValet, patchValet } from '../services/valet'
+import {
+  ackValetFlag,
+  createValet,
+  deliverValetVehicle,
+  fetchValet,
+  patchValet,
+  requestValetPickup,
+  runValetSweep,
+  seedLongParkedValetTicket,
+} from '../services/valet'
 
 export default function ValetPage() {
   const [rows, setRows] = useState<any[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string | number>>({"plate":"07 TEST 01","guestName":"Misafir","spot":"V-1"})
 
   async function refresh() {
     try {
       const data = await fetchValet()
       setRows(data.tickets || [])
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Yüklenemedi')
@@ -32,15 +43,37 @@ export default function ValetPage() {
     }
   }
 
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
+
   return (
     <div className="space-y-6 p-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Vale / Otopark</h1>
-        <p className="mt-1 text-sm text-slate-400">Plaka fişleri ve teslim.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Plaka fişleri ve teslim · parked {overview?.parked ?? 0} · requested {overview?.requested ?? 0}
+        </p>
       </header>
-      <CrudOpsBar domain="valet" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title={overview?.title || 'Vale ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runValetSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void requestValetPickup({ minutes: 20 }).then((r: any) => { ping(`Requested ${r.requested?.length ?? 0}`); return refresh() })}>Request pickup</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void deliverValetVehicle({}).then((r: any) => { ping(`Delivered ${r.delivered?.length ?? 0}`); return refresh() })}>Deliver</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void seedLongParkedValetTicket({}).then((r: any) => { ping(r.ticket ? 'Long parked seed' : 'Seed yok'); return refresh() })}>Seed long parked</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackValetFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · long parked {overview?.parkedTooLong ?? 0} · plakasız {overview?.ticketWithoutPlate ?? 0} · pickup aging {overview?.readyForPickupAging ?? 0}
+        </p>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="plate" value={form.plate} onChange={(e) => setForm((f) => ({ ...f, plate: e.target.value }))} />

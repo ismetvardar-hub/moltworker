@@ -18,10 +18,28 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchLostFound(): Promise<{
   items: LostFoundItem[]
+  total: number
   stored: number
   returned: number
+  storedTooLong?: number
+  missingLocation?: number
+  returnedWithoutClaimant?: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
 }> {
   return parse(await fetch('/api/lost-found', { headers: authHeaders() }))
 }
@@ -39,6 +57,26 @@ export async function createLostFound(input: {
       body: JSON.stringify(input),
     }),
   )
+}
+
+export async function runLostfoundSweep(body: Record<string, unknown> = {}) {
+  return post('/api/lost-found/sweep', body)
+}
+
+export async function ackLostfoundFlag(body: Record<string, unknown> = {}) {
+  return post('/api/lost-found/flag/ack', body)
+}
+
+export async function returnLostFoundItem(body: Record<string, unknown> = {}) {
+  return post('/api/lost-found/return', body)
+}
+
+export async function relocateLostFoundItem(body: Record<string, unknown> = {}) {
+  return post('/api/lost-found/relocate', body)
+}
+
+export async function seedAgingLostFoundItem(body: Record<string, unknown> = {}) {
+  return post('/api/lost-found/aging/seed', body)
 }
 
 export async function updateLostFound(
