@@ -825,6 +825,18 @@ import {
 import {
   kidsclubSummary, runKidsclubSweep, ackKidsclubFlag, markKidsclubUncheckedChild, checkInKidsclubChild, seedKidsclubActivitySlot,
 } from '../server/kidsclub.js';
+import {
+  bakerySummary, runBakerySweep, ackBakeryFlag, markBakeryDoughLag, releaseBakeryBake, seedDawnBatch,
+} from '../server/bakery.js';
+import {
+  winecellarSummary, runWinecellarSweep, ackWinecellarFlag, markWinecellarTempDrift, moveWinecellarBin, seedTastingFlight,
+} from '../server/winecellar.js';
+import {
+  allergensSummary, runAllergensSweep, ackAllergensFlag, markAllergensUnlabeledDish, flagAllergensMenuItem, seedGuestAllergenAlert,
+} from '../server/allergens.js';
+import {
+  payrollSummary, runPayrollSweep, ackPayrollFlag, markPayrollMissingTimesheet, approvePayrollRun, seedPayrollOvertime,
+} from '../server/payroll.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2428,6 +2440,38 @@ assert(runKidsclubSweep({ force: true }, 'smoke').ok, 'kidsclub sweep');
 assert(checkInKidsclubChild({ id: smokeKid.entry.id }, 'smoke').ok, 'kidsclub check-in');
 assert(ackKidsclubFlag({}, 'smoke').ok, 'kidsclub flag ack');
 
+assert(bakerySummary().title, 'bakery overview');
+const smokeBake = seedDawnBatch({ item: 'Smoke 173 dawn batch' }, 'smoke');
+assert(smokeBake.ok, 'bakery dawn batch seed');
+assert(markBakeryDoughLag({ id: smokeBake.bake.id }, 'smoke').ok, 'bakery dough lag');
+assert(runBakerySweep({ force: true }, 'smoke').ok, 'bakery sweep');
+assert(releaseBakeryBake({ id: smokeBake.bake.id }, 'smoke').ok, 'bakery release bake');
+assert(ackBakeryFlag({}, 'smoke').ok, 'bakery flag ack');
+
+assert(winecellarSummary().title, 'winecellar overview');
+const smokeWine = seedTastingFlight({ label: 'Smoke 173 tasting flight' }, 'smoke');
+assert(smokeWine.ok, 'winecellar tasting flight seed');
+assert(markWinecellarTempDrift({ id: smokeWine.bottle.id }, 'smoke').ok, 'winecellar temp drift');
+assert(runWinecellarSweep({ force: true }, 'smoke').ok, 'winecellar sweep');
+assert(moveWinecellarBin({ id: smokeWine.bottle.id, bin: 'SM-173' }, 'smoke').ok, 'winecellar move bin');
+assert(ackWinecellarFlag({}, 'smoke').ok, 'winecellar flag ack');
+
+assert(allergensSummary().title, 'allergens overview');
+const smokeAllergen = seedGuestAllergenAlert({ guestName: 'Smoke 173 guest' }, 'smoke');
+assert(smokeAllergen.ok, 'allergens guest alert seed');
+assert(markAllergensUnlabeledDish({ id: smokeAllergen.row.id }, 'smoke').ok, 'allergens unlabeled dish');
+assert(runAllergensSweep({ force: true }, 'smoke').ok, 'allergens sweep');
+assert(flagAllergensMenuItem({ id: smokeAllergen.row.id, flags: 'nuts' }, 'smoke').ok, 'allergens menu item flag');
+assert(ackAllergensFlag({}, 'smoke').ok, 'allergens flag ack');
+
+assert(payrollSummary().title, 'payroll overview');
+const smokePayroll = seedPayrollOvertime({ employee: 'Smoke 173 overtime' }, 'smoke');
+assert(smokePayroll.ok, 'payroll overtime seed');
+assert(markPayrollMissingTimesheet({ id: smokePayroll.payroll.id }, 'smoke').ok, 'payroll missing timesheet');
+assert(runPayrollSweep({ force: true }, 'smoke').ok, 'payroll sweep');
+assert(approvePayrollRun({ id: smokePayroll.payroll.id }, 'smoke').ok, 'payroll run approve');
+assert(ackPayrollFlag({}, 'smoke').ok, 'payroll flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2457,6 +2501,7 @@ console.log('MOD169_OK');
 console.log('MOD170_OK');
 console.log('MOD171_OK');
 console.log('MOD172_OK');
+console.log('MOD173_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2512,6 +2557,11 @@ for (const thickened172 of ['lateout', 'lockers', 'towels', 'kidsclub']) {
   assert(!crudDomains.some((d) => d.name === thickened172), `crudops skips thickened ${thickened172}`);
   assert(!isCrudOpsPath(`/api/${thickened172}/sweep`, 'POST'), `crudops skips ${thickened172} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened172}/flag/ack`, 'POST'), `crudops skips ${thickened172} ack`);
+}
+for (const thickened173 of ['bakery', 'winecellar', 'allergens', 'payroll']) {
+  assert(!crudDomains.some((d) => d.name === thickened173), `crudops skips thickened ${thickened173}`);
+  assert(!isCrudOpsPath(`/api/${thickened173}/sweep`, 'POST'), `crudops skips ${thickened173} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened173}/flag/ack`, 'POST'), `crudops skips ${thickened173} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

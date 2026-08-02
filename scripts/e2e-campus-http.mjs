@@ -205,6 +205,10 @@ try {
     '/api/lockers',
     '/api/towels',
     '/api/kidsclub',
+    '/api/bakery',
+    '/api/winecellar',
+    '/api/allergens',
+    '/api/payroll',
     '/api/keycards',
     '/api/parcels',
     '/api/wakeups',
@@ -1747,7 +1751,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3068,6 +3072,98 @@ try {
   assert(kidsclub172Checkin.res.ok && kidsclub172Checkin.data.ok !== false, 'kidsclub checkin');
   const kidsclub172Ack = await req('/api/kidsclub/flag/ack', { method: 'POST', token, body: {} });
   assert(kidsclub172Ack.res.ok && kidsclub172Ack.data.ok !== false, 'kidsclub flag ack');
+
+  const bakery173Sweep = await req('/api/bakery/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bakery173Sweep.res.ok && bakery173Sweep.data.ok !== false, 'bakery sweep');
+  const bakery173Seed = await req('/api/bakery/dawn-batch/seed', {
+    method: 'POST',
+    token,
+    body: { item: 'E2E-173 dawn batch' },
+  });
+  assert(bakery173Seed.res.ok && bakery173Seed.data.ok !== false, 'bakery dawn batch seed');
+  const bakery173Lag = await req('/api/bakery/dough/lag', {
+    method: 'POST',
+    token,
+    body: { id: bakery173Seed.data.bake?.id },
+  });
+  assert(bakery173Lag.res.ok && bakery173Lag.data.ok !== false, 'bakery dough lag');
+  const bakery173Release = await req('/api/bakery/bake/release', {
+    method: 'POST',
+    token,
+    body: { id: bakery173Seed.data.bake?.id },
+  });
+  assert(bakery173Release.res.ok && bakery173Release.data.ok !== false, 'bakery release bake');
+  const bakery173Ack = await req('/api/bakery/flag/ack', { method: 'POST', token, body: {} });
+  assert(bakery173Ack.res.ok && bakery173Ack.data.ok !== false, 'bakery flag ack');
+
+  const wine173Sweep = await req('/api/winecellar/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wine173Sweep.res.ok && wine173Sweep.data.ok !== false, 'winecellar sweep');
+  const wine173Seed = await req('/api/winecellar/tasting-flight/seed', {
+    method: 'POST',
+    token,
+    body: { label: 'E2E-173 tasting flight' },
+  });
+  assert(wine173Seed.res.ok && wine173Seed.data.ok !== false, 'winecellar tasting flight seed');
+  const wine173Drift = await req('/api/winecellar/temp/drift', {
+    method: 'POST',
+    token,
+    body: { id: wine173Seed.data.bottle?.id },
+  });
+  assert(wine173Drift.res.ok && wine173Drift.data.ok !== false, 'winecellar temp drift');
+  const wine173Move = await req('/api/winecellar/bin/move', {
+    method: 'POST',
+    token,
+    body: { id: wine173Seed.data.bottle?.id, bin: 'E2E-173' },
+  });
+  assert(wine173Move.res.ok && wine173Move.data.ok !== false, 'winecellar move bin');
+  const wine173Ack = await req('/api/winecellar/flag/ack', { method: 'POST', token, body: {} });
+  assert(wine173Ack.res.ok && wine173Ack.data.ok !== false, 'winecellar flag ack');
+
+  const allergens173Sweep = await req('/api/allergens/sweep', { method: 'POST', token, body: { force: true } });
+  assert(allergens173Sweep.res.ok && allergens173Sweep.data.ok !== false, 'allergens sweep');
+  const allergens173Seed = await req('/api/allergens/guest-alert/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-173 guest' },
+  });
+  assert(allergens173Seed.res.ok && allergens173Seed.data.ok !== false, 'allergens guest alert seed');
+  const allergens173Unlabeled = await req('/api/allergens/dish/unlabeled', {
+    method: 'POST',
+    token,
+    body: { id: allergens173Seed.data.row?.id },
+  });
+  assert(allergens173Unlabeled.res.ok && allergens173Unlabeled.data.ok !== false, 'allergens unlabeled dish');
+  const allergens173Flag = await req('/api/allergens/menu-item/flag', {
+    method: 'POST',
+    token,
+    body: { id: allergens173Seed.data.row?.id, flags: 'nuts' },
+  });
+  assert(allergens173Flag.res.ok && allergens173Flag.data.ok !== false, 'allergens menu item flag');
+  const allergens173Ack = await req('/api/allergens/flag/ack', { method: 'POST', token, body: {} });
+  assert(allergens173Ack.res.ok && allergens173Ack.data.ok !== false, 'allergens flag ack');
+
+  const payroll173Sweep = await req('/api/payroll/sweep', { method: 'POST', token, body: { force: true } });
+  assert(payroll173Sweep.res.ok && payroll173Sweep.data.ok !== false, 'payroll sweep');
+  const payroll173Seed = await req('/api/payroll/overtime/seed', {
+    method: 'POST',
+    token,
+    body: { employee: 'E2E-173 overtime' },
+  });
+  assert(payroll173Seed.res.ok && payroll173Seed.data.ok !== false, 'payroll overtime seed');
+  const payroll173Missing = await req('/api/payroll/timesheet/missing', {
+    method: 'POST',
+    token,
+    body: { id: payroll173Seed.data.payroll?.id },
+  });
+  assert(payroll173Missing.res.ok && payroll173Missing.data.ok !== false, 'payroll missing timesheet');
+  const payroll173Approve = await req('/api/payroll/run/approve', {
+    method: 'POST',
+    token,
+    body: { id: payroll173Seed.data.payroll?.id },
+  });
+  assert(payroll173Approve.res.ok && payroll173Approve.data.ok !== false, 'payroll approve run');
+  const payroll173Ack = await req('/api/payroll/flag/ack', { method: 'POST', token, body: {} });
+  assert(payroll173Ack.res.ok && payroll173Ack.data.ok !== false, 'payroll flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

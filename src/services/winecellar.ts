@@ -13,3 +13,23 @@ export async function createWinecellar(input: Record<string, unknown>): Promise<
 export async function patchWinecellar(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/winecellar/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runWinecellarSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/winecellar/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackWinecellarFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/winecellar/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markWinecellarTempDrift(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/winecellar/temp/drift', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function moveWinecellarBin(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/winecellar/bin/move', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedTastingFlight(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/winecellar/tasting-flight/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

@@ -718,14 +718,24 @@ import {
   updateSustain,
 } from './sustain.js';
 import {
+  ackAllergensFlag,
   createAllergens,
+  flagAllergensMenuItem,
   listAllergens,
   allergensSummary,
+  markAllergensUnlabeledDish,
+  runAllergensSweep,
+  seedGuestAllergenAlert,
   updateAllergens,
 } from './allergens.js';
 import {
+  ackWinecellarFlag,
   createWinecellar,
   listWinecellar,
+  markWinecellarTempDrift,
+  moveWinecellarBin,
+  runWinecellarSweep,
+  seedTastingFlight,
   winecellarSummary,
   updateWinecellar,
 } from './winecellar.js';
@@ -889,9 +899,14 @@ import {
   updateFleet,
 } from './fleet.js';
 import {
+  ackPayrollFlag,
+  approvePayrollRun,
   createPayroll,
   listPayroll,
+  markPayrollMissingTimesheet,
   payrollSummary,
+  runPayrollSweep,
+  seedPayrollOvertime,
   updatePayroll,
 } from './payroll.js';
 import {
@@ -978,9 +993,14 @@ import {
   updateRetail,
 } from './retail.js';
 import {
+  ackBakeryFlag,
   createBakery,
   listBakery,
   bakerySummary,
+  markBakeryDoughLag,
+  releaseBakeryBake,
+  runBakerySweep,
+  seedDawnBatch,
   updateBakery,
 } from './bakery.js';
 import {
@@ -12246,6 +12266,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/allergens/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runAllergensSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/allergens/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackAllergensFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/allergens/dish/unlabeled' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markAllergensUnlabeledDish(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/allergens/menu-item/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagAllergensMenuItem(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/allergens/guest-alert/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedGuestAllergenAlert(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/allergens/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -12268,6 +12318,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createWinecellar(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/winecellar/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWinecellarSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/winecellar/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWinecellarFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/winecellar/temp/drift' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markWinecellarTempDrift(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/winecellar/bin/move' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, moveWinecellarBin(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/winecellar/tasting-flight/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedTastingFlight(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/winecellar/') && req.method === 'PATCH') {
@@ -13058,6 +13138,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/payroll/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runPayrollSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/payroll/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackPayrollFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/payroll/timesheet/missing' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markPayrollMissingTimesheet(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/payroll/run/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approvePayrollRun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/payroll/overtime/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPayrollOvertime(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/payroll/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13458,6 +13568,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createBakery(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/bakery/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBakerySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bakery/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBakeryFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bakery/dough/lag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBakeryDoughLag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bakery/bake/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseBakeryBake(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bakery/dawn-batch/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedDawnBatch(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/bakery/') && req.method === 'PATCH') {

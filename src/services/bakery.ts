@@ -13,3 +13,23 @@ export async function createBakery(input: Record<string, unknown>): Promise<any>
 export async function patchBakery(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/bakery/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runBakerySweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/bakery/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackBakeryFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/bakery/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markBakeryDoughLag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/bakery/dough/lag', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function releaseBakeryBake(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/bakery/bake/release', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedDawnBatch(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/bakery/dawn-batch/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
