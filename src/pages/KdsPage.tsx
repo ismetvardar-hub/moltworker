@@ -1,11 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createKds, fetchKds, patchKds } from '../services/kds'
+import {
+  ackKdsFlag,
+  ageKdsTicket,
+  bumpKdsTicket,
+  createKds,
+  fetchKds,
+  patchKds,
+  runKdsSweep,
+  seedRushKdsTicket,
+} from '../services/kds'
 
 export default function KdsPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string>>({"ticket":"B-01","items":"Ayran","etaMin":"3"})
 
   async function refresh() {
@@ -19,6 +28,11 @@ export default function KdsPage() {
   }
 
   useEffect(() => { void refresh() }, [])
+
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -40,9 +54,17 @@ export default function KdsPage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">KDS</h1>
         <p className="mt-1 text-sm text-slate-400">Mutfak ekranı.</p>
       </header>
-      <CrudOpsBar domain="kds" onDone={() => void refresh()} />
-
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 165">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runKdsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackKdsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void ageKdsTicket({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Ticket aging' : r.error || 'Aging yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Age ticket</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void bumpKdsTicket({ id: rows[0]?.id }).then((r: any) => { ping(r.ok ? 'Ticket bumped' : r.error || 'Bump yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Bump ticket</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedRushKdsTicket({ items: 'Rush fire table' }).then(() => { ping('Rush ticket seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed rush</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="ticket" value={String(form.ticket ?? '')} onChange={(e) => setForm((f) => ({ ...f, ticket: e.target.value }))} />

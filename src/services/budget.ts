@@ -13,3 +13,23 @@ export async function createBudget(input: Record<string, unknown>): Promise<any>
 export async function patchBudget(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/budget/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(patch) }))
 }
+
+export async function runBudgetSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/budget/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackBudgetFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/budget/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function flagBudgetOverspendLine(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/budget/line/overspend', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function approveBudgetAdjustment(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/budget/adjustment/approve', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedForecastBudgetGap(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/budget/forecast/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

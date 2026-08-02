@@ -13,3 +13,23 @@ export async function createEventcal(input: Record<string, unknown>): Promise<an
 export async function patchEventcal(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/eventcal/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(patch) }))
 }
+
+export async function runEventcalSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/eventcal/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackEventcalFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/eventcal/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function flagEventcalConflict(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/eventcal/conflict', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function publishEventcalEvent(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/eventcal/publish', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedHoldingEventcalEvent(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/eventcal/holding/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

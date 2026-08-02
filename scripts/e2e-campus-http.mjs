@@ -189,6 +189,10 @@ try {
     '/api/transfers',
     '/api/concierge',
     '/api/shuttle',
+    '/api/wifi',
+    '/api/kds',
+    '/api/budget',
+    '/api/eventcal',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2296,6 +2300,98 @@ try {
   assert(shuttle164Board.res.ok && shuttle164Board.data.ok !== false, 'shuttle board guests');
   const shuttle164Ack = await req('/api/shuttle/flag/ack', { method: 'POST', token, body: {} });
   assert(shuttle164Ack.res.ok && shuttle164Ack.data.ok !== false, 'shuttle flag ack');
+
+  const wifi165Sweep = await req('/api/wifi/sweep', { method: 'POST', token, body: { force: true } });
+  assert(wifi165Sweep.res.ok && wifi165Sweep.data.ok !== false, 'wifi sweep');
+  const wifi165Seed = await req('/api/wifi/voucher/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-165 WiFi' },
+  });
+  assert(wifi165Seed.res.ok && wifi165Seed.data.ok !== false, 'wifi voucher seed');
+  const wifi165Issue = await req('/api/wifi/portal/issue', {
+    method: 'POST',
+    token,
+    body: { id: wifi165Seed.data.voucher?.id },
+  });
+  assert(wifi165Issue.res.ok && wifi165Issue.data.ok !== false, 'wifi portal issue');
+  const wifi165Reset = await req('/api/wifi/ap/reset', {
+    method: 'POST',
+    token,
+    body: { id: wifi165Seed.data.voucher?.id },
+  });
+  assert(wifi165Reset.res.ok && wifi165Reset.data.ok !== false, 'wifi ap reset');
+  const wifi165Ack = await req('/api/wifi/flag/ack', { method: 'POST', token, body: {} });
+  assert(wifi165Ack.res.ok && wifi165Ack.data.ok !== false, 'wifi flag ack');
+
+  const kds165Sweep = await req('/api/kds/sweep', { method: 'POST', token, body: { force: true } });
+  assert(kds165Sweep.res.ok && kds165Sweep.data.ok !== false, 'kds sweep');
+  const kds165Seed = await req('/api/kds/rush/seed', {
+    method: 'POST',
+    token,
+    body: { ticket: 'E2E-165-KDS' },
+  });
+  assert(kds165Seed.res.ok && kds165Seed.data.ok !== false, 'kds rush seed');
+  const kds165Age = await req('/api/kds/ticket/age', {
+    method: 'POST',
+    token,
+    body: { id: kds165Seed.data.ticket?.id },
+  });
+  assert(kds165Age.res.ok && kds165Age.data.ok !== false, 'kds ticket aging');
+  const kds165Bump = await req('/api/kds/ticket/bump', {
+    method: 'POST',
+    token,
+    body: { id: kds165Seed.data.ticket?.id },
+  });
+  assert(kds165Bump.res.ok && kds165Bump.data.ok !== false, 'kds ticket bump');
+  const kds165Ack = await req('/api/kds/flag/ack', { method: 'POST', token, body: {} });
+  assert(kds165Ack.res.ok && kds165Ack.data.ok !== false, 'kds flag ack');
+
+  const budget165Sweep = await req('/api/budget/sweep', { method: 'POST', token, body: { force: true } });
+  assert(budget165Sweep.res.ok && budget165Sweep.data.ok !== false, 'budget sweep');
+  const budget165Seed = await req('/api/budget/forecast/seed', {
+    method: 'POST',
+    token,
+    body: { label: 'E2E-165 forecast gap' },
+  });
+  assert(budget165Seed.res.ok && budget165Seed.data.ok !== false, 'budget forecast seed');
+  const budget165Overspend = await req('/api/budget/line/overspend', {
+    method: 'POST',
+    token,
+    body: { id: budget165Seed.data.line?.id },
+  });
+  assert(budget165Overspend.res.ok && budget165Overspend.data.ok !== false, 'budget overspend line');
+  const budget165Approve = await req('/api/budget/adjustment/approve', {
+    method: 'POST',
+    token,
+    body: { id: budget165Seed.data.line?.id },
+  });
+  assert(budget165Approve.res.ok && budget165Approve.data.ok !== false, 'budget adjustment approve');
+  const budget165Ack = await req('/api/budget/flag/ack', { method: 'POST', token, body: {} });
+  assert(budget165Ack.res.ok && budget165Ack.data.ok !== false, 'budget flag ack');
+
+  const eventcal165Sweep = await req('/api/eventcal/sweep', { method: 'POST', token, body: { force: true } });
+  assert(eventcal165Sweep.res.ok && eventcal165Sweep.data.ok !== false, 'eventcal sweep');
+  const eventcal165Seed = await req('/api/eventcal/holding/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-165 holding' },
+  });
+  assert(eventcal165Seed.res.ok && eventcal165Seed.data.ok !== false, 'eventcal holding seed');
+  const eventcal165Conflict = await req('/api/eventcal/conflict', {
+    method: 'POST',
+    token,
+    body: { id: eventcal165Seed.data.event?.id },
+  });
+  assert(eventcal165Conflict.res.ok && eventcal165Conflict.data.ok !== false, 'eventcal conflict');
+  const eventcal165Publish = await req('/api/eventcal/publish', {
+    method: 'POST',
+    token,
+    body: { id: eventcal165Seed.data.event?.id },
+  });
+  assert(eventcal165Publish.res.ok && eventcal165Publish.data.ok !== false, 'eventcal publish');
+  const eventcal165Ack = await req('/api/eventcal/flag/ack', { method: 'POST', token, body: {} });
+  assert(eventcal165Ack.res.ok && eventcal165Ack.data.ok !== false, 'eventcal flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

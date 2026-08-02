@@ -508,7 +508,15 @@ import {
   createSpa, listSpa, spaSummary, updateSpa,
 } from './spa.js';
 import {
-  createEventcal, eventcalSummary, listEventcal, updateEventcal,
+  ackEventcalFlag,
+  createEventcal,
+  eventcalSummary,
+  flagEventcalConflict,
+  listEventcal,
+  publishEventcalEvent,
+  runEventcalSweep,
+  seedHoldingEventcalEvent,
+  updateEventcal,
 } from './eventcal.js';
 import {
   ackGiftcardsFlag,
@@ -555,7 +563,15 @@ import {
   updateLaundry,
 } from './laundry.js';
 import {
-  createWifi, listWifi, updateWifi, wifiSummary,
+  ackWifiFlag,
+  createWifi,
+  flagWifiCaptivePortalIssue,
+  listWifi,
+  resetWifiAccessPoint,
+  runWifiSweep,
+  seedGuestWifiVoucher,
+  updateWifi,
+  wifiSummary,
 } from './wifi.js';
 import {
   contentSummary, createContent, listContent, updateContent,
@@ -564,7 +580,15 @@ import {
   createPulse, listPulse, pulseSummary, updatePulse,
 } from './pulse.js';
 import {
-  budgetSummary, createBudget, listBudget, updateBudget,
+  ackBudgetFlag,
+  approveBudgetAdjustment,
+  budgetSummary,
+  createBudget,
+  flagBudgetOverspendLine,
+  listBudget,
+  runBudgetSweep,
+  seedForecastBudgetGap,
+  updateBudget,
 } from './budget.js';
 import {
   ackContractsFlag,
@@ -581,7 +605,15 @@ import {
   createPassstock, listPassstock, passstockSummary, updatePassstock,
 } from './passstock.js';
 import {
-  createKds, kdsSummary, listKds, updateKds,
+  ackKdsFlag,
+  ageKdsTicket,
+  bumpKdsTicket,
+  createKds,
+  kdsSummary,
+  listKds,
+  runKdsSweep,
+  seedRushKdsTicket,
+  updateKds,
 } from './kds.js';
 import {
   acknowledgeEmergencyIncident,
@@ -10921,6 +10953,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/eventcal/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runEventcalSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/eventcal/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackEventcalFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/eventcal/conflict' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagEventcalConflict(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/eventcal/publish' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishEventcalEvent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/eventcal/holding/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedHoldingEventcalEvent(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/eventcal/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11161,6 +11223,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/wifi/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runWifiSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wifi/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackWifiFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wifi/portal/issue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagWifiCaptivePortalIssue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wifi/ap/reset' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resetWifiAccessPoint(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/wifi/voucher/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedGuestWifiVoucher(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/wifi/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11231,6 +11323,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createBudget(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/budget/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBudgetSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/budget/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBudgetFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/budget/line/overspend' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagBudgetOverspendLine(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/budget/adjustment/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveBudgetAdjustment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/budget/forecast/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedForecastBudgetGap(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/budget/') && req.method === 'PATCH') {
@@ -11333,6 +11455,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createKds(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/kds/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKdsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kds/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKdsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kds/ticket/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageKdsTicket(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kds/ticket/bump' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, bumpKdsTicket(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kds/rush/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedRushKdsTicket(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/kds/') && req.method === 'PATCH') {

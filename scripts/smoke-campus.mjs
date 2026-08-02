@@ -729,6 +729,18 @@ import {
 import {
   shuttleSummary, runShuttleSweep, ackShuttleFlag, markShuttleLateDeparture, boardShuttleGuests, seedShuttleRoute,
 } from '../server/shuttle.js';
+import {
+  wifiSummary, runWifiSweep, ackWifiFlag, flagWifiCaptivePortalIssue, resetWifiAccessPoint, seedGuestWifiVoucher,
+} from '../server/wifi.js';
+import {
+  kdsSummary, runKdsSweep, ackKdsFlag, ageKdsTicket, bumpKdsTicket, seedRushKdsTicket,
+} from '../server/kds.js';
+import {
+  budgetSummary, runBudgetSweep, ackBudgetFlag, flagBudgetOverspendLine, approveBudgetAdjustment, seedForecastBudgetGap,
+} from '../server/budget.js';
+import {
+  eventcalSummary, runEventcalSweep, ackEventcalFlag, flagEventcalConflict, publishEventcalEvent, seedHoldingEventcalEvent,
+} from '../server/eventcal.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2094,6 +2106,34 @@ assert(boardShuttleGuests({}, 'smoke').ok, 'shuttle board guests');
 assert(runShuttleSweep({ force: true }, 'smoke').ok, 'shuttle sweep');
 assert(ackShuttleFlag({}, 'smoke').ok, 'shuttle flag ack');
 
+assert(wifiSummary().title, 'wifi overview');
+assert(seedGuestWifiVoucher({ guestName: 'Smoke 165 WiFi' }, 'smoke').ok, 'wifi guest voucher seed');
+assert(flagWifiCaptivePortalIssue({}, 'smoke').ok, 'wifi portal issue');
+assert(resetWifiAccessPoint({}, 'smoke').ok, 'wifi ap reset');
+assert(runWifiSweep({ force: true }, 'smoke').ok, 'wifi sweep');
+assert(ackWifiFlag({}, 'smoke').ok, 'wifi flag ack');
+
+assert(kdsSummary().title, 'kds overview');
+assert(seedRushKdsTicket({ ticket: 'SMK-165' }, 'smoke').ok, 'kds rush seed');
+assert(ageKdsTicket({}, 'smoke').ok, 'kds ticket aging');
+assert(bumpKdsTicket({}, 'smoke').ok, 'kds ticket bump');
+assert(runKdsSweep({ force: true }, 'smoke').ok, 'kds sweep');
+assert(ackKdsFlag({}, 'smoke').ok, 'kds flag ack');
+
+assert(budgetSummary().title, 'budget overview');
+assert(seedForecastBudgetGap({ label: 'Smoke 165 gap' }, 'smoke').ok, 'budget forecast gap seed');
+assert(flagBudgetOverspendLine({}, 'smoke').ok, 'budget overspend line');
+assert(approveBudgetAdjustment({}, 'smoke').ok, 'budget adjustment approve');
+assert(runBudgetSweep({ force: true }, 'smoke').ok, 'budget sweep');
+assert(ackBudgetFlag({}, 'smoke').ok, 'budget flag ack');
+
+assert(eventcalSummary().title, 'eventcal overview');
+assert(seedHoldingEventcalEvent({ title: 'Smoke 165 holding' }, 'smoke').ok, 'eventcal holding seed');
+assert(flagEventcalConflict({}, 'smoke').ok, 'eventcal conflict');
+assert(publishEventcalEvent({}, 'smoke').ok, 'eventcal publish');
+assert(runEventcalSweep({ force: true }, 'smoke').ok, 'eventcal sweep');
+assert(ackEventcalFlag({}, 'smoke').ok, 'eventcal flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2115,6 +2155,7 @@ console.log('MOD161_OK');
 console.log('MOD162_OK');
 console.log('MOD163_OK');
 console.log('MOD164_OK');
+console.log('MOD165_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2141,6 +2182,9 @@ for (const thickened163 of ['cleaning', 'emergency', 'folio', 'roomstatus']) {
 }
 for (const thickened164 of ['minibar', 'transfers', 'concierge', 'shuttle']) {
   assert(!crudDomains.some((d) => d.name === thickened164), `crudops skips thickened ${thickened164}`);
+}
+for (const thickened165 of ['wifi', 'kds', 'budget', 'eventcal']) {
+  assert(!crudDomains.some((d) => d.name === thickened165), `crudops skips thickened ${thickened165}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2221,6 +2265,14 @@ assert(!isCrudOpsPath('/api/concierge/sweep', 'POST'), 'crudops skips thickened 
 assert(!isCrudOpsPath('/api/concierge/flag/ack', 'POST'), 'crudops skips concierge ack');
 assert(!isCrudOpsPath('/api/shuttle/sweep', 'POST'), 'crudops skips thickened shuttle');
 assert(!isCrudOpsPath('/api/shuttle/flag/ack', 'POST'), 'crudops skips shuttle ack');
+assert(!isCrudOpsPath('/api/wifi/sweep', 'POST'), 'crudops skips thickened wifi');
+assert(!isCrudOpsPath('/api/wifi/flag/ack', 'POST'), 'crudops skips wifi ack');
+assert(!isCrudOpsPath('/api/kds/sweep', 'POST'), 'crudops skips thickened kds');
+assert(!isCrudOpsPath('/api/kds/flag/ack', 'POST'), 'crudops skips kds ack');
+assert(!isCrudOpsPath('/api/budget/sweep', 'POST'), 'crudops skips thickened budget');
+assert(!isCrudOpsPath('/api/budget/flag/ack', 'POST'), 'crudops skips budget ack');
+assert(!isCrudOpsPath('/api/eventcal/sweep', 'POST'), 'crudops skips thickened eventcal');
+assert(!isCrudOpsPath('/api/eventcal/flag/ack', 'POST'), 'crudops skips eventcal ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
