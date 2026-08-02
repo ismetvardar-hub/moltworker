@@ -48,6 +48,19 @@ test -f CLAUDE.md
 test -f .agents/agent-reach.md
 test -f src/services/aiProvider.ts
 test -f src/services/agentReach.ts
-echo "OK agent stack"
+SKILL_COUNT="$(find skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+if [[ "$SKILL_COUNT" -lt 24 ]]; then
+  echo "FAIL: expected >=24 skills, found $SKILL_COUNT"
+  exit 1
+fi
+echo "OK agent stack ($SKILL_COUNT skills)"
+
+echo "==> [gate] doctor:reach (warn-only)"
+if bash scripts/agent-reach-doctor.sh >/tmp/likya-doctor-reach.log 2>&1; then
+  echo "OK doctor:reach"
+else
+  echo "WARN doctor:reach reported issues (non-fatal)"
+  tail -5 /tmp/likya-doctor-reach.log || true
+fi
 
 echo "GATE_OK"

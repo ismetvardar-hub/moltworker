@@ -23,12 +23,16 @@ import StatusBadge from '../components/StatusBadge';
 import ArchivePanel from '../components/ArchivePanel';
 import {
   TARGET_MODELS,
-  checkOllamaStatus,
   isModelInstalled,
   listOllamaModels,
   resolveModel,
 } from '../services/ollama';
-import { streamGenerate } from '../services/aiProvider';
+import {
+  getAiProviderInfo,
+  streamGenerate,
+  type AiProviderId,
+  type AiProviderInfo,
+} from '../services/aiProvider';
 import {
   buildPipeline,
   buildStepPrompt,
@@ -37,7 +41,9 @@ import {
 import {
   buildResearchPrompt,
   buildSearchLogLines,
+  deepReadWithAgentReach,
   fetchLiveSources,
+  packReachContext,
   reportFromSources,
   type ResearchSource,
 } from '../services/research';
@@ -211,6 +217,8 @@ export default function CommandCenter() {
   const [directives, setDirectives] = useState<Directive[]>(INITIAL_DIRECTIVES);
   const [draft, setDraft] = useState('');
   const [aiOnline, setAiOnline] = useState<boolean | null>(null);
+  const [aiProvider, setAiProvider] = useState<AiProviderId | null>(null);
+  const [aiNote, setAiNote] = useState('');
   const [installed, setInstalled] = useState<OllamaModel[]>([]);
   const [model, setModel] = useState<string>(TARGET_MODELS[0]);
   const [pipeline, setPipeline] = useState<PipelineStep[]>([]);
@@ -259,10 +267,13 @@ export default function CommandCenter() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const status = await checkOllamaStatus();
+      const info: AiProviderInfo = await getAiProviderInfo();
       if (cancelled) return;
-      setAiOnline(status.reachable);
-      if (status.reachable) {
+      const online = info.ollama.reachable || info.groqConfigured;
+      setAiOnline(online);
+      setAiProvider(online ? info.active : null);
+      setAiNote(info.note);
+      if (info.ollama.reachable) {
         try {
           const models = await listOllamaModels();
           if (cancelled) return;
@@ -276,6 +287,9 @@ export default function CommandCenter() {
         } catch {
           /* model listesi alınamazsa hedef listeyle devam edilir */
         }
+      } else if (info.groqConfigured) {
+        setInstalled([]);
+        setModel('groq/' + (import.meta.env.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile'));
       }
     })();
     return () => {
@@ -355,9 +369,10 @@ export default function CommandCenter() {
           patchStep(i, { output: stepOut });
         };
 
-        // HERODOT: canlı web proxy → kaynak günlüğü → Ollama analist raporu.
+        // HERODOT: /api/search → Agent Reach derin okuma → hibrit AI analist raporu.
         let liveSources: ResearchSource[] = [];
         let searchLive = false;
+        let deepMarkdown = '';
         if (agentId === 'herodot') {
           append('[HERODOT] Canlı web araması proxy\'ye iletiliyor (/api/search)…\n');
           try {
@@ -378,7 +393,6 @@ export default function CommandCenter() {
             if (controller.signal.aborted) break;
             const msg = err instanceof Error ? err.message : 'Arama başarısız';
             append(`[HERODOT] Proxy hatası: ${msg}\n`);
-            // Proxy tamamen erişilemezse boş kaynakla rapora devam et.
             liveSources = [];
             searchLive = false;
             patchStep(i, {
@@ -386,7 +400,23 @@ export default function CommandCenter() {
               searchProvider: 'offline',
               searchLive: false,
             });
-            append('[HERODOT] Kaynak olmadan analist çerçevesi üretilecek.\n');
+            append('[HERODOT] Kaynak olmadan Agent Reach / analist çerçevesi denenecek.\n');
+          }
+
+          if (!controller.signal.aborted) {
+            append('[REACH] Ücretsiz derin okuma (Jina / Reddit / X)…\n');
+            try {
+              const reach = await deepReadWithAgentReach(text, liveSources, controller.signal, 2);
+              for (const line of reach.log) {
+                append(line + '\n');
+                await sleep(60);
+              }
+              deepMarkdown = packReachContext(reach.docs);
+            } catch (err) {
+              append(
+                `[REACH] Derin okuma atlandı: ${err instanceof Error ? err.message : 'hata'}\n`,
+              );
+            }
           }
           append('\n');
         }
@@ -399,7 +429,7 @@ export default function CommandCenter() {
         if (aiOnline) {
           const prompt =
             agentId === 'herodot'
-              ? buildResearchPrompt(text, liveSources)
+              ? buildResearchPrompt(text, liveSources, deepMarkdown)
               : buildStepPrompt(working[i], text, previous);
           const stepModel = resolveModel(working[i].engine, installed, model);
           for await (const token of streamGenerate(stepModel, prompt, controller.signal)) {
@@ -483,11 +513,20 @@ export default function CommandCenter() {
   const aiHealth: SystemHealth = aiOnline === null ? 'unknown' : aiOnline ? 'online' : 'offline';
   const completedSteps = pipeline.filter((s) => s.status === 'tamamlandi').length;
 
+  const providerLabel =
+    aiProvider === 'groq' ? 'Groq Free' : aiProvider === 'ollama' ? 'Ollama' : 'Simülasyon';
+
   const systemCards: SystemCard[] = [
     {
-      title: 'Yerel AI Çekirdeği',
-      value: aiOnline ? `${installed.length} model` : 'Simülasyon',
-      detail: aiOnline ? 'Ollama servis katmanı aktif' : 'Ollama bağlantısı bekleniyor',
+      title: 'Hibrit AI Çekirdeği',
+      value: aiOnline
+        ? aiProvider === 'groq'
+          ? 'Groq'
+          : `${installed.length} model`
+        : 'Simülasyon',
+      detail: aiOnline
+        ? aiNote || `${providerLabel} · ETHOS aktif`
+        : 'Ollama / Groq bekleniyor',
       health: aiHealth,
       icon: Cpu,
     },
@@ -656,11 +695,11 @@ export default function CommandCenter() {
           title="Otonom Talimat Ekranı"
           subtitle={
             aiOnline
-              ? 'Talimat LİKYA-1 tarafından bölünür, zincir yerel modellerle çalışır'
-              : 'Ollama çevrimdışı — zincir simülasyon modunda çalışır'
+              ? `Talimat LİKYA-1 ile bölünür · ${providerLabel} · HERODOT Agent Reach (0 TL)`
+              : 'Ollama / Groq yok — zincir simülasyon modunda çalışır'
           }
         >
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <label className="text-xs font-medium text-slate-400" htmlFor="model-select">
               Varsayılan model:
             </label>
@@ -668,7 +707,7 @@ export default function CommandCenter() {
               id="model-select"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              disabled={!aiOnline || streaming}
+              disabled={!aiOnline || streaming || aiProvider === 'groq'}
               className="rounded-lg border border-obsidian-700 bg-obsidian-950 px-3 py-1.5 font-mono text-xs text-lykia-300 focus:border-lykia-500 focus:outline-none disabled:opacity-50"
             >
               {modelOptions.map((name) => (
@@ -679,7 +718,13 @@ export default function CommandCenter() {
             </select>
             <StatusBadge
               health={aiHealth}
-              label={aiOnline ? 'Canlı AI' : aiOnline === null ? 'Kontrol ediliyor' : 'Simülasyon'}
+              label={
+                aiOnline === null
+                  ? 'Kontrol ediliyor'
+                  : aiOnline
+                    ? `Canlı · ${providerLabel}`
+                    : 'Simülasyon'
+              }
             />
           </div>
 

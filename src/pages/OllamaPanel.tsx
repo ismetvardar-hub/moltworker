@@ -3,9 +3,11 @@ import {
   CheckCircle2,
   Cpu,
   Download,
+  Globe2,
   HardDrive,
   RefreshCw,
   Server,
+  Sparkles,
   XCircle,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
@@ -18,6 +20,7 @@ import {
   isModelInstalled,
   listOllamaModels,
 } from '../services/ollama';
+import { getAiProviderInfo, type AiProviderInfo } from '../services/aiProvider';
 import type { OllamaModel, OllamaStatus } from '../types';
 
 export default function OllamaPanel() {
@@ -25,11 +28,16 @@ export default function OllamaPanel() {
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [modelsError, setModelsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hybrid, setHybrid] = useState<AiProviderInfo | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const nextStatus = await checkOllamaStatus();
+    const [nextStatus, providerInfo] = await Promise.all([
+      checkOllamaStatus(),
+      getAiProviderInfo(),
+    ]);
     setStatus(nextStatus);
+    setHybrid(providerInfo);
 
     if (nextStatus.reachable) {
       try {
@@ -51,6 +59,12 @@ export default function OllamaPanel() {
   }, [refresh]);
 
   const health = status === null ? 'unknown' : status.reachable ? 'online' : 'offline';
+  const hybridHealth =
+    hybrid === null
+      ? 'unknown'
+      : hybrid.ollama.reachable || hybrid.groqConfigured
+        ? 'online'
+        : 'offline';
 
   return (
     <div className="space-y-6">
@@ -58,13 +72,14 @@ export default function OllamaPanel() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-slate-50">
             <Cpu className="size-6 text-lykia-400" />
-            Yerel AI — Ollama Entegrasyonu
+            Hibrit AI — Ollama + Groq
           </h1>
           <p className="mt-1 text-sm text-slate-400">
+            Yerel{' '}
             <code className="rounded bg-obsidian-800 px-1.5 py-0.5 font-mono text-xs text-lykia-300">
               {OLLAMA_BASE_URL}
             </code>{' '}
-            üzerindeki yerel model sunucusunun servis paneli.
+            öncelik · Groq Free yedek · ETHOS üslup · Agent Reach 0 TL web gözü.
           </p>
         </div>
         <button
@@ -79,6 +94,40 @@ export default function OllamaPanel() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <PanelCard title="Hibrit sağlayıcı" subtitle="aiProvider.ts · auto">
+          <div className="flex items-center gap-4">
+            <div
+              className={`flex size-12 items-center justify-center rounded-xl ${
+                hybridHealth === 'online'
+                  ? 'bg-emerald-500/10 text-emerald-400'
+                  : hybridHealth === 'offline'
+                    ? 'bg-rose-500/10 text-rose-400'
+                    : 'bg-slate-500/10 text-slate-400'
+              }`}
+            >
+              <Sparkles className="size-6" />
+            </div>
+            <div>
+              <StatusBadge
+                health={hybridHealth}
+                label={
+                  hybrid
+                    ? hybrid.active === 'groq'
+                      ? 'Groq Free'
+                      : hybrid.ollama.reachable
+                        ? 'Ollama'
+                        : 'Bekleniyor'
+                    : 'Kontrol…'
+                }
+              />
+              <p className="mt-1 text-xs text-slate-500">{hybrid?.note ?? 'Sağlayıcı okunuyor…'}</p>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Groq anahtar: {hybrid?.groqConfigured ? 'tanımlı' : 'yok (VITE_GROQ_API_KEY)'}
+              </p>
+            </div>
+          </div>
+        </PanelCard>
+
         <PanelCard title="Sunucu Durumu" subtitle="GET /api/version">
           <div className="flex items-center gap-4">
             <div
@@ -119,10 +168,10 @@ export default function OllamaPanel() {
 
         <PanelCard
           title="Hedef Modeller"
-          subtitle="Ekosistemin kullandığı çekirdek modeller"
-          className="lg:col-span-2"
+          subtitle="DeepSeek-R1 · Qwen 2.5 · coder"
+          className="lg:col-span-1"
         >
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {TARGET_MODELS.map((target) => {
               const installed = isModelInstalled(target, models);
               return (
@@ -155,6 +204,33 @@ export default function OllamaPanel() {
           </ul>
         </PanelCard>
       </div>
+
+      <PanelCard
+        title="Agent stack (ücretsiz)"
+        subtitle="SKILL.md · 24 skill · Agent Reach · quality gates"
+      >
+        <ul className="grid gap-2 text-sm text-slate-300 sm:grid-cols-2">
+          {[
+            ['SKILL.md / CLAUDE.md', 'Ajan anayasası mühürlü'],
+            ['24 skill pack', 'spec → plan → build → test → ship'],
+            ['Agent Reach', 'Jina / Reddit / X / GitHub · 0 TL'],
+            ['npm run gate', 'Stop Slop + typecheck'],
+            ['npm run doctor:reach', 'Kanal sağlık kontrolü'],
+            ['ETHOS', 'Sade · naif · zarif espri'],
+          ].map(([label, detail]) => (
+            <li
+              key={label}
+              className="flex items-start gap-2 rounded-lg border border-obsidian-700 bg-obsidian-950/50 px-3 py-2"
+            >
+              <Globe2 className="mt-0.5 size-4 shrink-0 text-lykia-400" />
+              <span>
+                <span className="font-semibold text-slate-100">{label}</span>
+                <span className="mt-0.5 block text-xs text-slate-500">{detail}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </PanelCard>
 
       <PanelCard
         title="Yüklü Modeller"

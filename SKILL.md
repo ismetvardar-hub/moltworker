@@ -58,6 +58,9 @@ Tüm çıkarım hibrit katmandan geçer:
 ## Hızlı doğrulama
 
 ```bash
+npm run doctor:reach
 npm run gate
 npm run build
 ```
+
+CEO panel: **Hibrit AI** (Ollama sayfası) + Komuta Merkezi HERODOT (Agent Reach derin okuma).

@@ -54,8 +54,9 @@ Kaynak: `.agents/commands/*` · `skills/*` · kök `SKILL.md`
 Yayın / push öncesi **zorunlu**:
 
 ```bash
-npm run gate      # typecheck + mühür + slop tarama
-npm run build     # tsc --noEmit && vite build
+npm run doctor:reach   # Agent Reach kanal sağlığı
+npm run gate           # typecheck + mühür + slop tarama
+npm run build          # tsc --noEmit && vite build
 ```
 
 Gate başarısızsa ship yok.
