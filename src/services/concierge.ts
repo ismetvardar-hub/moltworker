@@ -13,3 +13,23 @@ export async function createConcierge(input: Record<string, unknown>): Promise<a
 export async function patchConcierge(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/concierge/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runConciergeSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/concierge/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackConciergeFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/concierge/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ageConciergeRequest(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/concierge/request/age', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function fulfillConciergeRequest(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/concierge/fulfill', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedVipConciergeAsk(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/concierge/vip/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

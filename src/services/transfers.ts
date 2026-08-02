@@ -13,3 +13,23 @@ export async function createTransfers(input: Record<string, unknown>): Promise<a
 export async function patchTransfers(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/transfers/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runTransfersSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/transfers/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackTransfersFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/transfers/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function delayTransferPickup(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/transfers/pickup/delay', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function completeTransferRide(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/transfers/complete', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedAirportTransferRun(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/transfers/airport/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

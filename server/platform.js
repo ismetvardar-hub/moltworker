@@ -621,8 +621,13 @@ import {
   updateBeachbeds,
 } from './beachbeds.js';
 import {
+  ackTransfersFlag,
   createTransfers,
+  completeTransferRide,
+  delayTransferPickup,
   listTransfers,
+  runTransfersSweep,
+  seedAirportTransferRun,
   transfersSummary,
   updateTransfers,
 } from './transfers.js';
@@ -669,8 +674,13 @@ import {
   updateLounge,
 } from './lounge.js';
 import {
+  ackShuttleFlag,
+  boardShuttleGuests,
   createShuttle,
   listShuttle,
+  markShuttleLateDeparture,
+  runShuttleSweep,
+  seedShuttleRoute,
   shuttleSummary,
   updateShuttle,
 } from './shuttle.js';
@@ -695,15 +705,25 @@ import {
   snapshotBoardpack,
 } from './boardpack.js';
 import {
+  ackConciergeFlag,
+  ageConciergeRequest,
   createConcierge,
+  fulfillConciergeRequest,
   listConcierge,
   conciergeSummary,
+  runConciergeSweep,
+  seedVipConciergeAsk,
   updateConcierge,
 } from './concierge.js';
 import {
+  ackMinibarFlag,
+  chargeMinibarFolio,
   createMinibar,
   listMinibar,
   minibarSummary,
+  restockDueMinibar,
+  runMinibarSweep,
+  seedEmptyMinibarFridge,
   updateMinibar,
 } from './minibar.js';
 import {
@@ -11504,6 +11524,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/transfers/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runTransfersSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/transfers/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackTransfersFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/transfers/pickup/delay' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, delayTransferPickup(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/transfers/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeTransferRide(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/transfers/airport/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedAirportTransferRun(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/transfers/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11696,6 +11746,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/shuttle/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runShuttleSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shuttle/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackShuttleFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shuttle/departure/late' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markShuttleLateDeparture(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shuttle/board' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, boardShuttleGuests(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shuttle/route/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedShuttleRoute(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/shuttle/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11806,6 +11886,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/concierge/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runConciergeSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/concierge/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackConciergeFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/concierge/request/age' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ageConciergeRequest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/concierge/fulfill' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, fulfillConciergeRequest(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/concierge/vip/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipConciergeAsk(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/concierge/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11829,6 +11939,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createMinibar(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/minibar/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMinibarSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/minibar/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMinibarFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/minibar/restock/due' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockDueMinibar(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/minibar/folio/charge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, chargeMinibarFolio(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/minibar/empty/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEmptyMinibarFridge(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/minibar/') && req.method === 'PATCH') {

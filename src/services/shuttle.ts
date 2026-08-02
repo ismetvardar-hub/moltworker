@@ -13,3 +13,23 @@ export async function createShuttle(input: Record<string, unknown>): Promise<any
 export async function patchShuttle(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/shuttle/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runShuttleSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/shuttle/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackShuttleFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/shuttle/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markShuttleLateDeparture(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/shuttle/departure/late', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function boardShuttleGuests(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/shuttle/board', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedShuttleRoute(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/shuttle/route/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

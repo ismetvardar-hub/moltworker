@@ -185,6 +185,10 @@ try {
     '/api/emergency',
     '/api/folio',
     '/api/roomstatus',
+    '/api/minibar',
+    '/api/transfers',
+    '/api/concierge',
+    '/api/shuttle',
     '/api/health',
   ];
   for (const p of paths) {
@@ -2200,6 +2204,98 @@ try {
     body: { id: roomstatus163Seed.data.room?.id },
   });
   assert(roomstatus163Ready.res.ok && roomstatus163Ready.data.ok !== false, 'roomstatus ready');
+
+  const minibar164Sweep = await req('/api/minibar/sweep', { method: 'POST', token, body: { force: true } });
+  assert(minibar164Sweep.res.ok && minibar164Sweep.data.ok !== false, 'minibar sweep');
+  const minibar164Seed = await req('/api/minibar/empty/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E-164-MNB' },
+  });
+  assert(minibar164Seed.res.ok && minibar164Seed.data.ok !== false, 'minibar empty seed');
+  const minibar164Restock = await req('/api/minibar/restock/due', {
+    method: 'POST',
+    token,
+    body: { id: minibar164Seed.data.item?.id },
+  });
+  assert(minibar164Restock.res.ok && minibar164Restock.data.ok !== false, 'minibar restock due');
+  const minibar164Charge = await req('/api/minibar/folio/charge', {
+    method: 'POST',
+    token,
+    body: { id: minibar164Seed.data.item?.id, amount: 88 },
+  });
+  assert(minibar164Charge.res.ok && minibar164Charge.data.ok !== false, 'minibar folio charge');
+  const minibar164Ack = await req('/api/minibar/flag/ack', { method: 'POST', token, body: {} });
+  assert(minibar164Ack.res.ok && minibar164Ack.data.ok !== false, 'minibar flag ack');
+
+  const transfers164Sweep = await req('/api/transfers/sweep', { method: 'POST', token, body: { force: true } });
+  assert(transfers164Sweep.res.ok && transfers164Sweep.data.ok !== false, 'transfers sweep');
+  const transfers164Seed = await req('/api/transfers/airport/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-164 airport' },
+  });
+  assert(transfers164Seed.res.ok && transfers164Seed.data.ok !== false, 'transfers airport seed');
+  const transfers164Delay = await req('/api/transfers/pickup/delay', {
+    method: 'POST',
+    token,
+    body: { id: transfers164Seed.data.ride?.id, minutes: 25 },
+  });
+  assert(transfers164Delay.res.ok && transfers164Delay.data.ok !== false, 'transfers pickup delay');
+  const transfers164Complete = await req('/api/transfers/complete', {
+    method: 'POST',
+    token,
+    body: { id: transfers164Seed.data.ride?.id },
+  });
+  assert(transfers164Complete.res.ok && transfers164Complete.data.ok !== false, 'transfers complete');
+  const transfers164Ack = await req('/api/transfers/flag/ack', { method: 'POST', token, body: {} });
+  assert(transfers164Ack.res.ok && transfers164Ack.data.ok !== false, 'transfers flag ack');
+
+  const concierge164Sweep = await req('/api/concierge/sweep', { method: 'POST', token, body: { force: true } });
+  assert(concierge164Sweep.res.ok && concierge164Sweep.data.ok !== false, 'concierge sweep');
+  const concierge164Seed = await req('/api/concierge/vip/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-164 VIP' },
+  });
+  assert(concierge164Seed.res.ok && concierge164Seed.data.ok !== false, 'concierge vip seed');
+  const concierge164Age = await req('/api/concierge/request/age', {
+    method: 'POST',
+    token,
+    body: { id: concierge164Seed.data.request?.id },
+  });
+  assert(concierge164Age.res.ok && concierge164Age.data.ok !== false, 'concierge request aging');
+  const concierge164Fulfill = await req('/api/concierge/fulfill', {
+    method: 'POST',
+    token,
+    body: { id: concierge164Seed.data.request?.id },
+  });
+  assert(concierge164Fulfill.res.ok && concierge164Fulfill.data.ok !== false, 'concierge fulfill');
+  const concierge164Ack = await req('/api/concierge/flag/ack', { method: 'POST', token, body: {} });
+  assert(concierge164Ack.res.ok && concierge164Ack.data.ok !== false, 'concierge flag ack');
+
+  const shuttle164Sweep = await req('/api/shuttle/sweep', { method: 'POST', token, body: { force: true } });
+  assert(shuttle164Sweep.res.ok && shuttle164Sweep.data.ok !== false, 'shuttle sweep');
+  const shuttle164Seed = await req('/api/shuttle/route/seed', {
+    method: 'POST',
+    token,
+    body: { route: 'E2E-164 route' },
+  });
+  assert(shuttle164Seed.res.ok && shuttle164Seed.data.ok !== false, 'shuttle route seed');
+  const shuttle164Late = await req('/api/shuttle/departure/late', {
+    method: 'POST',
+    token,
+    body: { id: shuttle164Seed.data.run?.id, minutes: 15 },
+  });
+  assert(shuttle164Late.res.ok && shuttle164Late.data.ok !== false, 'shuttle late departure');
+  const shuttle164Board = await req('/api/shuttle/board', {
+    method: 'POST',
+    token,
+    body: { id: shuttle164Seed.data.run?.id, guests: 3 },
+  });
+  assert(shuttle164Board.res.ok && shuttle164Board.data.ok !== false, 'shuttle board guests');
+  const shuttle164Ack = await req('/api/shuttle/flag/ack', { method: 'POST', token, body: {} });
+  assert(shuttle164Ack.res.ok && shuttle164Ack.data.ok !== false, 'shuttle flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -1,11 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { createShuttle, fetchShuttle, patchShuttle } from '../services/shuttle'
+import {
+  ackShuttleFlag,
+  boardShuttleGuests,
+  createShuttle,
+  fetchShuttle,
+  markShuttleLateDeparture,
+  patchShuttle,
+  runShuttleSweep,
+  seedShuttleRoute,
+} from '../services/shuttle'
 
 export default function ShuttlePage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"route":"Beach↔Kaleiçi","depart":"10:00"})
   async function refresh() {
     try {
@@ -15,6 +24,10 @@ export default function ShuttlePage() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Yüklenemedi') }
   }
   useEffect(()=>{ void refresh() }, [])
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2600)
+  }
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     try {
@@ -30,9 +43,18 @@ export default function ShuttlePage() {
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">Shuttle Saatleri</h1>
         <p className="mt-1 text-sm text-slate-400">Ring seferleri.</p>
       </header>
-      <CrudOpsBar domain="shuttle" onDone={() => void refresh()} />
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Ops toolbar" subtitle="Wave 164">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runShuttleSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackShuttleFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markShuttleLateDeparture({ id: rows[0]?.id, minutes: 15 }).then((r: any) => { ping(r.ok ? 'Late departure' : r.error || 'Late yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Late depart</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void boardShuttleGuests({ id: rows[0]?.id, guests: 2 }).then((r: any) => { ping(r.ok ? 'Guests boarded' : r.error || 'Board yok'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Board guests</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedShuttleRoute({ route: 'Lobby-Airport' }).then(() => { ping('Route seed'); return refresh() }).catch((e) => setError(String(e.message || e)))}>Seed route</button>
+        </div>
+      </PanelCard>
       <PanelCard title="Yeni">
         <form onSubmit={(e)=>void onCreate(e)} className="grid gap-2 md:grid-cols-3">
           <input className="rounded-md border border-obsidian-600 bg-obsidian-950 px-2 py-2 text-sm text-slate-100" placeholder="route" value={String(form.route??'')} onChange={(e)=>setForm(f=>({...f,route:e.target.value}))} />

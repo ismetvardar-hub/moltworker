@@ -717,6 +717,18 @@ import {
 import {
   roomstatusSummary, runRoomstatusSweep, ackRoomstatusFlag, setRoomstatusReady, extendRoomstatusOoo, seedBlockedRoomstatus,
 } from '../server/roomstatus.js';
+import {
+  minibarSummary, runMinibarSweep, ackMinibarFlag, restockDueMinibar, chargeMinibarFolio, seedEmptyMinibarFridge,
+} from '../server/minibar.js';
+import {
+  transfersSummary, runTransfersSweep, ackTransfersFlag, delayTransferPickup, completeTransferRide, seedAirportTransferRun,
+} from '../server/transfers.js';
+import {
+  conciergeSummary, runConciergeSweep, ackConciergeFlag, ageConciergeRequest, fulfillConciergeRequest, seedVipConciergeAsk,
+} from '../server/concierge.js';
+import {
+  shuttleSummary, runShuttleSweep, ackShuttleFlag, markShuttleLateDeparture, boardShuttleGuests, seedShuttleRoute,
+} from '../server/shuttle.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2054,6 +2066,34 @@ assert(setRoomstatusReady({}, 'smoke').ok, 'roomstatus ready');
 assert(runRoomstatusSweep({ force: true }, 'smoke').ok, 'roomstatus sweep');
 assert(ackRoomstatusFlag({}, 'smoke').ok, 'roomstatus flag ack');
 
+assert(minibarSummary().title, 'minibar overview');
+assert(seedEmptyMinibarFridge({ room: 'Smoke 164 empty' }, 'smoke').ok, 'minibar empty seed');
+assert(restockDueMinibar({}, 'smoke').ok, 'minibar restock due');
+assert(chargeMinibarFolio({ amount: 75 }, 'smoke').ok, 'minibar folio charge');
+assert(runMinibarSweep({ force: true }, 'smoke').ok, 'minibar sweep');
+assert(ackMinibarFlag({}, 'smoke').ok, 'minibar flag ack');
+
+assert(transfersSummary().title, 'transfers overview');
+assert(seedAirportTransferRun({ guestName: 'Smoke 164 airport' }, 'smoke').ok, 'transfers airport seed');
+assert(delayTransferPickup({}, 'smoke').ok, 'transfers pickup delay');
+assert(completeTransferRide({}, 'smoke').ok, 'transfers complete');
+assert(runTransfersSweep({ force: true }, 'smoke').ok, 'transfers sweep');
+assert(ackTransfersFlag({}, 'smoke').ok, 'transfers flag ack');
+
+assert(conciergeSummary().title, 'concierge overview');
+assert(seedVipConciergeAsk({ guestName: 'Smoke 164 VIP' }, 'smoke').ok, 'concierge vip seed');
+assert(ageConciergeRequest({}, 'smoke').ok, 'concierge request aging');
+assert(fulfillConciergeRequest({}, 'smoke').ok, 'concierge fulfill');
+assert(runConciergeSweep({ force: true }, 'smoke').ok, 'concierge sweep');
+assert(ackConciergeFlag({}, 'smoke').ok, 'concierge flag ack');
+
+assert(shuttleSummary().title, 'shuttle overview');
+assert(seedShuttleRoute({ route: 'Smoke 164 route' }, 'smoke').ok, 'shuttle route seed');
+assert(markShuttleLateDeparture({}, 'smoke').ok, 'shuttle late departure');
+assert(boardShuttleGuests({}, 'smoke').ok, 'shuttle board guests');
+assert(runShuttleSweep({ force: true }, 'smoke').ok, 'shuttle sweep');
+assert(ackShuttleFlag({}, 'smoke').ok, 'shuttle flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2074,6 +2114,7 @@ console.log('MOD160_OK');
 console.log('MOD161_OK');
 console.log('MOD162_OK');
 console.log('MOD163_OK');
+console.log('MOD164_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2097,6 +2138,9 @@ for (const thickened162 of ['contracts', 'delivery', 'giftcards', 'laundry']) {
 }
 for (const thickened163 of ['cleaning', 'emergency', 'folio', 'roomstatus']) {
   assert(!crudDomains.some((d) => d.name === thickened163), `crudops skips thickened ${thickened163}`);
+}
+for (const thickened164 of ['minibar', 'transfers', 'concierge', 'shuttle']) {
+  assert(!crudDomains.some((d) => d.name === thickened164), `crudops skips thickened ${thickened164}`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
@@ -2169,6 +2213,14 @@ assert(!isCrudOpsPath('/api/folio/sweep', 'POST'), 'crudops skips thickened foli
 assert(!isCrudOpsPath('/api/folio/flag/ack', 'POST'), 'crudops skips folio ack');
 assert(!isCrudOpsPath('/api/roomstatus/sweep', 'POST'), 'crudops skips thickened roomstatus');
 assert(!isCrudOpsPath('/api/roomstatus/flag/ack', 'POST'), 'crudops skips roomstatus ack');
+assert(!isCrudOpsPath('/api/minibar/sweep', 'POST'), 'crudops skips thickened minibar');
+assert(!isCrudOpsPath('/api/minibar/flag/ack', 'POST'), 'crudops skips minibar ack');
+assert(!isCrudOpsPath('/api/transfers/sweep', 'POST'), 'crudops skips thickened transfers');
+assert(!isCrudOpsPath('/api/transfers/flag/ack', 'POST'), 'crudops skips transfers ack');
+assert(!isCrudOpsPath('/api/concierge/sweep', 'POST'), 'crudops skips thickened concierge');
+assert(!isCrudOpsPath('/api/concierge/flag/ack', 'POST'), 'crudops skips concierge ack');
+assert(!isCrudOpsPath('/api/shuttle/sweep', 'POST'), 'crudops skips thickened shuttle');
+assert(!isCrudOpsPath('/api/shuttle/flag/ack', 'POST'), 'crudops skips shuttle ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
