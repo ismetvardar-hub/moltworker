@@ -6,6 +6,8 @@
  *   VITE_GROQ_API_KEY  — Groq ücretsiz anahtar
  *   VITE_GROQ_MODEL    — varsayılan llama-3.3-70b-versatile
  *   VITE_AI_PROVIDER   — "ollama" | "groq" | "auto" (default auto)
+ *
+ * Önerilen Ollama modelleri: deepseek-r1, deepseek-coder, qwen2.5
  */
 
 import {

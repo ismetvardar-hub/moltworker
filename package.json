@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "gate": "bash scripts/quality-gate.sh",
     "gate:typecheck": "tsc --noEmit",
+    "doctor:reach": "bash scripts/agent-reach-doctor.sh",
     "smoke:campus": "node scripts/smoke-campus.mjs",
     "e2e:campus": "node scripts/e2e-campus-http.mjs",
     "backup": "bash scripts/backup-likya.sh"

@@ -12,6 +12,7 @@ export {
   readUrlAsMarkdown,
   fetchRedditHot,
   fetchGithubReadme,
+  readXPostAsMarkdown,
   packReachContext,
 } from './agentReach'
 

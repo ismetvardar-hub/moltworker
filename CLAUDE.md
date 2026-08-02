@@ -41,7 +41,11 @@ Web gözü: Agent Reach → `.agents/agent-reach.md` + `src/services/agentReach.
 | `/build` | Thin slices |
 | `/test` | TDD + smoke/e2e |
 | `/review` | Security + stop-slop |
+| `/code-simplify` | Clarity over cleverness |
+| `/webperf` | Measure before optimize |
 | `/ship` | `npm run gate` → commit → push |
+
+Skills pack: **24** (`skills/README.md`)
 
 Kaynak: `.agents/commands/*` · `skills/*` · kök `SKILL.md`
 

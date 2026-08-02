@@ -28,6 +28,10 @@ Bu repo, mevcut CEO paneli kodunu **kırılmadan** açık kaynak ajan yetenekler
 | `/test` | `.agents/commands/test.md` | TDD / smoke / e2e |
 | `/ship` | `.agents/commands/ship.md` | Gate → commit → push kontrol listesi |
 | `/review` | `.agents/commands/review.md` | Güvenlik + kalite + stop-slop |
+| `/code-simplify` | `.agents/commands/code-simplify.md` | Davranışı bozmadan sadeleştir |
+| `/webperf` | `.agents/commands/webperf.md` | Ölç → sonra optimize et |
+
+Skills: **24** adet → `skills/README.md`
 
 ## ETHOS (mühürlü)
 

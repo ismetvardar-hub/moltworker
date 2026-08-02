@@ -9,7 +9,7 @@ export type AgentReachDoc = {
   url: string
   title?: string
   markdown: string
-  provider: 'jina' | 'reddit' | 'raw'
+  provider: 'jina' | 'reddit' | 'x' | 'raw'
   fetchedAt: string
 }
 
@@ -108,6 +108,21 @@ export async function fetchGithubReadme(
     provider: 'raw',
     fetchedAt: new Date().toISOString(),
   }
+}
+
+/**
+ * Twitter/X durum veya profil URL’sini Jina Reader ile oku (0 TL, login yok).
+ * Örnek: https://x.com/user/status/123
+ */
+export async function readXPostAsMarkdown(
+  url: string,
+  signal?: AbortSignal,
+): Promise<AgentReachDoc> {
+  const normalized = url
+    .replace('twitter.com', 'x.com')
+    .replace('mobile.twitter.com', 'x.com')
+  const doc = await readUrlAsMarkdown(normalized, signal)
+  return { ...doc, provider: 'x', url: normalized }
 }
 
 /** Araştırma bulgularını modele beslemek için kısa bağlam paketi. */

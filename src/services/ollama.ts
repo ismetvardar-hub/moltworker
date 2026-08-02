@@ -2,8 +2,13 @@ import type { OllamaModel, OllamaStatus } from '../types';
 
 export const OLLAMA_BASE_URL = 'http://localhost:11434';
 
-/** Panelin takip ettiği hedef modeller. */
-export const TARGET_MODELS = ['deepseek-coder', 'qwen2.5', 'llama3'] as const;
+/** Panelin takip ettiği hedef modeller (Ollama pull adları). */
+export const TARGET_MODELS = [
+  'deepseek-r1',
+  'deepseek-coder',
+  'qwen2.5',
+  'llama3',
+] as const;
 
 async function fetchWithTimeout(path: string, timeoutMs = 4000): Promise<Response> {
   const controller = new AbortController();

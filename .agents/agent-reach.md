@@ -34,6 +34,14 @@ curl -sL "https://www.reddit.com/r/reactjs/hot.json?limit=5" \
   -H "User-Agent: likya-agent-reach/1.0"
 ```
 
+### 3b) Twitter/X (Jina, login yok)
+
+```bash
+curl -sL "https://r.jina.ai/https://x.com/user/status/STATUS_ID"
+```
+
+Tarayıcı: `readXPostAsMarkdown(url)` (`src/services/agentReach.ts`).
+
 ### 4) YouTube altyazı / meta (yt-dlp)
 
 ```bash
