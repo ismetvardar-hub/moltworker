@@ -227,6 +227,10 @@ try {
     '/api/retail',
     '/api/tours',
     '/api/privatechef',
+    '/api/florals',
+    '/api/karaoke',
+    '/api/mediakit',
+    '/api/mocktails',
     '/api/otareviews',
     '/api/partners',
     '/api/promos',
@@ -1767,7 +1771,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3548,6 +3552,98 @@ try {
   assert(flash177Publish.res.ok && flash177Publish.data.ok !== false, 'flash publish');
   const flash177Ack = await req('/api/flash/flag/ack', { method: 'POST', token, body: {} });
   assert(flash177Ack.res.ok && flash177Ack.data.ok !== false, 'flash flag ack');
+
+  const florals178Sweep = await req('/api/florals/sweep', { method: 'POST', token, body: { force: true } });
+  assert(florals178Sweep.res.ok && florals178Sweep.data.ok !== false, 'florals sweep');
+  const florals178Seed = await req('/api/florals/wedding-package/seed', {
+    method: 'POST',
+    token,
+    body: { arrangement: 'E2E-178 wedding package' },
+  });
+  assert(florals178Seed.res.ok && florals178Seed.data.ok !== false, 'florals wedding package seed');
+  const florals178Wilted = await req('/api/florals/wilted', {
+    method: 'POST',
+    token,
+    body: { id: florals178Seed.data.arrangement?.id },
+  });
+  assert(florals178Wilted.res.ok && florals178Wilted.data.ok !== false, 'florals wilted arrangement');
+  const florals178Refresh = await req('/api/florals/vase/refresh', {
+    method: 'POST',
+    token,
+    body: { id: florals178Seed.data.arrangement?.id },
+  });
+  assert(florals178Refresh.res.ok && florals178Refresh.data.ok !== false, 'florals vase refresh');
+  const florals178Ack = await req('/api/florals/flag/ack', { method: 'POST', token, body: {} });
+  assert(florals178Ack.res.ok && florals178Ack.data.ok !== false, 'florals flag ack');
+
+  const karaoke178Sweep = await req('/api/karaoke/sweep', { method: 'POST', token, body: { force: true } });
+  assert(karaoke178Sweep.res.ok && karaoke178Sweep.data.ok !== false, 'karaoke sweep');
+  const karaoke178Seed = await req('/api/karaoke/private-room/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E-178 private room' },
+  });
+  assert(karaoke178Seed.res.ok && karaoke178Seed.data.ok !== false, 'karaoke private room seed');
+  const karaoke178Overtime = await req('/api/karaoke/booth/overtime', {
+    method: 'POST',
+    token,
+    body: { id: karaoke178Seed.data.session?.id },
+  });
+  assert(karaoke178Overtime.res.ok && karaoke178Overtime.data.ok !== false, 'karaoke booth overtime');
+  const karaoke178End = await req('/api/karaoke/session/end', {
+    method: 'POST',
+    token,
+    body: { id: karaoke178Seed.data.session?.id },
+  });
+  assert(karaoke178End.res.ok && karaoke178End.data.ok !== false, 'karaoke session end');
+  const karaoke178Ack = await req('/api/karaoke/flag/ack', { method: 'POST', token, body: {} });
+  assert(karaoke178Ack.res.ok && karaoke178Ack.data.ok !== false, 'karaoke flag ack');
+
+  const mediakit178Sweep = await req('/api/mediakit/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mediakit178Sweep.res.ok && mediakit178Sweep.data.ok !== false, 'mediakit sweep');
+  const mediakit178Seed = await req('/api/mediakit/press-drop/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-178 press drop' },
+  });
+  assert(mediakit178Seed.res.ok && mediakit178Seed.data.ok !== false, 'mediakit press drop seed');
+  const mediakit178Outdated = await req('/api/mediakit/asset/outdated', {
+    method: 'POST',
+    token,
+    body: { id: mediakit178Seed.data.asset?.id },
+  });
+  assert(mediakit178Outdated.res.ok && mediakit178Outdated.data.ok !== false, 'mediakit outdated asset');
+  const mediakit178Publish = await req('/api/mediakit/publish', {
+    method: 'POST',
+    token,
+    body: { id: mediakit178Seed.data.asset?.id },
+  });
+  assert(mediakit178Publish.res.ok && mediakit178Publish.data.ok !== false, 'mediakit publish kit');
+  const mediakit178Ack = await req('/api/mediakit/flag/ack', { method: 'POST', token, body: {} });
+  assert(mediakit178Ack.res.ok && mediakit178Ack.data.ok !== false, 'mediakit flag ack');
+
+  const mocktails178Sweep = await req('/api/mocktails/sweep', { method: 'POST', token, body: { force: true } });
+  assert(mocktails178Sweep.res.ok && mocktails178Sweep.data.ok !== false, 'mocktails sweep');
+  const mocktails178Seed = await req('/api/mocktails/sunset-flight/seed', {
+    method: 'POST',
+    token,
+    body: { drink: 'E2E-178 sunset flight' },
+  });
+  assert(mocktails178Seed.res.ok && mocktails178Seed.data.ok !== false, 'mocktails sunset flight seed');
+  const mocktails178Gap = await req('/api/mocktails/recipe/gap', {
+    method: 'POST',
+    token,
+    body: { id: mocktails178Seed.data.drink?.id },
+  });
+  assert(mocktails178Gap.res.ok && mocktails178Gap.data.ok !== false, 'mocktails recipe gap');
+  const mocktails178Feature = await req('/api/mocktails/feature', {
+    method: 'POST',
+    token,
+    body: { id: mocktails178Seed.data.drink?.id },
+  });
+  assert(mocktails178Feature.res.ok && mocktails178Feature.data.ok !== false, 'mocktails feature drink');
+  const mocktails178Ack = await req('/api/mocktails/flag/ack', { method: 'POST', token, body: {} });
+  assert(mocktails178Ack.res.ok && mocktails178Ack.data.ok !== false, 'mocktails flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

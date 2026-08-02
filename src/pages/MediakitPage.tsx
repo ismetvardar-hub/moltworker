@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createMediakit, fetchMediakit, patchMediakit } from '../services/mediakit'
+import {
+  ackMediakitFlag,
+  createMediakit,
+  fetchMediakit,
+  markMediakitOutdatedAsset,
+  patchMediakit,
+  publishMediakitKit,
+  runMediakitSweep,
+  seedPressDrop,
+} from '../services/mediakit'
 
 export default function MediakitPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"title":"Kit öğesi","channel":"press"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function MediakitPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setNotice(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function MediakitPage() {
         <p className="mt-1 text-sm text-slate-400">Basın / içerik varlıkları.</p>
       </header>
       <CrudOpsBar domain="mediakit" onDone={() => void refresh()} />
+      {notice && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{notice}</p>}
+      <PanelCard title="Wave 178 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runMediakitSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Outdated asset', () => markMediakitOutdatedAsset({}))}>Outdated asset</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Publish kit', () => publishMediakitKit({}))}>Publish kit</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={()=>void runOp('Seed press drop', () => seedPressDrop({}))}>Seed press drop</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackMediakitFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">

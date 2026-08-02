@@ -711,9 +711,14 @@ import {
   updateMeetingrooms,
 } from './meetingrooms.js';
 import {
+  ackMediakitFlag,
   createMediakit,
   listMediakit,
+  markMediakitOutdatedAsset,
   mediakitSummary,
+  publishMediakitKit,
+  runMediakitSweep,
+  seedPressDrop,
   updateMediakit,
 } from './mediakit.js';
 import {
@@ -1183,9 +1188,14 @@ import {
   updateGuestapp,
 } from './guestapp.js';
 import {
+  ackKaraokeFlag,
   createKaraoke,
+  endKaraokeSession,
   listKaraoke,
   karaokeSummary,
+  markKaraokeBoothOvertime,
+  runKaraokeSweep,
+  seedPrivateRoom,
   updateKaraoke,
 } from './karaoke.js';
 import {
@@ -1200,9 +1210,14 @@ import {
   updateArtwall,
 } from './artwall.js';
 import {
+  ackFloralsFlag,
   createFlorals,
   listFlorals,
   floralsSummary,
+  markFloralsWiltedArrangement,
+  refreshFloralsVase,
+  runFloralsSweep,
+  seedWeddingPackage,
   updateFlorals,
 } from './florals.js';
 import {
@@ -1217,9 +1232,14 @@ import {
   updatePrivatechef,
 } from './privatechef.js';
 import {
+  ackMocktailsFlag,
   createMocktails,
+  featureMocktailDrink,
   listMocktails,
+  markMocktailsRecipeGap,
   mocktailsSummary,
+  runMocktailsSweep,
+  seedSunsetFlight,
   updateMocktails,
 } from './mocktails.js';
 import {
@@ -12328,6 +12348,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/mediakit/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMediakitSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mediakit/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMediakitFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mediakit/asset/outdated' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMediakitOutdatedAsset(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mediakit/publish' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishMediakitKit(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mediakit/press-drop/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPressDrop(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/mediakit/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -14647,6 +14697,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/karaoke/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKaraokeSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/karaoke/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKaraokeFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/karaoke/booth/overtime' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markKaraokeBoothOvertime(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/karaoke/session/end' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, endKaraokeSession(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/karaoke/private-room/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPrivateRoom(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/karaoke/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -14727,6 +14807,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/florals/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFloralsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/florals/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackFloralsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/florals/wilted' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markFloralsWiltedArrangement(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/florals/vase/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshFloralsVase(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/florals/wedding-package/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedWeddingPackage(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/florals/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -14805,6 +14915,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createMocktails(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/mocktails/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMocktailsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mocktails/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMocktailsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mocktails/recipe/gap' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMocktailsRecipeGap(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mocktails/feature' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, featureMocktailDrink(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/mocktails/sunset-flight/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedSunsetFlight(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/mocktails/') && req.method === 'PATCH') {

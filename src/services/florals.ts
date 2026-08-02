@@ -13,3 +13,23 @@ export async function createFlorals(input: Record<string, unknown>): Promise<any
 export async function patchFlorals(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/florals/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+async function postFlorals(path: string, body: Record<string, unknown> = {}) {
+  return parse(await fetch(path, { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function runFloralsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postFlorals('/api/florals/sweep', body)
+}
+export async function ackFloralsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postFlorals('/api/florals/flag/ack', body)
+}
+export async function markFloralsWiltedArrangement(body: Record<string, unknown> = {}): Promise<any> {
+  return postFlorals('/api/florals/wilted', body)
+}
+export async function refreshFloralsVase(body: Record<string, unknown> = {}): Promise<any> {
+  return postFlorals('/api/florals/vase/refresh', body)
+}
+export async function seedWeddingPackage(body: Record<string, unknown> = {}): Promise<any> {
+  return postFlorals('/api/florals/wedding-package/seed', body)
+}

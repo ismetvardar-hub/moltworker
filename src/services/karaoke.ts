@@ -13,3 +13,23 @@ export async function createKaraoke(input: Record<string, unknown>): Promise<any
 export async function patchKaraoke(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/karaoke/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+async function postKaraoke(path: string, body: Record<string, unknown> = {}) {
+  return parse(await fetch(path, { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function runKaraokeSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postKaraoke('/api/karaoke/sweep', body)
+}
+export async function ackKaraokeFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postKaraoke('/api/karaoke/flag/ack', body)
+}
+export async function markKaraokeBoothOvertime(body: Record<string, unknown> = {}): Promise<any> {
+  return postKaraoke('/api/karaoke/booth/overtime', body)
+}
+export async function endKaraokeSession(body: Record<string, unknown> = {}): Promise<any> {
+  return postKaraoke('/api/karaoke/session/end', body)
+}
+export async function seedPrivateRoom(body: Record<string, unknown> = {}): Promise<any> {
+  return postKaraoke('/api/karaoke/private-room/seed', body)
+}
