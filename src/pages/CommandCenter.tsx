@@ -27,8 +27,8 @@ import {
   isModelInstalled,
   listOllamaModels,
   resolveModel,
-  streamGenerate,
 } from '../services/ollama';
+import { streamGenerate } from '../services/aiProvider';
 import {
   buildPipeline,
   buildStepPrompt,

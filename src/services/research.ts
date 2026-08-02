@@ -3,7 +3,17 @@
  *
  * Canlı arama: Vite middleware / bağımsız proxy üzerinden GET /api/search.
  * Sağlayıcı sırası (sunucu tarafı): Brave → Tavily → DuckDuckGo → fallback havuz.
+ *
+ * Ücretsiz derin okuma (Agent Reach): `agentReach.ts` — Jina / Reddit / GitHub README.
+ * Ajan playbook: `.agents/agent-reach.md`
  */
+
+export {
+  readUrlAsMarkdown,
+  fetchRedditHot,
+  fetchGithubReadme,
+  packReachContext,
+} from './agentReach'
 
 export interface ResearchSource {
   title: string;

@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "start": "node server/prod-server.js",
     "typecheck": "tsc --noEmit",
+    "gate": "bash scripts/quality-gate.sh",
+    "gate:typecheck": "tsc --noEmit",
     "smoke:campus": "node scripts/smoke-campus.mjs",
     "e2e:campus": "node scripts/e2e-campus-http.mjs",
     "backup": "bash scripts/backup-likya.sh"

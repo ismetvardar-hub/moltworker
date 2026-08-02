@@ -1,0 +1,13 @@
+---
+description: LİKYA quality gates, ETHOS, sealed modules, free AI stack
+alwaysApply: true
+---
+
+Follow root `CLAUDE.md` and `SKILL.md`.
+
+- Never edit sealed: Daze* product pages/services, Extreme Park / GymBul, `server/events.js`, `server/integrations.js`.
+- ETHOS voice: simple, naive, witty — no vulgar jokes.
+- AI inference via `src/services/aiProvider.ts` (Ollama first, Groq free fallback).
+- Free web research via Agent Reach playbook (`.agents/agent-reach.md`).
+- Before ship: `npm run gate` and `npm run build`.
+- Slash commands: `/spec` `/plan` `/build` `/test` `/review` `/ship` under `.agents/commands/`.
