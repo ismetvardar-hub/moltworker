@@ -4365,8 +4365,12 @@ try {
   }
   const pub = await req('/api/campusbrief/publish', { method: 'POST', token, body: {} });
   assert(pub.res.ok && pub.data.ok !== false, 'brief publish');
-  const campusHeal = await req('/api/campusbrief/heal', { method: 'POST', token, body: { limit: 30 } });
+  const campusHeal = await req('/api/campusbrief/heal', { method: 'POST', token, body: { limit: 200 } });
   assert(campusHeal.res.ok && campusHeal.data.ok !== false, 'campus heal');
+  assert(
+    Number(campusHeal.data.after?.score ?? 0) >= 55,
+    `campus heal score degraded+ (got ${campusHeal.data.after?.score})`,
+  );
 
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');

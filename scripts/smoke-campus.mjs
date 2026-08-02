@@ -2772,10 +2772,11 @@ assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action a
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
 assert(runCampusbriefSweep({ force: true }, 'smoke').ok, 'campusbrief sweep');
 assert(ackCampusbriefFlag({}, 'smoke').ok, 'campusbrief flag ack');
-const campusHeal183 = healCampusHealth({ limit: 30 }, 'smoke');
+const campusHeal183 = healCampusHealth({ limit: 200 }, 'smoke');
 assert(campusHeal183.ok && campusHeal183.after.score >= campusHeal183.before.score, 'campusbrief heal');
 console.log(`MOD183_SAMPLE ${campusHeal183.before.score}->${campusHeal183.after.score}`);
 assert(campusHeal183.after.score >= 55, 'campus heal reaches degraded+');
+assert(['degraded', 'healthy'].includes(campusHeal183.after.status), 'campus heal status degraded|healthy');
 
 console.log('MOD141_OK');
 console.log('MOD135_OK');
