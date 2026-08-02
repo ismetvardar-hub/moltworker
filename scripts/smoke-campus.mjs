@@ -131,6 +131,7 @@ import {
   ageCampusBriefActions,
   seedCampusbriefAction,
   flagCampusbriefHealth,
+  healCampusHealth,
 } from '../server/campusbrief.js';
 import {
   extremeSlotWeatherCheck,
@@ -2771,6 +2772,9 @@ assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action a
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
 assert(runCampusbriefSweep({ force: true }, 'smoke').ok, 'campusbrief sweep');
 assert(ackCampusbriefFlag({}, 'smoke').ok, 'campusbrief flag ack');
+const campusHeal183 = healCampusHealth({ limit: 30 }, 'smoke');
+assert(campusHeal183.ok && campusHeal183.after.score >= campusHeal183.before.score, 'campusbrief heal');
+console.log(`MOD183_SAMPLE ${campusHeal183.before.score}->${campusHeal183.after.score}`);
 
 console.log('MOD141_OK');
 console.log('MOD135_OK');
@@ -2814,6 +2818,7 @@ assert(refreshSettingsSnapshot({ reason: 'smoke' }, 'smoke').ok, 'settings snaps
 assert(seedDefaultSettings({}, 'smoke').ok, 'settings seed defaults');
 assert(flagMissingKey({ key: 'TWILIO_AUTH_TOKEN' }, 'smoke').ok, 'settings missing key flag');
 console.log('MOD182_OK');
+console.log('MOD183_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 993, 'crudops registry size');

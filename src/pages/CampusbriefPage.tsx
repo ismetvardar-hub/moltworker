@@ -82,6 +82,18 @@ export default function CampusbriefPage() {
               </button>
               <button
                 type="button"
+                className="rounded-lg bg-emerald-500/90 px-3 py-2 text-sm text-obsidian-950"
+                onClick={() =>
+                  void api.healCampusHealth({ limit: 30 }).then((r: any) => {
+                    ping(`Campus iyileşti · ${r.before?.score ?? '—'} → ${r.after?.score ?? '—'}`)
+                    return refresh()
+                  })
+                }
+              >
+                Campus iyileştir
+              </button>
+              <button
+                type="button"
                 className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm"
                 onClick={() =>
                   void api.ackCampusbriefFlag({}).then((r: any) => {

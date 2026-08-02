@@ -4365,6 +4365,8 @@ try {
   }
   const pub = await req('/api/campusbrief/publish', { method: 'POST', token, body: {} });
   assert(pub.res.ok && pub.data.ok !== false, 'brief publish');
+  const campusHeal = await req('/api/campusbrief/heal', { method: 'POST', token, body: { limit: 30 } });
+  assert(campusHeal.res.ok && campusHeal.data.ok !== false, 'campus heal');
 
   const health = await req('/api/health', { token });
   assert(health.data.status, 'health status');
@@ -4383,6 +4385,7 @@ try {
         green_actions: green.data.actions?.length,
         sla_esc: sla.data.escalated?.length,
         brief_register: syncAct.data.created?.length,
+        campus_heal_score: `${campusHeal.data.before?.score ?? '—'}->${campusHeal.data.after?.score ?? '—'}`,
       },
       null,
       2,

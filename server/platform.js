@@ -7841,6 +7841,7 @@ import {
   dismissCampusBriefAction,
   escalateCampusBriefAction,
   flagCampusbriefHealth,
+  healCampusHealth,
   publishCampusBriefDigest,
   runCampusAutomations,
   runCampusbriefSweep,
@@ -43727,6 +43728,12 @@ export function createPlatformMiddleware() {
           const user = requireUser(req, res);
           if (!user) return;
           void (async () => { sendJson(res, 200, runCampusbriefSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if ((path === '/api/campusbrief/heal' || path === '/api/campus/heal') && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, healCampusHealth(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campusbrief/flag/ack' && req.method === 'POST') {

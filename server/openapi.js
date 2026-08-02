@@ -2070,6 +2070,8 @@ export function buildOpenApi() {
       '/api/agentqueue/cancel': { post: { summary: 'İş iptal', tags: ['agentqueue'] } },
       '/api/agentqueue/wake-snoozed': { post: { summary: 'Snooze dolan işleri uyandır', tags: ['agentqueue'] } },
       '/api/campusbrief/sweep': { post: { summary: 'Campusbrief sweep', tags: ['campusbrief'] } },
+      '/api/campusbrief/heal': { post: { summary: 'Campus health heal', tags: ['campusbrief'] } },
+      '/api/campus/heal': { post: { summary: 'Campus health heal alias', tags: ['campusbrief'] } },
       '/api/campusbrief/flag/ack': { post: { summary: 'Campusbrief flag ack', tags: ['campusbrief'] } },
       '/api/campusbrief/actions': { post: { summary: 'Brif aksiyon kayıt sync', tags: ['campusbrief'] } },
       '/api/culture/stream/start': { post: { summary: 'Canlı yayın başlat', tags: ['culturescene'] } },

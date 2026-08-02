@@ -27,6 +27,16 @@ export async function runCampusbriefSweep(body: Record<string, unknown> = {}) {
   )
 }
 
+export async function healCampusHealth(body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch('/api/campusbrief/heal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function ackCampusbriefFlag(body: Record<string, unknown> = {}) {
   return parse(
     await fetch('/api/campusbrief/flag/ack', {

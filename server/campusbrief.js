@@ -3,20 +3,20 @@
  */
 import { appendAudit } from './audit.js';
 import { prependItem, readCollection, writeCollection } from './store.js';
-import { campusCoreOverview } from './campuscore.js';
-import { stayRingOverview } from './stayring.js';
+import { campusCoreOverview, completeCampusWorkOrder } from './campuscore.js';
+import { completeStayHk, resolveStayOverstay, stayRingOverview } from './stayring.js';
 import { athleteOsOverview } from './athleteos.js';
 import { lifeCoachOverview } from './lifecoach.js';
 import { marketOsOverview } from './marketos.js';
-import { openMallOverview } from './openmall.js';
+import { openMallOverview, releaseMallLease, settleMallTenantFnb } from './openmall.js';
 import { familyCampOverview } from './familycamp.js';
 import { extremeOverview } from './extremepark.js';
 import { cultureSceneOverview } from './culturescene.js';
 import { sportBridgeOverview } from './sportbridge.js';
 import { agentQueueOverview, enqueueAgentJob } from './agentqueue.js';
-import { greenPulseOverview } from './greenpulse.js';
-import { agentBridgeOverview } from './agentbridge.js';
-import { agentFleetOverview } from './agentfleet.js';
+import { batchRecordGreenMeters, greenPulseOverview } from './greenpulse.js';
+import { agentBridgeOverview, resolveAgentBridgeAlert } from './agentbridge.js';
+import { agentFleetOverview, startFleetShift } from './agentfleet.js';
 
 function hasOpenJob(agent, titleIncludes) {
   const jobs = readCollection('agent-jobs', []) || [];
@@ -153,6 +153,168 @@ export function campusHealthCheck() {
     pulses: brief.pulses,
     generatedAt: new Date().toISOString(),
   };
+}
+
+/** CEO demo heal: gerçek domain mutatorlarını çalıştır, sonra skoru yeniden hesapla. */
+export function healCampusHealth(input = {}, actor = 'system') {
+  const before = campusHealthCheck();
+  const steps = [];
+  const limit = Math.max(1, Math.min(80, Number(input.limit) || 30));
+
+  const addStep = (name, result = {}) => {
+    steps.push({ name, ok: result.ok !== false, ...result });
+  };
+  const safeStep = (name, fn) => {
+    try {
+      addStep(name, fn() || { ok: true });
+    } catch (err) {
+      addStep(name, { ok: false, error: err instanceof Error ? err.message : String(err) });
+    }
+  };
+
+  safeStep('campusbrief.flags.ack', () => {
+    const flags = readCollection('campusbrief-flags', []) || [];
+    if (!Array.isArray(flags) || !flags.length) return { ok: true, count: 0 };
+    let count = 0;
+    const next = flags.map((flag) => {
+      if (flag.status !== 'open' || count >= limit) return flag;
+      count++;
+      return {
+        ...flag,
+        status: 'acked',
+        note: input.note || 'CEO demo heal',
+        acked_at: new Date().toISOString(),
+        acked_by: actor,
+      };
+    });
+    if (count) {
+      writeCollection('campusbrief-flags', next);
+      appendAudit({ actor, action: 'campusbrief.heal_flags', detail: `${count} flag ack`, meta: { n: count } });
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('campusbrief.actions.soft_ack', () => {
+    const list = readCollection('campus-brief-actions', []) || [];
+    if (!Array.isArray(list) || !list.length) return { ok: true, count: 0 };
+    const softLevels = new Set(['info', 'warn', 'ok']);
+    const active = new Set(['open', 'assigned', 'snoozed']);
+    let count = 0;
+    const next = list.map((action) => {
+      if (!active.has(action.status) || !softLevels.has(action.level) || count >= limit) return action;
+      count++;
+      return {
+        ...action,
+        status: 'acked',
+        owner: action.owner || actor,
+        note: action.note || input.note || 'CEO demo heal',
+        healed_at: new Date().toISOString(),
+        acked_at: action.acked_at || new Date().toISOString(),
+        acked_by: action.acked_by || actor,
+        snooze_until: null,
+      };
+    });
+    if (count) {
+      writeCollection('campus-brief-actions', next);
+      appendAudit({ actor, action: 'campusbrief.heal_actions', detail: `${count} soft aksiyon ack`, meta: { n: count } });
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('campusbrief.automations', () => {
+    const result = runCampusAutomations(actor);
+    return { ok: result.ok !== false, count: result.actions?.length || 0, actions: result.actions || [] };
+  });
+
+  safeStep('greenpulse.meters.normalize', () => {
+    const green = greenPulseOverview();
+    const readings = (green.meters || [])
+      .filter((meter) => meter.status === 'alert')
+      .slice(0, limit)
+      .map((meter) => ({ id: meter.id, value: Number(meter.target) || Number(meter.value) || 0 }));
+    if (!readings.length) return { ok: true, count: 0 };
+    const result = batchRecordGreenMeters({ readings }, actor);
+    return { ok: result.ok !== false, count: readings.length, alerts: result.batch?.alerts ?? 0 };
+  });
+
+  safeStep('stayring.hk.complete', () => {
+    let count = 0;
+    for (const unit of stayRingOverview().units || []) {
+      if (count >= limit) break;
+      if (unit.hk !== 'dirty' && unit.hk !== 'inspect') continue;
+      const result = completeStayHk({ unit_id: unit.id }, actor);
+      if (result.ok) count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('stayring.overstays.extend', () => {
+    let count = 0;
+    for (let i = 0; i < limit; i++) {
+      const result = resolveStayOverstay({ mode: 'extend', extra_nights: 1 }, actor);
+      if (!result.ok) break;
+      count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('openmall.fnb.settle', () => {
+    let count = 0;
+    for (const tenant of openMallOverview().tenants || []) {
+      if (count >= limit) break;
+      if ((tenant.fnb_gap_try || 0) <= 0) continue;
+      const result = settleMallTenantFnb({ tenant_id: tenant.id }, actor);
+      if (result.ok) count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('openmall.lease.release', () => {
+    let count = 0;
+    for (let i = 0; i < limit; i++) {
+      const result = releaseMallLease({ note: 'CEO demo heal' }, actor);
+      if (!result.ok) break;
+      count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('campuscore.work_orders.complete', () => {
+    let count = 0;
+    for (let i = 0; i < limit; i++) {
+      const result = completeCampusWorkOrder({ outcome: 'CEO demo heal' }, actor);
+      if (!result.ok) break;
+      count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('agentbridge.alerts.resolve', () => {
+    let count = 0;
+    for (let i = 0; i < limit; i++) {
+      const result = resolveAgentBridgeAlert({ resolution: 'CEO demo heal' }, actor);
+      if (!result.ok) break;
+      count++;
+    }
+    return { ok: true, count };
+  });
+
+  safeStep('agentfleet.shift.start', () => {
+    const fleet = agentFleetOverview();
+    if (fleet.summary?.shift_active) return { ok: true, count: 0 };
+    const result = startFleetShift({ name: 'CEO demo heal vardiyası' }, actor);
+    return { ok: result.ok !== false, count: result.ok ? 1 : 0, shift: result.shift?.id };
+  });
+
+  const after = campusHealthCheck();
+  const ok = after.score >= before.score;
+  appendAudit({
+    actor,
+    action: 'campusbrief.heal',
+    detail: `skor ${before.score} → ${after.score}`,
+    meta: { before: before.score, after: after.score, ok, steps: steps.length },
+  });
+  return { ok, before, after, steps };
 }
 
 export function campusBriefOverview(actor = 'system') {

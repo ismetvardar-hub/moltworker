@@ -56,7 +56,7 @@ import {
 import LiveFeed from '../components/LiveFeed';
 import { fetchPlaybooks, type Playbook } from '../services/playbooks';
 import { getStoredUser } from '../services/auth';
-import { fetchCampusBrief } from '../services/campusbrief';
+import { fetchCampusBrief, healCampusHealth } from '../services/campusbrief';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -573,6 +573,18 @@ export default function CommandCenter() {
               }}
             >
               CEO Brif →
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs text-emerald-100 hover:bg-emerald-500/30"
+              onClick={() => {
+                void healCampusHealth({ limit: 30 })
+                  .then(() => fetchCampusBrief())
+                  .then(setCampusPulse)
+                  .catch(() => undefined);
+              }}
+            >
+              Campus iyileştir
             </button>
           </div>
         </PanelCard>
