@@ -159,6 +159,9 @@ try {
     '/api/logos',
     '/api/phoenix',
     '/api/serenity2',
+    '/api/brief',
+    '/api/digest',
+    '/api/report',
     '/api/health',
   ];
   for (const p of paths) {
@@ -1541,6 +1544,39 @@ try {
   assert(sy2Pillow.res.ok && sy2Pillow.data.ok !== false, 'serenity2 pillow');
   const sy2Ack = await req('/api/serenity2/flag/ack', { method: 'POST', token, body: {} });
   assert(sy2Ack.res.ok && sy2Ack.data.ok !== false, 'serenity2 ack');
+
+  const brfSweep = await req('/api/brief/sweep', { method: 'POST', token, body: { force: true } });
+  assert(brfSweep.res.ok && brfSweep.data.ok !== false, 'brief sweep');
+  const brfInc = await req('/api/brief/incidents/ack', { method: 'POST', token, body: {} });
+  assert(brfInc.res.ok && brfInc.data.ok !== false, 'brief incidents');
+  const brfInv = await req('/api/brief/inventory/restock', { method: 'POST', token, body: {} });
+  assert(brfInv.res.ok && brfInv.data.ok !== false, 'brief inventory');
+  const brfMnt = await req('/api/brief/maintenance/close', { method: 'POST', token, body: {} });
+  assert(brfMnt.res.ok && brfMnt.data.ok !== false, 'brief maintenance');
+  const brfAck = await req('/api/brief/flag/ack', { method: 'POST', token, body: {} });
+  assert(brfAck.res.ok && brfAck.data.ok !== false, 'brief ack');
+
+  const digSweep = await req('/api/digest/sweep', { method: 'POST', token, body: { force: true } });
+  assert(digSweep.res.ok && digSweep.data.ok !== false, 'digest sweep');
+  const digReady = await req('/api/digest/readiness/refresh', { method: 'POST', token, body: {} });
+  assert(digReady.res.ok && digReady.data.ok !== false, 'digest readiness');
+  const digEsc = await req('/api/digest/gap/escalate', { method: 'POST', token, body: {} });
+  assert(digEsc.res.ok && digEsc.data.ok !== false, 'digest escalate');
+  const digRes = await req('/api/digest/gap/resolve', { method: 'POST', token, body: {} });
+  assert(digRes.res.ok && digRes.data.ok !== false, 'digest resolve');
+  const digAck = await req('/api/digest/flag/ack', { method: 'POST', token, body: {} });
+  assert(digAck.res.ok && digAck.data.ok !== false, 'digest ack');
+
+  const rptSweep = await req('/api/report/sweep', { method: 'POST', token, body: { force: true } });
+  assert(rptSweep.res.ok && rptSweep.data.ok !== false, 'report sweep');
+  const rptJobs = await req('/api/report/jobs/cancel', { method: 'POST', token, body: {} });
+  assert(rptJobs.res.ok && rptJobs.data.ok !== false, 'report jobs');
+  const rptEthos = await req('/api/report/ethos/ack', { method: 'POST', token, body: {} });
+  assert(rptEthos.res.ok && rptEthos.data.ok !== false, 'report ethos');
+  const rptSnap = await req('/api/report/audit/snapshot', { method: 'POST', token, body: {} });
+  assert(rptSnap.res.ok && rptSnap.data.ok !== false, 'report snapshot');
+  const rptAck = await req('/api/report/flag/ack', { method: 'POST', token, body: {} });
+  assert(rptAck.res.ok && rptAck.data.ok !== false, 'report ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

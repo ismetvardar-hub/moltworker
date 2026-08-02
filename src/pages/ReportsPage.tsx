@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Download, FileJson, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
-import {
-  downloadReport,
-  fetchOpsReport,
-  type OpsReport,
-} from '../services/report';
+import * as api from '../services/report';
+import type { OpsReport } from '../services/report';
 
 export default function ReportsPage() {
   const [report, setReport] = useState<OpsReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      setReport(await fetchOpsReport());
+      setReport(await api.fetchOpsReport());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rapor alınamadı');
@@ -23,6 +21,11 @@ export default function ReportsPage() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  function ping(m: string) {
+    setFlash(m);
+    window.setTimeout(() => setFlash(null), 2800);
+  }
 
   const ethos = report?.ethos;
 
@@ -49,7 +52,7 @@ export default function ReportsPage() {
           </button>
           <button
             type="button"
-            onClick={() => void downloadReport('json')}
+            onClick={() => void api.downloadReport('json')}
             className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-lykia-500/40"
           >
             <FileJson className="size-4" />
@@ -57,7 +60,7 @@ export default function ReportsPage() {
           </button>
           <button
             type="button"
-            onClick={() => void downloadReport('markdown')}
+            onClick={() => void api.downloadReport('markdown')}
             className="inline-flex items-center gap-2 rounded-xl bg-lykia-500 px-4 py-2.5 text-sm font-semibold text-obsidian-950 hover:bg-lykia-400"
           >
             <FileText className="size-4" />
@@ -69,6 +72,44 @@ export default function ReportsPage() {
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
           {error}
+        </div>
+      )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      {report && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PanelCard title={report.title || 'Report ops'}>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+              {(report.summaryLines || []).map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runReportSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh(); })}>Sweep</button>
+              <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.cancelReportJobs({}).then((r: any) => { ping(`Cancel ${r.cancelled?.length ?? 0}`); return refresh(); })}>Jobs cancel</button>
+              <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.ackReportEthos({}).then((r: any) => { ping(r.ok ? 'ETHOS ack' : r.error || 'Ack yok'); return refresh(); })}>ETHOS ack</button>
+              <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.snapshotReportAudit({}).then((r: any) => { ping(`Snapshot ${r.snapshot?.id ? 'ok' : '—'}`); return refresh(); })}>Audit snapshot</button>
+              <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackReportFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh(); })}>Flag ack</button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Flag {report.summary?.flags_open ?? 0} · backlog {report.summary?.jobs_backlog ?? 0} · ETHOS {report.summary?.ethos_grade ?? ethos?.grade}
+            </p>
+          </PanelCard>
+          <PanelCard title="Açık flagler">
+            <ul className="space-y-2 text-sm">
+              {(report.flags || []).length === 0 && <li className="text-slate-400">Açık flag yok.</li>}
+              {(report.flags || []).slice(0, 10).map((f: any) => (
+                <li key={f.id} className="flex items-center justify-between rounded-lg border border-obsidian-700 px-3 py-2">
+                  <span><span className="text-lykia-300">[{f.level}]</span> {f.text}</span>
+                  <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]" onClick={() => void api.ackReportFlag({ id: f.id }).then(() => { ping('Ack'); return refresh(); })}>Ack</button>
+                </li>
+              ))}
+            </ul>
+          </PanelCard>
         </div>
       )}
 

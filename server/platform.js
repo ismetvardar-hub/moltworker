@@ -32,7 +32,15 @@ import {
   tickJobs,
 } from './jobs.js';
 import { addSseClient, sseClientCount } from './events.js';
-import { buildOpsReport, reportToMarkdown } from './report.js';
+import {
+  ackReportEthos,
+  ackReportFlag,
+  buildOpsReport,
+  cancelReportJobs,
+  reportToMarkdown,
+  runReportSweep,
+  snapshotReportAudit,
+} from './report.js';
 import {
   createVenue,
   getVenue,
@@ -167,7 +175,14 @@ import {
   maintenanceSummary,
   updateTicket,
 } from './maintenance.js';
-import { buildDailyBrief } from './brief.js';
+import {
+  ackBriefFlag,
+  ackBriefIncidents,
+  buildDailyBrief,
+  closeBriefMaintenance,
+  restockBriefInventory,
+  runBriefSweep,
+} from './brief.js';
 import {
   createMenuItem,
   listMenu,
@@ -311,7 +326,14 @@ import {
 import {
   createEmergency, emergencySummary, listEmergency, updateEmergency,
 } from './emergency.js';
-import { buildDigest } from './digest.js';
+import {
+  ackDigestFlag,
+  buildDigest,
+  escalateDigestGap,
+  refreshDigestReadiness,
+  resolveDigestGap,
+  runDigestSweep,
+} from './digest.js';
 import {
   createLockers,
   listLockers,
@@ -7677,6 +7699,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, report);
           return;
         }
+        if (path === '/api/report/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runReportSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/report/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackReportFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/report/jobs/cancel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cancelReportJobs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/report/ethos/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackReportEthos(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/report/audit/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, snapshotReportAudit(await readBody(req), user.username)); })();
+          return;
+        }
 
         // SSE canlı olay akışı (AŞAMA 7) — token query ile (EventSource header desteklemez)
         if (path === '/api/events' && req.method === 'GET') {
@@ -8762,6 +8814,36 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, buildDailyBrief());
           return;
         }
+        if (path === '/api/brief/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBriefSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brief/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBriefFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brief/incidents/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBriefIncidents(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brief/inventory/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockBriefInventory(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/brief/maintenance/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeBriefMaintenance(await readBody(req), user.username)); })();
+          return;
+        }
 
         // ── AŞAMA 40: Menü ────────────────────────────────────────────
         if (path === '/api/menu' && req.method === 'GET') {
@@ -9722,6 +9804,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/digest' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, buildDigest());
+          return;
+        }
+        if (path === '/api/digest/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runDigestSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/digest/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackDigestFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/digest/readiness/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshDigestReadiness(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/digest/gap/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateDigestGap(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/digest/gap/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveDigestGap(await readBody(req), user.username)); })();
           return;
         }
 

@@ -559,6 +559,15 @@ import {
 import {
   buildSerenity2, runSerenity2Sweep, ackSerenity2Flag, closeSerenity2Legacy, liveSerenity2Quiet, runSerenity2Pillow,
 } from '../server/serenity2.js';
+import {
+  buildDailyBrief, runBriefSweep, ackBriefFlag, ackBriefIncidents, restockBriefInventory, closeBriefMaintenance,
+} from '../server/brief.js';
+import {
+  buildDigest, runDigestSweep, ackDigestFlag, refreshDigestReadiness, escalateDigestGap, resolveDigestGap,
+} from '../server/digest.js';
+import {
+  buildOpsReport, runReportSweep, ackReportFlag, cancelReportJobs, ackReportEthos, snapshotReportAudit,
+} from '../server/report.js';
 
 import {
   buildBeacon, runBeaconSweep, ackBeaconFlag, liveBeaconCamp, fixBeaconSocial, healBeaconSeo,
@@ -1529,6 +1538,28 @@ assert(liveSerenity2Quiet({}, 'smoke').ok, 'serenity2 quiet live');
 assert(runSerenity2Pillow({}, 'smoke').ok, 'serenity2 pillow run');
 assert(ackSerenity2Flag({}, 'smoke').ok, 'serenity2 flag ack');
 
+assert(buildDailyBrief().title, 'brief overview');
+assert(runBriefSweep({ force: true }, 'smoke').ok, 'brief sweep');
+assert(ackBriefIncidents({}, 'smoke').ok, 'brief incidents ack');
+assert(restockBriefInventory({}, 'smoke').ok, 'brief inventory restock');
+assert(closeBriefMaintenance({}, 'smoke').ok, 'brief maintenance close');
+assert(ackBriefFlag({}, 'smoke').ok, 'brief flag ack');
+
+assert(buildDigest().title, 'digest overview');
+assert(runDigestSweep({ force: true }, 'smoke').ok, 'digest sweep');
+assert(refreshDigestReadiness({}, 'smoke').ok, 'digest readiness refresh');
+assert(escalateDigestGap({}, 'smoke').ok, 'digest gap escalate');
+assert(resolveDigestGap({}, 'smoke').ok, 'digest gap resolve');
+assert(ackDigestFlag({}, 'smoke').ok, 'digest flag ack');
+
+assert(buildOpsReport().title, 'report overview');
+assert(runReportSweep({ force: true }, 'smoke').ok, 'report sweep');
+assert(cancelReportJobs({}, 'smoke').ok, 'report jobs cancel');
+assert(ackReportEthos({}, 'smoke').ok, 'report ethos ack');
+assert(snapshotReportAudit({}, 'smoke').ok, 'report audit snapshot');
+assert(ackReportFlag({}, 'smoke').ok, 'report flag ack');
+
+console.log('MOD141_OK');
 console.log('MOD135_OK');
 
 console.log(
