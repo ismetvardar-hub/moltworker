@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, UserRound, Users } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import * as api from '../services/guests';
 import {
   createGuest,
   fetchGuestTimeline,
@@ -13,12 +14,14 @@ import {
 export default function GuestsPage() {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [stats, setStats] = useState({ total: 0, withPass: 0, withPhone: 0 });
+  const [overview, setOverview] = useState<any>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<GuestTimelineItem[]>([]);
   const [counts, setCounts] = useState({ whatsapp: 0, access: 0 });
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -29,6 +32,7 @@ export default function GuestsPage() {
         withPass: data.withPass,
         withPhone: data.withPhone,
       });
+      setOverview(data);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'CRM alınamadı');
@@ -38,6 +42,11 @@ export default function GuestsPage() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  function ping(m: string) {
+    setFlash(m);
+    window.setTimeout(() => setFlash(null), 2800);
+  }
 
   const openTimeline = async (id: string) => {
     setSelected(id);
@@ -98,6 +107,27 @@ export default function GuestsPage() {
           {error}
         </div>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+      <PanelCard title={overview?.title || 'Guests ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((l: string) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runGuestsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh(); })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.upsertGuestOps({}).then((r: any) => { ping(`Upsert ${r.guest?.name || '—'}`); return refresh(); })}>Upsert</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.syncGuestsOps({}).then((r: any) => { ping(`Sync ${r.sync?.total ?? 0}`); return refresh(); })}>Sync ops</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackGuestsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh(); })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Flag {(overview?.summary as any)?.flags_open ?? 0} · total {stats.total}
+        </p>
+      </PanelCard>
 
       <div className="grid grid-cols-3 gap-3">
         {[

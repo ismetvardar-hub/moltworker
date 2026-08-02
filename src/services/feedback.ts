@@ -18,6 +18,16 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post(path: string, body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchFeedback(): Promise<{
   feedback: Feedback[]
   nps: number | null
@@ -26,6 +36,9 @@ export async function fetchFeedback(): Promise<{
   promoters: number
   passives: number
   detractors: number
+  summary?: Record<string, unknown>
+  flags?: unknown[]
+  title?: string
 }> {
   return parse(await fetch('/api/feedback', { headers: authHeaders() }))
 }
@@ -37,11 +50,25 @@ export async function createFeedback(input: {
   channel?: string
   venueId?: string
 }): Promise<{ feedback: Feedback }> {
-  return parse(
-    await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(input),
-    }),
-  )
+  return post('/api/feedback', input)
+}
+
+export async function runFeedbackSweep(body: Record<string, unknown> = {}) {
+  return post('/api/feedback/sweep', body)
+}
+
+export async function ackFeedbackFlag(body: Record<string, unknown> = {}) {
+  return post('/api/feedback/flag/ack', body)
+}
+
+export async function seedNpsFeedback(body: Record<string, unknown> = {}) {
+  return post('/api/feedback/nps/seed', body)
+}
+
+export async function flagLowScores(body: Record<string, unknown> = {}) {
+  return post('/api/feedback/low/flag', body)
+}
+
+export async function archiveFeedbackFlags(body: Record<string, unknown> = {}) {
+  return post('/api/feedback/flags/archive', body)
 }

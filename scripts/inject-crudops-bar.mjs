@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Inject CrudOpsBar into thin CRUD pages that lack Sweep ops.
+ * Discovery matches server/crudops.js (flexible list/create/update/summary names).
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,28 +14,44 @@ function toPascal(name) {
 }
 
 function thinDomains() {
+  const skip = new Set([
+    'crudops.js', 'store.js', 'audit.js', 'agentqueue.js', 'platform.js', 'openapi.js',
+    'auth.js', 'events.js', 'integrations.js', 'jobs.js', 'settings.js', 'rateLimit.js',
+    'metrics.js', 'exports.js', 'readiness.js', 'report.js', 'brief.js', 'digest.js',
+  ]);
   return readdirSync(serverDir)
-    .filter((f) => f.endsWith('.js'))
+    .filter((f) => f.endsWith('.js') && !skip.has(f))
     .map((f) => f.slice(0, -3))
     .filter((name) => {
       const src = readFileSync(join(serverDir, `${name}.js`), 'utf8');
       if (/export function run\w+Sweep/.test(src)) return false;
-      const p = toPascal(name);
-      return (
-        src.includes(`export function list${p}`) &&
-        src.includes(`export function create${p}`) &&
-        src.includes(`export function update${p}`) &&
-        src.includes(`export function ${name}Summary`)
-      );
+      const exported = [...src.matchAll(/export function (\w+)/g)].map((m) => m[1]);
+      const listFn = exported.find((e) => /^list[A-Z]/.test(e));
+      const createFn = exported.find((e) => /^create[A-Z]/.test(e));
+      const updateFn = exported.find((e) => /^update[A-Z]/.test(e));
+      const summaryFn =
+        exported.find((e) => e === `${name}Summary`) ||
+        exported.find((e) => e.endsWith('Summary'));
+      if (!listFn || !createFn || !updateFn || !summaryFn) return false;
+      if (exported.filter((e) => e.endsWith('Summary')).length > 3) return false;
+      return true;
     });
+}
+
+function findPagePath(domain) {
+  const exact = join(pagesDir, `${toPascal(domain)}Page.tsx`);
+  if (existsSync(exact)) return exact;
+  const wanted = `${domain}page.tsx`.toLowerCase();
+  const hit = readdirSync(pagesDir).find((f) => f.toLowerCase() === wanted);
+  return hit ? join(pagesDir, hit) : null;
 }
 
 let patched = 0;
 let skipped = 0;
-for (const domain of thinDomains()) {
-  const pageName = `${toPascal(domain)}Page.tsx`;
-  const pagePath = join(pagesDir, pageName);
-  if (!existsSync(pagePath)) {
+const domains = thinDomains();
+for (const domain of domains) {
+  const pagePath = findPagePath(domain);
+  if (!pagePath) {
     skipped += 1;
     continue;
   }
@@ -47,7 +64,6 @@ for (const domain of thinDomains()) {
     skipped += 1;
     continue;
   }
-  // add import
   if (!src.includes("from '../components/CrudOpsBar'")) {
     const importLine = "import CrudOpsBar from '../components/CrudOpsBar'\n";
     if (src.includes("from '../components/PanelCard'")) {
@@ -59,18 +75,11 @@ for (const domain of thinDomains()) {
       src = importLine + src;
     }
   }
-  // inject after <header>...</header>
-  if (src.includes('<CrudOpsBar')) {
-    skipped += 1;
-    continue;
-  }
   const headerClose = src.indexOf('</header>');
   if (headerClose < 0) {
     skipped += 1;
     continue;
   }
-  const inject = `\n      <CrudOpsBar domain="${domain}" onDone={() => void refresh?.()} />\n`;
-  // many pages have refresh(); some don't — use optional refresh via inline
   const hasRefresh = /async function refresh|const refresh =|function refresh\(/.test(src);
   const bar = hasRefresh
     ? `\n      <CrudOpsBar domain="${domain}" onDone={() => void refresh()} />\n`
@@ -80,4 +89,4 @@ for (const domain of thinDomains()) {
   patched += 1;
 }
 
-console.log(JSON.stringify({ ok: true, patched, skipped, domains: thinDomains().length }));
+console.log(JSON.stringify({ ok: true, patched, skipped, domains: domains.length }));

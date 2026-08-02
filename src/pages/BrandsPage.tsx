@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Building2, Plus, RefreshCw } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import CrudOpsBar from '../components/CrudOpsBar';
 import { createBrand, fetchBrands, type Brand } from '../services/brands';
 
 export default function BrandsPage() {
@@ -57,6 +58,8 @@ export default function BrandsPage() {
           Yenile
         </button>
       </div>
+
+      <CrudOpsBar domain="brands" onDone={() => void refresh()} />
 
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">

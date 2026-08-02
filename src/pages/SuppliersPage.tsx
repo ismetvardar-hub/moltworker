@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { listInventory, type StockItem } from '../services/inventory'
 import {
   createPurchaseOrder,
@@ -80,6 +81,8 @@ export default function SuppliersPage() {
           Tedarikçiler ve satınalma siparişleri — teslim stoka işler.
         </p>
       </header>
+      <CrudOpsBar domain="suppliers" onDone={() => void refresh()} />
+
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">

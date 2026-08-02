@@ -93,12 +93,16 @@ import {
   updateBrand,
 } from './brands.js';
 import {
+  ackGuestsFlag,
   getGuest,
   guestTimeline,
   guestsSummary,
   listGuests,
+  runGuestsSweep,
   syncGuestsFromSources,
+  syncGuestsOps,
   upsertGuest,
+  upsertGuestOps,
 } from './guests.js';
 import { createPlaybook, listPlaybooks, removePlaybook } from './playbooks.js';
 import {
@@ -147,6 +151,10 @@ import {
   listLedger,
   listLoyaltyAccounts,
   loyaltySummary,
+  ackLoyaltyFlag,
+  awardLoyaltyPoints,
+  redeemLoyaltyPoints,
+  runLoyaltySweep,
 } from './loyalty.js';
 import {
   ackIncident,
@@ -169,7 +177,16 @@ import {
   suppliersSummary,
   updatePurchaseOrder,
 } from './suppliers.js';
-import { createFeedback, feedbackSummary, listFeedback } from './feedback.js';
+import {
+  ackFeedbackFlag,
+  archiveFeedbackFlags,
+  createFeedback,
+  feedbackSummary,
+  flagLowScores,
+  listFeedback,
+  runFeedbackSweep,
+  seedNpsFeedback,
+} from './feedback.js';
 import {
   ackExportsFlag,
   buildExport,
@@ -180,7 +197,16 @@ import {
   runExportsSnapshot,
   runExportsSweep,
 } from './exports.js';
-import { consentSummary, listConsents, recordConsent } from './consent.js';
+import {
+  ackConsentFlag,
+  consentSummary,
+  listConsents,
+  recordConsent,
+  recordConsentOps,
+  revokeConsent,
+  runConsentSweep,
+  seedMissingConsents,
+} from './consent.js';
 import {
   announcementsSummary,
   createAnnouncement,
@@ -214,7 +240,15 @@ import {
   lostFoundSummary,
   updateLostFound,
 } from './lostfound.js';
-import { addTip, tipSummary } from './tips.js';
+import {
+  ackTipsFlag,
+  addTip,
+  addTipIn,
+  addTipOut,
+  runTipsSweep,
+  tipBalanceSnapshot,
+  tipSummary,
+} from './tips.js';
 import {
   ackMaintenanceFlag,
   closeCriticalMaintenance,
@@ -323,8 +357,26 @@ import {
   listComplaints,
   updateComplaint,
 } from './complaints.js';
-import { createKudos, kudosSummary, listKudos } from './kudos.js';
-import { hoursSummary, listHours, updateHours } from './hours.js';
+import {
+  ackKudosFlag,
+  createKudos,
+  createThankYouBurst,
+  kudosSummary,
+  listKudos,
+  refreshKudosTagFilter,
+  runKudosSweep,
+  seedDailyKudos,
+} from './kudos.js';
+import {
+  ackHoursFlag,
+  applyHolidayNote,
+  closeVenueHours,
+  hoursSummary,
+  listHours,
+  openVenueHours,
+  runHoursSweep,
+  updateHours,
+} from './hours.js';
 import {
   ackWeatherExtreme,
   ackWeatherFlag,
@@ -8193,6 +8245,31 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, guestsSummary());
           return;
         }
+
+        if (path === '/api/guests/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runGuestsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/guests/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackGuestsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/guests/upsert' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, upsertGuestOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/guests/sync/ops' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, syncGuestsOps(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/guests/sync' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -8553,6 +8630,31 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+
+        if (path === '/api/loyalty/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLoyaltySweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/loyalty/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLoyaltyFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/loyalty/award' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, awardLoyaltyPoints(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/loyalty/redeem' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, redeemLoyaltyPoints(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/loyalty/adjust' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -8736,6 +8838,37 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+
+        if (path === '/api/feedback/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runFeedbackSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/feedback/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackFeedbackFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/feedback/nps/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedNpsFeedback(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/feedback/low/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagLowScores(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/feedback/flags/archive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, archiveFeedbackFlags(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/feedback' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -8814,6 +8947,37 @@ export function createPlatformMiddleware() {
               granted: url.searchParams.get('granted') || undefined,
             }),
           });
+          return;
+        }
+
+        if (path === '/api/consents/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runConsentSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/consents/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackConsentFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/consents/record' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, recordConsentOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/consents/revoke' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, revokeConsent(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/consents/missing/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedMissingConsents(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/consents' && req.method === 'POST') {
@@ -9052,6 +9216,37 @@ export function createPlatformMiddleware() {
         if (path === '/api/tips' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, tipSummary());
+          return;
+        }
+
+        if (path === '/api/tips/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runTipsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tips/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackTipsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tips/in' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, addTipIn(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tips/out' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, addTipOut(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/tips/balance/snapshot' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, tipBalanceSnapshot(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/tips' && req.method === 'POST') {
@@ -9709,6 +9904,37 @@ export function createPlatformMiddleware() {
           sendJson(res, 200, kudosSummary());
           return;
         }
+
+        if (path === '/api/kudos/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKudosSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kudos/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKudosFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kudos/burst' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, createThankYouBurst(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kudos/tags/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshKudosTagFilter(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kudos/daily/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedDailyKudos(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/kudos' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9722,6 +9948,37 @@ export function createPlatformMiddleware() {
         if (path === '/api/hours' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, hoursSummary());
+          return;
+        }
+
+        if (path === '/api/hours/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runHoursSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hours/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackHoursFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hours/open' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, openVenueHours(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hours/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeVenueHours(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/hours/holiday' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, applyHolidayNote(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/hours/') && req.method === 'PATCH') {

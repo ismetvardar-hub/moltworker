@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import * as api from '../services/loyalty'
 import {
   adjustLoyalty,
   fetchLoyalty,
@@ -11,7 +12,9 @@ export default function LoyaltyPage() {
   const [accounts, setAccounts] = useState<LoyaltyAccount[]>([])
   const [ledger, setLedger] = useState<LedgerEntry[]>([])
   const [totalPoints, setTotalPoints] = useState(0)
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [selected, setSelected] = useState('')
   const [delta, setDelta] = useState(10)
   const [reason, setReason] = useState('earn')
@@ -23,6 +26,7 @@ export default function LoyaltyPage() {
       setAccounts(data.accounts)
       setLedger(data.ledger)
       setTotalPoints(data.totalPoints)
+      setOverview(data)
       if (!selected && data.accounts[0]) setSelected(data.accounts[0].id)
       setError(null)
     } catch (e) {
@@ -34,6 +38,11 @@ export default function LoyaltyPage() {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function ping(m: string) {
+    setFlash(m)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onAdjust(e: FormEvent) {
     e.preventDefault()
@@ -66,6 +75,24 @@ export default function LoyaltyPage() {
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Loyalty ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((l: string) => <li key={l}>{l}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runLoyaltySweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void api.awardLoyaltyPoints({}).then((r: any) => { ping(`Award +${r.entry?.delta ?? 0}`); return refresh() })}>Award</button>
+          <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.redeemLoyaltyPoints({}).then((r: any) => { ping(`Redeem ${r.entry?.delta ?? 0}`); return refresh() })}>Redeem</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackLoyaltyFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Flag {(overview?.summary as any)?.flags_open ?? 0}</p>
+      </PanelCard>
 
       <PanelCard title="Puan hareketi">
         <form onSubmit={(e) => void onAdjust(e)} className="grid gap-3 md:grid-cols-4">

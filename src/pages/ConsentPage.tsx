@@ -1,12 +1,15 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import * as api from '../services/consent'
 import { fetchConsents, recordConsent, type Consent } from '../services/consent'
 
 export default function ConsentPage() {
   const [rows, setRows] = useState<Consent[]>([])
   const [purposes, setPurposes] = useState<string[]>([])
   const [stats, setStats] = useState({ granted: 0, denied: 0 })
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [subject, setSubject] = useState('')
   const [purpose, setPurpose] = useState('marketing')
   const [granted, setGranted] = useState(true)
@@ -17,6 +20,7 @@ export default function ConsentPage() {
       setRows(data.consents)
       setPurposes(data.purposes)
       setStats({ granted: data.granted, denied: data.denied })
+      setOverview(data)
       if (data.purposes[0] && !data.purposes.includes(purpose)) setPurpose(data.purposes[0])
       setError(null)
     } catch (e) {
@@ -28,6 +32,11 @@ export default function ConsentPage() {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function ping(m: string) {
+    setFlash(m)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -54,6 +63,25 @@ export default function ConsentPage() {
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Consent ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((l: string) => <li key={l}>{l}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runConsentSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.recordConsentOps({}).then((r: any) => { ping(`Record ${r.consent?.id ? 'ok' : '—'}`); return refresh() })}>Record</button>
+          <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.revokeConsent({}).then((r: any) => { ping(`Revoke ${r.consent?.status || '—'}`); return refresh() })}>Revoke</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.seedMissingConsents({}).then((r: any) => { ping(`Missing ${r.created?.length ?? 0}`); return refresh() })}>Missing seed</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackConsentFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Flag {(overview?.summary as any)?.flags_open ?? 0}</p>
+      </PanelCard>
 
       <PanelCard title="Yeni kayıt">
         <form onSubmit={(e) => void onSubmit(e)} className="grid gap-3 md:grid-cols-4">

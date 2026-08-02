@@ -598,6 +598,28 @@ import {
   buildMetrics, runMetricsSweep, ackMetricsFlag, snapshotMetrics, purgeFailedJobs, ackEthosFails,
 } from '../server/metrics.js';
 import {
+  kudosSummary, runKudosSweep, ackKudosFlag, createThankYouBurst, refreshKudosTagFilter, seedDailyKudos,
+} from '../server/kudos.js';
+import {
+  tipSummary, runTipsSweep, ackTipsFlag, addTipIn, addTipOut, tipBalanceSnapshot,
+} from '../server/tips.js';
+import {
+  feedbackSummary, runFeedbackSweep, ackFeedbackFlag, seedNpsFeedback, flagLowScores, archiveFeedbackFlags,
+} from '../server/feedback.js';
+import {
+  hoursSummary, runHoursSweep, ackHoursFlag, openVenueHours, closeVenueHours, applyHolidayNote,
+} from '../server/hours.js';
+import {
+  consentSummary, runConsentSweep, ackConsentFlag, recordConsentOps, revokeConsent, seedMissingConsents,
+} from '../server/consent.js';
+import {
+  guestsSummary, runGuestsSweep, ackGuestsFlag, upsertGuestOps, syncGuestsOps,
+} from '../server/guests.js';
+import {
+  loyaltySummary, runLoyaltySweep, ackLoyaltyFlag, awardLoyaltyPoints, redeemLoyaltyPoints,
+} from '../server/loyalty.js';
+
+import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
 } from '../server/exports.js';
 import {
@@ -1684,17 +1706,77 @@ assert(escalateReadinessGap({}, 'smoke').ok, 'readiness escalate');
 assert(resolveReadinessGap({}, 'smoke').ok, 'readiness gap resolve');
 assert(ackReadinessFlag({}, 'smoke').ok, 'readiness flag ack');
 
+
+assert(kudosSummary().title, 'kudos overview');
+assert(runKudosSweep({ force: true }, 'smoke').ok, 'kudos sweep');
+assert(createThankYouBurst({}, 'smoke').ok, 'kudos burst');
+assert(refreshKudosTagFilter({}, 'smoke').ok, 'kudos tags');
+assert(seedDailyKudos({ force: true }, 'smoke').ok, 'kudos daily');
+assert(ackKudosFlag({}, 'smoke').ok, 'kudos flag ack');
+
+assert(tipSummary().title, 'tips overview');
+assert(runTipsSweep({ force: true }, 'smoke').ok, 'tips sweep');
+assert(addTipIn({}, 'smoke').ok, 'tips in');
+assert(addTipOut({}, 'smoke').ok, 'tips out');
+assert(tipBalanceSnapshot({}, 'smoke').ok, 'tips snapshot');
+assert(ackTipsFlag({}, 'smoke').ok, 'tips flag ack');
+
+assert(feedbackSummary().title, 'feedback overview');
+assert(runFeedbackSweep({ force: true }, 'smoke').ok, 'feedback sweep');
+assert(seedNpsFeedback({}, 'smoke').ok, 'feedback nps seed');
+assert(flagLowScores({}, 'smoke').ok, 'feedback low flag');
+assert(ackFeedbackFlag({}, 'smoke').ok, 'feedback flag ack');
+assert(archiveFeedbackFlags({}, 'smoke').ok, 'feedback archive');
+
+assert(hoursSummary().title, 'hours overview');
+assert(runHoursSweep({ force: true }, 'smoke').ok, 'hours sweep');
+assert(openVenueHours({}, 'smoke').ok, 'hours open');
+assert(closeVenueHours({}, 'smoke').ok, 'hours close');
+assert(applyHolidayNote({}, 'smoke').ok, 'hours holiday');
+assert(ackHoursFlag({}, 'smoke').ok, 'hours flag ack');
+
+assert(consentSummary().title, 'consent overview');
+assert(runConsentSweep({ force: true }, 'smoke').ok, 'consent sweep');
+assert(recordConsentOps({}, 'smoke').ok, 'consent record');
+assert(revokeConsent({}, 'smoke').ok, 'consent revoke');
+assert(seedMissingConsents({}, 'smoke').ok, 'consent missing');
+assert(ackConsentFlag({}, 'smoke').ok, 'consent flag ack');
+
+assert(guestsSummary().title, 'guests overview');
+assert(runGuestsSweep({ force: true }, 'smoke').ok, 'guests sweep');
+assert(upsertGuestOps({}, 'smoke').ok, 'guests upsert');
+assert(syncGuestsOps({}, 'smoke').ok, 'guests sync ops');
+assert(ackGuestsFlag({}, 'smoke').ok, 'guests flag ack');
+
+assert(loyaltySummary().title, 'loyalty overview');
+assert(runLoyaltySweep({ force: true }, 'smoke').ok, 'loyalty sweep');
+assert(awardLoyaltyPoints({}, 'smoke').ok, 'loyalty award');
+assert(redeemLoyaltyPoints({}, 'smoke').ok, 'loyalty redeem');
+assert(ackLoyaltyFlag({}, 'smoke').ok, 'loyalty flag ack');
+
 console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
 console.log('MOD148_OK');
 console.log('MOD152_OK');
+console.log('MOD155_OK');
 
 const crudDomains = listCrudDomains({ force: true });
-assert(crudDomains.length >= 500, 'crudops registry size');
+assert(crudDomains.length >= 1000, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
+assert(crudDomains.some((d) => d.name === 'lostfound'), 'crudops includes lostfound');
+assert(crudDomains.some((d) => d.name === 'announcements'), 'crudops includes announcements');
+assert(crudDomains.some((d) => d.name === 'venues'), 'crudops includes venues');
+assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
+assert(!isCrudOpsPath('/api/kudos/sweep', 'POST'), 'crudops skips thickened kudos');
+assert(!isCrudOpsPath('/api/tips/sweep', 'POST'), 'crudops skips thickened tips');
+assert(!isCrudOpsPath('/api/feedback/sweep', 'POST'), 'crudops skips thickened feedback');
+assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
+assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
+assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');
+assert(!isCrudOpsPath('/api/loyalty/sweep', 'POST'), 'crudops skips thickened loyalty');
 for (const name of ['carbonlog', 'fxrates', 'handbook', 'yieldrule', 'accessreview']) {
   // eslint-disable-next-line no-await-in-loop
   assert((await runCrudDomainSweep(name, { force: true }, 'smoke')).ok, `crudops sweep ${name}`);

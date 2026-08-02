@@ -32,13 +32,15 @@ function parseStatuses(src) {
 
 let _registry = null;
 
-/** Discover thin CRUD domains (have list/create/update/summary, no run*Sweep). */
+/** Discover thin CRUD domains (list+create+update+summary, no run*Sweep). */
 export function listCrudDomains({ force = false } = {}) {
   if (_registry && !force) return _registry;
+  if (force) modCache.clear();
   const files = readdirSync(__dirname).filter((f) => f.endsWith('.js'));
   const skip = new Set([
     'crudops.js', 'store.js', 'audit.js', 'agentqueue.js', 'platform.js', 'openapi.js',
     'auth.js', 'events.js', 'integrations.js', 'jobs.js', 'settings.js', 'rateLimit.js',
+    'metrics.js', 'exports.js', 'readiness.js', 'report.js', 'brief.js', 'digest.js',
   ]);
   const out = [];
   for (const file of files) {
@@ -47,14 +49,28 @@ export function listCrudDomains({ force = false } = {}) {
     let src;
     try { src = readFileSync(join(__dirname, file), 'utf8'); } catch { continue; }
     if (/export function run\w+Sweep/.test(src)) continue;
-    const pascal = toPascal(name);
-    if (!src.includes(`export function list${pascal}`)) continue;
-    if (!src.includes(`export function create${pascal}`)) continue;
-    if (!src.includes(`export function update${pascal}`)) continue;
-    const summaryName = `${name}Summary`;
-    if (!src.includes(`export function ${summaryName}`)) continue;
+    const exported = [...src.matchAll(/export function (\w+)/g)].map((m) => m[1]);
+    const listFn = exported.find((e) => /^list[A-Z]/.test(e));
+    const createFn = exported.find((e) => /^create[A-Z]/.test(e));
+    const updateFn = exported.find((e) => /^update[A-Z]/.test(e));
+    const summaryFn =
+      exported.find((e) => e === `${name}Summary`) ||
+      exported.find((e) => e.endsWith('Summary') && e.toLowerCase().includes(name.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 6)));
+    if (!listFn || !createFn || !updateFn || !summaryFn) continue;
+    // avoid grabbing unrelated multi-export toolkits
+    if (exported.filter((e) => e.endsWith('Summary')).length > 3) continue;
     const statuses = parseStatuses(src);
-    out.push({ name, file, pascal, summaryName, statuses, collection: `${name}-flags` });
+    out.push({
+      name,
+      file,
+      pascal: toPascal(name),
+      listFn,
+      createFn,
+      updateFn,
+      summaryName: summaryFn,
+      statuses,
+      collection: `${name}-flags`,
+    });
   }
   out.sort((a, b) => a.name.localeCompare(b.name));
   _registry = out;
@@ -85,9 +101,9 @@ async function loadDomain(name) {
   const mod = await import(href);
   const api = {
     meta,
-    list: mod[`list${meta.pascal}`],
-    create: mod[`create${meta.pascal}`],
-    update: mod[`update${meta.pascal}`],
+    list: mod[meta.listFn],
+    create: mod[meta.createFn],
+    update: mod[meta.updateFn],
     summary: mod[meta.summaryName],
   };
   if (![api.list, api.create, api.update, api.summary].every((f) => typeof f === 'function')) return null;

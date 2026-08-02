@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import CrudOpsBar from '../components/CrudOpsBar'
 import { createAsset, fetchAssets, updateAsset, type Asset } from '../services/assets'
 
 export default function AssetsPage() {
@@ -43,6 +44,8 @@ export default function AssetsPage() {
           Online {stats.online} · bakım {stats.maintenance}
         </p>
       </header>
+      <CrudOpsBar domain="assets" onDone={() => void refresh()} />
+
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}

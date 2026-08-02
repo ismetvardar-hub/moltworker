@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MapPin, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
+import CrudOpsBar from '../components/CrudOpsBar';
 import {
   createVenue,
   deleteVenue,
@@ -68,6 +69,8 @@ export default function VenuesPage() {
           Yenile
         </button>
       </div>
+
+      <CrudOpsBar domain="venues" onDone={() => void refresh()} />
 
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">

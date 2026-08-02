@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import * as api from '../services/feedback'
 import { createFeedback, fetchFeedback, type Feedback } from '../services/feedback'
 
 export default function FeedbackPage() {
@@ -7,7 +8,9 @@ export default function FeedbackPage() {
   const [nps, setNps] = useState<number | null>(null)
   const [avg, setAvg] = useState<number | null>(null)
   const [counts, setCounts] = useState({ promoters: 0, passives: 0, detractors: 0 })
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [score, setScore] = useState(9)
   const [guestName, setGuestName] = useState('')
   const [comment, setComment] = useState('')
@@ -23,6 +26,7 @@ export default function FeedbackPage() {
         passives: data.passives,
         detractors: data.detractors,
       })
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Geri bildirim alınamadı')
@@ -32,6 +36,11 @@ export default function FeedbackPage() {
   useEffect(() => {
     void refresh()
   }, [])
+
+  function ping(m: string) {
+    setFlash(m)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -65,6 +74,25 @@ export default function FeedbackPage() {
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Feedback ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((l: string) => <li key={l}>{l}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runFeedbackSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.seedNpsFeedback({}).then((r: any) => { ping(`NPS seed ${r.created?.length ?? 0}`); return refresh() })}>NPS seed</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.flagLowScores({}).then((r: any) => { ping(`Low flag ${r.created?.length ?? 0}`); return refresh() })}>Flag lows</button>
+          <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.archiveFeedbackFlags({}).then((r: any) => { ping(`Archive ${r.archived?.length ?? 0}`); return refresh() })}>Archive flags</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackFeedbackFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Flag {(overview?.summary as any)?.flags_open ?? 0}</p>
+      </PanelCard>
 
       <PanelCard title="Yeni skor">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-3 md:grid-cols-4">

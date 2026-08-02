@@ -1711,6 +1711,79 @@ try {
   const metAck = await req('/api/metrics/flag/ack', { method: 'POST', token, body: {} });
   assert(metAck.res.ok && metAck.data.ok !== false, 'metrics ack');
 
+  const kdSweep = await req('/api/kudos/sweep', { method: 'POST', token, body: { force: true } });
+  assert(kdSweep.res.ok && kdSweep.data.ok !== false, 'kudos sweep');
+  const kdBurst = await req('/api/kudos/burst', { method: 'POST', token, body: {} });
+  assert(kdBurst.res.ok && kdBurst.data.ok !== false, 'kudos burst');
+  const kdTag = await req('/api/kudos/tags/refresh', { method: 'POST', token, body: {} });
+  assert(kdTag.res.ok && kdTag.data.ok !== false, 'kudos tags');
+  const kdDaily = await req('/api/kudos/daily/seed', { method: 'POST', token, body: { force: true } });
+  assert(kdDaily.res.ok && kdDaily.data.ok !== false, 'kudos daily');
+  const kdAck = await req('/api/kudos/flag/ack', { method: 'POST', token, body: {} });
+  assert(kdAck.res.ok && kdAck.data.ok !== false, 'kudos ack');
+
+  const tipSweep = await req('/api/tips/sweep', { method: 'POST', token, body: { force: true } });
+  assert(tipSweep.res.ok && tipSweep.data.ok !== false, 'tips sweep');
+  const tipIn = await req('/api/tips/in', { method: 'POST', token, body: {} });
+  assert(tipIn.res.ok && tipIn.data.ok !== false, 'tips in');
+  const tipOut = await req('/api/tips/out', { method: 'POST', token, body: {} });
+  assert(tipOut.res.ok && tipOut.data.ok !== false, 'tips out');
+  const tipSnap = await req('/api/tips/balance/snapshot', { method: 'POST', token, body: {} });
+  assert(tipSnap.res.ok && tipSnap.data.ok !== false, 'tips snapshot');
+  const tipAck = await req('/api/tips/flag/ack', { method: 'POST', token, body: {} });
+  assert(tipAck.res.ok && tipAck.data.ok !== false, 'tips ack');
+
+  const fbSweep = await req('/api/feedback/sweep', { method: 'POST', token, body: { force: true } });
+  assert(fbSweep.res.ok && fbSweep.data.ok !== false, 'feedback sweep');
+  const fbSeed = await req('/api/feedback/nps/seed', { method: 'POST', token, body: {} });
+  assert(fbSeed.res.ok && fbSeed.data.ok !== false, 'feedback nps');
+  const fbLow = await req('/api/feedback/low/flag', { method: 'POST', token, body: {} });
+  assert(fbLow.res.ok && fbLow.data.ok !== false, 'feedback low');
+  const fbAck = await req('/api/feedback/flag/ack', { method: 'POST', token, body: {} });
+  assert(fbAck.res.ok && fbAck.data.ok !== false, 'feedback ack');
+  const fbArch = await req('/api/feedback/flags/archive', { method: 'POST', token, body: {} });
+  assert(fbArch.res.ok && fbArch.data.ok !== false, 'feedback archive');
+
+  const hrsSweep = await req('/api/hours/sweep', { method: 'POST', token, body: { force: true } });
+  assert(hrsSweep.res.ok && hrsSweep.data.ok !== false, 'hours sweep');
+  const hrsOpen = await req('/api/hours/open', { method: 'POST', token, body: {} });
+  assert(hrsOpen.res.ok && hrsOpen.data.ok !== false, 'hours open');
+  const hrsClose = await req('/api/hours/close', { method: 'POST', token, body: {} });
+  assert(hrsClose.res.ok && hrsClose.data.ok !== false, 'hours close');
+  const hrsHol = await req('/api/hours/holiday', { method: 'POST', token, body: {} });
+  assert(hrsHol.res.ok && hrsHol.data.ok !== false, 'hours holiday');
+  const hrsAck = await req('/api/hours/flag/ack', { method: 'POST', token, body: {} });
+  assert(hrsAck.res.ok && hrsAck.data.ok !== false, 'hours ack');
+
+  const cnsSweep = await req('/api/consents/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cnsSweep.res.ok && cnsSweep.data.ok !== false, 'consent sweep');
+  const cnsRec = await req('/api/consents/record', { method: 'POST', token, body: {} });
+  assert(cnsRec.res.ok && cnsRec.data.ok !== false, 'consent record');
+  const cnsRev = await req('/api/consents/revoke', { method: 'POST', token, body: {} });
+  assert(cnsRev.res.ok && cnsRev.data.ok !== false, 'consent revoke');
+  const cnsMiss = await req('/api/consents/missing/seed', { method: 'POST', token, body: {} });
+  assert(cnsMiss.res.ok && cnsMiss.data.ok !== false, 'consent missing');
+  const cnsAck = await req('/api/consents/flag/ack', { method: 'POST', token, body: {} });
+  assert(cnsAck.res.ok && cnsAck.data.ok !== false, 'consent ack');
+
+  const gstSweep = await req('/api/guests/sweep', { method: 'POST', token, body: { force: true } });
+  assert(gstSweep.res.ok && gstSweep.data.ok !== false, 'guests sweep');
+  const gstUps = await req('/api/guests/upsert', { method: 'POST', token, body: {} });
+  assert(gstUps.res.ok && gstUps.data.ok !== false, 'guests upsert');
+  const gstSync = await req('/api/guests/sync/ops', { method: 'POST', token, body: {} });
+  assert(gstSync.res.ok && gstSync.data.ok !== false, 'guests sync ops');
+  const gstAck = await req('/api/guests/flag/ack', { method: 'POST', token, body: {} });
+  assert(gstAck.res.ok && gstAck.data.ok !== false, 'guests ack');
+
+  const loySweep = await req('/api/loyalty/sweep', { method: 'POST', token, body: { force: true } });
+  assert(loySweep.res.ok && loySweep.data.ok !== false, 'loyalty sweep');
+  const loyAward = await req('/api/loyalty/award', { method: 'POST', token, body: {} });
+  assert(loyAward.res.ok && loyAward.data.ok !== false, 'loyalty award');
+  const loyRedeem = await req('/api/loyalty/redeem', { method: 'POST', token, body: {} });
+  assert(loyRedeem.res.ok && loyRedeem.data.ok !== false, 'loyalty redeem');
+  const loyAck = await req('/api/loyalty/flag/ack', { method: 'POST', token, body: {} });
+  assert(loyAck.res.ok && loyAck.data.ok !== false, 'loyalty ack');
+
   const expSweep = await req('/api/exports/sweep', { method: 'POST', token, body: { force: true } });
   assert(expSweep.res.ok && expSweep.data.ok !== false, 'exports sweep');
   const expSnap = await req('/api/exports/snapshot', { method: 'POST', token, body: {} });

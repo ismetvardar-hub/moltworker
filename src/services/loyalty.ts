@@ -29,10 +29,23 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post(path: string, body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchLoyalty(): Promise<{
   accounts: LoyaltyAccount[]
   ledger: LedgerEntry[]
   totalPoints: number
+  summary?: Record<string, unknown>
+  flags?: unknown[]
+  title?: string
 }> {
   return parse(await fetch('/api/loyalty', { headers: authHeaders() }))
 }
@@ -45,11 +58,21 @@ export async function adjustLoyalty(input: {
   reason?: string
   note?: string
 }): Promise<{ account: LoyaltyAccount; entry: LedgerEntry }> {
-  return parse(
-    await fetch('/api/loyalty/adjust', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(input),
-    }),
-  )
+  return post('/api/loyalty/adjust', input)
+}
+
+export async function runLoyaltySweep(body: Record<string, unknown> = {}) {
+  return post('/api/loyalty/sweep', body)
+}
+
+export async function ackLoyaltyFlag(body: Record<string, unknown> = {}) {
+  return post('/api/loyalty/flag/ack', body)
+}
+
+export async function awardLoyaltyPoints(body: Record<string, unknown> = {}) {
+  return post('/api/loyalty/award', body)
+}
+
+export async function redeemLoyaltyPoints(body: Record<string, unknown> = {}) {
+  return post('/api/loyalty/redeem', body)
 }

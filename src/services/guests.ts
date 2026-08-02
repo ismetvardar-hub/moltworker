@@ -22,20 +22,32 @@ export interface GuestTimelineItem {
   meta?: Record<string, unknown>;
 }
 
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
+  return data;
+}
+
+async function post(path: string, body: Record<string, unknown> = {}) {
+  return parse(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
 export async function fetchGuests(): Promise<{
   total: number;
   withPass: number;
   withPhone: number;
   guests: Guest[];
+  summary?: Record<string, unknown>;
+  flags?: unknown[];
+  title?: string;
 }> {
-  const res = await fetch('/api/guests', { headers: authHeaders() });
-  if (!res.ok) throw new Error('Misafirler alınamadı');
-  return (await res.json()) as {
-    total: number;
-    withPass: number;
-    withPhone: number;
-    guests: Guest[];
-  };
+  return parse(await fetch('/api/guests', { headers: authHeaders() }));
 }
 
 export async function syncGuests(): Promise<void> {
@@ -43,13 +55,13 @@ export async function syncGuests(): Promise<void> {
 }
 
 export async function createGuest(input: Partial<Guest>): Promise<Guest> {
-  const res = await fetch('/api/guests', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) throw new Error('Misafir kaydı başarısız');
-  const data = (await res.json()) as { guest: Guest };
+  const data = await parse<{ guest: Guest }>(
+    await fetch('/api/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(input),
+    }),
+  );
   return data.guest;
 }
 
@@ -58,11 +70,21 @@ export async function fetchGuestTimeline(id: string): Promise<{
   timeline: GuestTimelineItem[];
   counts: { whatsapp: number; access: number };
 }> {
-  const res = await fetch(`/api/guests/${id}/timeline`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Zaman çizelgesi alınamadı');
-  return (await res.json()) as {
-    guest: Guest;
-    timeline: GuestTimelineItem[];
-    counts: { whatsapp: number; access: number };
-  };
+  return parse(await fetch(`/api/guests/${id}/timeline`, { headers: authHeaders() }));
+}
+
+export async function runGuestsSweep(body: Record<string, unknown> = {}) {
+  return post('/api/guests/sweep', body);
+}
+
+export async function ackGuestsFlag(body: Record<string, unknown> = {}) {
+  return post('/api/guests/flag/ack', body);
+}
+
+export async function upsertGuestOps(body: Record<string, unknown> = {}) {
+  return post('/api/guests/upsert', body);
+}
+
+export async function syncGuestsOps(body: Record<string, unknown> = {}) {
+  return post('/api/guests/sync/ops', body);
 }
