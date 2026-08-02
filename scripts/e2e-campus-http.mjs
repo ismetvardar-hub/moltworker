@@ -190,6 +190,7 @@ try {
     '/api/transfers',
     '/api/concierge',
     '/api/shuttle',
+    '/api/lounge',
     '/api/wifi',
     '/api/kds',
     '/api/budget',
@@ -209,6 +210,9 @@ try {
     '/api/winecellar',
     '/api/allergens',
     '/api/payroll',
+    '/api/fleet',
+    '/api/groups',
+    '/api/guestapp',
     '/api/keycards',
     '/api/parcels',
     '/api/wakeups',
@@ -1751,7 +1755,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3164,6 +3168,98 @@ try {
   assert(payroll173Approve.res.ok && payroll173Approve.data.ok !== false, 'payroll approve run');
   const payroll173Ack = await req('/api/payroll/flag/ack', { method: 'POST', token, body: {} });
   assert(payroll173Ack.res.ok && payroll173Ack.data.ok !== false, 'payroll flag ack');
+
+  const fleet174Sweep = await req('/api/fleet/sweep', { method: 'POST', token, body: { force: true } });
+  assert(fleet174Sweep.res.ok && fleet174Sweep.data.ok !== false, 'fleet sweep');
+  const fleet174Seed = await req('/api/fleet/shuttle-van/seed', {
+    method: 'POST',
+    token,
+    body: { plate: 'E2E-174-SHV' },
+  });
+  assert(fleet174Seed.res.ok && fleet174Seed.data.ok !== false, 'fleet shuttle van seed');
+  const fleet174Service = await req('/api/fleet/service/due', {
+    method: 'POST',
+    token,
+    body: { id: fleet174Seed.data.vehicle?.id },
+  });
+  assert(fleet174Service.res.ok && fleet174Service.data.ok !== false, 'fleet service due');
+  const fleet174Dispatch = await req('/api/fleet/dispatch', {
+    method: 'POST',
+    token,
+    body: { id: fleet174Seed.data.vehicle?.id, route: 'E2E-174 route' },
+  });
+  assert(fleet174Dispatch.res.ok && fleet174Dispatch.data.ok !== false, 'fleet dispatch');
+  const fleet174Ack = await req('/api/fleet/flag/ack', { method: 'POST', token, body: {} });
+  assert(fleet174Ack.res.ok && fleet174Ack.data.ok !== false, 'fleet flag ack');
+
+  const groups174Sweep = await req('/api/groups/sweep', { method: 'POST', token, body: { force: true } });
+  assert(groups174Sweep.res.ok && groups174Sweep.data.ok !== false, 'groups sweep');
+  const groups174Seed = await req('/api/groups/incentive/seed', {
+    method: 'POST',
+    token,
+    body: { groupName: 'E2E-174 incentive' },
+  });
+  assert(groups174Seed.res.ok && groups174Seed.data.ok !== false, 'groups incentive seed');
+  const groups174Rooming = await req('/api/groups/rooming/incomplete', {
+    method: 'POST',
+    token,
+    body: { id: groups174Seed.data.group?.id },
+  });
+  assert(groups174Rooming.res.ok && groups174Rooming.data.ok !== false, 'groups rooming incomplete');
+  const groups174Confirm = await req('/api/groups/block/confirm', {
+    method: 'POST',
+    token,
+    body: { id: groups174Seed.data.group?.id },
+  });
+  assert(groups174Confirm.res.ok && groups174Confirm.data.ok !== false, 'groups block confirm');
+  const groups174Ack = await req('/api/groups/flag/ack', { method: 'POST', token, body: {} });
+  assert(groups174Ack.res.ok && groups174Ack.data.ok !== false, 'groups flag ack');
+
+  const guestapp174Sweep = await req('/api/guestapp/sweep', { method: 'POST', token, body: { force: true } });
+  assert(guestapp174Sweep.res.ok && guestapp174Sweep.data.ok !== false, 'guestapp sweep');
+  const guestapp174Seed = await req('/api/guestapp/welcome-card/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-174 welcome card' },
+  });
+  assert(guestapp174Seed.res.ok && guestapp174Seed.data.ok !== false, 'guestapp welcome card seed');
+  const guestapp174Push = await req('/api/guestapp/push/failure', {
+    method: 'POST',
+    token,
+    body: { id: guestapp174Seed.data.card?.id },
+  });
+  assert(guestapp174Push.res.ok && guestapp174Push.data.ok !== false, 'guestapp push failure');
+  const guestapp174Republish = await req('/api/guestapp/screen/republish', {
+    method: 'POST',
+    token,
+    body: { id: guestapp174Seed.data.card?.id, screen: 'e2e-174' },
+  });
+  assert(guestapp174Republish.res.ok && guestapp174Republish.data.ok !== false, 'guestapp republish screen');
+  const guestapp174Ack = await req('/api/guestapp/flag/ack', { method: 'POST', token, body: {} });
+  assert(guestapp174Ack.res.ok && guestapp174Ack.data.ok !== false, 'guestapp flag ack');
+
+  const lounge174Sweep = await req('/api/lounge/sweep', { method: 'POST', token, body: { force: true } });
+  assert(lounge174Sweep.res.ok && lounge174Sweep.data.ok !== false, 'lounge sweep');
+  const lounge174Seed = await req('/api/lounge/afternoon-tea/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-174 afternoon tea' },
+  });
+  assert(lounge174Seed.res.ok && lounge174Seed.data.ok !== false, 'lounge afternoon tea seed');
+  const lounge174Capacity = await req('/api/lounge/capacity/breach', {
+    method: 'POST',
+    token,
+    body: { id: lounge174Seed.data.visit?.id },
+  });
+  assert(lounge174Capacity.res.ok && lounge174Capacity.data.ok !== false, 'lounge capacity breach');
+  const lounge174Seat = await req('/api/lounge/guest/seat', {
+    method: 'POST',
+    token,
+    body: { id: lounge174Seed.data.visit?.id, seat: 'E2E-174' },
+  });
+  assert(lounge174Seat.res.ok && lounge174Seat.data.ok !== false, 'lounge seat guest');
+  const lounge174Ack = await req('/api/lounge/flag/ack', { method: 'POST', token, body: {} });
+  assert(lounge174Ack.res.ok && lounge174Ack.data.ok !== false, 'lounge flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

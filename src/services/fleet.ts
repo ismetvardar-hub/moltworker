@@ -13,3 +13,23 @@ export async function createFleet(input: Record<string, unknown>): Promise<any> 
 export async function patchFleet(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/fleet/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+async function postFleet(path: string, body: Record<string, unknown> = {}) {
+  return parse(await fetch(path, { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function runFleetSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return postFleet('/api/fleet/sweep', body)
+}
+export async function ackFleetFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return postFleet('/api/fleet/flag/ack', body)
+}
+export async function markFleetServiceDue(body: Record<string, unknown> = {}): Promise<any> {
+  return postFleet('/api/fleet/service/due', body)
+}
+export async function dispatchFleetVehicle(body: Record<string, unknown> = {}): Promise<any> {
+  return postFleet('/api/fleet/dispatch', body)
+}
+export async function seedShuttleVan(body: Record<string, unknown> = {}): Promise<any> {
+  return postFleet('/api/fleet/shuttle-van/seed', body)
+}

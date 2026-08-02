@@ -837,6 +837,18 @@ import {
 import {
   payrollSummary, runPayrollSweep, ackPayrollFlag, markPayrollMissingTimesheet, approvePayrollRun, seedPayrollOvertime,
 } from '../server/payroll.js';
+import {
+  fleetSummary, runFleetSweep, ackFleetFlag, markFleetServiceDue, dispatchFleetVehicle, seedShuttleVan,
+} from '../server/fleet.js';
+import {
+  groupsSummary, runGroupsSweep, ackGroupsFlag, markGroupsRoomingIncomplete, confirmGroupBlock, seedIncentiveGroup,
+} from '../server/groups.js';
+import {
+  guestappSummary, runGuestappSweep, ackGuestappFlag, markGuestappPushFailure, republishGuestappScreen, seedWelcomeCard,
+} from '../server/guestapp.js';
+import {
+  loungeSummary, runLoungeSweep, ackLoungeFlag, markLoungeCapacityBreach, seatLoungeGuest, seedAfternoonTea,
+} from '../server/lounge.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2472,6 +2484,38 @@ assert(runPayrollSweep({ force: true }, 'smoke').ok, 'payroll sweep');
 assert(approvePayrollRun({ id: smokePayroll.payroll.id }, 'smoke').ok, 'payroll run approve');
 assert(ackPayrollFlag({}, 'smoke').ok, 'payroll flag ack');
 
+assert(fleetSummary().title, 'fleet overview');
+const smokeFleet = seedShuttleVan({ plate: 'SM-174-SHV' }, 'smoke');
+assert(smokeFleet.ok, 'fleet shuttle van seed');
+assert(markFleetServiceDue({ id: smokeFleet.vehicle.id }, 'smoke').ok, 'fleet service due');
+assert(runFleetSweep({ force: true }, 'smoke').ok, 'fleet sweep');
+assert(dispatchFleetVehicle({ id: smokeFleet.vehicle.id, route: 'Smoke 174 route' }, 'smoke').ok, 'fleet dispatch vehicle');
+assert(ackFleetFlag({}, 'smoke').ok, 'fleet flag ack');
+
+assert(groupsSummary().title, 'groups overview');
+const smokeGroup = seedIncentiveGroup({ groupName: 'Smoke 174 incentive' }, 'smoke');
+assert(smokeGroup.ok, 'groups incentive seed');
+assert(markGroupsRoomingIncomplete({ id: smokeGroup.group.id }, 'smoke').ok, 'groups rooming incomplete');
+assert(runGroupsSweep({ force: true }, 'smoke').ok, 'groups sweep');
+assert(confirmGroupBlock({ id: smokeGroup.group.id }, 'smoke').ok, 'groups block confirm');
+assert(ackGroupsFlag({}, 'smoke').ok, 'groups flag ack');
+
+assert(guestappSummary().title, 'guestapp overview');
+const smokeGuestapp = seedWelcomeCard({ title: 'Smoke 174 welcome card' }, 'smoke');
+assert(smokeGuestapp.ok, 'guestapp welcome card seed');
+assert(markGuestappPushFailure({ id: smokeGuestapp.card.id }, 'smoke').ok, 'guestapp push failure');
+assert(runGuestappSweep({ force: true }, 'smoke').ok, 'guestapp sweep');
+assert(republishGuestappScreen({ id: smokeGuestapp.card.id, screen: 'smoke-174' }, 'smoke').ok, 'guestapp republish screen');
+assert(ackGuestappFlag({}, 'smoke').ok, 'guestapp flag ack');
+
+assert(loungeSummary().title, 'lounge overview');
+const smokeLounge = seedAfternoonTea({ guestName: 'Smoke 174 afternoon tea' }, 'smoke');
+assert(smokeLounge.ok, 'lounge afternoon tea seed');
+assert(markLoungeCapacityBreach({ id: smokeLounge.visit.id }, 'smoke').ok, 'lounge capacity breach');
+assert(runLoungeSweep({ force: true }, 'smoke').ok, 'lounge sweep');
+assert(seatLoungeGuest({ id: smokeLounge.visit.id, seat: 'SM-174' }, 'smoke').ok, 'lounge seat guest');
+assert(ackLoungeFlag({}, 'smoke').ok, 'lounge flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2502,6 +2546,7 @@ console.log('MOD170_OK');
 console.log('MOD171_OK');
 console.log('MOD172_OK');
 console.log('MOD173_OK');
+console.log('MOD174_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2562,6 +2607,11 @@ for (const thickened173 of ['bakery', 'winecellar', 'allergens', 'payroll']) {
   assert(!crudDomains.some((d) => d.name === thickened173), `crudops skips thickened ${thickened173}`);
   assert(!isCrudOpsPath(`/api/${thickened173}/sweep`, 'POST'), `crudops skips ${thickened173} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened173}/flag/ack`, 'POST'), `crudops skips ${thickened173} ack`);
+}
+for (const thickened174 of ['fleet', 'groups', 'guestapp', 'lounge']) {
+  assert(!crudDomains.some((d) => d.name === thickened174), `crudops skips thickened ${thickened174}`);
+  assert(!isCrudOpsPath(`/api/${thickened174}/sweep`, 'POST'), `crudops skips ${thickened174} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened174}/flag/ack`, 'POST'), `crudops skips ${thickened174} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
