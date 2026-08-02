@@ -1606,6 +1606,42 @@ try {
   const invAck = await req('/api/inventory/flag/ack', { method: 'POST', token, body: {} });
   assert(invAck.res.ok && invAck.data.ok !== false, 'inventory ack');
 
+  const sup156Sweep = await req('/api/suppliers/sweep', { method: 'POST', token, body: { force: true } });
+  assert(sup156Sweep.res.ok && sup156Sweep.data.ok !== false, 'suppliers sweep');
+  const sup156Seed = await req('/api/suppliers/po/seed', { method: 'POST', token, body: { overdue: true } });
+  assert(sup156Seed.res.ok && sup156Seed.data.ok !== false, 'suppliers po seed');
+  const sup156Flag = await req('/api/suppliers/po/overdue/flag', { method: 'POST', token, body: {} });
+  assert(sup156Flag.res.ok && sup156Flag.data.ok !== false, 'suppliers overdue flag');
+  const sup156Ack = await req('/api/suppliers/flag/ack', { method: 'POST', token, body: {} });
+  assert(sup156Ack.res.ok && sup156Ack.data.ok !== false, 'suppliers ack');
+
+  const rcp156Sweep = await req('/api/recipes/sweep', { method: 'POST', token, body: { force: true } });
+  assert(rcp156Sweep.res.ok && rcp156Sweep.data.ok !== false, 'recipes sweep');
+  const rcp156Cost = await req('/api/recipes/cost/refresh', { method: 'POST', token, body: {} });
+  assert(rcp156Cost.res.ok && rcp156Cost.data.ok !== false, 'recipes cost refresh');
+  const rcp156Stock = await req('/api/recipes/stock/flag', { method: 'POST', token, body: {} });
+  assert(rcp156Stock.res.ok && rcp156Stock.data.ok !== false, 'recipes stock flag');
+  const rcp156Ack = await req('/api/recipes/flag/ack', { method: 'POST', token, body: {} });
+  assert(rcp156Ack.res.ok && rcp156Ack.data.ok !== false, 'recipes ack');
+
+  const cmp156Sweep = await req('/api/campaigns/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cmp156Sweep.res.ok && cmp156Sweep.data.ok !== false, 'campaigns sweep');
+  const cmp156Soon = await req('/api/campaigns/ending-soon/seed', { method: 'POST', token, body: {} });
+  assert(cmp156Soon.res.ok && cmp156Soon.data.ok !== false, 'campaigns ending soon');
+  const cmp156Expire = await req('/api/campaigns/expire', { method: 'POST', token, body: {} });
+  assert(cmp156Expire.res.ok && cmp156Expire.data.ok !== false, 'campaigns expire');
+  const cmp156Ack = await req('/api/campaigns/flag/ack', { method: 'POST', token, body: {} });
+  assert(cmp156Ack.res.ok && cmp156Ack.data.ok !== false, 'campaigns ack');
+
+  const cpl156Sweep = await req('/api/complaints/sweep', { method: 'POST', token, body: { force: true } });
+  assert(cpl156Sweep.res.ok && cpl156Sweep.data.ok !== false, 'complaints sweep');
+  const cpl156Seed = await req('/api/complaints/aging/seed', { method: 'POST', token, body: {} });
+  assert(cpl156Seed.res.ok && cpl156Seed.data.ok !== false, 'complaints aging seed');
+  const cpl156Esc = await req('/api/complaints/escalate', { method: 'POST', token, body: {} });
+  assert(cpl156Esc.res.ok && cpl156Esc.data.ok !== false, 'complaints escalate');
+  const cpl156Ack = await req('/api/complaints/flag/ack', { method: 'POST', token, body: {} });
+  assert(cpl156Ack.res.ok && cpl156Ack.data.ok !== false, 'complaints ack');
+
   const incdSweep = await req('/api/incidents/sweep', { method: 'POST', token, body: { force: true } });
   assert(incdSweep.res.ok && incdSweep.data.ok !== false, 'incidents sweep');
   const incdCrit = await req('/api/incidents/critical/ack', { method: 'POST', token, body: {} });

@@ -1,11 +1,15 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
 import { listInventory, type StockItem } from '../services/inventory'
 import {
+  ackSuppliersFlag,
   createPurchaseOrder,
   fetchSuppliers,
+  flagOverduePurchaseOrders,
   receivePurchaseOrder,
+  receiveSupplierPurchaseOrder,
+  runSuppliersSweep,
+  seedOpenPurchaseOrder,
   type PurchaseOrder,
   type Supplier,
 } from '../services/suppliers'
@@ -14,7 +18,9 @@ export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [orders, setOrders] = useState<PurchaseOrder[]>([])
   const [items, setItems] = useState<StockItem[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [supplierId, setSupplierId] = useState('')
   const [itemId, setItemId] = useState('')
   const [qty, setQty] = useState(20)
@@ -27,6 +33,7 @@ export default function SuppliersPage() {
       ])
       setSuppliers(s.suppliers)
       setOrders(s.orders)
+      setOverview(s)
       setItems(inv.items)
       if (!supplierId && s.suppliers[0]) setSupplierId(s.suppliers[0].id)
       if (!itemId && inv.items[0]) setItemId(inv.items[0].id)
@@ -40,6 +47,11 @@ export default function SuppliersPage() {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onOrder(e: FormEvent) {
     e.preventDefault()
@@ -81,14 +93,31 @@ export default function SuppliersPage() {
           Tedarikçiler ve satınalma siparişleri — teslim stoka işler.
         </p>
       </header>
-      <CrudOpsBar domain="suppliers" onDone={() => void refresh()} />
-
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {error}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Tedarik ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runSuppliersSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void seedOpenPurchaseOrder({ overdue: true }).then((r: any) => { ping(`PO seed ${r.order?.id || ''}`); return refresh() })}>Seed open PO</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void flagOverduePurchaseOrders({}).then((r: any) => { ping(`Overdue flag ${r.created?.length ?? 0}`); return refresh() })}>Flag overdue</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void receiveSupplierPurchaseOrder({}).then((r: any) => { ping(`Received ${r.received?.length ?? 0}`); return refresh() })}>Receive PO</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackSuppliersFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Flag {(overview?.summary as any)?.flags_open ?? 0} · geciken {overview?.overdueOrders ?? 0}</p>
+      </PanelCard>
 
       <PanelCard title="Yeni satınalma">
         <form onSubmit={(e) => void onOrder(e)} className="grid gap-3 md:grid-cols-4">

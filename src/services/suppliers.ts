@@ -36,10 +36,25 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
 export async function fetchSuppliers(): Promise<{
   suppliers: Supplier[]
   orders: PurchaseOrder[]
   openOrders: number
+  overdueOrders?: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
 }> {
   return parse(await fetch('/api/suppliers', { headers: authHeaders() }))
 }
@@ -91,4 +106,24 @@ export async function updatePurchaseOrder(
       body: JSON.stringify(patch),
     }),
   )
+}
+
+export async function runSuppliersSweep(body: Record<string, unknown> = {}) {
+  return post('/api/suppliers/sweep', body)
+}
+
+export async function ackSuppliersFlag(body: Record<string, unknown> = {}) {
+  return post('/api/suppliers/flag/ack', body)
+}
+
+export async function receiveSupplierPurchaseOrder(body: Record<string, unknown> = {}) {
+  return post('/api/suppliers/po/receive', body)
+}
+
+export async function flagOverduePurchaseOrders(body: Record<string, unknown> = {}) {
+  return post('/api/suppliers/po/overdue/flag', body)
+}
+
+export async function seedOpenPurchaseOrder(body: Record<string, unknown> = {}) {
+  return post('/api/suppliers/po/seed', body)
 }

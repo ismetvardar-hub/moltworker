@@ -19,7 +19,26 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchCampaigns(): Promise<{ campaigns: Campaign[]; active: number }> {
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchCampaigns(): Promise<{
+  campaigns: Campaign[]
+  active: number
+  expired?: number
+  endingSoon?: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+}> {
   return parse(await fetch('/api/campaigns', { headers: authHeaders() }))
 }
 
@@ -41,4 +60,24 @@ export async function updateCampaign(id: string, patch: Partial<Campaign>): Prom
       body: JSON.stringify(patch),
     }),
   )
+}
+
+export async function runCampaignsSweep(body: Record<string, unknown> = {}) {
+  return post('/api/campaigns/sweep', body)
+}
+
+export async function ackCampaignsFlag(body: Record<string, unknown> = {}) {
+  return post('/api/campaigns/flag/ack', body)
+}
+
+export async function activateCampaignOps(body: Record<string, unknown> = {}) {
+  return post('/api/campaigns/activate', body)
+}
+
+export async function expireCampaignOps(body: Record<string, unknown> = {}) {
+  return post('/api/campaigns/expire', body)
+}
+
+export async function seedEndingSoonCampaign(body: Record<string, unknown> = {}) {
+  return post('/api/campaigns/ending-soon/seed', body)
 }

@@ -574,6 +574,18 @@ import {
   inventorySummary, runInventorySweep, ackInventoryFlag, restockInventoryLows, quarantineInventorySku, receiveInventoryDelivery,
 } from '../server/inventory.js';
 import {
+  suppliersSummary, runSuppliersSweep, ackSuppliersFlag, receiveSupplierPurchaseOrder, flagOverduePurchaseOrders, seedOpenPurchaseOrder,
+} from '../server/suppliers.js';
+import {
+  recipesSummary, runRecipesSweep, ackRecipesFlag, cookRecipeOps, flagMissingRecipeStock, refreshRecipeCosts,
+} from '../server/recipes.js';
+import {
+  campaignsSummary, runCampaignsSweep, ackCampaignsFlag, activateCampaignOps, expireCampaignOps, seedEndingSoonCampaign,
+} from '../server/campaigns.js';
+import {
+  complaintsSummary, runComplaintsSweep, ackComplaintsFlag, escalateComplaintOps, resolveComplaintOps, seedAgingOpenComplaint,
+} from '../server/complaints.js';
+import {
   incidentsSummary, runIncidentsSweep, ackIncidentsFlag, ackOpenCriticalIncidents, resolveOpenIncidents, escalateIncidentSeverity,
 } from '../server/incidents.js';
 import {
@@ -1632,6 +1644,34 @@ assert(quarantineInventorySku({}, 'smoke').ok, 'inventory quarantine');
 assert(receiveInventoryDelivery({}, 'smoke').ok, 'inventory receive delivery');
 assert(ackInventoryFlag({}, 'smoke').ok, 'inventory flag ack');
 
+assert(suppliersSummary().title, 'suppliers overview');
+assert(runSuppliersSweep({ force: true }, 'smoke').ok, 'suppliers sweep');
+assert(seedOpenPurchaseOrder({ overdue: true }, 'smoke').ok, 'suppliers seed open po');
+assert(flagOverduePurchaseOrders({}, 'smoke').ok, 'suppliers overdue flag');
+assert(receiveSupplierPurchaseOrder({}, 'smoke').ok, 'suppliers receive po');
+assert(ackSuppliersFlag({}, 'smoke').ok, 'suppliers flag ack');
+
+assert(recipesSummary().title, 'recipes overview');
+assert(runRecipesSweep({ force: true }, 'smoke').ok, 'recipes sweep');
+assert(cookRecipeOps({ portions: 1 }, 'smoke').ok, 'recipes cook ops');
+assert(flagMissingRecipeStock({}, 'smoke').ok, 'recipes missing stock flag');
+assert(refreshRecipeCosts({}, 'smoke').ok, 'recipes cost refresh');
+assert(ackRecipesFlag({}, 'smoke').ok, 'recipes flag ack');
+
+assert(campaignsSummary().title, 'campaigns overview');
+assert(runCampaignsSweep({ force: true }, 'smoke').ok, 'campaigns sweep');
+assert(seedEndingSoonCampaign({}, 'smoke').ok, 'campaigns ending soon seed');
+assert(activateCampaignOps({}, 'smoke').ok, 'campaigns activate');
+assert(expireCampaignOps({}, 'smoke').ok, 'campaigns expire');
+assert(ackCampaignsFlag({}, 'smoke').ok, 'campaigns flag ack');
+
+assert(complaintsSummary().title, 'complaints overview');
+assert(runComplaintsSweep({ force: true }, 'smoke').ok, 'complaints sweep');
+assert(seedAgingOpenComplaint({}, 'smoke').ok, 'complaints aging seed');
+assert(escalateComplaintOps({}, 'smoke').ok, 'complaints escalate');
+assert(resolveComplaintOps({}, 'smoke').ok, 'complaints resolve');
+assert(ackComplaintsFlag({}, 'smoke').ok, 'complaints flag ack');
+
 assert(incidentsSummary().title, 'incidents overview');
 assert(runIncidentsSweep({ force: true }, 'smoke').ok, 'incidents sweep');
 assert(ackOpenCriticalIncidents({}, 'smoke').ok, 'incidents ack critical');
@@ -1760,6 +1800,7 @@ console.log('MOD144_OK');
 console.log('MOD148_OK');
 console.log('MOD152_OK');
 console.log('MOD155_OK');
+console.log('MOD156_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -1773,6 +1814,14 @@ assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brie
 assert(!isCrudOpsPath('/api/kudos/sweep', 'POST'), 'crudops skips thickened kudos');
 assert(!isCrudOpsPath('/api/tips/sweep', 'POST'), 'crudops skips thickened tips');
 assert(!isCrudOpsPath('/api/feedback/sweep', 'POST'), 'crudops skips thickened feedback');
+assert(!isCrudOpsPath('/api/suppliers/sweep', 'POST'), 'crudops skips thickened suppliers');
+assert(!isCrudOpsPath('/api/suppliers/flag/ack', 'POST'), 'crudops skips suppliers ack');
+assert(!isCrudOpsPath('/api/recipes/sweep', 'POST'), 'crudops skips thickened recipes');
+assert(!isCrudOpsPath('/api/recipes/flag/ack', 'POST'), 'crudops skips recipes ack');
+assert(!isCrudOpsPath('/api/campaigns/sweep', 'POST'), 'crudops skips thickened campaigns');
+assert(!isCrudOpsPath('/api/campaigns/flag/ack', 'POST'), 'crudops skips campaigns ack');
+assert(!isCrudOpsPath('/api/complaints/sweep', 'POST'), 'crudops skips thickened complaints');
+assert(!isCrudOpsPath('/api/complaints/flag/ack', 'POST'), 'crudops skips complaints ack');
 assert(!isCrudOpsPath('/api/hours/sweep', 'POST'), 'crudops skips thickened hours');
 assert(!isCrudOpsPath('/api/consents/sweep', 'POST'), 'crudops skips thickened consents');
 assert(!isCrudOpsPath('/api/guests/sweep', 'POST'), 'crudops skips thickened guests');

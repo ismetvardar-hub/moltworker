@@ -17,7 +17,27 @@ async function parse<T>(res: Response): Promise<T> {
   return data
 }
 
-export async function fetchRecipes(): Promise<{ recipes: Recipe[]; total: number }> {
+async function post<T = unknown>(path: string, body: Record<string, unknown> = {}) {
+  return parse<T>(
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    }),
+  )
+}
+
+export async function fetchRecipes(): Promise<{
+  recipes: Recipe[]
+  total: number
+  active?: number
+  missingIngredients?: number
+  staleCosts?: number
+  flags?: unknown[]
+  summary?: Record<string, unknown>
+  summaryLines?: string[]
+  title?: string
+}> {
   return parse(await fetch('/api/recipes', { headers: authHeaders() }))
 }
 
@@ -39,4 +59,24 @@ export async function cookRecipe(id: string, portions = 1): Promise<{ portions: 
       body: JSON.stringify({ portions }),
     }),
   )
+}
+
+export async function runRecipesSweep(body: Record<string, unknown> = {}) {
+  return post('/api/recipes/sweep', body)
+}
+
+export async function ackRecipesFlag(body: Record<string, unknown> = {}) {
+  return post('/api/recipes/flag/ack', body)
+}
+
+export async function cookRecipeOps(body: Record<string, unknown> = {}) {
+  return post('/api/recipes/cook', body)
+}
+
+export async function flagMissingRecipeStock(body: Record<string, unknown> = {}) {
+  return post('/api/recipes/stock/flag', body)
+}
+
+export async function refreshRecipeCosts(body: Record<string, unknown> = {}) {
+  return post('/api/recipes/cost/refresh', body)
 }

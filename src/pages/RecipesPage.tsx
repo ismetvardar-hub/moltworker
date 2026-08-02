@@ -1,11 +1,21 @@
 import { useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
-import CrudOpsBar from '../components/CrudOpsBar'
-import { cookRecipe, fetchRecipes, type Recipe } from '../services/recipes'
+import {
+  ackRecipesFlag,
+  cookRecipe,
+  cookRecipeOps,
+  fetchRecipes,
+  flagMissingRecipeStock,
+  refreshRecipeCosts,
+  runRecipesSweep,
+  type Recipe,
+} from '../services/recipes'
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
 
@@ -13,6 +23,7 @@ export default function RecipesPage() {
     try {
       const data = await fetchRecipes()
       setRecipes(data.recipes)
+      setOverview(data)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Reçeteler alınamadı')
@@ -22,6 +33,11 @@ export default function RecipesPage() {
   useEffect(() => {
     void refresh()
   }, [])
+
+  function ping(message: string) {
+    setFlash(message)
+    window.setTimeout(() => setFlash(null), 2800)
+  }
 
   async function onCook(id: string) {
     setBusy(id)
@@ -44,8 +60,6 @@ export default function RecipesPage() {
           Mutfak kartları — pişirince HEPHAESTUS stok düşer.
         </p>
       </header>
-      <CrudOpsBar domain="recipes" onDone={() => void refresh()} />
-
 
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
@@ -57,6 +71,25 @@ export default function RecipesPage() {
           {msg}
         </p>
       )}
+      {flash && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          {flash}
+        </p>
+      )}
+
+      <PanelCard title={overview?.title || 'Reçete ops'}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {(overview?.summaryLines || []).map((line: string) => <li key={line}>{line}</li>)}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runRecipesSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void cookRecipeOps({ portions: 1 }).then((r: any) => { ping(`Cook ops ${r.movements?.length ?? 0}`); return refresh() })}>Cook ops</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void flagMissingRecipeStock({}).then((r: any) => { ping(`Missing flag ${r.created?.length ?? 0}`); return refresh() })}>Flag missing stock</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void refreshRecipeCosts({}).then((r: any) => { ping(`Cost ${r.refreshed?.length ?? 0}`); return refresh() })}>Refresh cost</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void ackRecipesFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Flag {(overview?.summary as any)?.flags_open ?? 0} · eksik {overview?.missingIngredients ?? 0}</p>
+      </PanelCard>
 
       <PanelCard title={`Kartlar (${recipes.length})`}>
         <ul className="space-y-3">

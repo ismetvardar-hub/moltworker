@@ -168,12 +168,17 @@ import {
   runIncidentsSweep,
 } from './incidents.js';
 import {
+  ackSuppliersFlag,
   createPurchaseOrder,
   createSupplier,
+  flagOverduePurchaseOrders,
   listPurchaseOrders,
   listSuppliers,
   receivePurchaseOrder,
+  receiveSupplierPurchaseOrder,
   removePurchaseOrder,
+  runSuppliersSweep,
+  seedOpenPurchaseOrder,
   suppliersSummary,
   updatePurchaseOrder,
 } from './suppliers.js';
@@ -215,11 +220,16 @@ import {
   updateAnnouncement,
 } from './announcements.js';
 import {
+  ackRecipesFlag,
   cookRecipe,
+  cookRecipeOps,
   createRecipe,
+  flagMissingRecipeStock,
   listRecipes,
+  refreshRecipeCosts,
   recipesSummary,
   removeRecipe,
+  runRecipesSweep,
   updateRecipe,
 } from './recipes.js';
 import {
@@ -276,10 +286,15 @@ import {
   updateMenuItem,
 } from './menu.js';
 import {
+  ackCampaignsFlag,
+  activateCampaignOps,
   campaignsSummary,
   createCampaign,
+  expireCampaignOps,
   listCampaigns,
   removeCampaign,
+  runCampaignsSweep,
+  seedEndingSoonCampaign,
   updateCampaign,
 } from './campaigns.js';
 import {
@@ -352,9 +367,14 @@ import {
   waitlistSummary,
 } from './waitlist.js';
 import {
+  ackComplaintsFlag,
   complaintsSummary,
   createComplaint,
+  escalateComplaintOps,
   listComplaints,
+  resolveComplaintOps,
+  runComplaintsSweep,
+  seedAgingOpenComplaint,
   updateComplaint,
 } from './complaints.js';
 import {
@@ -8748,6 +8768,36 @@ export function createPlatformMiddleware() {
           });
           return;
         }
+        if (path === '/api/suppliers/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSuppliersSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/suppliers/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSuppliersFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/suppliers/po/receive' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, receiveSupplierPurchaseOrder(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/suppliers/po/overdue/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagOverduePurchaseOrders(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/suppliers/po/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedOpenPurchaseOrder(await readBody(req), user.username)); })();
+          return;
+        }
         if (path === '/api/suppliers' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -9050,6 +9100,36 @@ export function createPlatformMiddleware() {
             ...recipesSummary(),
             recipes: listRecipes(),
           });
+          return;
+        }
+        if (path === '/api/recipes/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runRecipesSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/recipes/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackRecipesFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/recipes/cook' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cookRecipeOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/recipes/stock/flag' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, flagMissingRecipeStock(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/recipes/cost/refresh' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, refreshRecipeCosts(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/recipes' && req.method === 'POST') {
@@ -9431,6 +9511,36 @@ export function createPlatformMiddleware() {
               brandId: url.searchParams.get('brandId') || undefined,
             }),
           });
+          return;
+        }
+        if (path === '/api/campaigns/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runCampaignsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campaigns/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackCampaignsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campaigns/activate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, activateCampaignOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campaigns/expire' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, expireCampaignOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/campaigns/ending-soon/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEndingSoonCampaign(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/campaigns' && req.method === 'POST') {
@@ -9868,6 +9978,36 @@ export function createPlatformMiddleware() {
         if (path === '/api/complaints' && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           sendJson(res, 200, { ...complaintsSummary(), complaints: listComplaints() });
+          return;
+        }
+        if (path === '/api/complaints/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runComplaintsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/complaints/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackComplaintsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/complaints/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateComplaintOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/complaints/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveComplaintOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/complaints/aging/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedAgingOpenComplaint(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/complaints' && req.method === 'POST') {
