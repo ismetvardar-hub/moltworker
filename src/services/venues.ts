@@ -11,12 +11,16 @@ export interface Venue {
   notes: string;
   createdAt?: string;
   updatedAt?: string;
+  inactiveAt?: string | null;
+  seasonStartsAt?: string;
+  seasonEndsAt?: string;
 }
 
 export interface VenuesSummary {
   total: number;
   active: number;
   seasonal: number;
+  inactive?: number;
   venues: Venue[];
 }
 
@@ -57,4 +61,30 @@ export async function deleteVenue(id: string): Promise<void> {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Tesis silinemedi');
+}
+
+async function parse<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
+  return data;
+}
+
+export async function runVenuesSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/venues/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }));
+}
+
+export async function ackVenuesFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/venues/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }));
+}
+
+export async function markVenueInactive(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/venues/inactive', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }));
+}
+
+export async function activateVenue(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/venues/activate', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }));
+}
+
+export async function seedSeasonalVenue(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/venues/seasonal/seed', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }));
 }

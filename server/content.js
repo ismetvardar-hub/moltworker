@@ -4,6 +4,11 @@
 import { randomBytes } from 'node:crypto';
 import { prependItem, readCollection, writeCollection } from './store.js';
 import { appendAudit } from './audit.js';
+import { enqueueAgentJob } from './agentqueue.js';
+
+function rid(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${randomBytes(2).toString('hex')}`;
+}
 
 function ensure() {
   const list = readCollection('content-queue', null);
@@ -20,6 +25,29 @@ function ensure() {
     return seed;
   }
   return list;
+}
+
+function openContentFlags() {
+  const flags = readCollection('content-flags', []) || [];
+  return Array.isArray(flags) ? flags.filter((f) => f.status === 'open') : [];
+}
+
+function addContentFlag(candidate, actor = 'system') {
+  const existing = readCollection('content-flags', []) || [];
+  const list = Array.isArray(existing) ? existing : [];
+  const openKeys = new Set(list.filter((f) => f.status === 'open').map((f) => f.key));
+  if (openKeys.has(candidate.key)) return null;
+  const flag = { id: rid('conf'), ...candidate, status: 'open', at: new Date().toISOString(), actor };
+  list.unshift(flag);
+  writeCollection('content-flags', list.slice(0, 200));
+  return flag;
+}
+
+function isStaleDraft(row) {
+  if (row.staleDraft === true || row.status === 'stale_draft') return true;
+  if (row.status !== 'draft') return false;
+  const at = Date.parse(row.draftAt || row.updatedAt || row.at || '');
+  return Number.isFinite(at) && at < Date.now() - 48 * 60 * 60_000;
 }
 
 export function listContent(filter = {}) {
@@ -67,11 +95,158 @@ export function updateContent(id, patch, actor = 'system') {
 
 export function contentSummary() {
   const list = listContent();
+  const staleDrafts = list.filter(isStaleDraft);
+  const campaignPosts = list.filter((x) => x.campaignPost === true || x.kind === 'campaign');
+  const flags = openContentFlags();
   return {
+    title: 'LIKYA Content Ops',
     total: list.length,
+    draft: list.filter((x) => x.status === 'draft').length,
+    staleDrafts: staleDrafts.length,
     review: list.filter((x) => x.status === 'review').length,
     approved: list.filter((x) => x.status === 'approved').length,
     published: list.filter((x) => x.status === 'published').length,
+    campaignPosts: campaignPosts.length,
+    flags: flags.slice(0, 30),
+    summary: {
+      flags_open: flags.length,
+      total: list.length,
+      draft: list.filter((x) => x.status === 'draft').length,
+      stale_drafts: staleDrafts.length,
+      review: list.filter((x) => x.status === 'review').length,
+      approved: list.filter((x) => x.status === 'approved').length,
+      published: list.filter((x) => x.status === 'published').length,
+      campaign_posts: campaignPosts.length,
+    },
+    summaryLines: [
+      `Content ${list.length} item - stale draft ${staleDrafts.length} - review ${list.filter((x) => x.status === 'review').length}`,
+      `Campaign posts ${campaignPosts.length} - published ${list.filter((x) => x.status === 'published').length} - flag ${flags.length}`,
+    ],
     items: list,
   };
+}
+
+export function runContentSweep(input = {}, actor = 'system') {
+  const force = !!input.force;
+  const overview = contentSummary();
+  const created = [];
+  const candidates = [];
+  if (force || overview.staleDrafts > 0) {
+    candidates.push({
+      key: 'content_stale_draft',
+      level: overview.staleDrafts > 0 ? 'warn' : 'info',
+      text: `Content stale drafts ${overview.staleDrafts}`,
+      domain: 'draft',
+    });
+  }
+  if (force || overview.review > 0) {
+    candidates.push({
+      key: 'content_review_queue',
+      level: 'info',
+      text: `Content review queue ${overview.review}`,
+      domain: 'review',
+    });
+  }
+  if (force || overview.campaignPosts > 0) {
+    candidates.push({
+      key: 'content_campaign_post',
+      level: 'info',
+      text: `Campaign posts ${overview.campaignPosts}`,
+      domain: 'campaign',
+    });
+  }
+  for (const candidate of candidates) {
+    const flag = addContentFlag(candidate, actor);
+    if (flag) created.push(flag);
+  }
+  if (created.length) {
+    enqueueAgentJob({
+      agent: 'HERMES',
+      title: `content sweep - ${created.length} flag`,
+      priority: created.some((f) => f.level === 'alert' || f.level === 'warn') ? 'high' : 'normal',
+      payload: { flag_ids: created.map((f) => f.id) },
+    }, actor);
+  }
+  const sweep = { id: rid('cons'), created: created.length, at: new Date().toISOString(), actor };
+  prependItem('content-sweeps', sweep, 80);
+  appendAudit({ actor, action: 'content.sweep', detail: `${created.length} flag`, meta: { id: sweep.id } });
+  return { ok: true, sweep, created, overview: contentSummary() };
+}
+
+export function ackContentFlag(input = {}, actor = 'system') {
+  const list = readCollection('content-flags', []) || [];
+  if (!Array.isArray(list) || !list.length) return { ok: false, error: 'Flag yok - once sweep' };
+  let idx = list.findIndex((f) => f.id === input.id && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.key === input.key && f.status === 'open');
+  if (idx < 0) idx = list.findIndex((f) => f.status === 'open');
+  if (idx < 0) return { ok: false, error: 'Acik flag yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'acked',
+    note: String(input.note || '').slice(0, 240) || undefined,
+    acked_at: new Date().toISOString(),
+    acked_by: actor,
+  };
+  writeCollection('content-flags', list);
+  appendAudit({ actor, action: 'content.ack', detail: list[idx].text, meta: { id: list[idx].id } });
+  return { ok: true, flag: list[idx], overview: contentSummary() };
+}
+
+export function markContentStaleDraft(input = {}, actor = 'system') {
+  const list = ensure();
+  const explicitIdx = list.findIndex((x) => x.id === input.id || (input.title && x.title === input.title));
+  const idx = explicitIdx >= 0 ? explicitIdx : list.findIndex((x) => x.status !== 'published');
+  if (idx < 0) return { ok: false, error: 'Stale draft yapilacak content yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'draft',
+    staleDraft: true,
+    draftAt: input.draftAt || new Date(Date.now() - 72 * 60 * 60_000).toISOString(),
+    staleReason: input.reason || list[idx].staleReason || 'Campaign copy stale',
+    updatedAt: new Date().toISOString(),
+  };
+  writeCollection('content-queue', list);
+  appendAudit({ actor, action: 'content.stale_draft', detail: list[idx].title || list[idx].id, meta: { id: list[idx].id } });
+  return { ok: true, content: list[idx], overview: contentSummary() };
+}
+
+export function publishContentItem(input = {}, actor = 'system') {
+  const list = ensure();
+  const explicitIdx = list.findIndex((x) => x.id === input.id || (input.title && x.title === input.title));
+  const idx = explicitIdx >= 0 ? explicitIdx : list.findIndex((x) => x.status !== 'published');
+  if (idx < 0) return { ok: false, error: 'Publish edilecek content yok' };
+  list[idx] = {
+    ...list[idx],
+    status: 'published',
+    staleDraft: false,
+    publishedAt: input.publishedAt || new Date().toISOString(),
+    publishedBy: actor,
+    updatedAt: new Date().toISOString(),
+  };
+  writeCollection('content-queue', list);
+  appendAudit({ actor, action: 'content.publish', detail: list[idx].title || list[idx].id, meta: { id: list[idx].id } });
+  return { ok: true, content: list[idx], overview: contentSummary() };
+}
+
+export function seedCampaignPost(input = {}, actor = 'system') {
+  const content = createContent(
+    {
+      title: input.title || 'Campaign post',
+      channel: input.channel || 'instagram',
+      status: input.status || 'draft',
+    },
+    actor,
+  );
+  const patched = updateContent(
+    content.id,
+    {
+      campaignPost: true,
+      kind: 'campaign',
+      campaign: input.campaign || 'Sunset campaign',
+      draftAt: input.draftAt || new Date().toISOString(),
+    },
+    actor,
+  );
+  appendAudit({ actor, action: 'content.seed_campaign_post', detail: content.title, meta: { id: content.id } });
+  return { ok: true, content: patched || content, overview: contentSummary() };
 }

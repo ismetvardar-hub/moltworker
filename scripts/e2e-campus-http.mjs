@@ -164,6 +164,7 @@ try {
     '/api/report',
     '/api/metrics',
     '/api/exports',
+    '/api/venues',
     '/api/weather',
     '/api/maintenance',
     '/api/inventory',
@@ -193,6 +194,9 @@ try {
     '/api/kds',
     '/api/budget',
     '/api/eventcal',
+    '/api/spa',
+    '/api/content',
+    '/api/music',
     '/api/keycards',
     '/api/parcels',
     '/api/wakeups',
@@ -2776,6 +2780,98 @@ try {
   assert(patrol169Complete.res.ok && patrol169Complete.data.ok !== false, 'patrol round complete');
   const patrol169Ack = await req('/api/patrol/flag/ack', { method: 'POST', token, body: {} });
   assert(patrol169Ack.res.ok && patrol169Ack.data.ok !== false, 'patrol flag ack');
+
+  const venues170Sweep = await req('/api/venues/sweep', { method: 'POST', token, body: { force: true } });
+  assert(venues170Sweep.res.ok && venues170Sweep.data.ok !== false, 'venues sweep');
+  const venues170Seed = await req('/api/venues/seasonal/seed', {
+    method: 'POST',
+    token,
+    body: { name: 'E2E-170 seasonal venue' },
+  });
+  assert(venues170Seed.res.ok && venues170Seed.data.ok !== false, 'venues seasonal seed');
+  const venues170Inactive = await req('/api/venues/inactive', {
+    method: 'POST',
+    token,
+    body: { id: venues170Seed.data.venue?.id },
+  });
+  assert(venues170Inactive.res.ok && venues170Inactive.data.ok !== false, 'venues inactive');
+  const venues170Activate = await req('/api/venues/activate', {
+    method: 'POST',
+    token,
+    body: { id: venues170Seed.data.venue?.id },
+  });
+  assert(venues170Activate.res.ok && venues170Activate.data.ok !== false, 'venues activate');
+  const venues170Ack = await req('/api/venues/flag/ack', { method: 'POST', token, body: {} });
+  assert(venues170Ack.res.ok && venues170Ack.data.ok !== false, 'venues flag ack');
+
+  const spa170Sweep = await req('/api/spa/sweep', { method: 'POST', token, body: { force: true } });
+  assert(spa170Sweep.res.ok && spa170Sweep.data.ok !== false, 'spa sweep');
+  const spa170Seed = await req('/api/spa/couples/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-170 couples package' },
+  });
+  assert(spa170Seed.res.ok && spa170Seed.data.ok !== false, 'spa couples package seed');
+  const spa170Overrun = await req('/api/spa/appointment/overrun', {
+    method: 'POST',
+    token,
+    body: { id: spa170Seed.data.spa?.id },
+  });
+  assert(spa170Overrun.res.ok && spa170Overrun.data.ok !== false, 'spa appointment overrun');
+  const spa170Complete = await req('/api/spa/treatment/complete', {
+    method: 'POST',
+    token,
+    body: { id: spa170Seed.data.spa?.id },
+  });
+  assert(spa170Complete.res.ok && spa170Complete.data.ok !== false, 'spa treatment complete');
+  const spa170Ack = await req('/api/spa/flag/ack', { method: 'POST', token, body: {} });
+  assert(spa170Ack.res.ok && spa170Ack.data.ok !== false, 'spa flag ack');
+
+  const content170Sweep = await req('/api/content/sweep', { method: 'POST', token, body: { force: true } });
+  assert(content170Sweep.res.ok && content170Sweep.data.ok !== false, 'content sweep');
+  const content170Seed = await req('/api/content/campaign-post/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-170 campaign post' },
+  });
+  assert(content170Seed.res.ok && content170Seed.data.ok !== false, 'content campaign post seed');
+  const content170Stale = await req('/api/content/draft/stale', {
+    method: 'POST',
+    token,
+    body: { id: content170Seed.data.content?.id },
+  });
+  assert(content170Stale.res.ok && content170Stale.data.ok !== false, 'content stale draft');
+  const content170Publish = await req('/api/content/publish', {
+    method: 'POST',
+    token,
+    body: { id: content170Seed.data.content?.id },
+  });
+  assert(content170Publish.res.ok && content170Publish.data.ok !== false, 'content publish');
+  const content170Ack = await req('/api/content/flag/ack', { method: 'POST', token, body: {} });
+  assert(content170Ack.res.ok && content170Ack.data.ok !== false, 'content flag ack');
+
+  const music170Sweep = await req('/api/music/sweep', { method: 'POST', token, body: { force: true } });
+  assert(music170Sweep.res.ok && music170Sweep.data.ok !== false, 'music sweep');
+  const music170Seed = await req('/api/music/sunset-mix/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E-170 sunset mix' },
+  });
+  assert(music170Seed.res.ok && music170Seed.data.ok !== false, 'music sunset mix seed');
+  const music170Silence = await req('/api/music/zone/silence', {
+    method: 'POST',
+    token,
+    body: { id: music170Seed.data.music?.id },
+  });
+  assert(music170Silence.res.ok && music170Silence.data.ok !== false, 'music zone silence');
+  const music170Playlist = await req('/api/music/playlist/set', {
+    method: 'POST',
+    token,
+    body: { id: music170Seed.data.music?.id, playlist: 'E2E-170 sunset playlist' },
+  });
+  assert(music170Playlist.res.ok && music170Playlist.data.ok !== false, 'music playlist set');
+  const music170Ack = await req('/api/music/flag/ack', { method: 'POST', token, body: {} });
+  assert(music170Ack.res.ok && music170Ack.data.ok !== false, 'music flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MapPin, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
-import CrudOpsBar from '../components/CrudOpsBar';
 import {
+  ackVenuesFlag,
+  activateVenue,
   createVenue,
   deleteVenue,
   fetchVenues,
+  markVenueInactive,
+  runVenuesSweep,
+  seedSeasonalVenue,
   type Venue,
 } from '../services/venues';
 
 export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [stats, setStats] = useState({ total: 0, active: 0, seasonal: 0 });
+  const [stats, setStats] = useState({ total: 0, active: 0, seasonal: 0, inactive: 0 });
   const [error, setError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [region, setRegion] = useState('');
   const [saving, setSaving] = useState(false);
@@ -21,7 +26,7 @@ export default function VenuesPage() {
     try {
       const data = await fetchVenues();
       setVenues(data.venues);
-      setStats({ total: data.total, active: data.active, seasonal: data.seasonal });
+      setStats({ total: data.total, active: data.active, seasonal: data.seasonal, inactive: Number((data as any).inactive || 0) });
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tesisler alınamadı');
@@ -48,6 +53,11 @@ export default function VenuesPage() {
     }
   };
 
+  function ping(message: string) {
+    setFlash(message);
+    window.setTimeout(() => setFlash(null), 2600);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -70,19 +80,33 @@ export default function VenuesPage() {
         </button>
       </div>
 
-      <CrudOpsBar domain="venues" onDone={() => void refresh()} />
-
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
           {error}
         </div>
       )}
+      {flash && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          {flash}
+        </div>
+      )}
 
-      <div className="grid grid-cols-3 gap-3">
+      <PanelCard title="Ops toolbar" subtitle="Wave 170">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void runVenuesSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh(); }).catch((e) => setError(String(e.message || e)))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={() => void ackVenuesFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh(); }).catch((e) => setError(String(e.message || e)))}>Flag ack</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void markVenueInactive({ id: venues[0]?.id }).then((r: any) => { ping(r.ok ? 'Venue inactive' : r.error || 'Inactive yok'); return refresh(); }).catch((e) => setError(String(e.message || e)))}>Inactive venue</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={() => void activateVenue({}).then((r: any) => { ping(r.ok ? 'Venue active' : r.error || 'Activate yok'); return refresh(); }).catch((e) => setError(String(e.message || e)))}>Activate</button>
+          <button type="button" className="rounded-lg bg-violet-500/20 px-3 py-2 text-sm text-violet-100" onClick={() => void seedSeasonalVenue({ name: 'Seasonal pop-up' }).then(() => { ping('Seasonal venue seed'); return refresh(); }).catch((e) => setError(String(e.message || e)))}>Seed seasonal</button>
+        </div>
+      </PanelCard>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ['Toplam', stats.total],
           ['Aktif', stats.active],
           ['Sezonluk', stats.seasonal],
+          ['Pasif', stats.inactive],
         ].map(([label, value]) => (
           <PanelCard key={String(label)} className="!p-0">
             <p className="text-2xl font-bold text-slate-50">{value}</p>

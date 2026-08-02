@@ -789,6 +789,18 @@ import {
 import {
   patrolSummary, runPatrolSweep, ackPatrolFlag, markPatrolMissedCheckpoint, completePatrolRound, seedNightRoute,
 } from '../server/patrol.js';
+import {
+  venuesSummary, runVenuesSweep, ackVenuesFlag, markVenueInactive, activateVenue, seedSeasonalVenue,
+} from '../server/venues.js';
+import {
+  spaSummary, runSpaSweep, ackSpaFlag, markSpaAppointmentOverrun, completeSpaTreatment, seedCouplesPackage,
+} from '../server/spa.js';
+import {
+  contentSummary, runContentSweep, ackContentFlag, markContentStaleDraft, publishContentItem, seedCampaignPost,
+} from '../server/content.js';
+import {
+  musicSummary, runMusicSweep, ackMusicFlag, markMusicZoneSilence, setMusicPlaylist, seedSunsetMix,
+} from '../server/music.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2296,6 +2308,38 @@ assert(completePatrolRound({}, 'smoke').ok, 'patrol round complete');
 assert(runPatrolSweep({ force: true }, 'smoke').ok, 'patrol sweep');
 assert(ackPatrolFlag({}, 'smoke').ok, 'patrol flag ack');
 
+assert(venuesSummary().title, 'venues overview');
+const smokeVenue = seedSeasonalVenue({ name: 'Smoke 170 seasonal venue' }, 'smoke');
+assert(smokeVenue.ok, 'venues seasonal seed');
+assert(markVenueInactive({ id: smokeVenue.venue.id }, 'smoke').ok, 'venues inactive venue');
+assert(activateVenue({ id: smokeVenue.venue.id }, 'smoke').ok, 'venues activate');
+assert(runVenuesSweep({ force: true }, 'smoke').ok, 'venues sweep');
+assert(ackVenuesFlag({}, 'smoke').ok, 'venues flag ack');
+
+assert(spaSummary().title, 'spa overview');
+const smokeSpa = seedCouplesPackage({ guestName: 'Smoke 170 couples package' }, 'smoke');
+assert(smokeSpa.ok, 'spa couples package seed');
+assert(markSpaAppointmentOverrun({ id: smokeSpa.spa.id }, 'smoke').ok, 'spa appointment overrun');
+assert(completeSpaTreatment({ id: smokeSpa.spa.id }, 'smoke').ok, 'spa treatment complete');
+assert(runSpaSweep({ force: true }, 'smoke').ok, 'spa sweep');
+assert(ackSpaFlag({}, 'smoke').ok, 'spa flag ack');
+
+assert(contentSummary().title, 'content overview');
+const smokeContent = seedCampaignPost({ title: 'Smoke 170 campaign post' }, 'smoke');
+assert(smokeContent.ok, 'content campaign post seed');
+assert(markContentStaleDraft({ id: smokeContent.content.id }, 'smoke').ok, 'content stale draft');
+assert(publishContentItem({ id: smokeContent.content.id }, 'smoke').ok, 'content publish');
+assert(runContentSweep({ force: true }, 'smoke').ok, 'content sweep');
+assert(ackContentFlag({}, 'smoke').ok, 'content flag ack');
+
+assert(musicSummary().title, 'music overview');
+const smokeMusic = seedSunsetMix({ title: 'Smoke 170 sunset mix' }, 'smoke');
+assert(smokeMusic.ok, 'music sunset mix seed');
+assert(markMusicZoneSilence({ id: smokeMusic.music.id }, 'smoke').ok, 'music zone silence');
+assert(setMusicPlaylist({ id: smokeMusic.music.id, playlist: 'Smoke 170 sunset playlist' }, 'smoke').ok, 'music playlist set');
+assert(runMusicSweep({ force: true }, 'smoke').ok, 'music sweep');
+assert(ackMusicFlag({}, 'smoke').ok, 'music flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2322,11 +2366,11 @@ console.log('MOD166_OK');
 console.log('MOD167_OK');
 console.log('MOD168_OK');
 console.log('MOD169_OK');
+console.log('MOD170_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
-assert(crudDomains.some((d) => d.name === 'venues'), 'crudops includes venues');
 assert(crudDomains.some((d) => d.name === 'brands'), 'crudops includes brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
   assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);
@@ -2363,6 +2407,11 @@ for (const thickened168 of ['hammam', 'dive', 'meetingrooms', 'retail']) {
 }
 for (const thickened169 of ['tours', 'privatechef', 'qrcheckin', 'patrol']) {
   assert(!crudDomains.some((d) => d.name === thickened169), `crudops skips thickened ${thickened169}`);
+}
+for (const thickened170 of ['venues', 'spa', 'content', 'music']) {
+  assert(!crudDomains.some((d) => d.name === thickened170), `crudops skips thickened ${thickened170}`);
+  assert(!isCrudOpsPath(`/api/${thickened170}/sweep`, 'POST'), `crudops skips ${thickened170} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened170}/flag/ack`, 'POST'), `crudops skips ${thickened170} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

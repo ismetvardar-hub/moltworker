@@ -43,10 +43,15 @@ import {
   snapshotReportAudit,
 } from './report.js';
 import {
+  ackVenuesFlag,
+  activateVenue,
   createVenue,
   getVenue,
   listVenues,
+  markVenueInactive,
   removeVenue,
+  runVenuesSweep,
+  seedSeasonalVenue,
   updateVenue,
   venuesSummary,
 } from './venues.js';
@@ -395,9 +400,14 @@ import {
   valetSummary,
 } from './valet.js';
 import {
+  ackMusicFlag,
   createMusicRequest,
   listMusic,
+  markMusicZoneSilence,
   musicSummary,
+  runMusicSweep,
+  seedSunsetMix,
+  setMusicPlaylist,
   updateMusicRequest,
 } from './music.js';
 import {
@@ -505,7 +515,7 @@ import {
 } from './readiness.js';
 
 import {
-  createSpa, listSpa, spaSummary, updateSpa,
+  ackSpaFlag, completeSpaTreatment, createSpa, listSpa, markSpaAppointmentOverrun, runSpaSweep, seedCouplesPackage, spaSummary, updateSpa,
 } from './spa.js';
 import {
   ackEventcalFlag,
@@ -574,7 +584,7 @@ import {
   wifiSummary,
 } from './wifi.js';
 import {
-  contentSummary, createContent, listContent, updateContent,
+  ackContentFlag, contentSummary, createContent, listContent, markContentStaleDraft, publishContentItem, runContentSweep, seedCampaignPost, updateContent,
 } from './content.js';
 import {
   createPulse, listPulse, pulseSummary, updatePulse,
@@ -8241,6 +8251,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/venues/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runVenuesSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/venues/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackVenuesFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/venues/inactive' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markVenueInactive(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/venues/activate' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, activateVenue(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/venues/seasonal/seed' && req.method === 'POST') {
+          const user = requireCeo(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedSeasonalVenue(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/venues/') && req.method === 'GET') {
           if (!requireUser(req, res)) return;
           const id = path.split('/')[3];
@@ -10453,6 +10493,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/music/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runMusicSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/music/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackMusicFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/music/zone/silence' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markMusicZoneSilence(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/music/playlist/set' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, setMusicPlaylist(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/music/sunset-mix/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedSunsetMix(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/music/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11009,6 +11079,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/spa/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runSpaSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/spa/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackSpaFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/spa/appointment/overrun' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markSpaAppointmentOverrun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/spa/treatment/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeSpaTreatment(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/spa/couples/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCouplesPackage(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/spa/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11355,6 +11455,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createContent(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/content/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runContentSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/content/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackContentFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/content/draft/stale' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markContentStaleDraft(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/content/publish' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, publishContentItem(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/content/campaign-post/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedCampaignPost(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/content/') && req.method === 'PATCH') {

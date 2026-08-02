@@ -26,6 +26,42 @@ export async function patchMusic(id: string, patch: Record<string, unknown>): Pr
   }))
 }
 
+export async function runMusicSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/music/sweep', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
 
+export async function ackMusicFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/music/flag/ack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
 
+export async function markMusicZoneSilence(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/music/zone/silence', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
 
+export async function setMusicPlaylist(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/music/playlist/set', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
+
+export async function seedSunsetMix(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/music/sunset-mix/seed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  }))
+}
