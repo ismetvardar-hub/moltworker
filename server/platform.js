@@ -111,17 +111,27 @@ import {
   runInventorySweep,
 } from './inventory.js';
 import {
+  ackShiftsFlag,
+  assignShiftStaff,
+  closeShiftOps,
   createShift,
   listShifts,
+  openCoverShiftGap,
   removeShift,
+  runShiftsSweep,
   shiftsSummary,
   updateShift,
 } from './shifts.js';
 import {
+  ackReservationsFlag,
+  cancelNoShowReservations,
+  confirmPendingReservations,
   createReservation,
   listReservations,
   removeReservation,
   reservationsSummary,
+  runReservationsSweep,
+  seatAssignReservations,
   updateReservation,
 } from './reservations.js';
 import {
@@ -132,9 +142,14 @@ import {
 } from './loyalty.js';
 import {
   ackIncident,
+  ackIncidentsFlag,
+  ackOpenCriticalIncidents,
   createIncident,
+  escalateIncidentSeverity,
   incidentsSummary,
   listIncidents,
+  resolveOpenIncidents,
+  runIncidentsSweep,
 } from './incidents.js';
 import {
   createPurchaseOrder,
@@ -165,9 +180,14 @@ import {
   updateRecipe,
 } from './recipes.js';
 import {
+  ackChecklistsFlag,
   checklistsSummary,
+  completeChecklistOpsRun,
+  failResetChecklistItem,
   listChecklistRuns,
   listChecklistTemplates,
+  runChecklistsSweep,
+  startChecklistOpsRun,
   startChecklistRun,
   toggleChecklistItem,
 } from './checklists.js';
@@ -8308,6 +8328,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/shifts/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runShiftsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shifts/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackShiftsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shifts/gap/cover' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, openCoverShiftGap(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shifts/close' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, closeShiftOps(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/shifts/staff/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, assignShiftStaff(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/shifts/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -8357,6 +8407,36 @@ export function createPlatformMiddleware() {
             const body = await readBody(req);
             sendJson(res, 200, { reservation: createReservation(body, user.username) });
           })();
+          return;
+        }
+        if (path === '/api/reservations/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runReservationsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/reservations/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackReservationsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/reservations/pending/confirm' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, confirmPendingReservations(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/reservations/noshow/cancel' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, cancelNoShowReservations(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/reservations/seat/assign' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seatAssignReservations(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/reservations/') && req.method === 'PATCH') {
@@ -8438,6 +8518,36 @@ export function createPlatformMiddleware() {
             const body = await readBody(req);
             sendJson(res, 200, { incident: createIncident(body, user.username) });
           })();
+          return;
+        }
+        if (path === '/api/incidents/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runIncidentsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/incidents/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackIncidentsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/incidents/critical/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackOpenCriticalIncidents(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/incidents/open/resolve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, resolveOpenIncidents(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/incidents/severity/escalate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, escalateIncidentSeverity(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/incidents/') && path.endsWith('/ack') && req.method === 'POST') {
@@ -8754,6 +8864,36 @@ export function createPlatformMiddleware() {
             }
             sendJson(res, 200, { run });
           })();
+          return;
+        }
+        if (path === '/api/checklists/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runChecklistsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/checklists/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackChecklistsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/checklists/run/start' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, startChecklistOpsRun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/checklists/run/complete' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, completeChecklistOpsRun(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/checklists/item/fail' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, failResetChecklistItem(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/checklists/') && path.includes('/toggle') && req.method === 'POST') {

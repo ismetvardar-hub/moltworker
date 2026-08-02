@@ -23,6 +23,10 @@ export async function fetchIncidents(): Promise<{
   open: number
   critical: number
   bySource: Record<string, number>
+  flags?: any[]
+  summary?: any
+  summaryLines?: string[]
+  title?: string
 }> {
   return parse(await fetch('/api/incidents', { headers: authHeaders() }))
 }
@@ -52,4 +56,24 @@ export async function ackIncident(
       body: JSON.stringify({ status }),
     }),
   )
+}
+
+export async function runIncidentsSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/incidents/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackIncidentsFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/incidents/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackOpenCriticalIncidents(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/incidents/critical/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function resolveOpenIncidents(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/incidents/open/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function escalateIncidentSeverity(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/incidents/severity/escalate', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
 }

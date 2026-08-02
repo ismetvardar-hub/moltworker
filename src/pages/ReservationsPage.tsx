@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import PanelCard from '../components/PanelCard'
+import * as api from '../services/reservations'
 import {
   createReservation,
   deleteReservation,
@@ -18,7 +19,9 @@ export default function ReservationsPage() {
   const [rows, setRows] = useState<Reservation[]>([])
   const [venues, setVenues] = useState<Venue[]>([])
   const [stats, setStats] = useState({ todayCount: 0, pending: 0, confirmed: 0 })
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState({
     guestName: '',
     phone: '',
@@ -42,6 +45,7 @@ export default function ReservationsPage() {
         pending: data.pending,
         confirmed: data.confirmed,
       })
+      setOverview(data)
       setVenues(v.venues || [])
       if (!form.venueId && v.venues?.[0]?.id) {
         setForm((f) => ({ ...f, venueId: v.venues[0].id }))
@@ -56,6 +60,7 @@ export default function ReservationsPage() {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  function ping(m: string) { setFlash(m); window.setTimeout(() => setFlash(null), 2800) }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -111,6 +116,32 @@ export default function ReservationsPage() {
           {error}
         </p>
       )}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PanelCard title={overview?.title || 'Rezervasyon ops'}>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">{(overview?.summaryLines || []).map((l: string) => (<li key={l}>{l}</li>))}</ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runReservationsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return refresh() })}>Sweep</button>
+            <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.confirmPendingReservations({}).then((r: any) => { ping(`Confirm ${r.confirmed?.length ?? 0}`); return refresh() })}>Confirm pending</button>
+            <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.cancelNoShowReservations({}).then((r: any) => { ping(`Cancel ${r.cancelled?.length ?? 0}`); return refresh() })}>No-show</button>
+            <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.seatAssignReservations({}).then((r: any) => { ping(`Seat ${r.seated?.length ?? 0}`); return refresh() })}>Seat/assign</button>
+            <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackReservationsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return refresh() })}>Flag ack</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">Flag {overview?.summary?.flags_open ?? 0} · pending {overview?.summary?.pending ?? stats.pending}</p>
+        </PanelCard>
+        <PanelCard title="Açık flagler">
+          <ul className="space-y-2 text-sm">
+            {(overview?.flags || []).length === 0 && <li className="text-slate-400">Açık flag yok.</li>}
+            {(overview?.flags || []).slice(0, 10).map((f: any) => (
+              <li key={f.id} className="flex items-center justify-between rounded-lg border border-obsidian-700 px-3 py-2">
+                <span><span className="text-lykia-300">[{f.level}]</span> {f.text}</span>
+                <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]" onClick={() => void api.ackReservationsFlag({ id: f.id }).then(() => { ping('Ack'); return refresh() })}>Ack</button>
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      </div>
 
       <PanelCard title="Yeni rezervasyon">
         <form onSubmit={(e) => void onCreate(e)} className="grid gap-3 md:grid-cols-3">

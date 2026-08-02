@@ -572,6 +572,18 @@ import {
   inventorySummary, runInventorySweep, ackInventoryFlag, restockInventoryLows, quarantineInventorySku, receiveInventoryDelivery,
 } from '../server/inventory.js';
 import {
+  incidentsSummary, runIncidentsSweep, ackIncidentsFlag, ackOpenCriticalIncidents, resolveOpenIncidents, escalateIncidentSeverity,
+} from '../server/incidents.js';
+import {
+  reservationsSummary, runReservationsSweep, ackReservationsFlag, confirmPendingReservations, cancelNoShowReservations, seatAssignReservations,
+} from '../server/reservations.js';
+import {
+  shiftsSummary, runShiftsSweep, ackShiftsFlag, openCoverShiftGap, closeShiftOps, assignShiftStaff,
+} from '../server/shifts.js';
+import {
+  checklistsSummary, runChecklistsSweep, ackChecklistsFlag, startChecklistOpsRun, completeChecklistOpsRun, failResetChecklistItem,
+} from '../server/checklists.js';
+import {
   alertrulesSummary, runAlertrulesSweep, ackAlertrulesFlag, enableAlertrules, disableAlertrules, fireAlertrules,
 } from '../server/alertrules.js';
 import {
@@ -1580,6 +1592,34 @@ assert(quarantineInventorySku({}, 'smoke').ok, 'inventory quarantine');
 assert(receiveInventoryDelivery({}, 'smoke').ok, 'inventory receive delivery');
 assert(ackInventoryFlag({}, 'smoke').ok, 'inventory flag ack');
 
+assert(incidentsSummary().title, 'incidents overview');
+assert(runIncidentsSweep({ force: true }, 'smoke').ok, 'incidents sweep');
+assert(ackOpenCriticalIncidents({}, 'smoke').ok, 'incidents ack critical');
+assert(resolveOpenIncidents({}, 'smoke').ok, 'incidents resolve open');
+assert(escalateIncidentSeverity({}, 'smoke').ok, 'incidents escalate');
+assert(ackIncidentsFlag({}, 'smoke').ok, 'incidents flag ack');
+
+assert(reservationsSummary().title, 'reservations overview');
+assert(runReservationsSweep({ force: true }, 'smoke').ok, 'reservations sweep');
+assert(confirmPendingReservations({}, 'smoke').ok, 'reservations confirm pending');
+assert(cancelNoShowReservations({}, 'smoke').ok, 'reservations cancel noshow');
+assert(seatAssignReservations({}, 'smoke').ok, 'reservations seat assign');
+assert(ackReservationsFlag({}, 'smoke').ok, 'reservations flag ack');
+
+assert(shiftsSummary().title, 'shifts overview');
+assert(runShiftsSweep({ force: true }, 'smoke').ok, 'shifts sweep');
+assert(openCoverShiftGap({}, 'smoke').ok, 'shifts cover gap');
+assert(closeShiftOps({}, 'smoke').ok, 'shifts close');
+assert(assignShiftStaff({}, 'smoke').ok, 'shifts assign staff');
+assert(ackShiftsFlag({}, 'smoke').ok, 'shifts flag ack');
+
+assert(checklistsSummary().title, 'checklists overview');
+assert(runChecklistsSweep({ force: true }, 'smoke').ok, 'checklists sweep');
+assert(startChecklistOpsRun({}, 'smoke').ok, 'checklists start run');
+assert(completeChecklistOpsRun({}, 'smoke').ok, 'checklists complete run');
+assert(failResetChecklistItem({}, 'smoke').ok, 'checklists fail/reset');
+assert(ackChecklistsFlag({}, 'smoke').ok, 'checklists flag ack');
+
 assert(alertrulesSummary().title, 'alertrules overview');
 assert(runAlertrulesSweep({ force: true }, 'smoke').ok, 'alertrules sweep');
 assert(enableAlertrules({}, 'smoke').ok, 'alertrules enable');
@@ -1604,6 +1644,7 @@ assert(ackReportFlag({}, 'smoke').ok, 'report flag ack');
 console.log('MOD141_OK');
 console.log('MOD135_OK');
 console.log('MOD144_OK');
+console.log('MOD148_OK');
 
 console.log(
   JSON.stringify(

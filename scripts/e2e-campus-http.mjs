@@ -165,6 +165,10 @@ try {
     '/api/weather',
     '/api/maintenance',
     '/api/inventory',
+    '/api/incidents',
+    '/api/reservations',
+    '/api/shifts',
+    '/api/checklists',
     '/api/alertrules',
     '/api/health',
   ];
@@ -1594,6 +1598,50 @@ try {
   assert(invRecv.res.ok && invRecv.data.ok !== false, 'inventory receive');
   const invAck = await req('/api/inventory/flag/ack', { method: 'POST', token, body: {} });
   assert(invAck.res.ok && invAck.data.ok !== false, 'inventory ack');
+
+  const incdSweep = await req('/api/incidents/sweep', { method: 'POST', token, body: { force: true } });
+  assert(incdSweep.res.ok && incdSweep.data.ok !== false, 'incidents sweep');
+  const incdCrit = await req('/api/incidents/critical/ack', { method: 'POST', token, body: {} });
+  assert(incdCrit.res.ok && incdCrit.data.ok !== false, 'incidents critical ack');
+  const incdRes = await req('/api/incidents/open/resolve', { method: 'POST', token, body: {} });
+  assert(incdRes.res.ok && incdRes.data.ok !== false, 'incidents resolve');
+  const incdEsc = await req('/api/incidents/severity/escalate', { method: 'POST', token, body: {} });
+  assert(incdEsc.res.ok && incdEsc.data.ok !== false, 'incidents escalate');
+  const incdAck = await req('/api/incidents/flag/ack', { method: 'POST', token, body: {} });
+  assert(incdAck.res.ok && incdAck.data.ok !== false, 'incidents ack');
+
+  const rsvSweep = await req('/api/reservations/sweep', { method: 'POST', token, body: { force: true } });
+  assert(rsvSweep.res.ok && rsvSweep.data.ok !== false, 'reservations sweep');
+  const rsvConf = await req('/api/reservations/pending/confirm', { method: 'POST', token, body: {} });
+  assert(rsvConf.res.ok && rsvConf.data.ok !== false, 'reservations confirm');
+  const rsvNo = await req('/api/reservations/noshow/cancel', { method: 'POST', token, body: {} });
+  assert(rsvNo.res.ok && rsvNo.data.ok !== false, 'reservations noshow');
+  const rsvSeat = await req('/api/reservations/seat/assign', { method: 'POST', token, body: {} });
+  assert(rsvSeat.res.ok && rsvSeat.data.ok !== false, 'reservations seat');
+  const rsvAck = await req('/api/reservations/flag/ack', { method: 'POST', token, body: {} });
+  assert(rsvAck.res.ok && rsvAck.data.ok !== false, 'reservations ack');
+
+  const shfSweep = await req('/api/shifts/sweep', { method: 'POST', token, body: { force: true } });
+  assert(shfSweep.res.ok && shfSweep.data.ok !== false, 'shifts sweep');
+  const shfGap = await req('/api/shifts/gap/cover', { method: 'POST', token, body: {} });
+  assert(shfGap.res.ok && shfGap.data.ok !== false, 'shifts cover');
+  const shfClose = await req('/api/shifts/close', { method: 'POST', token, body: {} });
+  assert(shfClose.res.ok && shfClose.data.ok !== false, 'shifts close');
+  const shfAssign = await req('/api/shifts/staff/assign', { method: 'POST', token, body: {} });
+  assert(shfAssign.res.ok && shfAssign.data.ok !== false, 'shifts assign');
+  const shfAck = await req('/api/shifts/flag/ack', { method: 'POST', token, body: {} });
+  assert(shfAck.res.ok && shfAck.data.ok !== false, 'shifts ack');
+
+  const chkSweep = await req('/api/checklists/sweep', { method: 'POST', token, body: { force: true } });
+  assert(chkSweep.res.ok && chkSweep.data.ok !== false, 'checklists sweep');
+  const chkStart = await req('/api/checklists/run/start', { method: 'POST', token, body: {} });
+  assert(chkStart.res.ok && chkStart.data.ok !== false, 'checklists start');
+  const chkComp = await req('/api/checklists/run/complete', { method: 'POST', token, body: {} });
+  assert(chkComp.res.ok && chkComp.data.ok !== false, 'checklists complete');
+  const chkFail = await req('/api/checklists/item/fail', { method: 'POST', token, body: {} });
+  assert(chkFail.res.ok && chkFail.data.ok !== false, 'checklists fail');
+  const chkAck = await req('/api/checklists/flag/ack', { method: 'POST', token, body: {} });
+  assert(chkAck.res.ok && chkAck.data.ok !== false, 'checklists ack');
 
   const alrSweep = await req('/api/alertrules/sweep', { method: 'POST', token, body: { force: true } });
   assert(alrSweep.res.ok && alrSweep.data.ok !== false, 'alertrules sweep');

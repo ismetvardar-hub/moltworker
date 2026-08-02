@@ -30,6 +30,10 @@ export async function listReservations(params?: {
   todayCount: number
   pending: number
   confirmed: number
+  flags?: any[]
+  summary?: any
+  summaryLines?: string[]
+  title?: string
 }> {
   const q = new URLSearchParams()
   if (params?.date) q.set('date', params.date)
@@ -71,4 +75,24 @@ export async function deleteReservation(id: string): Promise<void> {
       headers: authHeaders(),
     }),
   )
+}
+
+export async function runReservationsSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/reservations/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackReservationsFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/reservations/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function confirmPendingReservations(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/reservations/pending/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function cancelNoShowReservations(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/reservations/noshow/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function seatAssignReservations(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/reservations/seat/assign', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
 }

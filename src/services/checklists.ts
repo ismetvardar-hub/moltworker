@@ -30,6 +30,10 @@ export async function fetchChecklists(): Promise<{
   templates: ChecklistTemplate[]
   runs: ChecklistRun[]
   openRuns: number
+  flags?: any[]
+  summary?: any
+  summaryLines?: string[]
+  title?: string
 }> {
   return parse(await fetch('/api/checklists', { headers: authHeaders() }))
 }
@@ -56,4 +60,24 @@ export async function toggleCheck(
       body: JSON.stringify({ checkId, done }),
     }),
   )
+}
+
+export async function runChecklistsSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/checklists/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackChecklistsFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/checklists/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function startChecklistOpsRun(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/checklists/run/start', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function completeChecklistOpsRun(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/checklists/run/complete', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function failResetChecklistItem(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/checklists/item/fail', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
 }

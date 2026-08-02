@@ -24,7 +24,15 @@ export async function listShifts(params?: {
   venueId?: string
   date?: string
   brandId?: string
-}): Promise<{ shifts: Shift[] }> {
+}): Promise<{
+  shifts: Shift[]
+  flags?: any[]
+  summary?: any
+  summaryLines?: string[]
+  title?: string
+  todayCount?: number
+  gaps?: number
+}> {
   const q = new URLSearchParams()
   if (params?.venueId) q.set('venueId', params.venueId)
   if (params?.date) q.set('date', params.date)
@@ -67,4 +75,24 @@ export async function updateShift(
 
 export async function deleteShift(id: string): Promise<void> {
   await parse(await fetch(`/api/shifts/${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() }))
+}
+
+export async function runShiftsSweep(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/shifts/sweep', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function ackShiftsFlag(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/shifts/flag/ack', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function openCoverShiftGap(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/shifts/gap/cover', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function closeShiftOps(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/shifts/close', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
+}
+
+export async function assignShiftStaff(body: Record<string, unknown> = {}) {
+  return parse(await fetch('/api/shifts/staff/assign', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) }))
 }

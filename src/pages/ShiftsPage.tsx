@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { CalendarClock, Plus, Trash2 } from 'lucide-react'
+import PanelCard from '../components/PanelCard'
+import * as api from '../services/shifts'
 import { createShift, deleteShift, listShifts, updateShift, type Shift } from '../services/shifts'
 import { fetchVenues, type Venue } from '../services/venues'
 
@@ -10,7 +12,9 @@ function today() {
 export function ShiftsPage() {
   const [shifts, setShifts] = useState<Shift[]>([])
   const [venues, setVenues] = useState<Venue[]>([])
+  const [overview, setOverview] = useState<any>(null)
   const [error, setError] = useState('')
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState({
     venueId: '',
     role: 'Personel',
@@ -27,6 +31,7 @@ export function ShiftsPage() {
         fetchVenues().catch(() => ({ venues: [] as Venue[] })),
       ])
       setShifts(s.shifts)
+      setOverview(s)
       setVenues(v.venues || [])
       if (!form.venueId && v.venues?.[0]?.id) {
         setForm((f) => ({ ...f, venueId: v.venues[0].id }))
@@ -41,6 +46,7 @@ export function ShiftsPage() {
     void reload()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  function ping(m: string) { setFlash(m); window.setTimeout(() => setFlash(null), 2800) }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -91,6 +97,32 @@ export function ShiftsPage() {
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
       )}
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PanelCard title={overview?.title || 'Vardiya ops'}>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">{(overview?.summaryLines || []).map((l: string) => (<li key={l}>{l}</li>))}</ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={() => void api.runShiftsSweep({ force: true }).then((r: any) => { ping(`Sweep +${r.created?.length ?? 0}`); return reload() })}>Sweep</button>
+            <button type="button" className="rounded-lg bg-rose-500/20 px-3 py-2 text-sm text-rose-100" onClick={() => void api.openCoverShiftGap({}).then((r: any) => { ping(`Cover ${r.covered?.length ?? 0}`); return reload() })}>Cover gap</button>
+            <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={() => void api.closeShiftOps({}).then((r: any) => { ping(`Close ${r.closed?.length ?? 0}`); return reload() })}>Close shift</button>
+            <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={() => void api.assignShiftStaff({}).then((r: any) => { ping(`Assign ${r.assigned?.length ?? 0}`); return reload() })}>Assign staff</button>
+            <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm" onClick={() => void api.ackShiftsFlag({}).then((r: any) => { ping(r.ok ? 'Flag ack' : r.error || 'Ack yok'); return reload() })}>Flag ack</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">Flag {overview?.summary?.flags_open ?? 0} · gaps {overview?.summary?.gaps ?? overview?.gaps ?? 0}</p>
+        </PanelCard>
+        <PanelCard title="Açık flagler">
+          <ul className="space-y-2 text-sm">
+            {(overview?.flags || []).length === 0 && <li className="text-slate-400">Açık flag yok.</li>}
+            {(overview?.flags || []).slice(0, 10).map((f: any) => (
+              <li key={f.id} className="flex items-center justify-between rounded-lg border border-obsidian-700 px-3 py-2">
+                <span><span className="text-lykia-300">[{f.level}]</span> {f.text}</span>
+                <button type="button" className="rounded-md bg-obsidian-800 px-2 py-1 text-[10px]" onClick={() => void api.ackShiftsFlag({ id: f.id }).then(() => { ping('Ack'); return reload() })}>Ack</button>
+              </li>
+            ))}
+          </ul>
+        </PanelCard>
+      </div>
 
       <form
         onSubmit={(e) => void onCreate(e)}
