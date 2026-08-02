@@ -1,11 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
 import CrudOpsBar from '../components/CrudOpsBar'
-import { createBadgeprint, fetchBadgeprint, patchBadgeprint } from '../services/badgeprint'
+import {
+  ackBadgeprintFlag,
+  createBadgeprint,
+  fetchBadgeprint,
+  markBadgeprintQueueJam,
+  patchBadgeprint,
+  reprintBadge,
+  runBadgeprintSweep,
+  seedEventBadges,
+} from '../services/badgeprint'
 
 export default function BadgeprintPage() {
   const [rows, setRows] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string,string>>({"holderName":"İsim","reason":"kayıp"})
   async function refresh() {
     try {
@@ -24,6 +34,13 @@ export default function BadgeprintPage() {
       await refresh()
     } catch (err) { setError(err instanceof Error ? err.message : 'Kayıt başarısız') }
   }
+  async function runOp(label: string, fn: () => Promise<any>) {
+    try {
+      const data = await fn()
+      setFlash(data.ok === false ? data.error || `${label} hata` : `${label} OK`)
+      await refresh()
+    } catch (err) { setError(err instanceof Error ? err.message : `${label} hata`) }
+  }
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -31,6 +48,16 @@ export default function BadgeprintPage() {
         <p className="mt-1 text-sm text-slate-400">Pass yeniden baskı kuyruğu.</p>
       </header>
       <CrudOpsBar domain="badgeprint" onDone={() => void refresh()} />
+      {flash && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{flash}</p>}
+      <PanelCard title="Wave 176 ops">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded-lg bg-lykia-500/90 px-3 py-2 text-sm text-obsidian-950" onClick={()=>void runOp('Sweep', () => runBadgeprintSweep({ force: true }))}>Sweep</button>
+          <button type="button" className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100" onClick={()=>void runOp('Queue jam', () => markBadgeprintQueueJam({}))}>Queue jam</button>
+          <button type="button" className="rounded-lg bg-sky-500/20 px-3 py-2 text-sm text-sky-100" onClick={()=>void runOp('Reprint', () => reprintBadge({}))}>Reprint</button>
+          <button type="button" className="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100" onClick={()=>void runOp('Seed badges', () => seedEventBadges({}))}>Seed event badges</button>
+          <button type="button" className="rounded-lg bg-obsidian-800 px-3 py-2 text-sm text-slate-200" onClick={()=>void runOp('Ack', () => ackBadgeprintFlag({ note: 'ui ack' }))}>Flag ack</button>
+        </div>
+      </PanelCard>
 
       {error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
       <PanelCard title="Yeni">

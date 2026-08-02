@@ -689,9 +689,14 @@ import {
   updateTransfers,
 } from './transfers.js';
 import {
+  ackBadgeprintFlag,
   createBadgeprint,
   listBadgeprint,
   badgeprintSummary,
+  markBadgeprintQueueJam,
+  reprintBadge,
+  runBadgeprintSweep,
+  seedEventBadges,
   updateBadgeprint,
 } from './badgeprint.js';
 import {
@@ -880,9 +885,14 @@ import {
   updateTowels,
 } from './towels.js';
 import {
+  ackBandsFlag,
   createBands,
   listBands,
   bandsSummary,
+  markBandsWristbandMismatch,
+  reissueBand,
+  runBandsSweep,
+  seedDayPassBand,
   updateBands,
 } from './bands.js';
 import {
@@ -1103,9 +1113,14 @@ import {
   updateRoomstatus,
 } from './roomstatus.js';
 import {
+  ackBeddingFlag,
   createBedding,
   listBedding,
   beddingSummary,
+  markBeddingLinenShortage,
+  restockBeddingLinen,
+  runBeddingSweep,
+  seedTurndownKit,
   updateBedding,
 } from './bedding.js';
 import {
@@ -1159,9 +1174,14 @@ import {
   updateKaraoke,
 } from './karaoke.js';
 import {
+  ackArtwallFlag,
   createArtwall,
   listArtwall,
   artwallSummary,
+  markArtwallExhibitStale,
+  rotateArtwallPiece,
+  runArtwallSweep,
+  seedGalleryNight,
   updateArtwall,
 } from './artwall.js';
 import {
@@ -12180,6 +12200,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/badgeprint/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBadgeprintSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/badgeprint/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBadgeprintFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/badgeprint/queue-jam' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBadgeprintQueueJam(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/badgeprint/reprint' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reprintBadge(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/badgeprint/event-badges/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedEventBadges(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/badgeprint/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13106,6 +13156,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createBands(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/bands/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBandsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bands/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBandsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bands/wristband/mismatch' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBandsWristbandMismatch(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bands/reissue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, reissueBand(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bands/day-pass/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedDayPassBand(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/bands/') && req.method === 'PATCH') {
@@ -14182,6 +14262,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/bedding/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runBeddingSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bedding/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackBeddingFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bedding/linen/shortage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markBeddingLinenShortage(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bedding/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockBeddingLinen(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/bedding/turndown-kit/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedTurndownKit(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/bedding/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -14450,6 +14560,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createArtwall(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/artwall/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runArtwallSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artwall/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackArtwallFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artwall/stale' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markArtwallExhibitStale(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artwall/rotate' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, rotateArtwallPiece(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/artwall/gallery-night/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedGalleryNight(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/artwall/') && req.method === 'PATCH') {

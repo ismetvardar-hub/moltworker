@@ -231,6 +231,10 @@ try {
     '/api/partners',
     '/api/promos',
     '/api/sustain',
+    '/api/artwall',
+    '/api/badgeprint',
+    '/api/bands',
+    '/api/bedding',
     '/api/qrcheckin',
     '/api/patrol',
     '/api/health',
@@ -1759,7 +1763,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
-  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain']) {
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
   }
@@ -3356,6 +3360,98 @@ try {
   assert(sustain175Action.res.ok && sustain175Action.data.ok !== false, 'sustain action log');
   const sustain175Ack = await req('/api/sustain/flag/ack', { method: 'POST', token, body: {} });
   assert(sustain175Ack.res.ok && sustain175Ack.data.ok !== false, 'sustain flag ack');
+
+  const artwall176Sweep = await req('/api/artwall/sweep', { method: 'POST', token, body: { force: true } });
+  assert(artwall176Sweep.res.ok && artwall176Sweep.data.ok !== false, 'artwall sweep');
+  const artwall176Seed = await req('/api/artwall/gallery-night/seed', {
+    method: 'POST',
+    token,
+    body: { piece: 'E2E-176 gallery night' },
+  });
+  assert(artwall176Seed.res.ok && artwall176Seed.data.ok !== false, 'artwall gallery night seed');
+  const artwall176Stale = await req('/api/artwall/stale', {
+    method: 'POST',
+    token,
+    body: { id: artwall176Seed.data.piece?.id },
+  });
+  assert(artwall176Stale.res.ok && artwall176Stale.data.ok !== false, 'artwall exhibit stale');
+  const artwall176Rotate = await req('/api/artwall/rotate', {
+    method: 'POST',
+    token,
+    body: { id: artwall176Seed.data.piece?.id, zone: 'E2E Gallery' },
+  });
+  assert(artwall176Rotate.res.ok && artwall176Rotate.data.ok !== false, 'artwall rotate piece');
+  const artwall176Ack = await req('/api/artwall/flag/ack', { method: 'POST', token, body: {} });
+  assert(artwall176Ack.res.ok && artwall176Ack.data.ok !== false, 'artwall flag ack');
+
+  const badge176Sweep = await req('/api/badgeprint/sweep', { method: 'POST', token, body: { force: true } });
+  assert(badge176Sweep.res.ok && badge176Sweep.data.ok !== false, 'badgeprint sweep');
+  const badge176Seed = await req('/api/badgeprint/event-badges/seed', {
+    method: 'POST',
+    token,
+    body: { holderName: 'E2E-176 event badges', eventName: 'E2E Night' },
+  });
+  assert(badge176Seed.res.ok && badge176Seed.data.ok !== false, 'badgeprint event badges seed');
+  const badge176Jam = await req('/api/badgeprint/queue-jam', {
+    method: 'POST',
+    token,
+    body: { id: badge176Seed.data.job?.id },
+  });
+  assert(badge176Jam.res.ok && badge176Jam.data.ok !== false, 'badgeprint queue jam');
+  const badge176Reprint = await req('/api/badgeprint/reprint', {
+    method: 'POST',
+    token,
+    body: { id: badge176Seed.data.job?.id },
+  });
+  assert(badge176Reprint.res.ok && badge176Reprint.data.ok !== false, 'badgeprint reprint');
+  const badge176Ack = await req('/api/badgeprint/flag/ack', { method: 'POST', token, body: {} });
+  assert(badge176Ack.res.ok && badge176Ack.data.ok !== false, 'badgeprint flag ack');
+
+  const bands176Sweep = await req('/api/bands/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bands176Sweep.res.ok && bands176Sweep.data.ok !== false, 'bands sweep');
+  const bands176Seed = await req('/api/bands/day-pass/seed', {
+    method: 'POST',
+    token,
+    body: { guestName: 'E2E-176 day pass' },
+  });
+  assert(bands176Seed.res.ok && bands176Seed.data.ok !== false, 'bands day pass seed');
+  const bands176Mismatch = await req('/api/bands/wristband/mismatch', {
+    method: 'POST',
+    token,
+    body: { id: bands176Seed.data.band?.id },
+  });
+  assert(bands176Mismatch.res.ok && bands176Mismatch.data.ok !== false, 'bands wristband mismatch');
+  const bands176Reissue = await req('/api/bands/reissue', {
+    method: 'POST',
+    token,
+    body: { id: bands176Seed.data.band?.id, newCode: 'E2E176-R' },
+  });
+  assert(bands176Reissue.res.ok && bands176Reissue.data.ok !== false, 'bands reissue');
+  const bands176Ack = await req('/api/bands/flag/ack', { method: 'POST', token, body: {} });
+  assert(bands176Ack.res.ok && bands176Ack.data.ok !== false, 'bands flag ack');
+
+  const bedding176Sweep = await req('/api/bedding/sweep', { method: 'POST', token, body: { force: true } });
+  assert(bedding176Sweep.res.ok && bedding176Sweep.data.ok !== false, 'bedding sweep');
+  const bedding176Seed = await req('/api/bedding/turndown-kit/seed', {
+    method: 'POST',
+    token,
+    body: { room: 'E2E176' },
+  });
+  assert(bedding176Seed.res.ok && bedding176Seed.data.ok !== false, 'bedding turndown kit seed');
+  const bedding176Shortage = await req('/api/bedding/linen/shortage', {
+    method: 'POST',
+    token,
+    body: { id: bedding176Seed.data.request?.id },
+  });
+  assert(bedding176Shortage.res.ok && bedding176Shortage.data.ok !== false, 'bedding linen shortage');
+  const bedding176Restock = await req('/api/bedding/restock', {
+    method: 'POST',
+    token,
+    body: { id: bedding176Seed.data.request?.id, qty: 12 },
+  });
+  assert(bedding176Restock.res.ok && bedding176Restock.data.ok !== false, 'bedding restock');
+  const bedding176Ack = await req('/api/bedding/flag/ack', { method: 'POST', token, body: {} });
+  assert(bedding176Ack.res.ok && bedding176Ack.data.ok !== false, 'bedding flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

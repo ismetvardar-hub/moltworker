@@ -861,6 +861,18 @@ import {
 import {
   sustainSummary, runSustainSweep, ackSustainFlag, markSustainKpiMiss, logSustainAction, seedGreenWeek,
 } from '../server/sustain.js';
+import {
+  artwallSummary, runArtwallSweep, ackArtwallFlag, markArtwallExhibitStale, rotateArtwallPiece, seedGalleryNight,
+} from '../server/artwall.js';
+import {
+  badgeprintSummary, runBadgeprintSweep, ackBadgeprintFlag, markBadgeprintQueueJam, reprintBadge, seedEventBadges,
+} from '../server/badgeprint.js';
+import {
+  bandsSummary, runBandsSweep, ackBandsFlag, markBandsWristbandMismatch, reissueBand, seedDayPassBand,
+} from '../server/bands.js';
+import {
+  beddingSummary, runBeddingSweep, ackBeddingFlag, markBeddingLinenShortage, restockBeddingLinen, seedTurndownKit,
+} from '../server/bedding.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2560,6 +2572,38 @@ assert(runSustainSweep({ force: true }, 'smoke').ok, 'sustain sweep');
 assert(logSustainAction({ id: smokeSustain.metric.id, action: 'Smoke 175 action' }, 'smoke').ok, 'sustain action log');
 assert(ackSustainFlag({}, 'smoke').ok, 'sustain flag ack');
 
+assert(artwallSummary().title, 'artwall overview');
+const smokeArtwall = seedGalleryNight({ piece: 'Smoke 176 gallery night' }, 'smoke');
+assert(smokeArtwall.ok, 'artwall gallery night seed');
+assert(markArtwallExhibitStale({ id: smokeArtwall.piece.id }, 'smoke').ok, 'artwall exhibit stale');
+assert(runArtwallSweep({ force: true }, 'smoke').ok, 'artwall sweep');
+assert(rotateArtwallPiece({ id: smokeArtwall.piece.id, zone: 'Smoke Gallery' }, 'smoke').ok, 'artwall rotate piece');
+assert(ackArtwallFlag({}, 'smoke').ok, 'artwall flag ack');
+
+assert(badgeprintSummary().title, 'badgeprint overview');
+const smokeBadge = seedEventBadges({ holderName: 'Smoke 176 event badges' }, 'smoke');
+assert(smokeBadge.ok, 'badgeprint event badges seed');
+assert(markBadgeprintQueueJam({ id: smokeBadge.job.id }, 'smoke').ok, 'badgeprint queue jam');
+assert(runBadgeprintSweep({ force: true }, 'smoke').ok, 'badgeprint sweep');
+assert(reprintBadge({ id: smokeBadge.job.id }, 'smoke').ok, 'badgeprint reprint');
+assert(ackBadgeprintFlag({}, 'smoke').ok, 'badgeprint flag ack');
+
+assert(bandsSummary().title, 'bands overview');
+const smokeBand = seedDayPassBand({ guestName: 'Smoke 176 day pass' }, 'smoke');
+assert(smokeBand.ok, 'bands day pass seed');
+assert(markBandsWristbandMismatch({ id: smokeBand.band.id }, 'smoke').ok, 'bands wristband mismatch');
+assert(runBandsSweep({ force: true }, 'smoke').ok, 'bands sweep');
+assert(reissueBand({ id: smokeBand.band.id, newCode: 'SM176-R' }, 'smoke').ok, 'bands reissue');
+assert(ackBandsFlag({}, 'smoke').ok, 'bands flag ack');
+
+assert(beddingSummary().title, 'bedding overview');
+const smokeBedding = seedTurndownKit({ room: 'SM176' }, 'smoke');
+assert(smokeBedding.ok, 'bedding turndown kit seed');
+assert(markBeddingLinenShortage({ id: smokeBedding.request.id }, 'smoke').ok, 'bedding linen shortage');
+assert(runBeddingSweep({ force: true }, 'smoke').ok, 'bedding sweep');
+assert(restockBeddingLinen({ id: smokeBedding.request.id, qty: 12 }, 'smoke').ok, 'bedding restock');
+assert(ackBeddingFlag({}, 'smoke').ok, 'bedding flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2592,6 +2636,7 @@ console.log('MOD172_OK');
 console.log('MOD173_OK');
 console.log('MOD174_OK');
 console.log('MOD175_OK');
+console.log('MOD176_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2662,6 +2707,11 @@ for (const thickened175 of ['otareviews', 'partners', 'promos', 'sustain']) {
   assert(!crudDomains.some((d) => d.name === thickened175), `crudops skips thickened ${thickened175}`);
   assert(!isCrudOpsPath(`/api/${thickened175}/sweep`, 'POST'), `crudops skips ${thickened175} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened175}/flag/ack`, 'POST'), `crudops skips ${thickened175} ack`);
+}
+for (const thickened176 of ['artwall', 'badgeprint', 'bands', 'bedding']) {
+  assert(!crudDomains.some((d) => d.name === thickened176), `crudops skips thickened ${thickened176}`);
+  assert(!isCrudOpsPath(`/api/${thickened176}/sweep`, 'POST'), `crudops skips ${thickened176} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened176}/flag/ack`, 'POST'), `crudops skips ${thickened176} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
