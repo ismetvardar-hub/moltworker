@@ -13,3 +13,23 @@ export async function createTowels(input: Record<string, unknown>): Promise<any>
 export async function patchTowels(id: string, patch: Record<string, unknown>): Promise<any> {
   return parse(await fetch(`/api/towels/${encodeURIComponent(id)}`, { method:'PATCH', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(patch)}))
 }
+
+export async function runTowelsSweep(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/towels/sweep', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function ackTowelsFlag(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/towels/flag/ack', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function markTowelsShortageZone(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/towels/shortage', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function restockTowels(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/towels/restock', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}
+
+export async function seedPoolRush(body: Record<string, unknown> = {}): Promise<any> {
+  return parse(await fetch('/api/towels/pool-rush/seed', { method:'POST', headers:{'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body)}))
+}

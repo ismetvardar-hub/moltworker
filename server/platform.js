@@ -645,15 +645,25 @@ import {
   runDigestSweep,
 } from './digest.js';
 import {
+  ackLockersFlag,
   createLockers,
   listLockers,
   lockersSummary,
+  markLockersOverdueRental,
+  releaseLocker,
+  runLockersSweep,
+  seedLockerDayPass,
   updateLockers,
 } from './lockers.js';
 import {
+  ackKidsclubFlag,
+  checkInKidsclubChild,
   createKidsclub,
   listKidsclub,
   kidsclubSummary,
+  markKidsclubUncheckedChild,
+  runKidsclubSweep,
+  seedKidsclubActivitySlot,
   updateKidsclub,
 } from './kidsclub.js';
 import {
@@ -834,8 +844,13 @@ import {
   updateHammam,
 } from './hammam.js';
 import {
+  ackTowelsFlag,
   createTowels,
   listTowels,
+  markTowelsShortageZone,
+  restockTowels,
+  runTowelsSweep,
+  seedPoolRush,
   towelsSummary,
   updateTowels,
 } from './towels.js';
@@ -980,9 +995,14 @@ import {
   updateBreakfast,
 } from './breakfast.js';
 import {
+  ackLateoutFlag,
+  approveLateoutExtension,
   createLateout,
   listLateout,
   lateoutSummary,
+  markLateoutUnpaidFee,
+  runLateoutSweep,
+  seedVipLateOut,
   updateLateout,
 } from './lateout.js';
 import {
@@ -11884,6 +11904,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/lockers/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLockersSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lockers/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLockersFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lockers/rental/overdue' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markLockersOverdueRental(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lockers/release' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, releaseLocker(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lockers/day-pass/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedLockerDayPass(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/lockers/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -11906,6 +11956,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createKidsclub(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/kidsclub/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runKidsclubSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kidsclub/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackKidsclubFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kidsclub/unchecked' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markKidsclubUncheckedChild(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kidsclub/checkin' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, checkInKidsclubChild(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/kidsclub/activity-slot/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedKidsclubActivitySlot(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/kidsclub/') && req.method === 'PATCH') {
@@ -12763,6 +12843,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/towels/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runTowelsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/towels/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackTowelsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/towels/shortage' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markTowelsShortageZone(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/towels/restock' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, restockTowels(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/towels/pool-rush/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedPoolRush(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/towels/') && req.method === 'PATCH') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -13428,6 +13538,36 @@ export function createPlatformMiddleware() {
           void (async () => {
             sendJson(res, 200, { item: createLateout(await readBody(req), user.username) });
           })();
+          return;
+        }
+        if (path === '/api/lateout/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runLateoutSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lateout/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackLateoutFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lateout/fee/unpaid' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, markLateoutUnpaidFee(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lateout/extension/approve' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, approveLateoutExtension(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/lateout/vip/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedVipLateOut(await readBody(req), user.username)); })();
           return;
         }
         if (path.startsWith('/api/lateout/') && req.method === 'PATCH') {

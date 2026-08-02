@@ -201,6 +201,10 @@ try {
     '/api/pulse',
     '/api/amenities',
     '/api/haccp',
+    '/api/lateout',
+    '/api/lockers',
+    '/api/towels',
+    '/api/kidsclub',
     '/api/keycards',
     '/api/parcels',
     '/api/wakeups',
@@ -1743,6 +1747,10 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
+  for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub']) {
+    const nativeOps = await req(`/api/${domain}/ops`, { token });
+    assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
+  }
   for (const domain of ['carbonlog', 'fxrates', 'handbook', 'yieldrule', 'accessreview']) {
     const ops = await req(`/api/${domain}/ops`, { token });
     assert(ops.res.ok && ops.data.domain === domain, `crudops ops ${domain}`);
@@ -2968,6 +2976,98 @@ try {
   assert(haccp171Corrective.res.ok && haccp171Corrective.data.ok !== false, 'haccp corrective log');
   const haccp171Ack = await req('/api/haccp/flag/ack', { method: 'POST', token, body: {} });
   assert(haccp171Ack.res.ok && haccp171Ack.data.ok !== false, 'haccp flag ack');
+
+  const lateout172Sweep = await req('/api/lateout/sweep', { method: 'POST', token, body: { force: true } });
+  assert(lateout172Sweep.res.ok && lateout172Sweep.data.ok !== false, 'lateout sweep');
+  const lateout172Seed = await req('/api/lateout/vip/seed', {
+    method: 'POST',
+    token,
+    body: { room: '172' },
+  });
+  assert(lateout172Seed.res.ok && lateout172Seed.data.ok !== false, 'lateout vip seed');
+  const lateout172Fee = await req('/api/lateout/fee/unpaid', {
+    method: 'POST',
+    token,
+    body: { id: lateout172Seed.data.lateout?.id },
+  });
+  assert(lateout172Fee.res.ok && lateout172Fee.data.ok !== false, 'lateout unpaid fee');
+  const lateout172Approve = await req('/api/lateout/extension/approve', {
+    method: 'POST',
+    token,
+    body: { id: lateout172Seed.data.lateout?.id },
+  });
+  assert(lateout172Approve.res.ok && lateout172Approve.data.ok !== false, 'lateout extension approve');
+  const lateout172Ack = await req('/api/lateout/flag/ack', { method: 'POST', token, body: {} });
+  assert(lateout172Ack.res.ok && lateout172Ack.data.ok !== false, 'lateout flag ack');
+
+  const lockers172Sweep = await req('/api/lockers/sweep', { method: 'POST', token, body: { force: true } });
+  assert(lockers172Sweep.res.ok && lockers172Sweep.data.ok !== false, 'lockers sweep');
+  const lockers172Seed = await req('/api/lockers/day-pass/seed', {
+    method: 'POST',
+    token,
+    body: { code: 'E2E-172' },
+  });
+  assert(lockers172Seed.res.ok && lockers172Seed.data.ok !== false, 'lockers day pass seed');
+  const lockers172Overdue = await req('/api/lockers/rental/overdue', {
+    method: 'POST',
+    token,
+    body: { id: lockers172Seed.data.locker?.id },
+  });
+  assert(lockers172Overdue.res.ok && lockers172Overdue.data.ok !== false, 'lockers overdue rental');
+  const lockers172Release = await req('/api/lockers/release', {
+    method: 'POST',
+    token,
+    body: { id: lockers172Seed.data.locker?.id },
+  });
+  assert(lockers172Release.res.ok && lockers172Release.data.ok !== false, 'lockers release');
+  const lockers172Ack = await req('/api/lockers/flag/ack', { method: 'POST', token, body: {} });
+  assert(lockers172Ack.res.ok && lockers172Ack.data.ok !== false, 'lockers flag ack');
+
+  const towels172Sweep = await req('/api/towels/sweep', { method: 'POST', token, body: { force: true } });
+  assert(towels172Sweep.res.ok && towels172Sweep.data.ok !== false, 'towels sweep');
+  const towels172Seed = await req('/api/towels/pool-rush/seed', {
+    method: 'POST',
+    token,
+    body: { zone: 'E2E Pool 172' },
+  });
+  assert(towels172Seed.res.ok && towels172Seed.data.ok !== false, 'towels pool rush seed');
+  const towels172Shortage = await req('/api/towels/shortage', {
+    method: 'POST',
+    token,
+    body: { id: towels172Seed.data.towel?.id },
+  });
+  assert(towels172Shortage.res.ok && towels172Shortage.data.ok !== false, 'towels shortage');
+  const towels172Restock = await req('/api/towels/restock', {
+    method: 'POST',
+    token,
+    body: { id: towels172Seed.data.towel?.id },
+  });
+  assert(towels172Restock.res.ok && towels172Restock.data.ok !== false, 'towels restock');
+  const towels172Ack = await req('/api/towels/flag/ack', { method: 'POST', token, body: {} });
+  assert(towels172Ack.res.ok && towels172Ack.data.ok !== false, 'towels flag ack');
+
+  const kidsclub172Sweep = await req('/api/kidsclub/sweep', { method: 'POST', token, body: { force: true } });
+  assert(kidsclub172Sweep.res.ok && kidsclub172Sweep.data.ok !== false, 'kidsclub sweep');
+  const kidsclub172Seed = await req('/api/kidsclub/activity-slot/seed', {
+    method: 'POST',
+    token,
+    body: { activity: 'E2E 172 activity' },
+  });
+  assert(kidsclub172Seed.res.ok && kidsclub172Seed.data.ok !== false, 'kidsclub activity slot seed');
+  const kidsclub172Unchecked = await req('/api/kidsclub/unchecked', {
+    method: 'POST',
+    token,
+    body: { id: kidsclub172Seed.data.entry?.id },
+  });
+  assert(kidsclub172Unchecked.res.ok && kidsclub172Unchecked.data.ok !== false, 'kidsclub unchecked child');
+  const kidsclub172Checkin = await req('/api/kidsclub/checkin', {
+    method: 'POST',
+    token,
+    body: { id: kidsclub172Seed.data.entry?.id },
+  });
+  assert(kidsclub172Checkin.res.ok && kidsclub172Checkin.data.ok !== false, 'kidsclub checkin');
+  const kidsclub172Ack = await req('/api/kidsclub/flag/ack', { method: 'POST', token, body: {} });
+  assert(kidsclub172Ack.res.ok && kidsclub172Ack.data.ok !== false, 'kidsclub flag ack');
 
   await req('/api/athleteos/clearance', {
     method: 'POST',

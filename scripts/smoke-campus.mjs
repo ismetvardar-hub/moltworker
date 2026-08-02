@@ -813,6 +813,18 @@ import {
 import {
   haccpSummary, runHaccpSweep, ackHaccpFlag, markHaccpTempBreach, logHaccpCorrective, seedProbeCheck,
 } from '../server/haccp.js';
+import {
+  lateoutSummary, runLateoutSweep, ackLateoutFlag, markLateoutUnpaidFee, approveLateoutExtension, seedVipLateOut,
+} from '../server/lateout.js';
+import {
+  lockersSummary, runLockersSweep, ackLockersFlag, markLockersOverdueRental, releaseLocker, seedLockerDayPass,
+} from '../server/lockers.js';
+import {
+  towelsSummary, runTowelsSweep, ackTowelsFlag, markTowelsShortageZone, restockTowels, seedPoolRush,
+} from '../server/towels.js';
+import {
+  kidsclubSummary, runKidsclubSweep, ackKidsclubFlag, markKidsclubUncheckedChild, checkInKidsclubChild, seedKidsclubActivitySlot,
+} from '../server/kidsclub.js';
 
 import {
   buildExportsHub, runExportsSweep, ackExportsFlag, runExportsSnapshot, exportAllCatalog, clearExportsRuns, buildExport,
@@ -2384,6 +2396,38 @@ assert(logHaccpCorrective({ id: smokeHaccp.haccp.id }, 'smoke').ok, 'haccp corre
 assert(runHaccpSweep({ force: true }, 'smoke').ok, 'haccp sweep');
 assert(ackHaccpFlag({}, 'smoke').ok, 'haccp flag ack');
 
+assert(lateoutSummary().title, 'lateout overview');
+const smokeLateout = seedVipLateOut({ room: '172' }, 'smoke');
+assert(smokeLateout.ok, 'lateout vip seed');
+assert(markLateoutUnpaidFee({ id: smokeLateout.lateout.id }, 'smoke').ok, 'lateout unpaid fee');
+assert(approveLateoutExtension({ id: smokeLateout.lateout.id }, 'smoke').ok, 'lateout extension approve');
+assert(runLateoutSweep({ force: true }, 'smoke').ok, 'lateout sweep');
+assert(ackLateoutFlag({}, 'smoke').ok, 'lateout flag ack');
+
+assert(lockersSummary().title, 'lockers overview');
+const smokeLocker = seedLockerDayPass({ code: 'SM-172' }, 'smoke');
+assert(smokeLocker.ok, 'lockers day pass seed');
+assert(markLockersOverdueRental({ id: smokeLocker.locker.id }, 'smoke').ok, 'lockers overdue rental');
+assert(runLockersSweep({ force: true }, 'smoke').ok, 'lockers sweep');
+assert(releaseLocker({ id: smokeLocker.locker.id }, 'smoke').ok, 'lockers release');
+assert(ackLockersFlag({}, 'smoke').ok, 'lockers flag ack');
+
+assert(towelsSummary().title, 'towels overview');
+const smokeTowel = seedPoolRush({ zone: 'Smoke Pool 172' }, 'smoke');
+assert(smokeTowel.ok, 'towels pool rush seed');
+assert(markTowelsShortageZone({ id: smokeTowel.towel.id }, 'smoke').ok, 'towels shortage zone');
+assert(runTowelsSweep({ force: true }, 'smoke').ok, 'towels sweep');
+assert(restockTowels({ id: smokeTowel.towel.id }, 'smoke').ok, 'towels restock');
+assert(ackTowelsFlag({}, 'smoke').ok, 'towels flag ack');
+
+assert(kidsclubSummary().title, 'kidsclub overview');
+const smokeKid = seedKidsclubActivitySlot({ activity: 'Smoke 172 activity' }, 'smoke');
+assert(smokeKid.ok, 'kidsclub activity slot seed');
+assert(markKidsclubUncheckedChild({ id: smokeKid.entry.id }, 'smoke').ok, 'kidsclub unchecked child');
+assert(runKidsclubSweep({ force: true }, 'smoke').ok, 'kidsclub sweep');
+assert(checkInKidsclubChild({ id: smokeKid.entry.id }, 'smoke').ok, 'kidsclub check-in');
+assert(ackKidsclubFlag({}, 'smoke').ok, 'kidsclub flag ack');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2412,6 +2456,7 @@ console.log('MOD168_OK');
 console.log('MOD169_OK');
 console.log('MOD170_OK');
 console.log('MOD171_OK');
+console.log('MOD172_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 1000, 'crudops registry size');
@@ -2462,6 +2507,11 @@ for (const thickened171 of ['passstock', 'pulse', 'amenities', 'haccp']) {
   assert(!crudDomains.some((d) => d.name === thickened171), `crudops skips thickened ${thickened171}`);
   assert(!isCrudOpsPath(`/api/${thickened171}/sweep`, 'POST'), `crudops skips ${thickened171} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened171}/flag/ack`, 'POST'), `crudops skips ${thickened171} ack`);
+}
+for (const thickened172 of ['lateout', 'lockers', 'towels', 'kidsclub']) {
+  assert(!crudDomains.some((d) => d.name === thickened172), `crudops skips thickened ${thickened172}`);
+  assert(!isCrudOpsPath(`/api/${thickened172}/sweep`, 'POST'), `crudops skips ${thickened172} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened172}/flag/ack`, 'POST'), `crudops skips ${thickened172} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');
