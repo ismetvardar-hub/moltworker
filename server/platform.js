@@ -20,6 +20,7 @@ import {
 import { appendAudit, readAudit } from './audit.js';
 import { applySettingsToEnv, getPublicSettings, saveSettings } from './settings.js';
 import {
+  ackJobsFlag,
   cancelJob,
   claimDirective,
   createJob,
@@ -27,7 +28,11 @@ import {
   getJob,
   jobsSummary,
   listJobs,
+  purgeFailedJobs,
+  retryFailedJob,
   runJob,
+  runJobsSweep,
+  seedQueuedJob,
   startJobTicker,
   tickJobs,
 } from './jobs.js';
@@ -88,7 +93,7 @@ import {
   ackEthosFails,
   ackMetricsFlag,
   buildMetrics,
-  purgeFailedJobs,
+  purgeFailedJobs as purgeMetricsFailedJobs,
   runMetricsSweep,
   snapshotMetrics,
 } from './metrics.js';
@@ -8262,6 +8267,36 @@ export function createPlatformMiddleware() {
           })();
           return;
         }
+        if (path === '/api/jobs/sweep' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, runJobsSweep(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/jobs/flag/ack' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, ackJobsFlag(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/jobs/failed/retry' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, await retryFailedJob(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/jobs/failed/purge' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, purgeFailedJobs(await readBody(req), user.username)); })();
+          return;
+        }
+        if (path === '/api/jobs/queued/seed' && req.method === 'POST') {
+          const user = requireUser(req, res);
+          if (!user) return;
+          void (async () => { sendJson(res, 200, seedQueuedJob(await readBody(req), user.username)); })();
+          return;
+        }
         if (path.startsWith('/api/jobs/') && path.endsWith('/run') && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
@@ -8697,7 +8732,7 @@ export function createPlatformMiddleware() {
         if (path === '/api/metrics/jobs/purge' && req.method === 'POST') {
           const user = requireUser(req, res);
           if (!user) return;
-          void (async () => { sendJson(res, 200, purgeFailedJobs(await readBody(req), user.username)); })();
+          void (async () => { sendJson(res, 200, purgeMetricsFailedJobs(await readBody(req), user.username)); })();
           return;
         }
         if (path === '/api/metrics/ethos/ack' && req.method === 'POST') {

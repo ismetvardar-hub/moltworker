@@ -163,6 +163,7 @@ try {
     '/api/digest',
     '/api/report',
     '/api/metrics',
+    '/api/jobs',
     '/api/exports',
     '/api/venues',
     '/api/brands',
@@ -1776,6 +1777,7 @@ try {
 
   const crudReg = await req('/api/crudops', { token });
   assert(crudReg.res.ok && (crudReg.data.total || 0) >= 500, 'crudops registry');
+  assert((crudReg.data.domains || []).length >= 500, 'crudops registry domains');
   for (const domain of ['lateout', 'lockers', 'towels', 'kidsclub', 'bakery', 'winecellar', 'allergens', 'payroll', 'fleet', 'groups', 'guestapp', 'lounge', 'otareviews', 'partners', 'promos', 'sustain', 'artwall', 'badgeprint', 'bands', 'bedding', 'bikerent', 'cinema', 'dawnservice', 'flash', 'florals', 'karaoke', 'mediakit', 'mocktails', 'mysteryshop', 'nightlog', 'photoshoot', 'vipnotes']) {
     const nativeOps = await req(`/api/${domain}/ops`, { token });
     assert(nativeOps.data.domain !== domain, `crudops skips ${domain} ops`);
@@ -1827,6 +1829,15 @@ try {
   assert(metEthos.res.ok && metEthos.data.ok !== false, 'metrics ethos');
   const metAck = await req('/api/metrics/flag/ack', { method: 'POST', token, body: {} });
   assert(metAck.res.ok && metAck.data.ok !== false, 'metrics ack');
+
+  const jobsSweep = await req('/api/jobs/sweep', { method: 'POST', token, body: { force: true } });
+  assert(jobsSweep.res.ok && jobsSweep.data.ok !== false, 'jobs sweep');
+  const jobsSeed = await req('/api/jobs/queued/seed', {
+    method: 'POST',
+    token,
+    body: { title: 'E2E queued job', text: 'E2E queued directive' },
+  });
+  assert(jobsSeed.res.ok && jobsSeed.data.ok !== false && jobsSeed.data.job?.status === 'queued', 'jobs queued seed');
 
   const kdSweep = await req('/api/kudos/sweep', { method: 'POST', token, body: { force: true } });
   assert(kdSweep.res.ok && kdSweep.data.ok !== false, 'kudos sweep');

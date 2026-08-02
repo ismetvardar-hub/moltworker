@@ -661,8 +661,11 @@ import {
   buildOpsReport, runReportSweep, ackReportFlag, cancelReportJobs, ackReportEthos, snapshotReportAudit,
 } from '../server/report.js';
 import {
-  buildMetrics, runMetricsSweep, ackMetricsFlag, snapshotMetrics, purgeFailedJobs, ackEthosFails,
+  buildMetrics, runMetricsSweep, ackMetricsFlag, snapshotMetrics, purgeFailedJobs as purgeMetricFailedJobs, ackEthosFails,
 } from '../server/metrics.js';
+import {
+  jobsSummary, runJobsSweep, ackJobsFlag, retryFailedJob, purgeFailedJobs as purgeJobsFailedJobs, seedQueuedJob,
+} from '../server/jobs.js';
 import {
   kudosSummary, runKudosSweep, ackKudosFlag, createThankYouBurst, refreshKudosTagFilter, seedDailyKudos,
 } from '../server/kudos.js';
@@ -2097,7 +2100,7 @@ const met = buildMetrics();
 assert(met.title, 'metrics overview');
 assert(runMetricsSweep({ force: true }, 'smoke').ok, 'metrics sweep');
 assert(snapshotMetrics({}, 'smoke').ok, 'metrics snapshot');
-assert(purgeFailedJobs({}, 'smoke').ok, 'metrics jobs purge');
+assert(purgeMetricFailedJobs({}, 'smoke').ok, 'metrics jobs purge');
 assert(ackEthosFails({}, 'smoke').ok, 'metrics ethos ack');
 assert(ackMetricsFlag({}, 'smoke').ok, 'metrics flag ack');
 
@@ -2747,6 +2750,14 @@ assert(activateBrandOps({ id: smokeBrand.brand.id }, 'smoke').ok, 'brands activa
 assert(runBrandsSweep({ force: true }, 'smoke').ok, 'brands sweep');
 assert(ackBrandsFlag({}, 'smoke').ok, 'brands flag ack');
 
+assert(jobsSummary().total >= 0, 'jobs overview');
+const smokeQueuedJob = seedQueuedJob({ title: 'Smoke 181 queued job', text: 'Smoke 181 queued directive' }, 'smoke');
+assert(smokeQueuedJob.ok && smokeQueuedJob.job?.status === 'queued', 'jobs queued seed');
+assert(runJobsSweep({ force: true }, 'smoke').ok, 'jobs sweep');
+assert(ackJobsFlag({}, 'smoke').ok, 'jobs flag ack');
+assert((await retryFailedJob({ title: 'Smoke 181 retry job', delayMinutes: 5 }, 'smoke')).ok, 'jobs retry failed');
+assert(purgeJobsFailedJobs({ title: 'Smoke 181 purge job' }, 'smoke').ok, 'jobs purge failed');
+
 assert(seedCampusbriefAction({ text: 'Smoke 161 brif aksiyon', at: new Date(Date.now() - 36 * 60 * 60_000).toISOString() }, 'smoke').ok, 'campusbrief action seed');
 assert(ageCampusBriefActions({ force: true }, 'smoke').ok, 'campusbrief action aging');
 assert(flagCampusbriefHealth({}, 'smoke').ok, 'campusbrief health flag');
@@ -2784,10 +2795,12 @@ console.log('MOD177_OK');
 console.log('MOD178_OK');
 console.log('MOD179_OK');
 console.log('MOD180_OK');
+console.log('MOD181_OK');
 
 const crudDomains = listCrudDomains({ force: true });
 assert(crudDomains.length >= 993, 'crudops registry size');
 assert(crudopsOverview().total === crudDomains.length, 'crudops overview total');
+assert(crudopsOverview().domains?.length === crudDomains.length, 'crudops overview domains');
 assert(!crudDomains.some((d) => d.name === 'brands'), 'crudops skips thickened brands');
 for (const thickened158 of ['lostfound', 'waitlist', 'assets', 'valet']) {
   assert(!crudDomains.some((d) => d.name === thickened158), `crudops skips thickened ${thickened158}`);
@@ -2879,6 +2892,11 @@ for (const thickened180 of ['brands']) {
   assert(!crudDomains.some((d) => d.name === thickened180), `crudops skips thickened ${thickened180}`);
   assert(!isCrudOpsPath(`/api/${thickened180}/sweep`, 'POST'), `crudops skips ${thickened180} sweep`);
   assert(!isCrudOpsPath(`/api/${thickened180}/flag/ack`, 'POST'), `crudops skips ${thickened180} ack`);
+}
+for (const thickened181 of ['jobs']) {
+  assert(!crudDomains.some((d) => d.name === thickened181), `crudops skips thickened ${thickened181}`);
+  assert(!isCrudOpsPath(`/api/${thickened181}/sweep`, 'POST'), `crudops skips ${thickened181} sweep`);
+  assert(!isCrudOpsPath(`/api/${thickened181}/flag/ack`, 'POST'), `crudops skips ${thickened181} ack`);
 }
 assert(isCrudOpsPath('/api/carbonlog/sweep', 'POST'), 'crudops path carbonlog');
 assert(!isCrudOpsPath('/api/brief/sweep', 'POST'), 'crudops skips thickened brief');

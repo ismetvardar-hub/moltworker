@@ -6,6 +6,7 @@ export type JobStatus =
   | 'running'
   | 'ready'
   | 'claimed'
+  | 'queued'
   | 'done'
   | 'failed'
   | 'cancelled';
@@ -27,9 +28,34 @@ export interface Job {
 export interface JobsSummary {
   total: number;
   byStatus: Record<string, number>;
+  flags?: JobsFlag[];
   upcoming: Job[];
   readyDirectives: Job[];
   recent: Job[];
+  summary?: Record<string, number>;
+  summaryLines?: string[];
+}
+
+export interface JobsFlag {
+  id: string;
+  key: string;
+  level: string;
+  text: string;
+  domain: string;
+  status: string;
+  at: string;
+  actor?: string;
+  jobIds?: string[];
+}
+
+export interface JobsOpsResponse {
+  ok: boolean;
+  error?: string;
+  job?: Job;
+  flag?: JobsFlag;
+  cancelled?: string[];
+  created?: JobsFlag[];
+  overview?: JobsSummary;
 }
 
 export async function fetchJobs(params?: {
@@ -82,6 +108,37 @@ export async function cancelJob(id: string): Promise<Job> {
   if (!res.ok) throw new Error('Görev iptal edilemedi');
   const data = (await res.json()) as { job: Job };
   return data.job;
+}
+
+async function postJobsOps(path: string, body: Record<string, unknown> = {}): Promise<JobsOpsResponse> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as JobsOpsResponse;
+  if (!res.ok || data.ok === false) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+export function runJobsSweep(body: Record<string, unknown> = { force: true }): Promise<JobsOpsResponse> {
+  return postJobsOps('/api/jobs/sweep', body);
+}
+
+export function ackJobsFlag(body: Record<string, unknown> = {}): Promise<JobsOpsResponse> {
+  return postJobsOps('/api/jobs/flag/ack', body);
+}
+
+export function retryFailedJob(body: Record<string, unknown> = {}): Promise<JobsOpsResponse> {
+  return postJobsOps('/api/jobs/failed/retry', body);
+}
+
+export function purgeFailedJobs(body: Record<string, unknown> = {}): Promise<JobsOpsResponse> {
+  return postJobsOps('/api/jobs/failed/purge', body);
+}
+
+export function seedQueuedJob(body: Record<string, unknown> = {}): Promise<JobsOpsResponse> {
+  return postJobsOps('/api/jobs/queued/seed', body);
 }
 
 export async function claimDirective(id: string): Promise<{ job: Job; text: string }> {

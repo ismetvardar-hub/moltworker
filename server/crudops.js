@@ -79,11 +79,13 @@ export function listCrudDomains({ force = false } = {}) {
 
 export function crudopsOverview() {
   const domains = listCrudDomains();
+  const registry = domains.map((d) => ({ name: d.name, statuses: d.statuses }));
   return {
     title: 'LİKYA CRUD Ops Registry',
     generatedAt: new Date().toISOString(),
     total: domains.length,
-    sample: domains.slice(0, 40).map((d) => ({ name: d.name, statuses: d.statuses })),
+    domains: registry,
+    sample: registry.slice(0, 40),
     summaryLines: [
       `${domains.length} ince CRUD domain kayıtlı`,
       'Generic sweep / ack / advance / heal / seed uçları aktif',

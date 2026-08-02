@@ -1,19 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  AlertTriangle,
+  CheckCircle2,
   Clock,
   ListTodo,
   MessageCircle,
   Play,
   Plus,
   RefreshCw,
+  RotateCcw,
+  Trash2,
+  Wand2,
   XCircle,
 } from 'lucide-react';
 import PanelCard from '../components/PanelCard';
 import {
+  ackJobsFlag,
   cancelJob,
   createJob,
   fetchJobs,
+  purgeFailedJobs,
+  retryFailedJob,
   runJobNow,
+  runJobsSweep,
+  seedQueuedJob,
   type Job,
   type JobKind,
   type JobsSummary,
@@ -48,6 +58,8 @@ export default function JobsPage() {
   const [directive, setDirective] = useState('');
   const [delayMin, setDelayMin] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [opsBusy, setOpsBusy] = useState<string | null>(null);
+  const [opsFlash, setOpsFlash] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -96,6 +108,22 @@ export default function JobsPage() {
     }
   };
 
+  const runOps = async (key: string, label: string, fn: () => Promise<unknown>) => {
+    if (opsBusy) return;
+    setOpsBusy(key);
+    setError(null);
+    try {
+      await fn();
+      setOpsFlash(`${label} OK`);
+      window.setTimeout(() => setOpsFlash(null), 2800);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `${label} başarısız`);
+    } finally {
+      setOpsBusy(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -137,6 +165,78 @@ export default function JobsPage() {
           </PanelCard>
         ))}
       </div>
+
+      <PanelCard title="Görev Operasyonları" subtitle="Failed aging · stuck running · queued backlog">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={!!opsBusy}
+            onClick={() => void runOps('sweep', 'Sweep', () => runJobsSweep({ force: true }))}
+            className="inline-flex items-center gap-2 rounded-xl bg-lykia-500 px-3 py-2 text-sm font-semibold text-obsidian-950 hover:bg-lykia-400 disabled:opacity-50"
+          >
+            <AlertTriangle className="size-4" />
+            Sweep
+          </button>
+          <button
+            type="button"
+            disabled={!!opsBusy}
+            onClick={() => void runOps('ack', 'Flag ack', () => ackJobsFlag({}))}
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-emerald-500/40 hover:text-emerald-300 disabled:opacity-50"
+          >
+            <CheckCircle2 className="size-4" />
+            Flag ack
+          </button>
+          <button
+            type="button"
+            disabled={!!opsBusy}
+            onClick={() => void runOps('retry', 'Retry failed', () => retryFailedJob({ delayMinutes: 0 }))}
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-50"
+          >
+            <RotateCcw className="size-4" />
+            Retry failed
+          </button>
+          <button
+            type="button"
+            disabled={!!opsBusy}
+            onClick={() => void runOps('purge', 'Purge failed', () => purgeFailedJobs({ limit: 10 }))}
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-rose-500/40 hover:text-rose-300 disabled:opacity-50"
+          >
+            <Trash2 className="size-4" />
+            Purge failed
+          </button>
+          <button
+            type="button"
+            disabled={!!opsBusy}
+            onClick={() =>
+              void runOps('seed', 'Seed queued', () =>
+                seedQueuedJob({ title: 'Ops queued directive', text: 'Jobs ops queued directive' }),
+              )
+            }
+            className="inline-flex items-center gap-2 rounded-xl border border-obsidian-700 bg-obsidian-800 px-3 py-2 text-sm font-semibold text-slate-200 hover:border-lykia-500/40 hover:text-lykia-300 disabled:opacity-50"
+          >
+            <Wand2 className="size-4" />
+            Seed queued
+          </button>
+        </div>
+        {opsFlash && (
+          <p className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+            {opsFlash}
+          </p>
+        )}
+        <div className="mt-4 grid gap-2 md:grid-cols-3">
+          {(summary?.flags || []).slice(0, 6).map((flag) => (
+            <div key={flag.id} className="rounded-xl border border-obsidian-700 bg-obsidian-950/60 px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-lykia-300">
+                {flag.level} · {flag.domain}
+              </p>
+              <p className="mt-1 text-sm text-slate-300">{flag.text}</p>
+            </div>
+          ))}
+          {(summary?.flags || []).length === 0 && (
+            <p className="text-sm text-slate-500">Açık jobs flag yok.</p>
+          )}
+        </div>
+      </PanelCard>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <PanelCard title="Yeni Görev" subtitle="REMINDER-AI veya talimat kuyruğu">
