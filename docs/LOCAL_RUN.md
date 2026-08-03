@@ -9,20 +9,36 @@
 
 Cloud ajanın `localhost`’u senin bilgisayarının `localhost`’u **değildir**. Mac’te sayfa açılmıyorsa panel orada başlatılmamış demektir.
 
-## Mac’te çalıştır
+## Mac’te geliştirme
 
 ```bash
 cd ~/moltworker   # veya repo klasörün
 git fetch origin
-git checkout cursor/olympospass-ceo-panel-f59e
-git pull origin cursor/olympospass-ceo-panel-f59e
+git checkout cursor/ceo-tabs-runtime-fix-f59e
+git pull origin cursor/ceo-tabs-runtime-fix-f59e
 npm install
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 Tarayıcı: http://localhost:5173
 
-Giriş: `ceo` / `likya2026`
+| Rol | Kullanıcı | Şifre |
+|-----|-----------|--------|
+| CEO | `ceo` | `likya2026` |
+| Mutfak | `chef` | `daze123` |
+| Saha | `crew` | `crew123` |
+
+## Hibrit AI (opsiyonel)
+
+Ollama/Groq yoksa panel simülasyonda açılır.
+
+```bash
+ollama serve
+ollama pull qwen2.5
+# veya .env:
+# VITE_GROQ_API_KEY=...
+npm run doctor:reach
+```
 
 ## Port doluysa
 
@@ -31,7 +47,7 @@ lsof -i :5173
 npm run dev -- --host 0.0.0.0 --port 5175
 ```
 
-## Sağlık kontrolü
+## Sağlık kontrolü (dev)
 
 ```bash
 curl -s http://127.0.0.1:5173/api/health | head
@@ -46,11 +62,20 @@ curl -s -X POST http://127.0.0.1:5173/api/auth/login \
 npm run build
 npm start
 # http://localhost:4173
+BASE=http://127.0.0.1:4173 npm run smoke:prod
+```
+
+## Kalite
+
+```bash
+npm run gate
+npm run smoke:campus   # veya: npm run verify
 ```
 
 ## Sık hatalar
 
 1. Wrong directory — `package.json` görünmeli.
-2. Eski dal — `git pull` şart.
+2. Eski dal — `git pull` şart (`cursor/ceo-tabs-runtime-fix-f59e`).
 3. Ollama şart değil; AI simülasyonda da panel açılır.
 4. Cloud preview Mac localhost değildir.
+5. Production’da `dist/` yoksa önce `npm run build`.

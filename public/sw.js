@@ -1,5 +1,5 @@
 /* AŞAMA 18 — Minimal PWA service worker (shell cache) */
-const CACHE = 'likya-shell-v1';
+const CACHE = 'likya-shell-v2';
 const ASSETS = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -23,11 +23,34 @@ self.addEventListener('fetch', (event) => {
   // API'yi cache'leme
   if (url.pathname.startsWith('/api/')) return;
 
+  // Navigasyon / HTML: network-first — deploy sonrası eski shell kalmasın
+  const isNav =
+    request.mode === 'navigate' ||
+    (request.headers.get('accept') || '').includes('text/html') ||
+    url.pathname === '/' ||
+    url.pathname.endsWith('.html');
+
+  if (isNav) {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            void caches.open(CACHE).then((cache) => cache.put(request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(request).then((c) => c || caches.match('/index.html'))),
+    );
+    return;
+  }
+
+  // Statik asset: cache-first, arka planda yenile
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request)
         .then((res) => {
-          if (res.ok && (url.origin === self.location.origin)) {
+          if (res.ok && url.origin === self.location.origin) {
             const clone = res.clone();
             void caches.open(CACHE).then((cache) => cache.put(request, clone));
           }

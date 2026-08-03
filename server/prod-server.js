@@ -35,6 +35,7 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.ico': 'image/x-icon',
@@ -42,16 +43,35 @@ const MIME = {
   '.map': 'application/json',
 };
 
+function setSecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+}
+
 function sendFile(res, filePath) {
   const ext = path.extname(filePath);
+  const base = path.basename(filePath);
   res.statusCode = 200;
+  setSecurityHeaders(res);
   res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');
+
+  // HTML / SW: her zaman taze; hash'li asset'ler uzun cache
+  if (ext === '.html' || base === 'sw.js' || ext === '.webmanifest') {
+    res.setHeader('Cache-Control', 'no-cache');
+  } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+  }
+
   fs.createReadStream(filePath).pipe(res);
 }
 
 function serveStatic(req, res) {
   if (!fs.existsSync(DIST)) {
     res.statusCode = 503;
+    setSecurityHeaders(res);
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.end('dist/ yok — önce npm run build çalıştırın');
     return;
@@ -63,6 +83,7 @@ function serveStatic(req, res) {
 
   if (!filePath.startsWith(DIST)) {
     res.statusCode = 403;
+    setSecurityHeaders(res);
     res.end('Forbidden');
     return;
   }
@@ -72,7 +93,7 @@ function serveStatic(req, res) {
     return;
   }
 
-  // SPA fallback
+  // SPA fallback (hash route / bilinmeyen path)
   sendFile(res, path.join(DIST, 'index.html'));
 }
 
