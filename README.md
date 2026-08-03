@@ -6,8 +6,8 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 
 | Modül | Açıklama |
 |-------|----------|
-| **LİKYA CEO Komuta Merkezi** | Sistem durumu kartları + talimatları **gerçek Ollama modeline** gönderip yanıtı canlı akışla gösteren otonom talimat ekranı (Ollama kapalıysa simülasyon moduna düşer) |
-| **Yerel AI (Ollama Entegrasyonu)** | `http://localhost:11434` üzerindeki Ollama sunucusuyla haberleşir; modelleri (`deepseek-coder`, `qwen2.5`, `llama3`) listeler ve durum kontrolü yapar |
+| **LİKYA CEO Komuta Merkezi** | Sistem durumu kartları + hibrit AI akışı (Ollama → Groq Free → simülasyon) + Agent Reach derin okuma |
+| **Hibrit AI (Ollama + Groq)** | Yerel Ollama öncelik; `VITE_GROQ_API_KEY` ile ücretsiz yedek; ikisi yoksa simülasyon — paneli çökertmez |
 | **IT & AI Ajanlar Paneli** | LİKYA Holding otonom filosu: 28 uzman ajan, 9 stratejik departman; seçilen departmanın ajan kadrosu ve canlı üretim akışı daktilo efektiyle izlenir |
 | **OlymposPass Yönetim Paneli** | Kullanıcı geçişleri, erişim yetkileri ve kart/kod doğrulama modülü |
 | **Daze Chef (Mutfak Paneli)** | 120 sn teslim geri sayımı (2 dk kuralı → termal koruma), reçete hazırlama adımları ve HEPHAESTUS canlı stok düşüş terminali |
@@ -21,10 +21,22 @@ Vite + React + TypeScript + Tailwind CSS ile geliştirilmiş modern yönetim pan
 
 ```bash
 npm install
-npm run dev
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 Uygulama varsayılan olarak [http://localhost:5173](http://localhost:5173) adresinde açılır.
+
+Demo: `ceo` / `likya2026` · mutfak `chef` / `daze123` · saha `crew` / `crew123`
+
+Sıralı yayın: [docs/DEPLOY.md](docs/DEPLOY.md) · Mac/cloud ayrımı: [docs/LOCAL_RUN.md](docs/LOCAL_RUN.md)
+
+```bash
+npm run doctor:reach   # Agent Reach + Hibrit AI sağlık
+npm run gate           # typecheck + sealed + skills
+npm run verify         # gate + campus smoke
+npm run verify:full    # + build + prod smoke + e2e
+npm run backup -- "not"
+```
 
 ### Otomatik Eşitlemeli Önizleme (dev:sync)
 
@@ -36,21 +48,20 @@ npm run dev:sync
 
 Bu komut Vite sunucusunu başlatır ve arka planda her 20 saniyede bir uzak daldaki yeni commit'leri çeker; Vite değişiklikleri anında tarayıcıya yansıtır. Bağımlılık değiştiyse `npm install` otomatik çalışır. Yerel düzenlenmemiş dosyanız varsa eşitleme o turu atlar (çalışmanızı ezmez). Kontrol aralığı: `SYNC_INTERVAL=10 npm run dev:sync`.
 
-## Ollama Entegrasyonu
+## Hibrit AI (Ollama + Groq)
 
-Yerel AI panelinin çalışması için makinenizde [Ollama](https://ollama.com) kurulu ve çalışıyor olmalıdır:
+Ollama **opsiyonel**. Yoksa Groq Free veya simülasyon devreye girer.
 
 ```bash
-# Sunucuyu başlat (tarayıcı erişimi için CORS izni ile)
+# Yerel (önerilen)
 OLLAMA_ORIGINS=* ollama serve
-
-# Hedef modelleri indir
-ollama pull deepseek-coder
 ollama pull qwen2.5
-ollama pull llama3
-```
+# opsiyonel: deepseek-r1, deepseek-coder, llama3
 
-Ollama çalışmıyorsa panel bunu "Çevrimdışı" olarak gösterir; uygulamanın geri kalanı normal çalışmaya devam eder.
+# veya .env (build/dev öncesi)
+# VITE_GROQ_API_KEY=...   # https://console.groq.com
+# VITE_AI_PROVIDER=auto
+```
 
 ### Canlı AI Komuta Akışı
 
