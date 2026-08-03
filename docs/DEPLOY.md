@@ -1,7 +1,22 @@
 # LİKYA — sırayla yayın / doğrulama
 
-Bu dal: `cursor/ceo-tabs-runtime-fix-f59e`  
+Bu dal: `cursor/ceo-tabs-runtime-fix-f59e` → hedef `main`  
 Dokunma: `server/events.js`, `server/integrations.js`, Daze* / Extreme Park ürün yüzeyleri.
+
+## 0) PR’ı aç / birleştir
+
+Cursor Cloud ajanında PR onayı bekleniyor olabilir (otomatik açılmıyorsa UI’dan **Create PR**).
+
+- Dal: `cursor/ceo-tabs-runtime-fix-f59e`
+- Base: `main`
+- Notlar: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
+
+Merge sonrası:
+
+```bash
+git checkout main && git pull
+bash scripts/post-merge.sh
+```
 
 ## 1) Kod al
 
