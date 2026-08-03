@@ -1416,7 +1416,13 @@ export function getBrand(id) {
 
 export function brandsForRole(role) {
   const allowed = ROLE_BRANDS[role] ?? [];
-  return listBrands().filter((b) => allowed.includes(b.id) && b.status === 'active');
+  const byId = new Map(
+    listBrands()
+      .filter((b) => allowed.includes(b.id) && b.status === 'active')
+      .map((b) => [b.id, b]),
+  );
+  // ROLE_BRANDS sırası = varsayılan aktif marka (CEO → LİKYA Holding)
+  return allowed.map((id) => byId.get(id)).filter(Boolean);
 }
 
 export function createBrand(input, actor = 'system') {

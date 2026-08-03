@@ -294,48 +294,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { AuthBrand } from '../services/auth';
 import { CAMPUS_DOMAINS, CORE_NAV_IDS, isLabNoiseId } from '../nav/campusDomains';
-
-/** Marka süzgecinden muaf — çekirdek + kampüs (checkpoint yağmuru yok) */
-const ALWAYS_VISIBLE = new Set<string>([
-  'hub',
-  'komuta',
-  'campus',
-  'brief',
-  'crudops',
-  'extremepark',
-  'agentbridge',
-  'familycamp',
-  'openmall',
-  'marketos',
-  'lifecoach',
-  'athleteos',
-  'stayring',
-  'campuscore',
-  'sportbridge',
-  'agentqueue',
-  'greenpulse',
-  'campusbrief',
-  'agentfleet',
-  'culturescene',
-  'brands',
-  'guests',
-  'notifications',
-  'settings',
-  'ops',
-  'metrics',
-  'docs',
-  'audit',
-  'ajanlar',
-  'empire',
-  'staybook',
-  'hearth',
-  'sanctum',
-  'studio',
-  'verdant',
-  'bazaar',
-  'weather',
-  'readiness',
-]);
+import { isPageVisible } from '../nav/pageVisibility';
 
 interface SidebarProps {
   active: string;
@@ -1805,17 +1764,6 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-function allowedItem(
-  id: string,
-  allowedPages: string[],
-  modules: Set<string>,
-  activeBrand: AuthBrand | undefined,
-) {
-  if (!allowedPages.includes(id)) return false;
-  if (!activeBrand || ALWAYS_VISIBLE.has(id)) return true;
-  return modules.has(id);
-}
-
 export default function Sidebar({
   active,
   allowedPages,
@@ -1829,9 +1777,12 @@ export default function Sidebar({
 }: SidebarProps) {
   const activeBrand = brands.find((b) => b.id === activeBrandId);
   const modules = new Set(activeBrand?.modules ?? []);
-  const [openDomain, setOpenDomain] = useState<string | null>('sport');
+  const [openDomain, setOpenDomain] = useState<string | null>(null);
   const [labOpen, setLabOpen] = useState(false);
   const [labQuery, setLabQuery] = useState('');
+
+  const visible = (id: string) =>
+    isPageVisible(id, allowedPages, modules, { role: userRole, brand: activeBrand });
 
   const byId = useMemo(() => {
     // lucide `Map` ikonu global Map'i gölgeler
@@ -1841,14 +1792,15 @@ export default function Sidebar({
   }, []);
 
   const coreItems = CORE_NAV_IDS.map((id) => byId.get(id)).filter(
-    (item): item is (typeof NAV_ITEMS)[number] =>
-      !!item && allowedItem(item.id, allowedPages, modules, activeBrand),
+    (item): item is (typeof NAV_ITEMS)[number] => !!item && visible(item.id),
   );
 
   const labItems = useMemo(() => {
     const q = labQuery.trim().toLowerCase();
     return NAV_ITEMS.filter((item) => {
-      if (!allowedItem(item.id, allowedPages, modules, activeBrand)) return false;
+      if (!isPageVisible(item.id, allowedPages, modules, { role: userRole, brand: activeBrand })) {
+        return false;
+      }
       if (CORE_NAV_IDS.includes(item.id as (typeof CORE_NAV_IDS)[number])) return false;
       if (!q && isLabNoiseId(item.id)) return false;
       if (!q) return false; // Lab kapalı aramada boş; arama ile açılır
@@ -1858,7 +1810,7 @@ export default function Sidebar({
         item.description.toLowerCase().includes(q)
       );
     }).slice(0, 40);
-  }, [allowedPages, modules, activeBrand, labQuery]);
+  }, [allowedPages, modules, activeBrand, labQuery, userRole]);
 
   function renderNavButton(item: (typeof NAV_ITEMS)[number], dense = false) {
     const Icon = item.icon;
@@ -1932,16 +1884,16 @@ export default function Sidebar({
           </p>
           {CAMPUS_DOMAINS.map((domain) => {
             const open = openDomain === domain.id;
-            const childIds = domain.pages.filter((id) =>
-              allowedItem(id, allowedPages, modules, activeBrand),
-            );
+            const childIds = domain.pages.filter((id) => visible(id));
             return (
               <div key={domain.id} className="rounded-xl border border-obsidian-700/80">
                 <button
                   type="button"
                   onClick={() => {
-                    setOpenDomain(open ? null : domain.id);
-                    if (domain.primary && allowedPages.includes(domain.primary)) {
+                    const nextOpen = !open;
+                    setOpenDomain(nextOpen ? domain.id : null);
+                    // Sadece açılırken primary'ye git — kapanırken sayfa zıplamasın
+                    if (nextOpen && domain.primary && visible(domain.primary)) {
                       onNavigate(domain.primary);
                     }
                   }}

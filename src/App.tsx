@@ -1228,6 +1228,7 @@ import {
   type AuthUser,
 } from './services/auth';
 import { setActiveBrand } from './services/brands';
+import { isPageVisible } from './nav/pageVisibility';
 
 const PAGES: Record<string, ComponentType> = {
   hub: DazeHubPage,
@@ -2499,6 +2500,16 @@ export default function App() {
     (next: string) => {
       const pages = user?.pages ?? [];
       if (!pages.includes(next)) return;
+      const brand = user?.brands?.find((b) => b.id === user.activeBrandId);
+      const modules = new Set(brand?.modules ?? []);
+      if (
+        !isPageVisible(next, pages, modules, {
+          role: user?.role,
+          brand: brand ?? null,
+        })
+      ) {
+        return;
+      }
       window.location.hash = `/${next}`;
       setPage(next);
     },
@@ -2518,15 +2529,12 @@ export default function App() {
       const allowed = updated.pages ?? [];
       const brand = updated.brands?.find((b) => b.id === brandId);
       const modules = new Set(brand?.modules ?? []);
-      if (
-        page !== 'hub' &&
-        page !== 'brands' &&
-        page !== 'guests' &&
-        page !== 'notifications' &&
-        page !== 'settings' &&
-        !modules.has(page) &&
-        allowed.includes('hub')
-      ) {
+      // CEO / Holding veya ALWAYS_VISIBLE sayfalarda marka değişince hub'a fırlatma
+      const stillVisible = isPageVisible(page, allowed, modules, {
+        role: updated.role,
+        brand: brand ?? null,
+      });
+      if (!stillVisible && allowed.includes('hub')) {
         navigate('hub');
       }
     } catch {
