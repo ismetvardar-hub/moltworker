@@ -50,6 +50,10 @@ npm run dev -- --host 0.0.0.0 --port 5175
 ## Sağlık kontrolü (dev)
 
 ```bash
+npm run watch:localhost
+# Vite düştüyse otomatik kaldırmak için:
+# AUTO_RESTART=1 npm run watch:localhost
+
 curl -s http://127.0.0.1:5173/api/health | head
 curl -s -X POST http://127.0.0.1:5173/api/auth/login \
   -H 'Content-Type: application/json' \
