@@ -18,7 +18,7 @@
     "doctor:local": "bash scripts/localhost-doctor.sh",
     "smoke:campus": "node scripts/smoke-campus.mjs",
     "smoke:prod": "node scripts/prod-smoke.mjs",
-    "verify": "bash scripts/quality-gate.sh && node scripts/smoke-campus.mjs",
+    "verify": "bash scripts/quality-gate.sh && node scripts/smoke-campus.mjs && node scripts/role-nav-smoke.mjs",
     "verify:full": "bash scripts/verify-full.sh",
     "postmerge": "bash scripts/post-merge.sh",
     "watch:localhost": "bash scripts/localhost-watchdog.sh",

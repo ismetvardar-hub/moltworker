@@ -63,6 +63,7 @@ import LiveFeed from '../components/LiveFeed';
 import { fetchPlaybooks, type Playbook } from '../services/playbooks';
 import { getStoredUser } from '../services/auth';
 import { fetchCampusBrief, healCampusHealth } from '../services/campusbrief';
+import { fetchCampusHealth } from '../services/ops';
 import { AGENTS } from '../data/agents';
 import { uid } from '../utils/uid';
 import type {
@@ -229,8 +230,17 @@ export default function CommandCenter() {
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [campusPulse, setCampusPulse] = useState<any>(null);
+  const [campusHealth, setCampusHealth] = useState<{ status?: string; score?: number } | null>(null);
+  const [campusFlash, setCampusFlash] = useState<string | null>(null);
+  const [healingCampus, setHealingCampus] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const issueRef = useRef<(text?: string) => Promise<void>>(async () => undefined);
+
+  useEffect(() => {
+    if (!campusFlash) return;
+    const t = window.setTimeout(() => setCampusFlash(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [campusFlash]);
 
   useEffect(() => {
     setArchive(loadArchive());
@@ -244,6 +254,9 @@ export default function CommandCenter() {
     void fetchCampusBrief()
       .then(setCampusPulse)
       .catch(() => setCampusPulse(null));
+    void fetchCampusHealth()
+      .then((h) => setCampusHealth({ status: h.status, score: h.score }))
+      .catch(() => setCampusHealth(null));
   }, []);
 
   useEffect(() => {
@@ -567,9 +580,27 @@ export default function CommandCenter() {
         </p>
       </div>
 
+      {campusFlash && (
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100"
+        >
+          {campusFlash}
+        </p>
+      )}
+
       {campusPulse && (
         <PanelCard title="Kampüs nabız" className="!py-3">
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
+            <span>
+              Skor{' '}
+              <strong className="text-lykia-200">
+                {campusHealth?.score ?? '—'}
+              </strong>
+              {campusHealth?.status ? (
+                <span className="ml-1 text-[11px] text-slate-500">({campusHealth.status})</span>
+              ) : null}
+            </span>
             <span>
               ESG <strong className="text-lykia-200">{campusPulse.pulses?.green?.score ?? '—'}</strong>
             </span>
@@ -615,15 +646,31 @@ export default function CommandCenter() {
             </button>
             <button
               type="button"
-              className="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs text-emerald-100 hover:bg-emerald-500/30"
+              disabled={healingCampus}
+              className="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-50"
               onClick={() => {
-                void healCampusHealth({ limit: 30 })
-                  .then(() => fetchCampusBrief())
-                  .then(setCampusPulse)
-                  .catch(() => undefined);
+                setHealingCampus(true);
+                void healCampusHealth({ limit: 200 })
+                  .then(async (r: any) => {
+                    setCampusFlash(
+                      `Campus iyileşti · ${r.before?.score ?? '—'} → ${r.after?.score ?? '—'} (${r.after?.status ?? '—'})`,
+                    );
+                    const [brief, health] = await Promise.all([
+                      fetchCampusBrief().catch(() => null),
+                      fetchCampusHealth().catch(() => null),
+                    ]);
+                    if (brief) setCampusPulse(brief);
+                    if (health) setCampusHealth({ status: health.status, score: health.score });
+                  })
+                  .catch((err) => {
+                    setCampusFlash(
+                      err instanceof Error ? err.message : 'Campus iyileştirme başarısız',
+                    );
+                  })
+                  .finally(() => setHealingCampus(false));
               }}
             >
-              Campus iyileştir
+              {healingCampus ? 'İyileştiriliyor…' : 'Campus iyileştir'}
             </button>
           </div>
         </PanelCard>

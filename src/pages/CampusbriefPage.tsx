@@ -1,14 +1,26 @@
 import { useEffect, useState } from 'react'
 import PanelCard from '../components/PanelCard'
+import { authHeaders } from '../services/auth'
 import * as api from '../services/campusbrief'
 
 export default function CampusbriefPage() {
   const [data, setData] = useState<any>(null)
+  const [health, setHealth] = useState<{ status?: string; score?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [flash, setFlash] = useState<string | null>(null)
   async function refresh() {
     try {
-      setData(await api.fetchCampusBrief())
+      const [brief, hRes] = await Promise.all([
+        api.fetchCampusBrief(),
+        fetch('/api/campus/health', { headers: authHeaders() }),
+      ])
+      setData(brief)
+      if (hRes.ok) {
+        const h = await hRes.json()
+        setHealth({ status: h.status, score: h.score })
+      } else {
+        setHealth(null)
+      }
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Yüklenemedi')
@@ -28,6 +40,12 @@ export default function CampusbriefPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lykia-400/80">LİKYA Holding</p>
         <h1 className="text-2xl font-bold tracking-tight text-lykia-200">CEO Kampüs Brifi</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">{data?.headline || 'Sabah nabız · aksiyon listesi'}</p>
+        {health && (
+          <p className="mt-2 text-sm text-slate-300">
+            Kampüs skor <strong className="text-lykia-200">{health.score ?? '—'}</strong>
+            <span className="ml-2 text-xs text-slate-500">({health.status ?? '—'})</span>
+          </p>
+        )}
       </header>
       {error && (
         <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
@@ -84,10 +102,15 @@ export default function CampusbriefPage() {
                 type="button"
                 className="rounded-lg bg-emerald-500/90 px-3 py-2 text-sm text-obsidian-950"
                 onClick={() =>
-                  void api.healCampusHealth({ limit: 200 }).then((r: any) => {
-                    ping(`Campus iyileşti · ${r.before?.score ?? '—'} → ${r.after?.score ?? '—'}`)
-                    return refresh()
-                  })
+                  void api
+                    .healCampusHealth({ limit: 200 })
+                    .then((r: any) => {
+                      ping(
+                        `Campus iyileşti · ${r.before?.score ?? '—'} → ${r.after?.score ?? '—'} (${r.after?.status ?? '—'})`,
+                      )
+                      return refresh()
+                    })
+                    .catch((e) => ping(e instanceof Error ? e.message : 'Heal başarısız'))
                 }
               >
                 Campus iyileştir
