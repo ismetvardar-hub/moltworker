@@ -24,4 +24,19 @@ for f in SKILL.md CLAUDE.md .agents/agent-reach.md src/services/agentReach.ts sr
   if [[ -f "$f" ]]; then ok "$f"; else fail "$f missing"; fi
 done
 
+echo "==> Hibrit AI endpoints"
+OLLAMA_URL="${OLLAMA_HOST:-http://127.0.0.1:11434}"
+if curl -fsS --max-time 3 "$OLLAMA_URL/api/version" >/dev/null 2>&1; then
+  ok "Ollama reachable ($OLLAMA_URL)"
+else
+  warn "Ollama offline ($OLLAMA_URL) — panel simülasyon / Groq yedek kullanır"
+fi
+if [[ -n "${VITE_GROQ_API_KEY:-}" ]]; then
+  ok "VITE_GROQ_API_KEY set in environment"
+elif [[ -f .env ]] && grep -qE '^VITE_GROQ_API_KEY=.+' .env 2>/dev/null; then
+  ok "VITE_GROQ_API_KEY present in .env"
+else
+  warn "Groq key yok — .env içine VITE_GROQ_API_KEY ekle (ücretsiz: console.groq.com)"
+fi
+
 echo "DOCTOR_DONE"

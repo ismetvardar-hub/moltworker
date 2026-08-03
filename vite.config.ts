@@ -28,4 +28,23 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /node_modules[\\/](react|react-dom)[\\/]/,
+            },
+            {
+              name: 'lucide',
+              test: /node_modules[\\/]lucide-react[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
 });

@@ -161,8 +161,24 @@ async function* streamGroqGenerate(prompt: string, signal?: AbortSignal): AsyncG
   }
 }
 
+/** Sağlayıcı yokken ETHOS-uyumlu kısa simülasyon — panel çökmesin */
+async function* streamSimulation(prompt: string, signal?: AbortSignal): AsyncGenerator<string> {
+  const clip = prompt.replace(/\s+/g, ' ').trim().slice(0, 160)
+  const parts = [
+    '[LİKYA · simülasyon] ',
+    'Ollama/Groq şu an yok; yine de yol haritasını sade tutayım. ',
+    clip ? `Talimat özeti: ${clip}. ` : '',
+    'Mac’te `ollama serve` + `ollama pull qwen2.5` veya `.env` içine `VITE_GROQ_API_KEY` ekle — canlı akışa geçeriz.',
+  ]
+  for (const part of parts) {
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+    yield part
+    await new Promise((r) => setTimeout(r, 12))
+  }
+}
+
 /**
- * Hibrit stream: Ollama → (başarısız/kapalıysa) Groq.
+ * Hibrit stream: Ollama → (başarısız/kapalıysa) Groq → simülasyon.
  * Command Center mevcut imzayı korur: (model, prompt, signal?).
  */
 export async function* streamGenerate(
@@ -174,16 +190,33 @@ export async function* streamGenerate(
   const info = await getAiProviderInfo()
 
   if (pref === 'groq' || (pref === 'auto' && info.active === 'groq')) {
-    yield* streamGroqGenerate(prompt, signal)
-    return
+    try {
+      yield* streamGroqGenerate(prompt, signal)
+      return
+    } catch {
+      yield* streamSimulation(prompt, signal)
+      return
+    }
   }
 
   try {
     yield* streamOllamaGenerate(model, prompt, signal)
   } catch (err) {
-    if (!isGroqConfigured()) throw err
-    // Ollama düştüyse Groq Free yedek
-    yield* streamGroqGenerate(prompt, signal)
+    if (isGroqConfigured()) {
+      try {
+        yield* streamGroqGenerate(prompt, signal)
+        return
+      } catch {
+        yield* streamSimulation(prompt, signal)
+        return
+      }
+    }
+    // Ollama yok + Groq yok → simülasyon (throw etme)
+    if (!info.ollama.reachable) {
+      yield* streamSimulation(prompt, signal)
+      return
+    }
+    throw err
   }
 }
 

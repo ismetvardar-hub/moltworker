@@ -158,10 +158,18 @@ export default function OllamaPanel() {
             </div>
           </div>
           {health === 'offline' && (
-            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-relaxed text-amber-200/90">
-              Ollama'yı başlatmak için terminalde <code className="font-mono">ollama serve</code>{' '}
-              komutunu çalıştırın. Tarayıcıdan erişim için CORS gerekiyorsa{' '}
-              <code className="font-mono">OLLAMA_ORIGINS=*</code> ortam değişkenini ekleyin.
+            <div className="mt-4 space-y-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-relaxed text-amber-200/90">
+              <p>
+                Ollama kapalı — Komuta zinciri şimdilik simülasyonda. Canlı için:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4 font-mono text-[11px] text-amber-100/90">
+                <li>ollama serve</li>
+                <li>ollama pull qwen2.5</li>
+                <li>veya .env → VITE_GROQ_API_KEY=… (console.groq.com ücretsiz)</li>
+              </ol>
+              <p>
+                CORS gerekirse <code className="font-mono">OLLAMA_ORIGINS=*</code> ekleyin.
+              </p>
             </div>
           )}
         </PanelCard>
