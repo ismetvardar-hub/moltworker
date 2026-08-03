@@ -21,6 +21,7 @@
     "verify:full": "bash scripts/verify-full.sh",
     "postmerge": "bash scripts/post-merge.sh",
     "watch:localhost": "bash scripts/localhost-watchdog.sh",
+    "smoke:roles": "node scripts/role-nav-smoke.mjs",
     "e2e:campus": "node scripts/e2e-campus-http.mjs",
     "backup": "bash scripts/backup-likya.sh"
   },
