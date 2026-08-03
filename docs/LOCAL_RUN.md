@@ -65,11 +65,17 @@ npm start
 BASE=http://127.0.0.1:4173 npm run smoke:prod
 ```
 
-## Kalite
+## Kalite / yayın sırası
+
+Kısa: `npm run verify`  
+Tam zincir: `npm run verify:full`  
+Adım adım: [DEPLOY.md](./DEPLOY.md)
 
 ```bash
 npm run gate
-npm run smoke:campus   # veya: npm run verify
+npm run smoke:campus
+npm run e2e:campus
+npm run backup -- "not"
 ```
 
 ## Sık hatalar

@@ -22,16 +22,18 @@ tar -czf "$ARCHIVE" \
   --exclude='.git' \
   --exclude='backups' \
   --exclude='*.log' \
-  server src data scripts \
+  server src data scripts public docs skills .agents \
   package.json package-lock.json \
   vite.config.ts tsconfig.json index.html \
+  SKILL.md CLAUDE.md .env.example \
   README.md .gitignore 2>/dev/null || \
 tar -czf "$ARCHIVE" \
   --exclude='node_modules' \
   --exclude='dist' \
   --exclude='.git' \
   --exclude='backups' \
-  server src data scripts package.json package-lock.json README.md
+  server src data scripts public docs \
+  package.json package-lock.json README.md SKILL.md CLAUDE.md
 
 cp -f "$ARCHIVE" "${ART_DIR}/${NAME}.tar.gz"
 
