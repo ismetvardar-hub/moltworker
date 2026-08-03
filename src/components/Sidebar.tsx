@@ -293,7 +293,12 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { AuthBrand } from '../services/auth';
-import { CAMPUS_DOMAINS, CORE_NAV_IDS, isLabNoiseId } from '../nav/campusDomains';
+import {
+  coreNavForRole,
+  domainsForRole,
+  isLabNoiseId,
+  surfacedNavIds,
+} from '../nav/campusDomains';
 import { isPageVisible } from '../nav/pageVisibility';
 
 interface SidebarProps {
@@ -1784,6 +1789,10 @@ export default function Sidebar({
   const visible = (id: string) =>
     isPageVisible(id, allowedPages, modules, { role: userRole, brand: activeBrand });
 
+  const roleCore = coreNavForRole(userRole);
+  const roleDomains = domainsForRole(userRole);
+  const surfaced = useMemo(() => surfacedNavIds(userRole), [userRole]);
+
   const byId = useMemo(() => {
     // lucide `Map` ikonu global Map'i gölgeler
     const m = new globalThis.Map<string, (typeof NAV_ITEMS)[number]>();
@@ -1791,9 +1800,9 @@ export default function Sidebar({
     return m;
   }, []);
 
-  const coreItems = CORE_NAV_IDS.map((id) => byId.get(id)).filter(
-    (item): item is (typeof NAV_ITEMS)[number] => !!item && visible(item.id),
-  );
+  const coreItems = roleCore
+    .map((id) => byId.get(id))
+    .filter((item): item is (typeof NAV_ITEMS)[number] => !!item && visible(item.id));
 
   const labItems = useMemo(() => {
     const q = labQuery.trim().toLowerCase();
@@ -1801,7 +1810,7 @@ export default function Sidebar({
       if (!isPageVisible(item.id, allowedPages, modules, { role: userRole, brand: activeBrand })) {
         return false;
       }
-      if (CORE_NAV_IDS.includes(item.id as (typeof CORE_NAV_IDS)[number])) return false;
+      if (surfaced.has(item.id)) return false;
       if (!q && isLabNoiseId(item.id)) return false;
       if (!q) return false; // Lab kapalı aramada boş; arama ile açılır
       return (
@@ -1810,7 +1819,7 @@ export default function Sidebar({
         item.description.toLowerCase().includes(q)
       );
     }).slice(0, 40);
-  }, [allowedPages, modules, activeBrand, labQuery, userRole]);
+  }, [allowedPages, modules, activeBrand, labQuery, userRole, surfaced]);
 
   function renderNavButton(item: (typeof NAV_ITEMS)[number], dense = false) {
     const Icon = item.icon;
@@ -1847,7 +1856,13 @@ export default function Sidebar({
         </div>
         <div>
           <h1 className="text-sm font-bold tracking-wide text-lykia-300">OLYMPOSPASS</h1>
-          <p className="text-xs text-slate-400">LİKYA Kampüs Komuta</p>
+          <p className="text-xs text-slate-400">
+            {userRole === 'kitchen'
+              ? 'Daze Mutfak'
+              : userRole === 'crew'
+                ? 'Saha Ekibi'
+                : 'LİKYA Kampüs Komuta'}
+          </p>
         </div>
       </div>
 
@@ -1880,11 +1895,13 @@ export default function Sidebar({
 
         <div className="space-y-1">
           <p className="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            Kampüs domain
+            {userRole === 'kitchen' ? 'Mutfak' : userRole === 'crew' ? 'Saha' : 'Kampüs domain'}
           </p>
-          {CAMPUS_DOMAINS.map((domain) => {
+          {roleDomains.map((domain) => {
             const open = openDomain === domain.id;
-            const childIds = domain.pages.filter((id) => visible(id));
+            const childIds = domain.pages.filter((id) => visible(id) && byId.has(id));
+            const canOpen = visible(domain.primary) || childIds.length > 0;
+            if (!canOpen) return null;
             return (
               <div key={domain.id} className="rounded-xl border border-obsidian-700/80">
                 <button

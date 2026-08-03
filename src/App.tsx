@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
 
@@ -2455,16 +2456,35 @@ function defaultPage(allowed: string[]): string {
   return allowed[0] || 'komuta';
 }
 
+function hashPageId(): string {
+  return window.location.hash.replace('#/', '').replace('#', '').trim();
+}
+
 function pageFromHash(allowed: string[]): string {
-  const hash = window.location.hash.replace('#/', '').replace('#', '');
+  const hash = hashPageId();
   if (hash && hash in PAGES && allowed.includes(hash)) return hash;
   return defaultPage(allowed);
+}
+
+/** Geçersiz / yetkisiz hash varsa kanonik sayfaya yaz */
+function syncHash(next: string) {
+  const current = hashPageId();
+  if (current !== next) {
+    window.location.hash = `/${next}`;
+  }
 }
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
   const [booting, setBooting] = useState(true);
   const [page, setPage] = useState<string>('komuta');
+  const [navNotice, setNavNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!navNotice) return;
+    const t = window.setTimeout(() => setNavNotice(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [navNotice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2476,10 +2496,7 @@ export default function App() {
         const pages = me.pages ?? [];
         const next = pageFromHash(pages);
         setPage(next);
-        // Hash yoksa varsayılan sayfayı (CEO → Komuta) URL'ye yaz
-        if (!window.location.hash.replace('#', '').trim()) {
-          window.location.hash = `/${next}`;
-        }
+        syncHash(next);
       }
       setBooting(false);
     })();
@@ -2491,7 +2508,11 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const pages = user.pages ?? [];
-    const onHashChange = () => setPage(pageFromHash(pages));
+    const onHashChange = () => {
+      const next = pageFromHash(pages);
+      setPage(next);
+      syncHash(next);
+    };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [user]);
@@ -2499,7 +2520,10 @@ export default function App() {
   const navigate = useCallback(
     (next: string) => {
       const pages = user?.pages ?? [];
-      if (!pages.includes(next)) return;
+      if (!pages.includes(next)) {
+        setNavNotice('Bu sekme rolünde yok.');
+        return;
+      }
       const brand = user?.brands?.find((b) => b.id === user.activeBrandId);
       const modules = new Set(brand?.modules ?? []);
       if (
@@ -2508,8 +2532,10 @@ export default function App() {
           brand: brand ?? null,
         })
       ) {
+        setNavNotice('Bu sekme aktif markada kapalı.');
         return;
       }
+      setNavNotice(null);
       window.location.hash = `/${next}`;
       setPage(next);
     },
@@ -2583,15 +2609,25 @@ export default function App() {
         onLogout={() => void handleLogout()}
       />
       <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
-        <Suspense
-          fallback={
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">
-              Modül yükleniyor…
-            </div>
-          }
-        >
-          <ActivePage />
-        </Suspense>
+        {navNotice && (
+          <div
+            role="status"
+            className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
+          >
+            {navNotice}
+          </div>
+        )}
+        <ErrorBoundary key={page} onReset={() => navigate(page)}>
+          <Suspense
+            fallback={
+              <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+                Modül yükleniyor…
+              </div>
+            }
+          >
+            <ActivePage />
+          </Suspense>
+        </ErrorBoundary>
       </main>
     </div>
   );
