@@ -63,4 +63,12 @@ else
   tail -5 /tmp/likya-doctor-reach.log || true
 fi
 
+echo "==> [gate] localhost (warn-only if down)"
+if bash scripts/localhost-watchdog.sh >/tmp/likya-localhost-watch.log 2>&1; then
+  echo "OK localhost watchdog"
+else
+  echo "WARN localhost not serving (dev/prod) — non-fatal in gate"
+  tail -8 /tmp/likya-localhost-watch.log || true
+fi
+
 echo "GATE_OK"
