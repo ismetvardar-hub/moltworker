@@ -55,6 +55,8 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Oturum varsa sayfa kataloğunu paralel yükle — ilk boyama daha hızlı
+      const regPromise = getStoredUser() ? import('./pageRegistry') : null;
       const me = await fetchMe();
       if (cancelled) return;
       setUser(me);
@@ -63,6 +65,14 @@ export default function App() {
         const next = pageFromHash(pages, null);
         setPage(next);
         syncHash(next);
+        if (regPromise) {
+          try {
+            const m = await regPromise;
+            if (!cancelled) setRegistry(m.PAGES);
+          } catch {
+            /* registry effect fallback */
+          }
+        }
       }
       setBooting(false);
     })();
