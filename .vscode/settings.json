@@ -1,0 +1,5 @@
+{
+  "cline.modelProvider": "ollama",
+  "cline.ollamaBaseUrl": "http://localhost:11434",
+  "cline.ollamaModelId": "claude-3-5-sonnet-20241022:latest"
+}

@@ -3,11 +3,12 @@
  * Command Center ve ajan çıkarımı bu modülden geçer.
  *
  * Env (opsiyonel):
+ *   VITE_OLLAMA_HOST   — yerel Ollama sunucusu (default http://localhost:11434)
  *   VITE_GROQ_API_KEY  — Groq ücretsiz anahtar
  *   VITE_GROQ_MODEL    — varsayılan llama-3.3-70b-versatile
  *   VITE_AI_PROVIDER   — "ollama" | "groq" | "auto" (default auto)
  *
- * Önerilen Ollama modelleri: deepseek-r1, deepseek-coder, qwen2.5
+ * Önerilen Ollama modelleri: deepseek-r1, deepseek-coder, qwen2.5 coder:7b
  */
 
 import {
@@ -202,6 +203,6 @@ export async function completePrompt(
 }
 
 /** Kurulu model yoksa bile güvenli fallback adı. */
-export function pickRuntimeModel(installed: OllamaModel[], preferred = 'qwen2.5'): string {
+export function pickRuntimeModel(installed: OllamaModel[], preferred = 'qwen2.5 coder:7b'): string {
   return resolveModel(preferred, installed, preferred)
 }

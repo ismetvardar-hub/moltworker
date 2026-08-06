@@ -1,0 +1,9 @@
+# OlymposPass Cline rules
+
+- Use the local Ollama model for coding tasks unless the user explicitly asks for a different provider.
+- Prefer concise, production-safe code changes for this React + TypeScript + Vite project.
+- When editing code, preserve existing behavior, avoid unnecessary refactors, and keep changes minimal.
+- For UI work, prefer accessible React components and existing project patterns.
+- For TypeScript changes, keep types explicit and avoid introducing any unless necessary.
+- Before claiming completion, verify with the relevant build or test command.
+- For this repository, prefer the local model for code generation, refactoring, and debugging help.

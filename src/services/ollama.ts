@@ -1,12 +1,12 @@
 import type { OllamaModel, OllamaStatus } from '../types';
 
-export const OLLAMA_BASE_URL = 'http://localhost:11434';
+export const OLLAMA_BASE_URL = String(import.meta.env.VITE_OLLAMA_HOST || 'http://localhost:11434').replace(/\/+$/, '');
 
 /** Panelin takip ettiği hedef modeller (Ollama pull adları). */
 export const TARGET_MODELS = [
   'deepseek-r1',
   'deepseek-coder',
-  'qwen2.5',
+  'qwen2.5 coder:7b',
   'llama3',
 ] as const;
 
@@ -65,19 +65,37 @@ export function isModelInstalled(target: string, installed: OllamaModel[]): bool
   return installed.some((m) => m.name.toLowerCase().startsWith(target.toLowerCase()));
 }
 
+function parseModelSize(name: string): number {
+  const match = name.match(/:(\d+)b$/i) ?? name.match(/-(\d+)b$/i) ?? name.match(/:(\d+)$/i) ?? name.match(/-(\d+)$/i)
+  return match ? Number(match[1]) : 0
+}
+
+function findBestMatchingModel(target: string, installed: OllamaModel[]): OllamaModel | undefined {
+  const lower = target.toLowerCase()
+  const candidates = installed.filter((m) => m.name.toLowerCase().startsWith(lower))
+  return candidates
+    .slice()
+    .sort((a, b) => {
+      const sizeA = parseModelSize(a.name)
+      const sizeB = parseModelSize(b.name)
+      if (sizeA !== sizeB) return sizeB - sizeA
+      return b.name.localeCompare(a.name)
+    })[0]
+}
+
 /**
  * Ajan motorunu yüklü bir Ollama modeline çözümler.
  * Önce tam ön ek (örn. "qwen2.5:32b"), sonra taban ad (örn. "qwen2.5") denenir;
  * eşleşme yoksa (örn. "Midjourney / Flux" gibi harici motorlar) fallback döner.
  */
 export function resolveModel(engine: string, installed: OllamaModel[], fallback: string): string {
-  const lower = engine.toLowerCase();
-  const exact = installed.find((m) => m.name.toLowerCase().startsWith(lower));
-  if (exact) return exact.name;
-  const base = lower.split(':')[0];
-  const baseMatch = installed.find((m) => m.name.toLowerCase().startsWith(base));
-  if (baseMatch) return baseMatch.name;
-  return fallback;
+  const lower = engine.toLowerCase()
+  const exact = findBestMatchingModel(lower, installed)
+  if (exact) return exact.name
+  const base = lower.split(':')[0]
+  const baseMatch = findBestMatchingModel(base, installed)
+  if (baseMatch) return baseMatch.name
+  return fallback
 }
 
 const SYSTEM_PROMPT =

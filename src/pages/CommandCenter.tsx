@@ -568,7 +568,7 @@ export default function CommandCenter() {
       </div>
 
       {campusPulse && (
-        <PanelCard title="Kampüs nabız" className="!py-3">
+        <PanelCard title="Kampüs nabız" className="py-3!">
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
             <span>
               ESG <strong className="text-lykia-200">{campusPulse.pulses?.green?.score ?? '—'}</strong>
@@ -631,7 +631,7 @@ export default function CommandCenter() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {systemCards.map(({ title, value, detail, health, icon: Icon }) => (
-          <PanelCard key={title} className="!p-0">
+          <PanelCard key={title} className="p-0!">
             <div className="flex items-start justify-between">
               <div className="flex size-10 items-center justify-center rounded-lg bg-lykia-500/10 text-lykia-400">
                 <Icon className="size-5" />

@@ -168,7 +168,7 @@ export default function OllamaPanel() {
 
         <PanelCard
           title="Hedef Modeller"
-          subtitle="DeepSeek-R1 · Qwen 2.5 · coder"
+          subtitle="DeepSeek-R1 · Qwen 2.5 coder:7b · coder"
           className="lg:col-span-1"
         >
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
